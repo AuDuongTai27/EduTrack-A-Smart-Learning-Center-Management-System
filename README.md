@@ -10,3 +10,7 @@
 
 ## Progress
 - Initiate project
+## Description
+- "Admin" folder là HTML raw cho center manager, staff manager
+- "Teacher" folder là HTML raw cho teacher, TA
+- "User" folder là HTML raw cho Student
