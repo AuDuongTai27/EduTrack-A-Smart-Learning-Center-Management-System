@@ -1,0 +1,555 @@
+:root {
+  --sidebar-width: 248px;
+  --sidebar-collapsed-width: 74px;
+  --topbar-height: 58px;
+
+  --sidebar-bg: #0f0b1d;
+  --sidebar-panel: #151126;
+  --sidebar-border: #272039;
+
+  --topbar-bg: #100c1d;
+  --topbar-border: #251f36;
+
+  --page-bg: #f6f7fb;
+  --page-surface: #ffffff;
+
+  --text-light: #f7f5ff;
+  --text-dark: #1f2430;
+  --muted-light: #9a94ad;
+  --muted-dark: #72798b;
+
+  --accent: #5d3fd3;
+  --accent-2: #7455e8;
+  --accent-soft: #21183d;
+  --icon-bg: #1c1732;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: var(--page-bg);
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+/* =========================
+   Sidebar
+   ========================= */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  z-index: 1040;
+  transition:
+    width 0.25s ease,
+    transform 0.25s ease;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  height: var(--topbar-height);
+  padding: 0 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 17px;
+  background: linear-gradient(135deg, #4d8cff 0%, #7762e8 55%, #54d6c8 100%);
+  box-shadow: 0 6px 18px rgba(93, 63, 211, 0.25);
+}
+
+.brand-text {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.sidebar-collapse-btn,
+.mobile-menu-btn {
+  border: 0;
+  background: transparent;
+  color: #e9e5f5;
+  font-size: 20px;
+  padding: 4px;
+  line-height: 1;
+}
+
+/* Center selector/card like the PreSkool reference */
+.center-box {
+  margin: 12px 14px 10px;
+  padding: 7px 10px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #eceaf2;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(17, 12, 31, 0.05);
+}
+
+.center-avatar {
+  width: 29px;
+  height: 29px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  color: var(--accent);
+  background: #f1efff;
+}
+
+.center-info {
+  min-width: 0;
+}
+
+.center-name {
+  display: block;
+  color: #252033;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.center-info small {
+  display: block;
+  margin-top: 1px;
+  color: #7e778c;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.sidebar-nav {
+  height: calc(100vh - 124px);
+  padding: 0 14px 18px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #686175 transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: #686175;
+  border-radius: 99px;
+}
+
+.nav-section {
+  margin-top: 15px;
+}
+
+.nav-heading {
+  position: relative;
+  padding: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9a94ac;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+}
+
+.nav-heading::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.sidebar .nav-link {
+  min-height: 40px;
+  padding: 8px 9px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ddd8eb;
+  border-radius: 4px;
+  text-decoration: none;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.sidebar .nav-link i {
+  width: 25px;
+  height: 25px;
+  min-width: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #bbb3d2;
+  background: var(--icon-bg);
+  font-size: 13px;
+}
+
+.sidebar .nav-link span {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.sidebar .nav-link:hover {
+  color: #ffffff;
+  background: #171229;
+}
+
+.sidebar .nav-link:hover i {
+  color: #ffffff;
+}
+
+.sidebar .nav-link.active {
+  color: #8e72ff;
+  background: #21183d;
+}
+
+.sidebar .nav-link.active i {
+  color: var(--accent);
+  background: #ffffff;
+}
+
+/* =========================
+   Main area / topbar
+   ========================= */
+.main-area {
+  min-height: 100vh;
+  margin-left: var(--sidebar-width);
+  background: var(--page-bg);
+  transition: margin-left 0.25s ease;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  height: var(--topbar-height);
+  padding: 0 20px 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--topbar-border);
+  z-index: 1020;
+}
+
+.topbar-left,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-left {
+  gap: 12px;
+  min-width: 0;
+}
+
+.topbar-actions {
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn {
+  display: none;
+}
+
+.search-box {
+  width: 285px;
+  height: 38px;
+  padding: 0 10px 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #77718d;
+  background: #151126;
+  border: 1px solid #241e38;
+  border-radius: 4px;
+}
+
+.search-box i {
+  color: #77718d;
+}
+
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #f1eef8;
+  background: transparent;
+  font-size: 13px;
+}
+
+.search-box input::placeholder {
+  color: #8d879c;
+}
+
+.search-shortcut {
+  padding: 2px 5px;
+  color: #77718b;
+  background: #211b38;
+  border-radius: 3px;
+  font-size: 9px;
+}
+
+.academic-year-btn,
+.icon-btn,
+.profile-btn {
+  height: 36px;
+  color: #f1eef8;
+  background: #121022;
+  border: 1px solid #4f65a9;
+  border-radius: 4px;
+}
+
+.academic-year-btn {
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+.icon-btn {
+  position: relative;
+  width: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.profile-btn {
+  width: 38px;
+  padding: 2px;
+}
+
+.profile-avatar {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #201740;
+  background: linear-gradient(135deg, #9ce7ef, #b5a3ff);
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.status-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  background: #f43f5e;
+  border-radius: 50%;
+}
+
+.academic-year-btn:hover,
+.icon-btn:hover,
+.profile-btn:hover {
+  color: #fff;
+  background: #1a1630;
+}
+
+/* =========================
+   Blank page area - LIGHT
+   ========================= */
+.page-wrapper {
+  min-height: calc(100vh - var(--topbar-height));
+  background: var(--page-bg);
+}
+
+.page-content {
+  min-height: calc(100vh - var(--topbar-height));
+  padding: 24px 26px;
+  background: var(--page-bg);
+}
+
+/* =========================
+   Collapsed sidebar
+   ========================= */
+body.sidebar-collapsed .sidebar {
+  width: var(--sidebar-collapsed-width);
+}
+
+body.sidebar-collapsed .main-area {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+body.sidebar-collapsed .brand-text,
+body.sidebar-collapsed .center-info,
+body.sidebar-collapsed .nav-heading,
+body.sidebar-collapsed .sidebar .nav-link span {
+  display: none;
+}
+
+body.sidebar-collapsed .sidebar-header {
+  padding: 0 10px;
+}
+
+body.sidebar-collapsed .center-box {
+  justify-content: center;
+  margin-inline: 10px;
+  padding-inline: 0;
+}
+
+body.sidebar-collapsed .sidebar-nav {
+  padding-inline: 10px;
+}
+
+body.sidebar-collapsed .sidebar .nav-link {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+body.sidebar-collapsed .sidebar .nav-link i {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  background: rgba(5, 3, 12, 0.62);
+  z-index: 1030;
+}
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+  }
+
+  .sidebar.show {
+    transform: translateX(0);
+  }
+
+  .main-area,
+  body.sidebar-collapsed .main-area {
+    margin-left: 0;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .sidebar-collapse-btn {
+    display: none;
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  .search-box {
+    width: min(42vw, 270px);
+  }
+
+  .academic-year-btn span {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    padding-inline: 12px;
+  }
+
+  .search-box {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: 5px;
+  }
+
+  .topbar-actions .icon-btn:nth-of-type(1),
+  .topbar-actions .icon-btn:nth-of-type(4) {
+    display: none;
+  }
+}
+
+/* ===== Proportion refinements ===== */
+.sidebar {
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.02);
+}
+
+.topbar {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.center-box {
+  box-shadow: 0 1px 3px rgba(17, 12, 31, 0.08);
+}
+
+.sidebar .nav-link span {
+  line-height: 1.25;
+}
+
+@media (min-width: 1200px) {
+  .sidebar-nav {
+    padding-bottom: 24px;
+  }
+}
