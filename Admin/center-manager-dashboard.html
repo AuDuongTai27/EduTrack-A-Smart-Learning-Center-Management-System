@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduTrack - Center Manager Layout</title>
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <!-- EduTrack Layout CSS -->
+    <link rel="stylesheet" href="assets/css/center-manager-layout.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <a class="brand" href="#">
+            <span class="brand-mark">
+              <i class="bi bi-mortarboard-fill"></i>
+            </span>
+            <span class="brand-text">EduTrack</span>
+          </a>
+
+          <button
+            class="sidebar-collapse-btn"
+            id="sidebarCollapseBtn"
+            type="button"
+            aria-label="Toggle sidebar"
+          >
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <div class="center-box">
+          <span class="center-avatar">
+            <i class="bi bi-buildings-fill"></i>
+          </span>
+          <div class="center-info">
+            <span class="center-name">EduTrack Center</span>
+            <small>Learning Center</small>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <div class="nav-heading">MAIN</div>
+            <a class="nav-link active" href="#">
+              <i class="bi bi-grid-1x2-fill"></i>
+              <span>Dashboard</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">MANAGEMENT</div>
+            <a class="nav-link" href="#">
+              <i class="bi bi-person-gear"></i>
+              <span>User Accounts</span>
+            </a>
+            <a class="nav-link" href="#">
+              <i class="bi bi-mortarboard"></i>
+              <span>Students</span>
+            </a>
+            <a class="nav-link" href="#">
+              <i class="bi bi-journal-bookmark-fill"></i>
+              <span>Subjects</span>
+            </a>
+            <a class="nav-link" href="#">
+              <i class="bi bi-collection-fill"></i>
+              <span>Classes</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">FINANCE</div>
+            <a class="nav-link" href="#">
+              <i class="bi bi-cash-stack"></i>
+              <span>Tuition</span>
+            </a>
+            <a class="nav-link" href="#">
+              <i class="bi bi-check2-square"></i>
+              <span>Approval Requests</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">COMMUNICATION</div>
+            <a class="nav-link" href="#">
+              <i class="bi bi-megaphone-fill"></i>
+              <span>Notifications</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">REPORTING</div>
+            <a class="nav-link" href="#">
+              <i class="bi bi-bar-chart-fill"></i>
+              <span>Reports</span>
+            </a>
+          </div>
+
+          <div class="nav-section pb-4">
+            <div class="nav-heading">SYSTEM</div>
+            <a class="nav-link" href="#">
+              <i class="bi bi-gear-fill"></i>
+              <span>Settings</span>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main area -->
+      <div class="main-area">
+        <!-- Header -->
+        <header class="topbar">
+          <div class="topbar-left">
+            <button
+              class="mobile-menu-btn"
+              id="mobileMenuBtn"
+              type="button"
+              aria-label="Open menu"
+            >
+              <i class="bi bi-list"></i>
+            </button>
+
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input type="text" placeholder="Search" />
+            </div>
+          </div>
+
+          <div class="topbar-actions">
+            <button class="academic-year-btn" type="button">
+              <i class="bi bi-calendar3"></i>
+              <span>Academic Year : 2026 / 2027</span>
+            </button>
+
+            <button class="icon-btn" type="button" title="Language">
+              <i class="bi bi-globe2"></i>
+            </button>
+            <button class="icon-btn" type="button" title="Theme">
+              <i class="bi bi-moon-stars"></i>
+            </button>
+            <button
+              class="icon-btn notification-btn"
+              type="button"
+              title="Notifications"
+            >
+              <i class="bi bi-bell"></i>
+              <span class="status-dot"></span>
+            </button>
+            <button class="icon-btn" type="button" title="Fullscreen">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+
+            <button class="profile-btn" type="button">
+              <span class="profile-avatar">CM</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Intentionally blank content area -->
+        <main class="page-wrapper">
+          <div class="page-content">
+            <!-- Content grab here -->
+
+            <!-- Breadcrumb and Quick Access -->
+            <div
+              class="d-md-flex d-block align-items-center justify-content-between mb-3"
+            >
+              <div class="my-auto mb-2">
+                <h3 class="page-title mb-1">Admin Dashboard</h3>
+                <nav>
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                      <a href="center-manager-dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                      Admin Dashboard
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+              <div
+                class="d-flex my-xl-auto right-content align-items-center flex-wrap"
+              >
+                <div class="mb-2">
+                  <a
+                    href="#"
+                    class="btn btn-primary d-flex align-items-center me-3"
+                    ><i class="ti ti-square-rounded-plus me-2"></i>Add New
+                    Student</a
+                  >
+                </div>
+                <div class="mb-2">
+                  <a href="#" class="btn btn-light d-flex align-items-center"
+                    >Fees Details</a
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Popup News and Hello Account -->
+            <div class="row mb-4">
+              <div class="col-md-12">
+                <div class="alert-message">
+                  <div
+                    class="alert alert-success rounded-pill d-flex align-items-center justify-content-between border-success mb-4"
+                    role="alert"
+                  >
+                    <div class="d-flex align-items-center">
+                      <span class="me-1 avatar avatar-sm flex-shrink-0"
+                        ><img
+                          src="assets/img/profiles/avatar-27.jpg"
+                          alt="Img"
+                          class="img-fluid rounded-circle"
+                      /></span>
+                      <p class="mb-0">
+                        Fahed III,C has paid Fees for the
+                        <strong class="mx-1">“Term1”</strong>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn-close p-0"
+                      data-bs-dismiss="alert"
+                      aria-label="Close"
+                    >
+                      <span><i class="bi bi-x"></i></span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="card bg-dark">
+                  <!-- <div class="overlay-img">
+								<img src="assets/img/bg/shape-04.png" alt="img" class="img-fluid shape-01">
+								<img src="assets/img/bg/shape-01.png" alt="img" class="img-fluid shape-02">
+								<img src="assets/img/bg/shape-02.png" alt="img" class="img-fluid shape-03">
+								<img src="assets/img/bg/shape-03.png" alt="img" class="img-fluid shape-04">
+							</div> -->
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-xl-center justify-content-xl-between flex-xl-row flex-column"
+                    >
+                      <div class="mb-3 mb-xl-0">
+                        <div class="d-flex align-items-center flex-wrap mb-2">
+                          <h1 class="text-white me-2">
+                            Welcome Back, Mr. Herald
+                          </h1>
+                          <a
+                            href="#"
+                            class="avatar avatar-sm img-rounded bg-gray-800 dark-hover"
+                            ><i class="ti ti-edit text-white"></i
+                          ></a>
+                        </div>
+                        <p class="text-white">Have a Good day at work</p>
+                      </div>
+                      <p class="text-white">
+                        <i class="ti ti-refresh me-1"></i>Updated Recently on 15
+                        Jun 2024
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dashboard KPI Cards -->
+            <div class="dashboard-kpis mb-4">
+              <!-- Active Students -->
+              <div class="card dashboard-kpi border-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex align-items-center justify-content-between"
+                  >
+                    <div>
+                      <p class="text-muted mb-1">Active Students</p>
+                      <h3 class="mb-0">3654</h3>
+                    </div>
+
+                    <div class="kpi-icon bg-primary-subtle text-primary">
+                      <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+                  </div>
+
+                  <div class="border-top mt-3 pt-3">
+                    <span class="text-success">
+                      <i class="bi bi-arrow-up"></i> 2.4%
+                    </span>
+                    <span class="text-muted ms-1">this month</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Classes -->
+              <div class="card dashboard-kpi border-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex align-items-center justify-content-between"
+                  >
+                    <div>
+                      <p class="text-muted mb-1">Active Classes</p>
+                      <h3 class="mb-0">24</h3>
+                    </div>
+
+                    <div class="kpi-icon bg-info-subtle text-info">
+                      <i class="bi bi-collection-fill"></i>
+                    </div>
+                  </div>
+
+                  <div class="border-top mt-3 pt-3">
+                    <span class="text-muted">6 classes today</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Staff -->
+              <div class="card dashboard-kpi border-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex align-items-center justify-content-between"
+                  >
+                    <div>
+                      <p class="text-muted mb-1">Active Staff</p>
+                      <h3 class="mb-0">42</h3>
+                    </div>
+
+                    <div class="kpi-icon bg-warning-subtle text-warning">
+                      <i class="bi bi-people-fill"></i>
+                    </div>
+                  </div>
+
+                  <div class="border-top mt-3 pt-3">
+                    <span class="text-muted">Teachers, TAs & Staff</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tuition Collected -->
+              <div class="card dashboard-kpi border-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex align-items-center justify-content-between"
+                  >
+                    <div>
+                      <p class="text-muted mb-1">Tuition Collected</p>
+                      <h3 class="mb-0">485M</h3>
+                    </div>
+
+                    <div class="kpi-icon bg-success-subtle text-success">
+                      <i class="bi bi-cash-stack"></i>
+                    </div>
+                  </div>
+
+                  <div class="border-top mt-3 pt-3">
+                    <span class="text-success">
+                      <i class="bi bi-arrow-up"></i> 8.2%
+                    </span>
+                    <span class="text-muted ms-1">this month</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Outstanding Tuition -->
+              <div class="card dashboard-kpi border-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex align-items-center justify-content-between"
+                  >
+                    <div>
+                      <p class="text-muted mb-1">Outstanding Tuition</p>
+                      <h3 class="mb-0">72M</h3>
+                    </div>
+
+                    <div class="kpi-icon bg-danger-subtle text-danger">
+                      <i class="bi bi-exclamation-circle-fill"></i>
+                    </div>
+                  </div>
+
+                  <div
+                    class="border-top mt-3 pt-3 d-flex justify-content-between"
+                  >
+                    <span class="text-muted">Overdue</span>
+                    <strong class="text-danger">18M</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dashboard Charts -->
+            <div class="row g-4 mb-4">
+              <!-- Tuition Overview -->
+              <div class="col-xl-6 d-flex">
+                <div class="card dashboard-card flex-fill">
+                  <div
+                    class="card-header dashboard-card-header d-flex align-items-center justify-content-between"
+                  >
+                    <div>
+                      <h5 class="mb-1">Tuition Overview</h5>
+                      <small class="text-muted">
+                        Collected and outstanding tuition
+                      </small>
+                    </div>
+
+                    <select class="form-select form-select-sm chart-filter">
+                      <option>This Month</option>
+                      <option>Last Month</option>
+                      <option>This Week</option>
+                    </select>
+                  </div>
+
+                  <div class="card-body dashboard-card-body">
+                    <div class="chart-container">
+                      <canvas id="tuitionChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notice Board -->
+              <div class="col-xl-6 d-flex">
+                <div class="card dashboard-card flex-fill">
+                  <div
+                    class="card-header dashboard-card-header d-flex align-items-center justify-content-between"
+                  >
+                    <div>
+                      <h5 class="mb-1">Notice Board</h5>
+                      <small class="text-muted">
+                        Latest announcements and updates
+                      </small>
+                    </div>
+
+                    <a href="#" class="dashboard-view-all">View All</a>
+                  </div>
+
+                  <div class="card-body dashboard-card-body">
+                    <div class="notice-list">
+                      <!-- Notice 1 -->
+                      <div class="notice-item">
+                        <div class="notice-icon bg-primary-subtle text-primary">
+                          <i class="bi bi-book"></i>
+                        </div>
+
+                        <div class="notice-content">
+                          <h6 class="mb-1">New Syllabus Instructions</h6>
+                          <p class="mb-0 text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Added on : 11 Mar 2024
+                          </p>
+                        </div>
+
+                        <span class="notice-day">20 Days</span>
+                      </div>
+
+                      <!-- Notice 2 -->
+                      <div class="notice-item">
+                        <div class="notice-icon bg-success-subtle text-success">
+                          <i class="bi bi-megaphone"></i>
+                        </div>
+
+                        <div class="notice-content">
+                          <h6 class="mb-1">World Environment Day Program</h6>
+                          <p class="mb-0 text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Added on : 21 Apr 2024
+                          </p>
+                        </div>
+
+                        <span class="notice-day">15 Days</span>
+                      </div>
+
+                      <!-- Notice 3 -->
+                      <div class="notice-item">
+                        <div class="notice-icon bg-danger-subtle text-danger">
+                          <i class="bi bi-bell"></i>
+                        </div>
+
+                        <div class="notice-content">
+                          <h6 class="mb-1">Exam Preparation Notification</h6>
+                          <p class="mb-0 text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Added on : 13 Mar 2024
+                          </p>
+                        </div>
+
+                        <span class="notice-day">12 Days</span>
+                      </div>
+
+                      <!-- Notice 4 -->
+                      <div class="notice-item">
+                        <div class="notice-icon bg-info-subtle text-info">
+                          <i class="bi bi-laptop"></i>
+                        </div>
+
+                        <div class="notice-content">
+                          <h6 class="mb-1">Online Classes Preparation</h6>
+                          <p class="mb-0 text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Added on : 24 May 2024
+                          </p>
+                        </div>
+
+                        <span class="notice-day">02 Days</span>
+                      </div>
+
+                      <!-- Notice 5 -->
+                      <div class="notice-item">
+                        <div class="notice-icon bg-warning-subtle text-warning">
+                          <i class="bi bi-calendar-event"></i>
+                        </div>
+
+                        <div class="notice-content">
+                          <h6 class="mb-1">Exam Time Table Release</h6>
+                          <p class="mb-0 text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Added on : 24 May 2024
+                          </p>
+                        </div>
+
+                        <span class="notice-day">06 Days</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  </body>
+</html>
