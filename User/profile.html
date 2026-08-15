@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hồ sơ cá nhân – EduTrack</title>
+  <meta name="description" content="EduTrack - Thông tin hồ sơ cá nhân học sinh, ngày nhập học, thông tin liên lạc và cập nhật tài khoản." />
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Custom Layout & Profile CSS -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         DESKTOP SIDEBAR (Cố định bên trái)
+    ═══════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+      <!-- Brand / Logo -->
+      <div class="sidebar-header">
+        <a href="student-dashboard.html" class="brand-link">
+          <div class="brand-logo-icon">
+            <i class="bi bi-mortarboard-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="brand-title">EduTrack</div>
+            <div class="brand-subtitle">Cổng học sinh</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-title">Menu</div>
+        <ul class="sidebar-nav-list">
+          <li class="sidebar-nav-item">
+            <a href="student-dashboard.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
+              <span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="schedule.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+              <span class="nav-label">Lịch học</span>
+            </a>
+          </li>
+
+          <li class="sidebar-nav-item">
+            <a href="progress.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+              <span class="nav-label">Tiến độ</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="tuition.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-credit-card"></i></span>
+              <span class="nav-label">Học phí</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="notifications.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-bell"></i></span>
+              <span class="nav-label">Thông báo</span>
+              <span class="sidebar-badge">4</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Student Profile Chip at Bottom -->
+      <div class="sidebar-footer">
+        <a href="profile.html" class="student-chip" style="background-color: #EFF6FF;">
+          <div class="student-avatar">MA</div>
+          <div class="student-info">
+            <div class="student-name" title="Nguyễn Thị Minh Anh">Nguyễn Thị Minh Anh</div>
+            <div class="student-grade">Học sinh · Lớp 11</div>
+          </div>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MOBILE OFFCANVAS SIDEBAR (Drawer cho màn hình nhỏ)
+    ═══════════════════════════════════════════════════════════════ -->
+    <div class="offcanvas offcanvas-start et-offcanvas" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+      <div class="offcanvas-header border-bottom px-3 py-3">
+        <a href="student-dashboard.html" class="brand-link" id="mobileSidebarLabel">
+          <div class="brand-logo-icon">
+            <i class="bi bi-mortarboard-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="brand-title">EduTrack</div>
+            <div class="brand-subtitle">Cổng học sinh</div>
+          </div>
+        </a>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+
+      <div class="offcanvas-body">
+        <nav class="sidebar-nav px-2">
+          <div class="sidebar-nav-title">Menu</div>
+          <ul class="sidebar-nav-list">
+            <li class="sidebar-nav-item">
+              <a href="student-dashboard.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
+                <span class="nav-label">Dashboard</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="schedule.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+                <span class="nav-label">Lịch học</span>
+              </a>
+            </li>
+
+            <li class="sidebar-nav-item">
+              <a href="progress.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                <span class="nav-label">Tiến độ</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="tuition.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-credit-card"></i></span>
+                <span class="nav-label">Học phí</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="notifications.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-bell"></i></span>
+                <span class="nav-label">Thông báo</span>
+                <span class="sidebar-badge">4</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer mt-auto">
+          <a href="profile.html" class="student-chip" style="background-color: #EFF6FF;">
+            <div class="student-avatar">MA</div>
+            <div class="student-info">
+              <div class="student-name">Nguyễn Thị Minh Anh</div>
+              <div class="student-grade">Học sinh · Lớp 11</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MAIN WRAPPER (Nội dung Hồ sơ cá nhân bên phải)
+    ═══════════════════════════════════════════════════════════════ -->
+    <div class="main-wrapper">
+
+      <!-- Mobile Topbar -->
+      <header class="mobile-topbar">
+        <button class="btn-hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Mở menu">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div class="d-flex align-items-center gap-2">
+          <div class="brand-logo-icon" style="width: 28px; height: 28px; border-radius: 8px;">
+            <i class="bi bi-mortarboard-fill fs-6"></i>
+          </div>
+          <span class="brand-title fs-6">EduTrack</span>
+        </div>
+        <div class="student-avatar" style="width: 32px; height: 32px; font-size: 11px;">MA</div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <div class="content-container profile-container">
+
+          <!-- 1. Breadcrumbs & Header Row -->
+          <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-2 text-muted small mb-1">
+                <a href="student-dashboard.html" class="text-decoration-none text-muted">Trang chủ</a>
+                <i class="bi bi-chevron-right" style="font-size: 10px;"></i>
+                <span class="text-dark fw-semibold">Hồ sơ cá nhân</span>
+                <span id="breadcrumbEdit" class="d-none">
+                  <i class="bi bi-chevron-right mx-1 text-muted" style="font-size: 10px;"></i>
+                  <span class="text-warning fw-semibold">Chỉnh sửa</span>
+                </span>
+              </div>
+              <h1 class="page-title fs-3 fw-bold">Hồ sơ cá nhân</h1>
+              <p class="page-subtitle">Xem và cập nhật thông tin cá nhân của bạn</p>
+            </div>
+
+            <!-- Edit Button -->
+            <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 fw-bold" id="btnEditProfile">
+              <i class="bi bi-pencil-square"></i>
+              <span>Chỉnh sửa</span>
+            </button>
+          </div>
+
+          <!-- 2. Profile View Card (Chế độ xem) -->
+          <div class="profile-card" id="profileViewCard">
+            <!-- Hero Gradient Banner -->
+            <div class="profile-hero-banner">
+              <div class="decor-circle-1"></div>
+              <div class="decor-circle-2"></div>
+            </div>
+
+            <!-- Identity Row -->
+            <div class="profile-identity-section">
+              <div class="d-flex align-items-end gap-4 flex-wrap">
+                <div class="profile-avatar-wrapper">
+                  <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=240&h=240&fit=crop&auto=format" alt="Avatar" class="profile-avatar-img" id="viewAvatarImg" />
+                  <span class="profile-online-dot"></span>
+                </div>
+                <div class="profile-identity-info">
+                  <h2 class="profile-student-fullname" id="viewFullName">Nguyễn Thị Minh Anh</h2>
+                  <div class="profile-meta-tags">
+                    <span class="profile-role-tag">
+                      <i class="bi bi-mortarboard-fill"></i>
+                      <span>Học sinh</span>
+                    </span>
+                    <span class="profile-enroll-date-text">
+                      EduTrack &bull; Nhập học <span id="viewEnrollDate">01/09/2023</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Info Rows -->
+            <div class="mt-3">
+              <div class="profile-info-row">
+                <div class="profile-info-icon-box">
+                  <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="profile-info-label-group">
+                    <span class="profile-info-label">Ngày sinh</span>
+                  </div>
+                  <p class="profile-info-value" id="viewDob">15/03/2006</p>
+                </div>
+              </div>
+
+              <div class="profile-info-row">
+                <div class="profile-info-icon-box">
+                  <i class="bi bi-gender-ambiguous"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="profile-info-label-group">
+                    <span class="profile-info-label">Giới tính</span>
+                  </div>
+                  <p class="profile-info-value" id="viewGender">Nữ</p>
+                </div>
+              </div>
+
+              <div class="profile-info-row">
+                <div class="profile-info-icon-box locked">
+                  <i class="bi bi-lock-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="profile-info-label-group">
+                    <span class="profile-info-label">Ngày nhập học</span>
+                    <span class="profile-locked-badge">
+                      <i class="bi bi-lock-fill" style="font-size: 9px;"></i>
+                      <span>Hệ thống</span>
+                    </span>
+                  </div>
+                  <p class="profile-info-value locked">01/09/2023</p>
+                </div>
+              </div>
+
+              <div class="profile-info-row">
+                <div class="profile-info-icon-box">
+                  <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="profile-info-label-group">
+                    <span class="profile-info-label">Địa chỉ</span>
+                  </div>
+                  <p class="profile-info-value" id="viewAddress">45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh</p>
+                </div>
+              </div>
+
+              <div class="profile-info-row">
+                <div class="profile-info-icon-box">
+                  <i class="bi bi-telephone-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="profile-info-label-group">
+                    <span class="profile-info-label">Số điện thoại</span>
+                  </div>
+                  <p class="profile-info-value" id="viewPhone">0901 234 567</p>
+                </div>
+              </div>
+
+              <div class="profile-info-row">
+                <div class="profile-info-icon-box">
+                  <i class="bi bi-envelope-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="profile-info-label-group">
+                    <span class="profile-info-label">Email</span>
+                  </div>
+                  <p class="profile-info-value" id="viewEmail">minhanh.nguyen@gmail.com</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="pb-3"></div>
+          </div>
+
+          <!-- 3. Profile Edit Card (Chế độ chỉnh sửa - ban đầu ẩn) -->
+          <div class="profile-card d-none" id="profileEditCard">
+            <!-- Hero Gradient Banner with Edit Badge -->
+            <div class="profile-hero-banner">
+              <div class="decor-circle-1"></div>
+              <div class="decor-circle-2"></div>
+              <div class="profile-edit-badge-pill">
+                <i class="bi bi-pencil-fill"></i>
+                <span>Đang chỉnh sửa</span>
+              </div>
+            </div>
+
+            <div class="edit-form-wrap">
+              <!-- Avatar Upload Row -->
+              <div class="d-flex align-items-end gap-4 -mt-14 mb-4 position-relative" style="margin-top: -52px;">
+                <div class="avatar-upload-box" id="avatarUploadBox" title="Nhấp để chọn ảnh mới">
+                  <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=240&h=240&fit=crop&auto=format" alt="Avatar" class="profile-avatar-img" id="editAvatarImg" />
+                  <div class="avatar-upload-overlay">
+                    <i class="bi bi-camera-fill fs-5"></i>
+                    <span>Thay ảnh</span>
+                  </div>
+                </div>
+
+                <input type="file" id="avatarFileInput" accept="image/*" class="d-none" />
+
+                <div class="pb-2">
+                  <button type="button" class="btn btn-link text-decoration-none p-0 fw-bold d-flex align-items-center gap-1.5 text-primary" id="btnChangeAvatar">
+                    <i class="bi bi-camera"></i>
+                    <span>Thay ảnh đại diện</span>
+                  </button>
+                  <p class="text-muted small mb-0 mt-1">Hỗ trợ JPG, PNG, WEBP &middot; Dung lượng tối đa 5MB</p>
+                </div>
+              </div>
+
+              <!-- Form Fields (2-Column Grid) -->
+              <div class="row g-3">
+                <!-- Full name -->
+                <div class="col-12 form-field-group">
+                  <label class="form-field-label" for="inputFullName">Họ và tên</label>
+                  <div class="input-icon-wrap">
+                    <i class="bi bi-person"></i>
+                    <input type="text" class="et-form-input" id="inputFullName" value="Nguyễn Thị Minh Anh" placeholder="Nhập họ và tên đầy đủ" />
+                  </div>
+                </div>
+
+                <!-- DOB -->
+                <div class="col-md-6 form-field-group">
+                  <label class="form-field-label" for="inputDob">Ngày tháng năm sinh</label>
+                  <div class="input-icon-wrap">
+                    <i class="bi bi-calendar-date"></i>
+                    <input type="date" class="et-form-input" id="inputDob" value="2006-03-15" />
+                  </div>
+                </div>
+
+                <!-- Gender -->
+                <div class="col-md-6 form-field-group">
+                  <label class="form-field-label" for="inputGender">Giới tính</label>
+                  <div class="input-icon-wrap">
+                    <i class="bi bi-gender-ambiguous"></i>
+                    <select class="et-form-input" id="inputGender">
+                      <option value="Nam">Nam</option>
+                      <option value="Nữ" selected>Nữ</option>
+                      <option value="Khác">Khác</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Address -->
+                <div class="col-12 form-field-group">
+                  <label class="form-field-label" for="inputAddress">Địa chỉ</label>
+                  <div class="input-icon-wrap">
+                    <i class="bi bi-geo-alt"></i>
+                    <input type="text" class="et-form-input" id="inputAddress" value="45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh" placeholder="Số nhà, đường, phường, quận..." />
+                  </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="col-md-6 form-field-group">
+                  <label class="form-field-label" for="inputPhone">Số điện thoại</label>
+                  <div class="input-icon-wrap">
+                    <i class="bi bi-telephone"></i>
+                    <input type="tel" class="et-form-input" id="inputPhone" value="0901 234 567" placeholder="0900 000 000" />
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6 form-field-group">
+                  <label class="form-field-label" for="inputEmail">Email</label>
+                  <div class="input-icon-wrap">
+                    <i class="bi bi-envelope"></i>
+                    <input type="email" class="et-form-input" id="inputEmail" value="minhanh.nguyen@gmail.com" placeholder="example@email.com" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Locked Notice -->
+              <div class="locked-field-notice">
+                <div class="rounded-2 p-1 bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                  <i class="bi bi-lock-fill" style="font-size: 12px;"></i>
+                </div>
+                <span><strong>Ngày nhập học</strong> là trường do hệ thống quản lý và không thể chỉnh sửa.</span>
+              </div>
+
+              <!-- Form Action Buttons -->
+              <div class="d-flex align-items-center gap-3 mt-4 pt-3 border-top">
+                <button type="button" class="btn-save-profile" id="btnSaveProfile">
+                  <i class="bi bi-check-lg fs-6"></i>
+                  <span>Lưu thay đổi</span>
+                </button>
+                <button type="button" class="btn-cancel-profile" id="btnCancelProfile">
+                  <i class="bi bi-x-lg"></i>
+                  <span>Hủy</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Mode Status Badge -->
+          <div class="d-flex justify-content-end mt-3">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]" id="profileModeBadge">
+              <i class="bi bi-check-circle-fill me-1"></i>
+              <span>Chế độ xem</span>
+            </span>
+          </div>
+
+        </div>
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SUCCESS TOAST (Thông báo cập nhật thành công)
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="profile-toast-box" id="profileToast">
+    <div class="toast-icon-circle">
+      <i class="bi bi-check-lg"></i>
+    </div>
+    <div>
+      <div class="fw-bold text-success fs-6">Cập nhật thành công</div>
+      <div class="text-success-emphasis small">Hồ sơ của bạn đã được lưu lại trên hệ thống.</div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Main layout JS -->
+  <script src="assets/js/main.js"></script>
+
+  <!-- Profile Controller -->
+  <script src="assets/js/profile.js"></script>
+</body>
+</html>

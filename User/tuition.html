@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học phí & Thanh toán – EduTrack</title>
+  <meta name="description" content="EduTrack - Quản lý hóa đơn học phí, chi phí từng phần và lịch sử thanh toán của học sinh." />
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Custom Layout & Tuition CSS -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         DESKTOP SIDEBAR (Cố định bên trái)
+    ═══════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+      <!-- Brand / Logo -->
+      <div class="sidebar-header">
+        <a href="student-dashboard.html" class="brand-link">
+          <div class="brand-logo-icon">
+            <i class="bi bi-mortarboard-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="brand-title">EduTrack</div>
+            <div class="brand-subtitle">Cổng học sinh</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-title">Menu</div>
+        <ul class="sidebar-nav-list">
+          <li class="sidebar-nav-item">
+            <a href="student-dashboard.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
+              <span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="schedule.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+              <span class="nav-label">Lịch học</span>
+            </a>
+          </li>
+
+          <li class="sidebar-nav-item">
+            <a href="progress.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+              <span class="nav-label">Tiến độ</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="tuition.html" class="sidebar-nav-link active">
+              <span class="nav-icon"><i class="bi bi-credit-card"></i></span>
+              <span class="nav-label">Học phí</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="notifications.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-bell"></i></span>
+              <span class="nav-label">Thông báo</span>
+              <span class="sidebar-badge">3</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Student Profile Chip at Bottom -->
+      <div class="sidebar-footer">
+        <a href="profile.html" class="student-chip">
+          <div class="student-avatar">MA</div>
+          <div class="student-info">
+            <div class="student-name" title="Nguyễn Minh Anh">Nguyễn Minh Anh</div>
+            <div class="student-grade">Học sinh · Lớp 11</div>
+          </div>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MOBILE OFFCANVAS SIDEBAR (Drawer cho màn hình nhỏ)
+    ═══════════════════════════════════════════════════════════════ -->
+    <div class="offcanvas offcanvas-start et-offcanvas" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+      <div class="offcanvas-header border-bottom px-3 py-3">
+        <a href="student-dashboard.html" class="brand-link" id="mobileSidebarLabel">
+          <div class="brand-logo-icon">
+            <i class="bi bi-mortarboard-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="brand-title">EduTrack</div>
+            <div class="brand-subtitle">Cổng học sinh</div>
+          </div>
+        </a>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+
+      <div class="offcanvas-body">
+        <nav class="sidebar-nav px-2">
+          <div class="sidebar-nav-title">Menu</div>
+          <ul class="sidebar-nav-list">
+            <li class="sidebar-nav-item">
+              <a href="student-dashboard.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
+                <span class="nav-label">Dashboard</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="schedule.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+                <span class="nav-label">Lịch học</span>
+              </a>
+            </li>
+
+            <li class="sidebar-nav-item">
+              <a href="progress.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                <span class="nav-label">Tiến độ</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="tuition.html" class="sidebar-nav-link active">
+                <span class="nav-icon"><i class="bi bi-credit-card"></i></span>
+                <span class="nav-label">Học phí</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="notifications.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-bell"></i></span>
+                <span class="nav-label">Thông báo</span>
+                <span class="sidebar-badge">3</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer mt-auto">
+          <a href="profile.html" class="student-chip">
+            <div class="student-avatar">MA</div>
+            <div class="student-info">
+              <div class="student-name">Nguyễn Minh Anh</div>
+              <div class="student-grade">Học sinh · Lớp 11</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MAIN WRAPPER (Nội dung Học phí & Thanh toán bên phải)
+    ═══════════════════════════════════════════════════════════════ -->
+    <div class="main-wrapper">
+
+      <!-- Mobile Topbar -->
+      <header class="mobile-topbar">
+        <button class="btn-hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Mở menu">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div class="d-flex align-items-center gap-2">
+          <div class="brand-logo-icon" style="width: 28px; height: 28px; border-radius: 8px;">
+            <i class="bi bi-mortarboard-fill fs-6"></i>
+          </div>
+          <span class="brand-title fs-6">EduTrack</span>
+        </div>
+        <div class="student-avatar" style="width: 32px; height: 32px; font-size: 11px;">MA</div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <div class="content-container tuition-container">
+
+          <!-- 1. Breadcrumbs & Page Header -->
+          <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 text-muted small mb-2">
+              <a href="student-dashboard.html" class="text-decoration-none text-muted">Trang chủ</a>
+              <i class="bi bi-chevron-right" style="font-size: 10px;"></i>
+              <span class="text-primary fw-semibold">Học phí và Thanh toán</span>
+            </div>
+            <h1 class="page-title fs-3 fw-bold">Học phí và Thanh toán</h1>
+            <p class="page-subtitle">
+              Kỳ học <span class="fw-semibold text-dark">Tháng 8 / 2026</span> &middot; Xem chi tiết chi phí và lịch sử đóng học phí của bạn.
+            </p>
+          </div>
+
+          <!-- 2. Bill Card (2-Column Grid) -->
+          <div class="bill-card">
+            <div class="bill-accent-bar"></div>
+            <div class="bill-grid-layout">
+
+              <!-- Left Column: Total Due -->
+              <div class="bill-left-col">
+                <div class="bill-total-label">Tổng tiền cần đóng</div>
+                <div class="bill-hero-amount">7.500.000 đ</div>
+
+                <div class="bill-meta-lines">
+                  <div class="bill-meta-item">
+                    <span class="bill-meta-title">Kỳ đóng:</span>
+                    <span class="bill-meta-value">Tháng 8 / 2026</span>
+                  </div>
+                  <div class="bill-meta-item">
+                    <span class="bill-meta-title">Hạn đóng:</span>
+                    <span class="bill-meta-due-date">15/08/2026</span>
+                  </div>
+                </div>
+
+                <div class="mt-auto">
+                  <div class="bill-remaining-chip">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Còn 8 ngày để thanh toán</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Breakdown -->
+              <div class="bill-right-col">
+                <div class="breakdown-heading-row">
+                  <h2 class="breakdown-heading">Chi phí từng phần</h2>
+                  <i class="bi bi-info-circle text-muted" title="Chi tiết các khoản phí trong kỳ học"></i>
+                </div>
+
+                <div class="breakdown-list">
+                  <div class="breakdown-item-row">
+                    <span class="breakdown-item-name">Lớp Toán 9A – Đại Số</span>
+                    <span class="breakdown-item-amount">3.500.000 đ</span>
+                  </div>
+                  <div class="breakdown-item-row">
+                    <span class="breakdown-item-name">Lớp Vật Lý 9B – Cơ Học</span>
+                    <span class="breakdown-item-amount">2.000.000 đ</span>
+                  </div>
+                  <div class="breakdown-item-row">
+                    <span class="breakdown-item-name">Lớp Tiếng Anh – Giao Tiếp</span>
+                    <span class="breakdown-item-amount">1.500.000 đ</span>
+                  </div>
+                  <div class="breakdown-item-row">
+                    <span class="breakdown-item-name">Tài liệu học tập</span>
+                    <span class="breakdown-item-amount">300.000 đ</span>
+                  </div>
+                  <div class="breakdown-item-row">
+                    <span class="breakdown-item-name">Phí quản lý nền tảng</span>
+                    <span class="breakdown-item-amount">200.000 đ</span>
+                  </div>
+                </div>
+
+                <div class="breakdown-totals-box">
+                  <div class="breakdown-subtotal-row">
+                    <span>Tạm tính (Sub-total)</span>
+                    <span class="fw-semibold">7.500.000 đ</span>
+                  </div>
+                  <div class="breakdown-total-row">
+                    <span class="breakdown-total-label">Tổng cộng (Total)</span>
+                    <span class="breakdown-total-val">7.500.000 đ</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 3. Payment CTA Action -->
+          <div class="payment-cta-wrap">
+            <button type="button" class="btn-pay-now" id="btnPayNow">
+              <i class="bi bi-wallet2 fs-5"></i>
+              <span>Thanh toán ngay (Đóng hết một lượt)</span>
+            </button>
+            <p class="payment-sub-note">
+              <i class="bi bi-info-circle"></i>
+              <span>Thanh toán một lần duy nhất cho toàn bộ các khoản phí còn nợ</span>
+            </p>
+          </div>
+
+          <!-- 4. Payment History Section -->
+          <section>
+            <div class="history-section-header">
+              <h2 class="history-section-title">Lịch sử thanh toán</h2>
+              <span class="history-count-label">5 giao dịch gần nhất</span>
+            </div>
+
+            <div class="history-table-card">
+              <!-- Header Row -->
+              <div class="history-grid-header">
+                <span>Kỳ đóng</span>
+                <span>Số tiền đóng</span>
+                <span>Ngày thanh toán</span>
+                <span>Trạng thái</span>
+              </div>
+
+              <!-- Data Rows -->
+              <div class="history-grid-row">
+                <span class="history-period-text">Tháng 7 / 2026</span>
+                <span class="history-amount-text">7.500.000 đ</span>
+                <span class="history-date-text">02/07/2026</span>
+                <span class="history-status-badge">
+                  <i class="bi bi-check-circle-fill"></i>
+                  <span>Đã nộp</span>
+                </span>
+              </div>
+
+              <div class="history-grid-row">
+                <span class="history-period-text">Tháng 6 / 2026</span>
+                <span class="history-amount-text">7.200.000 đ</span>
+                <span class="history-date-text">01/06/2026</span>
+                <span class="history-status-badge">
+                  <i class="bi bi-check-circle-fill"></i>
+                  <span>Đã nộp</span>
+                </span>
+              </div>
+
+              <div class="history-grid-row">
+                <span class="history-period-text">Tháng 5 / 2026</span>
+                <span class="history-amount-text">7.200.000 đ</span>
+                <span class="history-date-text">30/04/2026</span>
+                <span class="history-status-badge">
+                  <i class="bi bi-check-circle-fill"></i>
+                  <span>Đã nộp</span>
+                </span>
+              </div>
+
+              <div class="history-grid-row">
+                <span class="history-period-text">Tháng 4 / 2026</span>
+                <span class="history-amount-text">6.800.000 đ</span>
+                <span class="history-date-text">01/04/2026</span>
+                <span class="history-status-badge">
+                  <i class="bi bi-check-circle-fill"></i>
+                  <span>Đã nộp</span>
+                </span>
+              </div>
+
+              <div class="history-grid-row">
+                <span class="history-period-text">Tháng 3 / 2026</span>
+                <span class="history-amount-text">6.800.000 đ</span>
+                <span class="history-date-text">28/02/2026</span>
+                <span class="history-status-badge">
+                  <i class="bi bi-check-circle-fill"></i>
+                  <span>Đã nộp</span>
+                </span>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       PAYMENT MODAL (Hộp thoại thanh toán trực tuyến)
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content payment-modal-card">
+        <div class="modal-header payment-modal-header border-0">
+          <div>
+            <h5 class="modal-title fw-bold" id="paymentModalLabel">Thanh toán học phí trực tuyến</h5>
+            <p class="mb-0 text-white-50 small">Kỳ học Tháng 8 / 2026 &bull; Học sinh Nguyễn Minh Anh</p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="p-3 bg-light rounded-3 mb-3 d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Tổng số tiền thanh toán:</span>
+            <span class="fs-4 fw-extrabold text-primary">7.500.000 đ</span>
+          </div>
+
+          <label class="form-label small fw-bold text-uppercase text-muted mb-2">Chọn phương thức thanh toán:</label>
+
+          <!-- Method 1: QR Pay -->
+          <div class="payment-method-card active">
+            <i class="bi bi-qr-code-scan fs-4 text-primary"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold text-dark">Chuyển khoản qua mã VietQR</div>
+              <div class="text-muted small">Quét mã QR bằng ứng dụng ngân hàng bất kỳ</div>
+            </div>
+            <i class="bi bi-check-circle-fill text-primary method-check-icon"></i>
+          </div>
+
+          <!-- Method 2: MoMo / E-Wallet -->
+          <div class="payment-method-card">
+            <i class="bi bi-wallet-fill fs-4 text-danger"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold text-dark">Ví điện tử MoMo / ZaloPay</div>
+              <div class="text-muted small">Thanh toán nhanh qua ví điện tử liên kết</div>
+            </div>
+            <i class="bi bi-check-circle-fill text-primary method-check-icon d-none"></i>
+          </div>
+
+          <!-- Method 3: ATM / VNPAY -->
+          <div class="payment-method-card">
+            <i class="bi bi-credit-card-2-front-fill fs-4 text-info"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold text-dark">Thẻ ATM nội địa / VNPAY-QR</div>
+              <div class="text-muted small">Hỗ trợ tất cả ngân hàng nội địa Việt Nam</div>
+            </div>
+            <i class="bi bi-check-circle-fill text-primary method-check-icon d-none"></i>
+          </div>
+
+          <!-- Method 4: Visa/Mastercard -->
+          <div class="payment-method-card">
+            <i class="bi bi-credit-card-fill fs-4 text-warning"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold text-dark">Thẻ quốc tế (Visa / MasterCard / JCB)</div>
+              <div class="text-muted small">Thanh toán quốc tế bảo mật 3D-Secure</div>
+            </div>
+            <i class="bi bi-check-circle-fill text-primary method-check-icon d-none"></i>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 bg-light p-3">
+          <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary px-4 fw-semibold" id="btnConfirmPayment">Xác nhận thanh toán</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Main layout JS -->
+  <script src="assets/js/main.js"></script>
+
+  <!-- Tuition Controller -->
+  <script src="assets/js/tuition.js"></script>
+</body>
+</html>
