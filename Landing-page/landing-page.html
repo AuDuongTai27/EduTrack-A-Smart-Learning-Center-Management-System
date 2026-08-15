@@ -83,7 +83,7 @@
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
-      <a class="btn-getstarted" href="https://bootstrapmade.com/content/demo/Mentor/courses.html">Get Started</a>
+      <a class="btn-getstarted" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
 
     </div>
   </header>
@@ -100,8 +100,8 @@
         </h2>
         <p data-aos="fade-up" data-aos-delay="200" class="aos-init aos-animate">Mô tả ngắn về trung tâm</p>
         <div class="d-flex mt-4 aos-init aos-animate" data-aos="fade-up" data-aos-delay="300">
-          <a href="https://bootstrapmade.com/content/demo/Mentor/courses.html" class="btn-get-started">Login hoặc gì
-            đó</a>
+          <a href="#" class="btn-get-started me-3" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập
+            ngay</a>
         </div>
       </div>
 
@@ -598,25 +598,65 @@
       </div>
     </div>
 
-  </footer>
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-0 bg-success bg-gradient text-white rounded-top-4 py-3">
+            <h5 class="modal-title fw-bold" id="loginModalLabel">
+              <i class="bi bi-person-lock me-2"></i>Đăng nhập
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <form id="loginForm">
+              <div class="mb-3">
+                <label for="loginUsername" class="form-label fw-semibold">Username</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                  <input type="text" class="form-control" id="loginUsername" placeholder="Tên đăng nhập" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="loginPassword" class="form-label fw-semibold">Mật khẩu</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                  <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="rememberMe">
+                  <label class="form-check-label text-secondary small" for="rememberMe">Ghi nhớ đăng nhập</label>
+                </div>
+                <a href="#" class="text-success text-decoration-none small">Quên mật khẩu?</a>
+              </div>
+              <button type="submit" class="btn btn-success w-100 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Scroll Top -->
-  <a href="https://bootstrapmade.com/content/demo/Mentor/#" id="scroll-top"
-    class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+    <!-- Scroll Top -->
+    <a href="https://bootstrapmade.com/content/demo/Mentor/#" id="scroll-top"
+      class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-  <!-- Preloader -->
+    <!-- Preloader -->
 
 
-  <!-- Vendor JS Files -->
-  <script src="./assets/js/bootstrap.bundle.min.js"></script>
-  <script src="./assets/js/validate.js"></script>
-  <script src="./assets/js/aos.js"></script>
-  <script src="./assets/js/glightbox.min.js"></script>
-  <script src="./assets/js/purecounter_vanilla.js"></script>
-  <script src="./assets/js/swiper-bundle.min.js"></script>
+    <!-- Vendor JS Files -->
+    <script src="./assets/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/validate.js"></script>
+    <script src="./assets/js/aos.js"></script>
+    <script src="./assets/js/glightbox.min.js"></script>
+    <script src="./assets/js/purecounter_vanilla.js"></script>
+    <script src="./assets/js/swiper-bundle.min.js"></script>
 
-  <!-- Main JS File -->
-  <script src="./assets/js/main.js"></script>
+    <!-- Main JS File -->
+    <script src="./assets/js/main.js"></script>
 
 </body>
 
