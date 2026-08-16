@@ -646,6 +646,7 @@ input {
 .notice-item {
   min-height: 64px;
   padding: 12px 0;
+  flex: 1;
 
   display: flex;
   align-items: center;
@@ -1278,6 +1279,11 @@ body.sidebar-collapsed .sidebar .nav-link i {
 .badge-status-active {
   background-color: #dcfce7;
   color: #15803d;
+}
+
+.badge-status-pending {
+  background-color: #fef3c7;
+  color: #d97706;
 }
 
 .badge-status-inactive {

@@ -152,7 +152,8 @@
                     <!-- Schedule Classes Section -->
                     <div class="card class-list-card border-0 mb-4">
                         <!-- Card Header -->
-                        <div class="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div
+                            class="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
                             <h4 class="class-list-title">Schedule Classes</h4>
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <button type="button" class="btn-header-action" id="dateRangeBtn">
@@ -205,7 +206,8 @@
                                         <i class="bi bi-chevron-down ms-1"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" id="sortOptions">
-                                        <li><a class="dropdown-item active" href="#" data-sort="asc">Ascending (A-Z)</a></li>
+                                        <li><a class="dropdown-item active" href="#" data-sort="asc">Ascending (A-Z)</a>
+                                        </li>
                                         <li><a class="dropdown-item" href="#" data-sort="desc">Descending (Z-A)</a></li>
                                     </ul>
                                 </div>
@@ -243,6 +245,7 @@
                                         <th>Class <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
                                         <th>Subject <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
                                         <th>Location <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
+                                        <th>Date <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
                                         <th>Start Time <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
                                         <th>End Time <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
                                         <th>Students <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
@@ -254,147 +257,131 @@
                                 <tbody>
                                     <tr data-class="Class I" data-status="Active">
                                         <td>
-                                            <div class="form-check m-0"><input class="form-check-input row-checkbox" type="checkbox"></div>
+                                            <div class="form-check m-0"><input class="form-check-input row-checkbox"
+                                                    type="checkbox"></div>
                                         </td>
                                         <td><a href="#" class="class-id-link">Class I-A</a></td>
                                         <td>Physics</td>
                                         <td>Room 101</td>
+                                        <td>16 Aug 2026</td>
                                         <td>08:00 AM</td>
                                         <td>09:30 AM</td>
                                         <td>30</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                <img src="assets/img/profiles/avatar-27.jpg" class="ta-avatar-img" alt="Sarah Jenkins">
+                                                <img src="assets/img/profiles/avatar-27.jpg" class="ta-avatar-img"
+                                                    alt="Sarah Jenkins">
                                                 <span>Sarah Jenkins</span>
                                             </div>
                                         </td>
                                         <td><span class="badge-status badge-status-active">Active</span></td>
                                         <td>
-                                            <div class="dropdown">
-                                                <button type="button" class="action-btn-icon" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-2"></i>Edit</a></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                                                </ul>
-                                            </div>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr data-class="Class I" data-status="Active">
                                         <td>
-                                            <div class="form-check m-0"><input class="form-check-input row-checkbox" type="checkbox"></div>
+                                            <div class="form-check m-0"><input class="form-check-input row-checkbox"
+                                                    type="checkbox"></div>
                                         </td>
                                         <td><a href="#" class="class-id-link">Class I-A</a></td>
                                         <td>Physics</td>
                                         <td>Lab 2</td>
+                                        <td>16 Aug 2026</td>
                                         <td>10:00 AM</td>
                                         <td>11:30 AM</td>
                                         <td>30</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="ta-avatar-initials bg-primary-subtle text-primary">MR</span>
+                                                <span
+                                                    class="ta-avatar-initials bg-primary-subtle text-primary">MR</span>
                                                 <span>Michael Reed</span>
                                             </div>
                                         </td>
                                         <td><span class="badge-status badge-status-active">Active</span></td>
                                         <td>
-                                            <div class="dropdown">
-                                                <button type="button" class="action-btn-icon" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-2"></i>Edit</a></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                                                </ul>
-                                            </div>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr data-class="Class I" data-status="Active">
                                         <td>
-                                            <div class="form-check m-0"><input class="form-check-input row-checkbox" type="checkbox"></div>
+                                            <div class="form-check m-0"><input class="form-check-input row-checkbox"
+                                                    type="checkbox"></div>
                                         </td>
                                         <td><a href="#" class="class-id-link">Class I-A</a></td>
                                         <td>Physics</td>
                                         <td>Room 101</td>
+                                        <td>16 Aug 2026</td>
                                         <td>01:00 PM</td>
                                         <td>02:30 PM</td>
                                         <td>30</td>
                                         <td><span class="text-muted small fst-italic">Unassigned</span></td>
                                         <td><span class="badge-status badge-status-active">Active</span></td>
                                         <td>
-                                            <div class="dropdown">
-                                                <button type="button" class="action-btn-icon" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-2"></i>Edit</a></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                                                </ul>
-                                            </div>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr data-class="Class I" data-status="Active">
                                         <td>
-                                            <div class="form-check m-0"><input class="form-check-input row-checkbox" type="checkbox"></div>
+                                            <div class="form-check m-0"><input class="form-check-input row-checkbox"
+                                                    type="checkbox"></div>
                                         </td>
                                         <td><a href="#" class="class-id-link">Class I-A</a></td>
                                         <td>Physics</td>
                                         <td>Lab 2</td>
+                                        <td>16 Aug 2026</td>
                                         <td>03:00 PM</td>
                                         <td>04:30 PM</td>
                                         <td>30</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                <img src="assets/img/profiles/avatar-27.jpg" class="ta-avatar-img" alt="Sarah Jenkins">
+                                                <img src="assets/img/profiles/avatar-27.jpg" class="ta-avatar-img"
+                                                    alt="Sarah Jenkins">
                                                 <span>Sarah Jenkins</span>
                                             </div>
                                         </td>
                                         <td><span class="badge-status badge-status-active">Active</span></td>
                                         <td>
-                                            <div class="dropdown">
-                                                <button type="button" class="action-btn-icon" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-2"></i>Edit</a></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                                                </ul>
-                                            </div>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr data-class="Class I" data-status="Inactive">
                                         <td>
-                                            <div class="form-check m-0"><input class="form-check-input row-checkbox" type="checkbox"></div>
+                                            <div class="form-check m-0"><input class="form-check-input row-checkbox"
+                                                    type="checkbox"></div>
                                         </td>
                                         <td><a href="#" class="class-id-link">Class I-A</a></td>
                                         <td>Physics</td>
                                         <td>Room 101</td>
+                                        <td>16 Aug 2026</td>
                                         <td>05:00 PM</td>
                                         <td>06:30 PM</td>
                                         <td>30</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="ta-avatar-initials bg-success-subtle text-success">EL</span>
+                                                <span
+                                                    class="ta-avatar-initials bg-success-subtle text-success">EL</span>
                                                 <span>Emily Lawson</span>
                                             </div>
                                         </td>
                                         <td><span class="badge-status badge-status-inactive">Inactive</span></td>
                                         <td>
-                                            <div class="dropdown">
-                                                <button type="button" class="action-btn-icon" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-2"></i>Edit</a></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                                                </ul>
-                                            </div>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
