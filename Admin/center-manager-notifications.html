@@ -176,6 +176,356 @@
         <main class="page-wrapper">
           <div class="page-content">
             <!-- Content grab here -->
+            <!-- Breadcrumb and Quick Access -->
+            <div
+              class="d-md-flex d-block align-items-center justify-content-between mb-3"
+            >
+              <div class="my-auto mb-2">
+                <h3 class="page-title mb-1">Notification Management</h3>
+
+                <nav>
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                      <a href="center-manager-dashboard.html">Dashboard</a>
+                    </li>
+
+                    <li class="breadcrumb-item active" aria-current="page">
+                      Notifications
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+
+              <div class="mb-2">
+                <button
+                  type="button"
+                  class="btn btn-primary d-flex align-items-center"
+                >
+                  <i class="bi bi-plus-square me-2"></i>
+                  New Notification
+                </button>
+              </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="card user-list-card mb-4">
+              <div class="card-header user-list-header">
+                <div class="row g-3 align-items-center">
+                  <div class="col-xl-4 col-lg-6">
+                    <div class="user-search">
+                      <i class="bi bi-search"></i>
+
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Search notifications..."
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Types</option>
+                      <option>Announcement</option>
+                      <option>Tuition Reminder</option>
+                      <option>Schedule Update</option>
+                      <option>Academic Notice</option>
+                    </select>
+                  </div>
+
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Recipients</option>
+                      <option>Entire Center</option>
+                      <option>Role</option>
+                      <option>Class</option>
+                      <option>Class Subject</option>
+                      <option>Specific Users</option>
+                    </select>
+                  </div>
+
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Statuses</option>
+                      <option>Draft</option>
+                      <option>Scheduled</option>
+                      <option>Sent</option>
+                      <option>Cancelled</option>
+                    </select>
+                  </div>
+
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>Sort by Newest</option>
+                      <option>Sort by Oldest</option>
+                      <option>Title A-Z</option>
+                      <option>Title Z-A</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notification Content -->
+            <div class="row g-4">
+              <!-- Notification List -->
+              <div class="col-xl-5">
+                <div class="card notification-card">
+                  <div class="notification-card-header">
+                    <div>
+                      <h5 class="mb-1">Notification List</h5>
+                      <small>12 notifications</small>
+                    </div>
+                  </div>
+
+                  <div class="notification-list">
+                    <div class="notification-item active">
+                      <div class="notification-item-top">
+                        <h6>Tuition Payment Reminder</h6>
+
+                        <span class="notification-status status-scheduled">
+                          Scheduled
+                        </span>
+                      </div>
+
+                      <p class="notification-summary">
+                        Reminder for students with outstanding tuition payments.
+                      </p>
+
+                      <div class="notification-meta">
+                        <span>
+                          <i class="bi bi-people me-1"></i>
+                          Parents
+                        </span>
+
+                        <span>
+                          <i class="bi bi-clock me-1"></i>
+                          18 Aug 2026
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="notification-item">
+                      <div class="notification-item-top">
+                        <h6>Class Schedule Updated</h6>
+
+                        <span class="notification-status status-sent">
+                          Sent
+                        </span>
+                      </div>
+
+                      <p class="notification-summary">
+                        Updated schedule for Mathematics - 7.
+                      </p>
+
+                      <div class="notification-meta">
+                        <span>
+                          <i class="bi bi-people me-1"></i>
+                          Mathematics - 7
+                        </span>
+
+                        <span>
+                          <i class="bi bi-clock me-1"></i>
+                          16 Aug 2026
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="notification-item">
+                      <div class="notification-item-top">
+                        <h6>September Academic Notice</h6>
+
+                        <span class="notification-status status-draft">
+                          Draft
+                        </span>
+                      </div>
+
+                      <p class="notification-summary">
+                        General academic announcement for the entire center.
+                      </p>
+
+                      <div class="notification-meta">
+                        <span>
+                          <i class="bi bi-people me-1"></i>
+                          Entire Center
+                        </span>
+
+                        <span>
+                          <i class="bi bi-clock me-1"></i>
+                          15 Aug 2026
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="notification-item">
+                      <div class="notification-item-top">
+                        <h6>Physics Class Cancellation</h6>
+
+                        <span class="notification-status status-cancelled">
+                          Cancelled
+                        </span>
+                      </div>
+
+                      <p class="notification-summary">
+                        Previous scheduled notice for Physics - 9.
+                      </p>
+
+                      <div class="notification-meta">
+                        <span>
+                          <i class="bi bi-people me-1"></i>
+                          Physics - 9
+                        </span>
+
+                        <span>
+                          <i class="bi bi-clock me-1"></i>
+                          14 Aug 2026
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="notification-list-footer d-flex align-items-center justify-content-between"
+                  >
+                    <small class="text-muted">Showing 1 to 4 of 12</small>
+
+                    <nav>
+                      <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item disabled">
+                          <a class="page-link" href="#">
+                            <i class="bi bi-chevron-left"></i>
+                          </a>
+                        </li>
+
+                        <li class="page-item active">
+                          <a class="page-link" href="#">1</a>
+                        </li>
+
+                        <li class="page-item">
+                          <a class="page-link" href="#">2</a>
+                        </li>
+
+                        <li class="page-item">
+                          <a class="page-link" href="#">3</a>
+                        </li>
+
+                        <li class="page-item">
+                          <a class="page-link" href="#">
+                            <i class="bi bi-chevron-right"></i>
+                          </a>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notification Preview -->
+              <div class="col-xl-7">
+                <div class="card notification-card">
+                  <div class="notification-preview-header">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        <h5 class="mb-0">Tuition Payment Reminder</h5>
+
+                        <span class="notification-status status-scheduled">
+                          Scheduled
+                        </span>
+                      </div>
+
+                      <small class="text-muted">
+                        Created on 17 Aug 2026 at 10:30 AM
+                      </small>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn table-action-btn"
+                      title="More actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                  </div>
+
+                  <div class="notification-preview-body">
+                    <div class="notification-info-grid">
+                      <div>
+                        <span class="notification-label">Type</span>
+                        <strong>Tuition Reminder</strong>
+                      </div>
+
+                      <div>
+                        <span class="notification-label">Sender</span>
+                        <strong>Center Manager</strong>
+                      </div>
+
+                      <div>
+                        <span class="notification-label">Recipients</span>
+                        <strong>Parents</strong>
+                      </div>
+
+                      <div>
+                        <span class="notification-label">Scheduled Time</span>
+                        <strong>18 Aug 2026 - 08:00 AM</strong>
+                      </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="notification-message">
+                      <span class="notification-label">Message</span>
+
+                      <p>Dear Parent,</p>
+
+                      <p>
+                        This is a reminder that the tuition payment for August
+                        2026 is currently outstanding. Please complete the
+                        payment before the due date to avoid an overdue status.
+                      </p>
+
+                      <p class="mb-0">Thank you for your cooperation.</p>
+                    </div>
+
+                    <hr />
+
+                    <div>
+                      <span class="notification-label">Attachment</span>
+
+                      <div class="notification-attachment">
+                        <div>
+                          <strong>tuition-notice.pdf</strong>
+                          <small>248 KB</small>
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Attachment"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="notification-preview-footer">
+                    <button type="button" class="btn btn-outline-danger">
+                      Cancel Schedule
+                    </button>
+
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-light border">
+                        Edit
+                      </button>
+
+                      <button type="button" class="btn btn-primary">
+                        Send Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>

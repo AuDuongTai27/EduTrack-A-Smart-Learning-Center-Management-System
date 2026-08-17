@@ -173,6 +173,367 @@
         <main class="page-wrapper">
           <div class="page-content">
             <!-- Content grab here -->
+            <!-- Breadcrumb -->
+            <div
+              class="d-md-flex d-block align-items-center justify-content-between mb-3"
+            >
+              <div class="my-auto mb-2">
+                <h3 class="page-title mb-1">Center Settings</h3>
+
+                <nav>
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                      <a href="center-manager-dashboard.html">Dashboard</a>
+                    </li>
+
+                    <li class="breadcrumb-item active" aria-current="page">
+                      Settings
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="card settings-card">
+              <!-- Tabs -->
+              <div class="settings-tabs">
+                <ul class="nav nav-tabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link active"
+                      data-bs-toggle="tab"
+                      data-bs-target="#general-settings"
+                      type="button"
+                    >
+                      General Information
+                    </button>
+                  </li>
+
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link"
+                      data-bs-toggle="tab"
+                      data-bs-target="#academic-settings"
+                      type="button"
+                    >
+                      Academic Settings
+                    </button>
+                  </li>
+
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tuition-settings"
+                      type="button"
+                    >
+                      Tuition Settings
+                    </button>
+                  </li>
+
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link"
+                      data-bs-toggle="tab"
+                      data-bs-target="#notification-settings"
+                      type="button"
+                    >
+                      Notifications & Alerts
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="tab-content">
+                <!-- General Information -->
+                <div class="tab-pane fade show active" id="general-settings">
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <h5>General Information</h5>
+                      <p>Manage basic information of the learning center.</p>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Center Name</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          value="EduTrack Center"
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Phone Number</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          value="0901 234 567"
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input
+                          type="email"
+                          class="form-control"
+                          value="contact@edutrack.edu.vn"
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Logo</label>
+                        <input type="file" class="form-control" />
+                      </div>
+
+                      <div class="col-12">
+                        <label class="form-label">Address</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          value="Binh Duong, Vietnam"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-footer">
+                    <button type="button" class="btn btn-primary">
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Academic Settings -->
+                <div class="tab-pane fade" id="academic-settings">
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <h5>Academic Settings</h5>
+                      <p>Configure the academic year and supported classes.</p>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Current Academic Year</label>
+
+                        <select class="form-select">
+                          <option>2025 / 2026</option>
+                          <option selected>2026 / 2027</option>
+                          <option>2027 / 2028</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Default Class Status</label>
+
+                        <select class="form-select">
+                          <option selected>Active</option>
+                          <option>Inactive</option>
+                        </select>
+                      </div>
+
+                      <div class="col-12">
+                        <label class="form-label">Supported Classes</label>
+
+                        <div class="settings-checkbox-list">
+                          <label>
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              checked
+                            />
+                            Class 7
+                          </label>
+
+                          <label>
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              checked
+                            />
+                            Class 8
+                          </label>
+
+                          <label>
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              checked
+                            />
+                            Class 9
+                          </label>
+
+                          <label>
+                            <input class="form-check-input" type="checkbox" />
+                            Class 10
+                          </label>
+
+                          <label>
+                            <input class="form-check-input" type="checkbox" />
+                            Class 11
+                          </label>
+
+                          <label>
+                            <input class="form-check-input" type="checkbox" />
+                            Class 12
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-footer">
+                    <button type="button" class="btn btn-primary">
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Tuition Settings -->
+                <div class="tab-pane fade" id="tuition-settings">
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <h5>Tuition Settings</h5>
+                      <p>
+                        Configure tuition periods, due dates and adjustments.
+                      </p>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Tuition Cycle</label>
+
+                        <select class="form-select">
+                          <option selected>Monthly</option>
+                          <option>Quarterly</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label"> Default Due Day </label>
+
+                        <select class="form-select">
+                          <option>5th of each month</option>
+                          <option>10th of each month</option>
+                          <option selected>15th of each month</option>
+                          <option>20th of each month</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">
+                          Tuition Generation Day
+                        </label>
+
+                        <select class="form-select">
+                          <option selected>1st of each month</option>
+                          <option>5th of each month</option>
+                          <option>10th of each month</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label"> Default Currency </label>
+
+                        <select class="form-select">
+                          <option selected>VND</option>
+                        </select>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-check">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="allowAdjustment"
+                            checked
+                          />
+
+                          <label class="form-check-label" for="allowAdjustment">
+                            Allow tuition discounts or exemptions
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-footer">
+                    <button type="button" class="btn btn-primary">
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Notifications & Alerts -->
+                <div class="tab-pane fade" id="notification-settings">
+                  <div class="settings-section">
+                    <div class="settings-section-header">
+                      <h5>Notifications & Alerts</h5>
+                      <p>Configure default reminders and system alerts.</p>
+                    </div>
+
+                    <div class="row g-4">
+                      <div class="col-md-6">
+                        <label class="form-label"> Tuition Reminder </label>
+
+                        <div class="input-group">
+                          <input type="number" class="form-control" value="3" />
+
+                          <span class="input-group-text">
+                            days before due date
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">
+                          Overdue Tuition Alert
+                        </label>
+
+                        <div class="input-group">
+                          <input type="number" class="form-control" value="1" />
+
+                          <span class="input-group-text">
+                            days after due date
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">
+                          Attendance Warning Threshold
+                        </label>
+
+                        <div class="input-group">
+                          <input type="number" class="form-control" value="3" />
+
+                          <span class="input-group-text"> absences </span>
+                        </div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">
+                          Incomplete Assignment Alert
+                        </label>
+
+                        <div class="input-group">
+                          <input type="number" class="form-control" value="2" />
+
+                          <span class="input-group-text"> assignments </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-footer">
+                    <button type="button" class="btn btn-primary">
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>
