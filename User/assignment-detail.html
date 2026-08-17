@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chi tiết bài tập – EduTrack</title>
+  <meta name="description" content="EduTrack - Chi tiết bài tập, tài liệu đính kèm và khu vực nộp bài của học sinh." />
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Custom Layout & Assignment Detail CSS -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         DESKTOP SIDEBAR (Cố định bên trái)
+    ═══════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+      <!-- Brand / Logo -->
+      <div class="sidebar-header">
+        <a href="student-dashboard.html" class="brand-link">
+          <div class="brand-logo-icon">
+            <i class="bi bi-mortarboard-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="brand-title">EduTrack</div>
+            <div class="brand-subtitle">Cổng học sinh</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-title">Menu</div>
+        <ul class="sidebar-nav-list">
+          <li class="sidebar-nav-item">
+            <a href="student-dashboard.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
+              <span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="schedule.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+              <span class="nav-label">Lịch học</span>
+            </a>
+          </li>
+
+          <li class="sidebar-nav-item">
+            <a href="progress.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+              <span class="nav-label">Tiến độ</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="tuition.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-credit-card"></i></span>
+              <span class="nav-label">Học phí</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="notifications.html" class="sidebar-nav-link">
+              <span class="nav-icon"><i class="bi bi-bell"></i></span>
+              <span class="nav-label">Thông báo</span>
+              <span class="sidebar-badge">3</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Student Profile Chip at Bottom -->
+      <div class="sidebar-footer">
+        <a href="profile.html" class="student-chip">
+          <div class="student-avatar">MA</div>
+          <div class="student-info">
+            <div class="student-name" title="Nguyễn Minh Anh">Nguyễn Minh Anh</div>
+            <div class="student-grade">Học sinh · Lớp 11</div>
+          </div>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MOBILE OFFCANVAS SIDEBAR (Drawer cho màn hình nhỏ)
+    ═══════════════════════════════════════════════════════════════ -->
+    <div class="offcanvas offcanvas-start et-offcanvas" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+      <div class="offcanvas-header border-bottom px-3 py-3">
+        <a href="student-dashboard.html" class="brand-link" id="mobileSidebarLabel">
+          <div class="brand-logo-icon">
+            <i class="bi bi-mortarboard-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="brand-title">EduTrack</div>
+            <div class="brand-subtitle">Cổng học sinh</div>
+          </div>
+        </a>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+
+      <div class="offcanvas-body">
+        <nav class="sidebar-nav px-2">
+          <div class="sidebar-nav-title">Menu</div>
+          <ul class="sidebar-nav-list">
+            <li class="sidebar-nav-item">
+              <a href="student-dashboard.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
+                <span class="nav-label">Dashboard</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="schedule.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+                <span class="nav-label">Lịch học</span>
+              </a>
+            </li>
+
+            <li class="sidebar-nav-item">
+              <a href="progress.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                <span class="nav-label">Tiến độ</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="tuition.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-credit-card"></i></span>
+                <span class="nav-label">Học phí</span>
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="notifications.html" class="sidebar-nav-link">
+                <span class="nav-icon"><i class="bi bi-bell"></i></span>
+                <span class="nav-label">Thông báo</span>
+                <span class="sidebar-badge">3</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer mt-auto">
+          <a href="profile.html" class="student-chip">
+            <div class="student-avatar">MA</div>
+            <div class="student-info">
+              <div class="student-name">Nguyễn Minh Anh</div>
+              <div class="student-grade">Học sinh · Lớp 11</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MAIN WRAPPER (Nội dung chi tiết bài tập bên phải)
+    ═══════════════════════════════════════════════════════════════ -->
+    <div class="main-wrapper">
+
+      <!-- Mobile Topbar -->
+      <header class="mobile-topbar">
+        <button class="btn-hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Mở menu">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div class="d-flex align-items-center gap-2">
+          <div class="brand-logo-icon" style="width: 28px; height: 28px; border-radius: 8px;">
+            <i class="bi bi-mortarboard-fill fs-6"></i>
+          </div>
+          <span class="brand-title fs-6">EduTrack</span>
+        </div>
+        <div class="student-avatar" style="width: 32px; height: 32px; font-size: 11px;">MA</div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <div class="content-container assignment-detail-container">
+
+          <!-- 1. Back Link -->
+          <a href="class-detail.html" class="btn-back-page" id="btnBackToClass">
+            <i class="bi bi-arrow-left"></i>
+            <span>Quay lại lớp học</span>
+          </a>
+
+          <!-- 2. Status Demo Switcher -->
+          <div class="status-demo-bar">
+            <span class="status-demo-label">Trạng thái demo:</span>
+            <button type="button" class="btn-demo-status active" data-status-btn="not-submitted">Chưa nộp</button>
+            <button type="button" class="btn-demo-status" data-status-btn="submitted">Đã nộp</button>
+            <button type="button" class="btn-demo-status" data-status-btn="overdue">Quá hạn</button>
+          </div>
+
+          <!-- 3. Assignment Header -->
+          <div class="asg-detail-header">
+            <div class="asg-detail-title-row">
+              <h1 class="asg-detail-title" id="asgTitle">Bài tập tuần 3 — Phương trình bậc hai</h1>
+              <span class="asg-status-badge asg-status-chuanop" id="asgStatusBadge">
+                <i class="bi bi-clock"></i>
+                <span>Chưa nộp</span>
+              </span>
+            </div>
+            <p class="asg-detail-class-info" id="asgClassInfo">Toán Nâng Cao — Lớp 11</p>
+          </div>
+
+          <!-- 4. Meta Cards Row -->
+          <div class="asg-meta-cards-row">
+            <!-- Due Date Card -->
+            <div class="asg-meta-card">
+              <div class="asg-meta-icon-box" style="background-color: #EFF6FF; color: #2563EB;">
+                <i class="bi bi-calendar-event"></i>
+              </div>
+              <div>
+                <div class="asg-meta-title">Hạn nộp</div>
+                <div class="asg-meta-val" id="asgDueDate">20/08/2026</div>
+              </div>
+            </div>
+
+            <!-- Score Card (Visible when submitted) -->
+            <div class="asg-meta-card d-none" id="asgScoreCard">
+              <div class="asg-meta-icon-box" style="background-color: #FFF7ED; color: #F59E0B;">
+                <i class="bi bi-star-fill"></i>
+              </div>
+              <div>
+                <div class="asg-meta-title">Điểm số</div>
+                <div class="asg-meta-val" id="asgScoreValue">8.5 / 10</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Instructions Section -->
+          <section class="mb-4">
+            <h2 class="asg-section-heading">Hướng dẫn</h2>
+            <div class="asg-instructions-card">
+              <p>
+                Các em hoàn thành <strong>toàn bộ</strong> bài tập trong file đính kèm bên dưới. Bài tập bao gồm các dạng:
+              </p>
+              <ul>
+                <li>Giải phương trình bậc hai bằng phương pháp <em>phân tích nhân tử</em></li>
+                <li>Áp dụng công thức nghiệm tổng quát và công thức nghiệm thu gọn</li>
+                <li>Biện luận số nghiệm theo tham số m (10 bài tập)</li>
+                <li>Bài toán thực tế liên quan đến phương trình bậc hai (3 bài)</li>
+              </ul>
+              <p class="note-text">
+                Trình bày rõ ràng, đầy đủ các bước. Nộp file PDF hoặc ảnh chụp bài làm chất lượng cao.
+                <strong class="text-dark">Không chấp nhận</strong> bài làm chụp thiếu nét hoặc bỏ sót bước giải.
+              </p>
+            </div>
+          </section>
+
+          <!-- 6. Attached Files Section -->
+          <section class="mb-4">
+            <h2 class="asg-section-heading">Tài liệu đính kèm</h2>
+            <div class="asg-attached-files-card">
+              <!-- File 1: PDF -->
+              <div class="asg-file-item">
+                <div class="asg-file-icon" style="background-color: #FEE2E2; color: #EF4444;">
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </div>
+                <div class="asg-file-info">
+                  <div class="asg-file-name" title="Bai_tap_phuong_trinh_bac_2.pdf">Bai_tap_phuong_trinh_bac_2.pdf</div>
+                  <div class="asg-file-size">2.4 MB</div>
+                </div>
+                <a href="#" class="btn-file-download" onclick="alert('Đang tải xuống tài liệu: Bai_tap_phuong_trinh_bac_2.pdf'); return false;">
+                  <i class="bi bi-download"></i>
+                  <span>Tải xuống</span>
+                </a>
+              </div>
+
+              <!-- File 2: DOCX -->
+              <div class="asg-file-item">
+                <div class="asg-file-icon" style="background-color: #EFF6FF; color: #2563EB;">
+                  <i class="bi bi-file-earmark-word"></i>
+                </div>
+                <div class="asg-file-info">
+                  <div class="asg-file-name" title="Vi_du_minh_hoa.docx">Vi_du_minh_hoa.docx</div>
+                  <div class="asg-file-size">856 KB</div>
+                </div>
+                <a href="#" class="btn-file-download" onclick="alert('Đang tải xuống tài liệu: Vi_du_minh_hoa.docx'); return false;">
+                  <i class="bi bi-download"></i>
+                  <span>Tải xuống</span>
+                </a>
+              </div>
+
+              <!-- File 3: XLSX -->
+              <div class="asg-file-item">
+                <div class="asg-file-icon" style="background-color: #F0FDF4; color: #16A34A;">
+                  <i class="bi bi-file-earmark-excel"></i>
+                </div>
+                <div class="asg-file-info">
+                  <div class="asg-file-name" title="Bang_cong_thuc_nghiem.xlsx">Bang_cong_thuc_nghiem.xlsx</div>
+                  <div class="asg-file-size">124 KB</div>
+                </div>
+                <a href="#" class="btn-file-download" onclick="alert('Đang tải xuống tài liệu: Bang_cong_thuc_nghiem.xlsx'); return false;">
+                  <i class="bi bi-download"></i>
+                  <span>Tải xuống</span>
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. Submission Section -->
+          <section>
+            <h2 class="asg-section-heading">Nộp bài</h2>
+
+            <!-- State A: Not Submitted (Chưa nộp) -->
+            <div id="viewNotSubmitted">
+              <div class="upload-dropzone" id="uploadDropzone">
+                <div class="upload-icon-circle">
+                  <i class="bi bi-cloud-arrow-up"></i>
+                </div>
+                <div>
+                  <div class="upload-text-main">
+                    Kéo thả file vào đây hoặc <span class="upload-link">nhấn để chọn file</span>
+                  </div>
+                  <div class="upload-text-sub">
+                    PDF, DOCX, JPG, PNG &mdash; Tối đa 50 MB
+                  </div>
+                </div>
+                <input type="file" id="fileInput" class="d-none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx" />
+              </div>
+
+              <!-- Selected File Preview -->
+              <div class="selected-file-preview d-none" id="selectedFilePreview">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-file-earmark-check text-success fs-5"></i>
+                  <span class="fw-semibold text-dark fs-6" id="selectedFileName">file_name.pdf</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" id="btnRemoveSelectedFile">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+
+              <button type="button" class="btn-submit-asg" id="btnSubmitAssignment">
+                Nộp bài
+              </button>
+            </div>
+
+            <!-- State B: Submitted (Đã nộp) -->
+            <div id="viewSubmitted" class="d-none">
+              <div class="submitted-card">
+                <div class="submitted-file-row">
+                  <div class="submitted-icon-box">
+                    <i class="bi bi-file-earmark-check"></i>
+                  </div>
+                  <div>
+                    <div class="submitted-filename" id="submittedFileName">Bai_lam_PT_bac2_NguyenHai.pdf</div>
+                    <div class="submitted-meta">Đã nộp lúc 18:42, Thứ Tư 19/08/2026 &bull; 3.1 MB</div>
+                  </div>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn-asg-action btn-asg-edit" id="btnEditSubmission">
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Chỉnh sửa</span>
+                  </button>
+                  <button type="button" class="btn-asg-action btn-asg-delete" id="btnDeleteSubmission">
+                    <i class="bi bi-trash3"></i>
+                    <span>Xóa bài nộp</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- State C: Overdue (Quá hạn) -->
+            <div id="viewOverdue" class="d-none">
+              <div class="overdue-alert-box">
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-5 flex-shrink-0 mt-1"></i>
+                <div>
+                  <div class="overdue-title">Bài tập đã quá hạn nộp</div>
+                  <div class="overdue-desc">
+                    Thời hạn nộp bài là 20/08/2026 đã qua. Vui lòng liên hệ giáo viên để được hỗ trợ thêm.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+        </div>
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Main layout JS -->
+  <script src="assets/js/main.js"></script>
+
+  <!-- Assignment Detail Controller -->
+  <script src="assets/js/assignment-detail.js"></script>
+</body>
+</html>
