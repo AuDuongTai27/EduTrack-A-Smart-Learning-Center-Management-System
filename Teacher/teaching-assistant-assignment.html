@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>EduTrack - Request</title>
+    <title>EduTrack - Assignment 1</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -58,7 +58,7 @@
                         <i class="bi bi-person-gear"></i>
                         <span>Schedule</span>
                     </a>
-                    <a class="nav-link" href="teacher-classes.html">
+                    <a class="nav-link active" href="teacher-classes.html">
                         <i class="bi bi-mortarboard"></i>
                         <span>My Classes</span>
                     </a>
@@ -66,7 +66,6 @@
                         <i class="bi bi-journal-bookmark-fill"></i>
                         <span>Learning Progress</span>
                     </a>
-
                 </div>
 
                 <div class="nav-section">
@@ -79,12 +78,11 @@
 
                 <div class="nav-section">
                     <div class="nav-heading">REQUESTS</div>
-                    <a class="nav-link active" href="teacher-request.html">
+                    <a class="nav-link" href="teacher-request.html">
                         <i class="bi bi-bar-chart-fill"></i>
                         <span>Request</span>
                     </a>
                 </div>
-
             </nav>
         </aside>
 
@@ -129,86 +127,125 @@
                 </div>
             </header>
 
-            <!-- Main Content area -->
+            <!-- Main Content Area -->
             <main class="page-wrapper">
                 <div class="page-content">
-
-                    <!-- Page Header Title & Breadcrumb -->
+                    <!-- Breadcrumb & Page Title -->
                     <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                         <div class="my-auto mb-2">
-                            <h3 class="page-title mb-1">Request List</h3>
+                            <h3 class="page-title mb-1">Assignment Details</h3>
                             <nav>
                                 <ol class="breadcrumb mb-0">
                                     <li class="breadcrumb-item">
                                         <a href="teacher-dashboard.html">Dashboard</a>
                                     </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-classes.html">My Classes</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-class-details.html">Class I-A</a>
+                                    </li>
                                     <li class="breadcrumb-item active" aria-current="page">
-                                        Request
+                                        Assignment 1: Kinematics Problem Set
                                     </li>
                                 </ol>
                             </nav>
                         </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="teaching-assistant-class-details.html"
+                                class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-arrow-left"></i> Back to Class Details
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Sent Requests List -->
+                    <!-- Assignment Overview Header Card -->
+                    <div class="card class-list-card border-0 mb-4">
+                        <div class="card-body p-4">
+                            <!-- Header Top Row -->
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div>
+                                    <span
+                                        class="badge bg-primary-subtle text-primary fw-medium mb-2 px-2.5 py-1">Physics
+                                        • Class I-A</span>
+                                    <h3 class="mb-1 text-dark fw-bold">Assignment 1: Kinematics Problem Set</h3>
+                                    <p class="text-muted mb-0 small">Review and evaluate student submitted files for
+                                        Kinematics Problem Set.</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="bg-light p-2.5 px-3 rounded border">
+                                        <small class="text-muted d-block fw-semibold meta-label-xs">CREATION
+                                            DATE</small>
+                                        <span class="fw-semibold text-dark"><i
+                                                class="bi bi-calendar-event me-1 text-primary"></i>Aug 04, 2026</span>
+                                    </div>
+                                    <div class="bg-light p-2.5 px-3 rounded border">
+                                        <small class="text-muted d-block fw-semibold meta-label-xs">DEADLINE</small>
+                                        <span class="fw-semibold text-danger"><i
+                                                class="bi bi-clock-history me-1"></i>Aug 11, 2026, 11:59 PM</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Attachments Section -->
+                            <div class="border-top pt-3 mt-3">
+                                <div class="mb-2">
+                                    <span class="text-muted fw-bold meta-label-xs uppercase">ATTACHMENTS (2)</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="attachment-chip">
+                                        <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                                        <div>
+                                            <a href="#"
+                                                class="text-decoration-none text-dark fw-semibold small d-block mb-0">assignment1.pdf</a>
+                                            <small class="text-muted meta-label-xs">2.5 MB</small>
+                                        </div>
+                                        <a href="#" class="btn btn-sm btn-link text-secondary p-0 ms-2"
+                                            title="Download"><i class="bi bi-download"></i></a>
+                                    </div>
+
+                                    <div class="attachment-chip">
+                                        <i class="bi bi-file-earmark-zip-fill text-warning fs-5"></i>
+                                        <div>
+                                            <a href="#"
+                                                class="text-decoration-none text-dark fw-semibold small d-block mb-0">assignment1.zip</a>
+                                            <small class="text-muted meta-label-xs">14.2 MB</small>
+                                        </div>
+                                        <a href="#" class="btn btn-sm btn-link text-secondary p-0 ms-2"
+                                            title="Download"><i class="bi bi-download"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student List Section -->
                     <div class="card class-list-card border-0 mb-4">
                         <!-- Card Header -->
                         <div
                             class="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
-                            <h4 class="class-list-title">Sent Requests List</h4>
+                            <h4 class="class-list-title">Student Submissions</h4>
                             <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <!-- Status Filter -->
                                 <div class="dropdown">
                                     <button type="button" class="btn-header-action" id="filterDropdownBtn"
                                         data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                         <i class="bi bi-funnel"></i>
-                                        <span id="filterLabel">Filter</span>
+                                        Filter
                                         <i class="bi bi-chevron-down ms-1"></i>
                                     </button>
-                                    <div class="dropdown-menu dropdown-menu-end p-3 filter-dropdown-menu">
-                                        <form id="filterForm">
-                                            <div class="mb-2">
-                                                <label class="form-label small fw-bold">Status</label>
-                                                <select class="form-select form-select-sm" id="filterStatusSelect">
-                                                    <option value="all">All Status</option>
-                                                    <option value="Pending">Pending</option>
-                                                    <option value="Approved">Approved</option>
-                                                    <option value="Rejected">Rejected</option>
-                                                </select>
-                                            </div>
-                                            <div class="d-flex justify-content-end gap-2 mt-3">
-                                                <button type="button" class="btn btn-sm btn-light"
-                                                    id="resetFilterBtn">Reset</button>
-                                                <button type="submit" class="btn btn-sm btn-primary"
-                                                    id="applyFilterBtn">Apply</button>
-                                            </div>
-                                        </form>
-                                    </div>
                                 </div>
-                                <!-- Sort Dropdown -->
                                 <div class="dropdown">
                                     <button type="button" class="btn-header-action" id="sortDropdownBtn"
                                         data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-arrow-down-up"></i>
-                                        <span id="sortLabel">Sort by Newest</span>
+                                        <span id="sortLabel">Sort by A-Z</span>
                                         <i class="bi bi-chevron-down ms-1"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" id="sortOptions">
-                                        <li><a class="dropdown-item active" href="#" data-sort="desc">Newest First</a>
-                                        </li>
-                                        <li><a class="dropdown-item" href="#" data-sort="asc">Oldest First</a></li>
-                                    </ul>
                                 </div>
-                                <!-- New Request Button -->
-                                <button type="button"
-                                    class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
-                                    <i class="bi bi-plus-lg"></i>
-                                    <span>New Request</span>
-                                </button>
                             </div>
                         </div>
 
-                        <!-- Toolbar -->
+                        <!-- Table toolbar -->
                         <div class="table-toolbar">
                             <div class="table-entries-select">
                                 <span>Row Per Page</span>
@@ -222,158 +259,130 @@
                             </div>
                             <div>
                                 <input type="search" class="table-search-input" id="tableSearchInput"
-                                    placeholder="Search requests...">
+                                    placeholder="Search...">
                             </div>
                         </div>
 
-                        <!-- Table -->
+                        <!-- Table Container -->
                         <div class="table-responsive-container">
-                            <table class="table custom-table align-middle" id="requestsTable">
+                            <table class="table custom-table align-middle" id="assignmentTable">
                                 <thead>
                                     <tr>
                                         <th class="th-checkbox">
                                             <div class="form-check m-0">
-                                                <input class="form-check-input" type="checkbox" id="selectAllRequests">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
                                             </div>
                                         </th>
-                                        <th>Request ID <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
-                                        <th>Title <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
-                                        <th>Sent Date & Time <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
-                                        <th>Status <i class="bi bi-arrow-down-up table-sort-icon"></i></th>
-                                        <th>Action</th>
+                                        <th>Avatar</th>
+                                        <th>Student Name</th>
+                                        <th>Submission</th>
+                                        <th>Submission Date</th>
+                                        <th>Grade</th>
+                                        <th class="text-end">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="requestTableBody">
+                                <tbody>
+                                    <!-- Student 1 -->
                                     <tr>
                                         <td>
                                             <div class="form-check m-0">
-                                                <input class="form-check-input row-checkbox" type="checkbox" value="#4">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
                                             </div>
                                         </td>
                                         <td>
-                                            <a href="#" class="class-id-link">#4</a>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-indigo">
+                                                JD</div>
                                         </td>
+                                        <td class="fw-semibold text-dark">John Doe</td>
                                         <td>
-                                            <a href="#" class="text-dark fw-semibold text-decoration-none">
-                                                Schedule Change Request for Physics Class I-A
+                                            <a href="#"
+                                                class="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-6"></i>
+                                                john_doe_kinematics.pdf
                                             </a>
                                         </td>
-                                        <td class="text-muted small">16 Aug 2026, 15:45</td>
                                         <td>
-                                            <span class="badge-status badge-status-pending"><i
-                                                    class="bi bi-hourglass-split"></i> Pending</span>
+                                            <span class="text-dark fw-medium">10 Aug 2026, 03:45 PM</span>
+                                            <small class="text-muted ms-1">(2 hours ago)</small>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                                                    <i class="bi bi-pencil"></i> Edit
-                                                </button>
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </div>
+                                            <span class="fw-bold text-dark">9.0</span> <small class="text-muted">/
+                                                10</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View Submission
+                                            </button>
                                         </td>
                                     </tr>
+
+                                    <!-- Student 2 -->
                                     <tr>
                                         <td>
                                             <div class="form-check m-0">
-                                                <input class="form-check-input row-checkbox" type="checkbox" value="#3">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
                                             </div>
                                         </td>
                                         <td>
-                                            <a href="#" class="class-id-link">#3</a>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-emerald">
+                                                AS</div>
                                         </td>
+                                        <td class="fw-semibold text-dark">Alice Smith</td>
                                         <td>
-                                            <a href="#" class="text-dark fw-semibold text-decoration-none">
-                                                Additional Teaching Materials Request for English Class II-C
+                                            <a href="#"
+                                                class="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-6"></i>
+                                                alice_smith_assignment1.pdf
                                             </a>
                                         </td>
-                                        <td class="text-muted small">15 Aug 2026, 09:30</td>
                                         <td>
-                                            <span class="badge-status badge-status-pending"><i
-                                                    class="bi bi-hourglass-split"></i> Pending</span>
+                                            <span class="text-dark fw-medium">11 Aug 2026, 09:15 AM</span>
+                                            <small class="text-muted ms-1">(5 hours ago)</small>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                                                    <i class="bi bi-pencil"></i> Edit
-                                                </button>
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </div>
+                                            <span class="text-muted fw-semibold">-</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View Submission
+                                            </button>
                                         </td>
                                     </tr>
+
+                                    <!-- Student 3 -->
                                     <tr>
                                         <td>
                                             <div class="form-check m-0">
-                                                <input class="form-check-input row-checkbox" type="checkbox" value="#2">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
                                             </div>
                                         </td>
                                         <td>
-                                            <a href="#" class="class-id-link">#2</a>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-amber">
+                                                ER</div>
                                         </td>
+                                        <td class="fw-semibold text-dark">Ethan Roberts</td>
                                         <td>
-                                            <a href="#" class="text-dark fw-semibold text-decoration-none">
-                                                Assistant Teacher Allocation for Mathematics Class IV
+                                            <a href="#"
+                                                class="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-6"></i>
+                                                ethan_roberts_kinematics.pdf
                                             </a>
                                         </td>
-                                        <td class="text-muted small">10 Aug 2026, 14:15</td>
                                         <td>
-                                            <span class="badge-status badge-status-active"><i
-                                                    class="bi bi-check-circle-fill"></i> Approved</span>
+                                            <span class="text-dark fw-medium">11 Aug 2026, 11:20 AM</span>
+                                            <small class="text-muted ms-1">(1 day ago)</small>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                                                    disabled title="Cannot edit a processed request">
-                                                    <i class="bi bi-pencil"></i> Edit
-                                                </button>
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                                                    disabled title="Cannot delete a processed request">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </div>
+                                            <span class="fw-bold text-dark">8.5</span> <small class="text-muted">/
+                                                10</small>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="form-check m-0">
-                                                <input class="form-check-input row-checkbox" type="checkbox" value="#1">
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <a href="#" class="class-id-link">#1</a>
-                                        </td>
-                                        <td>
-                                            <a href="#" class="text-dark fw-semibold text-decoration-none">
-                                                Leave Request for 2 Days (August 5 - 6)
-                                            </a>
-                                        </td>
-                                        <td class="text-muted small">02 Aug 2026, 08:00</td>
-                                        <td>
-                                            <span class="badge-status badge-status-inactive"><i
-                                                    class="bi bi-x-circle-fill"></i> Rejected</span>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                                                    disabled title="Cannot edit a processed request">
-                                                    <i class="bi bi-pencil"></i> Edit
-                                                </button>
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                                                    disabled title="Cannot delete a processed request">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </div>
+                                        <td class="text-end">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View Submission
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -389,11 +398,12 @@
                             <button type="button" class="pagination-text-btn" id="nextPageBtn">Next</button>
                         </div>
                     </div>
-
                 </div>
             </main>
         </div>
     </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

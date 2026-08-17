@@ -1377,3 +1377,134 @@ body.sidebar-collapsed .sidebar .nav-link i {
   font-weight: 600;
   flex-shrink: 0;
 }
+
+/* =========================
+   Class Details & Collapsibles
+   ========================= */
+
+details.class-list-card>summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details.class-list-card>summary::-webkit-details-marker {
+  display: none;
+}
+
+details.class-list-card[open]>summary {
+  border-bottom: 1px solid #f1f3f7;
+}
+
+details.class-list-card:not([open])>summary {
+  border-bottom: none;
+}
+
+details.class-list-card[open] .details-chevron {
+  transform: rotate(180deg);
+}
+
+.details-chevron {
+  transition: transform 0.2s ease;
+}
+
+/* Gray background for Ended and Cancelled class sessions */
+.session-row-ended,
+.session-row-cancelled,
+.session-row-ended>td,
+.session-row-cancelled>td {
+  background-color: #e9ecef !important;
+  --bs-table-bg: #e9ecef !important;
+}
+
+/* Learning Documents List in Class Sessions */
+/* .session-docs-container {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-weight: normal;
+}
+
+.session-docs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.session-docs-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.session-doc-link {
+  font-size: 12px;
+  color: #1e293b;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.session-doc-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.btn-add-doc {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Align top for tables with sublists */
+.custom-table.align-top>tbody>tr>td,
+.custom-table.align-top>thead>tr>th {
+  vertical-align: top !important;
+}
+
+/* Collapsible sublist marker styling */
+details.session-docs-details summary::-webkit-details-marker {
+  display: none;
+}
+
+details.session-docs-details summary {
+  list-style: none;
+}
+
+details.session-docs-details[open] .details-chevron {
+  transform: rotate(180deg);
+}
+
+.session-docs-row>td {
+  border-top: none !important;
+}
+
+/* Meta Label and Attachment Chip utilities */
+.meta-label-xs {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.attachment-chip {
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.attachment-chip:hover {
+  border-color: #cbd5e1;
+}
+
+*/

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduTrack - Assignment 1</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <!-- EduTrack Layout CSS -->
+    <link rel="stylesheet" href="assets/css/teacher-layout.css" />
+</head>
+
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a class="brand" href="teacher-dashboard.html">
+                    <span class="brand-mark">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </span>
+                    <span class="brand-text">EduTrack</span>
+                </a>
+
+                <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" type="button" aria-label="Toggle sidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <div class="center-box">
+                <span class="center-avatar">
+                    <i class="bi bi-buildings-fill"></i>
+                </span>
+                <div class="center-info">
+                    <span class="center-name">EduTrack Center</span>
+                    <small>Learning Center</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-heading">MAIN</div>
+                    <a class="nav-link" href="teacher-dashboard.html">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-heading">ACADEMIC</div>
+                    <a class="nav-link" href="teacher-schedule.html">
+                        <i class="bi bi-person-gear"></i>
+                        <span>Schedule</span>
+                    </a>
+                    <a class="nav-link active" href="teacher-classes.html">
+                        <i class="bi bi-mortarboard"></i>
+                        <span>My Classes</span>
+                    </a>
+                    <a class="nav-link" href="teacher-learning-progress.html">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <span>Learning Progress</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-heading">COMMUNICATION</div>
+                    <a class="nav-link" href="teacher-notifications.html">
+                        <i class="bi bi-megaphone-fill"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-heading">REQUESTS</div>
+                    <a class="nav-link" href="teacher-request.html">
+                        <i class="bi bi-bar-chart-fill"></i>
+                        <span>Request</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main area -->
+        <div class="main-area">
+            <!-- Header -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open menu">
+                        <i class="bi bi-list"></i>
+                    </button>
+
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search" />
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    <button class="academic-year-btn" type="button">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Academic Year : 2026 / 2027</span>
+                    </button>
+
+                    <button class="icon-btn" type="button" title="Language">
+                        <i class="bi bi-globe2"></i>
+                    </button>
+                    <button class="icon-btn" type="button" title="Theme">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <button class="icon-btn notification-btn" type="button" title="Notifications">
+                        <i class="bi bi-bell"></i>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="icon-btn" type="button" title="Fullscreen">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+
+                    <a class="profile-btn" href="teacher-profile.html" title="Profile">
+                        <span class="profile-avatar">TC</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="page-wrapper">
+                <div class="page-content">
+                    <!-- Breadcrumb & Page Title -->
+                    <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
+                        <div class="my-auto mb-2">
+                            <h3 class="page-title mb-1">Assignment Details</h3>
+                            <nav>
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-dashboard.html">Dashboard</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-classes.html">My Classes</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-class-details.html">Class I-A</a>
+                                    </li>
+                                    <li class="breadcrumb-item active" aria-current="page">
+                                        Assignment 1: Kinematics Problem Set
+                                    </li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="teacher-class-details.html"
+                                class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-arrow-left"></i> Back to Class Details
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Overview Header Card -->
+                    <div class="card class-list-card border-0 mb-4">
+                        <div class="card-body p-4">
+                            <!-- Header Top Row -->
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div>
+                                    <span
+                                        class="badge bg-primary-subtle text-primary fw-medium mb-2 px-2.5 py-1">Physics
+                                        • Class I-A</span>
+                                    <h3 class="mb-1 text-dark fw-bold">Assignment 1: Kinematics Problem Set</h3>
+                                    <p class="text-muted mb-0 small">Review and evaluate student submitted files for
+                                        Kinematics Problem Set.</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="bg-light p-2.5 px-3 rounded border">
+                                        <small class="text-muted d-block fw-semibold meta-label-xs">CREATION
+                                            DATE</small>
+                                        <span class="fw-semibold text-dark"><i
+                                                class="bi bi-calendar-event me-1 text-primary"></i>Aug 04, 2026</span>
+                                    </div>
+                                    <div class="bg-light p-2.5 px-3 rounded border">
+                                        <small class="text-muted d-block fw-semibold meta-label-xs">DEADLINE</small>
+                                        <span class="fw-semibold text-danger"><i
+                                                class="bi bi-clock-history me-1"></i>Aug 11, 2026, 11:59 PM</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="#"
+                                            class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                            <i class="bi bi-pencil"></i> Modify
+                                        </a>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Attachments Section -->
+                            <div class="border-top pt-3 mt-3">
+                                <div class="mb-2">
+                                    <span class="text-muted fw-bold meta-label-xs uppercase">ATTACHMENTS (2)</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="attachment-chip">
+                                        <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                                        <div>
+                                            <a href="#"
+                                                class="text-decoration-none text-dark fw-semibold small d-block mb-0">assignment1.pdf</a>
+                                            <small class="text-muted meta-label-xs">2.5 MB</small>
+                                        </div>
+                                        <a href="#" class="btn btn-sm btn-link text-secondary p-0 ms-2"
+                                            title="Download"><i class="bi bi-download"></i></a>
+                                    </div>
+
+                                    <div class="attachment-chip">
+                                        <i class="bi bi-file-earmark-zip-fill text-warning fs-5"></i>
+                                        <div>
+                                            <a href="#"
+                                                class="text-decoration-none text-dark fw-semibold small d-block mb-0">assignment1.zip</a>
+                                            <small class="text-muted meta-label-xs">14.2 MB</small>
+                                        </div>
+                                        <a href="#" class="btn btn-sm btn-link text-secondary p-0 ms-2"
+                                            title="Download"><i class="bi bi-download"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student List Section -->
+                    <div class="card class-list-card border-0 mb-4">
+                        <!-- Card Header -->
+                        <div
+                            class="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <h4 class="class-list-title">Student Submissions</h4>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="dropdown">
+                                    <button type="button" class="btn-header-action" id="filterDropdownBtn"
+                                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <i class="bi bi-funnel"></i>
+                                        Filter
+                                        <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                                <div class="dropdown">
+                                    <button type="button" class="btn-header-action" id="sortDropdownBtn"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-arrow-down-up"></i>
+                                        <span id="sortLabel">Sort by A-Z</span>
+                                        <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table toolbar -->
+                        <div class="table-toolbar">
+                            <div class="table-entries-select">
+                                <span>Row Per Page</span>
+                                <select class="form-select form-select-sm" id="entriesSelect">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <span>Entries</span>
+                            </div>
+                            <div>
+                                <input type="search" class="table-search-input" id="tableSearchInput"
+                                    placeholder="Search...">
+                            </div>
+                        </div>
+
+                        <!-- Table Container -->
+                        <div class="table-responsive-container">
+                            <table class="table custom-table align-middle" id="assignmentTable">
+                                <thead>
+                                    <tr>
+                                        <th class="th-checkbox">
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                            </div>
+                                        </th>
+                                        <th>Avatar</th>
+                                        <th>Student Name</th>
+                                        <th>Submission</th>
+                                        <th>Submission Date</th>
+                                        <th>Grade</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Student 1 -->
+                                    <tr>
+                                        <td>
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-indigo">
+                                                JD</div>
+                                        </td>
+                                        <td class="fw-semibold text-dark">John Doe</td>
+                                        <td>
+                                            <a href="#"
+                                                class="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-6"></i>
+                                                john_doe_kinematics.pdf
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="text-dark fw-medium">10 Aug 2026, 03:45 PM</span>
+                                            <small class="text-muted ms-1">(2 hours ago)</small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-dark">9.0</span> <small class="text-muted">/
+                                                10</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View Submission
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Student 2 -->
+                                    <tr>
+                                        <td>
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-emerald">
+                                                AS</div>
+                                        </td>
+                                        <td class="fw-semibold text-dark">Alice Smith</td>
+                                        <td>
+                                            <a href="#"
+                                                class="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-6"></i>
+                                                alice_smith_assignment1.pdf
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="text-dark fw-medium">11 Aug 2026, 09:15 AM</span>
+                                            <small class="text-muted ms-1">(5 hours ago)</small>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted fw-semibold">-</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View Submission
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Student 3 -->
+                                    <tr>
+                                        <td>
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-amber">
+                                                ER</div>
+                                        </td>
+                                        <td class="fw-semibold text-dark">Ethan Roberts</td>
+                                        <td>
+                                            <a href="#"
+                                                class="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-6"></i>
+                                                ethan_roberts_kinematics.pdf
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="text-dark fw-medium">11 Aug 2026, 11:20 AM</span>
+                                            <small class="text-muted ms-1">(1 day ago)</small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-dark">8.5</span> <small class="text-muted">/
+                                                10</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-eye"></i> View Submission
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Footer Pagination -->
+                        <div class="table-pagination-footer">
+                            <button type="button" class="pagination-text-btn" id="prevPageBtn">Prev</button>
+                            <div id="paginationContainer" class="d-inline-flex align-items-center gap-1">
+                                <span class="pagination-num-btn">1</span>
+                            </div>
+                            <button type="button" class="pagination-text-btn" id="nextPageBtn">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

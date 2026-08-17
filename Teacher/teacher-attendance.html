@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduTrack - Class I-A - Attendance</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <!-- EduTrack Layout CSS -->
+    <link rel="stylesheet" href="assets/css/teacher-layout.css" />
+</head>
+
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a class="brand" href="teacher-dashboard.html">
+                    <span class="brand-mark">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </span>
+                    <span class="brand-text">EduTrack</span>
+                </a>
+
+                <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" type="button" aria-label="Toggle sidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <div class="center-box">
+                <span class="center-avatar">
+                    <i class="bi bi-buildings-fill"></i>
+                </span>
+                <div class="center-info">
+                    <span class="center-name">EduTrack Center</span>
+                    <small>Learning Center</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-heading">MAIN</div>
+                    <a class="nav-link" href="teacher-dashboard.html">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-heading">ACADEMIC</div>
+                    <a class="nav-link" href="teacher-schedule.html">
+                        <i class="bi bi-person-gear"></i>
+                        <span>Schedule</span>
+                    </a>
+                    <a class="nav-link active" href="teacher-classes.html">
+                        <i class="bi bi-mortarboard"></i>
+                        <span>My Classes</span>
+                    </a>
+                    <a class="nav-link" href="teacher-learning-progress.html">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <span>Learning Progress</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-heading">COMMUNICATION</div>
+                    <a class="nav-link" href="teacher-notifications.html">
+                        <i class="bi bi-megaphone-fill"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-heading">REQUESTS</div>
+                    <a class="nav-link" href="teacher-request.html">
+                        <i class="bi bi-bar-chart-fill"></i>
+                        <span>Request</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main area -->
+        <div class="main-area">
+            <!-- Header -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open menu">
+                        <i class="bi bi-list"></i>
+                    </button>
+
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search" />
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    <button class="academic-year-btn" type="button">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Academic Year : 2026 / 2027</span>
+                    </button>
+
+                    <button class="icon-btn" type="button" title="Language">
+                        <i class="bi bi-globe2"></i>
+                    </button>
+                    <button class="icon-btn" type="button" title="Theme">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <button class="icon-btn notification-btn" type="button" title="Notifications">
+                        <i class="bi bi-bell"></i>
+                        <span class="status-dot"></span>
+                    </button>
+                    <button class="icon-btn" type="button" title="Fullscreen">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+
+                    <a class="profile-btn" href="teacher-profile.html" title="Profile">
+                        <span class="profile-avatar">TC</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="page-wrapper">
+                <div class="page-content">
+                    <!-- Breadcrumb & Page Title -->
+                    <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
+                        <div class="my-auto mb-2">
+                            <h3 class="page-title mb-1">Class Attendance</h3>
+                            <nav>
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-dashboard.html">Dashboard</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-classes.html">My Classes</a>
+                                    </li>
+                                    <li class="breadcrumb-item">
+                                        <a href="teacher-class-details.html">Class I-A</a>
+                                    </li>
+                                    <li class="breadcrumb-item active" aria-current="page">
+                                        Attendance
+                                    </li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="teacher-class-details.html"
+                                class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-arrow-left"></i> Back to Class Details
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Student Attendance List -->
+                    <div class="card class-list-card border-0 mb-4">
+                        <!-- Card Header -->
+                        <div
+                            class="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <h4 class="class-list-title">Student Attendance List</h4>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="dropdown">
+                                    <button type="button" class="btn-header-action" id="filterDropdownBtn"
+                                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <i class="bi bi-funnel"></i>
+                                        Filter
+                                        <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                                <div class="dropdown">
+                                    <button type="button" class="btn-header-action" id="sortDropdownBtn"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-arrow-down-up"></i>
+                                        <span id="sortLabel">Sort by A-Z</span>
+                                        <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table toolbar -->
+                        <div class="table-toolbar">
+                            <div class="table-entries-select">
+                                <span>Row Per Page</span>
+                                <select class="form-select form-select-sm" id="entriesSelect">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <span>Entries</span>
+                            </div>
+                            <div>
+                                <input type="search" class="table-search-input" id="tableSearchInput"
+                                    placeholder="Search...">
+                            </div>
+                        </div>
+
+                        <!-- Table Container -->
+                        <div class="table-responsive-container">
+                            <table class="table custom-table align-middle" id="attendanceTable">
+                                <thead>
+                                    <tr>
+                                        <th class="th-checkbox">
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                            </div>
+                                        </th>
+                                        <th>Avatar</th>
+                                        <th>Student Name</th>
+                                        <th>Attendance</th>
+                                        <th class="th-note">Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Student 1 -->
+                                    <tr>
+                                        <td>
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-indigo">
+                                                JD</div>
+                                        </td>
+                                        <td class="fw-semibold text-dark">John Doe</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_john_doe" id="present_jd" checked>
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="present_jd">
+                                                        Present
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_john_doe" id="late_jd">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="late_jd">
+                                                        Late
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_john_doe" id="absent_jd">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="absent_jd">
+                                                        Absent
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_john_doe" id="excuse_jd">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="excuse_jd">
+                                                        Excuse
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm"
+                                                placeholder="Enter note...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Student 2 -->
+                                    <tr>
+                                        <td>
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-emerald">
+                                                AS</div>
+                                        </td>
+                                        <td class="fw-semibold text-dark">Alice Smith</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_alice_smith" id="present_as" checked>
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="present_as">
+                                                        Present
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_alice_smith" id="late_as">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="late_as">
+                                                        Late
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_alice_smith" id="absent_as">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="absent_as">
+                                                        Absent
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_alice_smith" id="excuse_as">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="excuse_as">
+                                                        Excuse
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm"
+                                                placeholder="Enter note...">
+                                        </td>
+                                    </tr>
+
+                                    <!-- Student 3 -->
+                                    <tr>
+                                        <td>
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input row-checkbox" type="checkbox">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="ta-avatar-initials avatar-initials-sm avatar-initials-amber">
+                                                ER</div>
+                                        </td>
+                                        <td class="fw-semibold text-dark">Ethan Roberts</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_ethan_roberts" id="present_er" checked>
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="present_er">
+                                                        Present
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_ethan_roberts" id="late_er">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="late_er">
+                                                        Late
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_ethan_roberts" id="absent_er">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="absent_er">
+                                                        Absent
+                                                    </label>
+                                                </div>
+                                                <div class="form-check form-check-inline m-0">
+                                                    <input class="form-check-input" type="radio"
+                                                        name="attendance_ethan_roberts" id="excuse_er">
+                                                    <label class="form-check-label text-dark fw-medium cursor-pointer"
+                                                        for="excuse_er">
+                                                        Excuse
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm"
+                                                placeholder="Enter note...">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Footer Pagination -->
+                        <div class="table-pagination-footer">
+                            <button type="button" class="pagination-text-btn" id="prevPageBtn">Prev</button>
+                            <div id="paginationContainer" class="d-inline-flex align-items-center gap-1">
+                                <span class="pagination-num-btn">1</span>
+                            </div>
+                            <button type="button" class="pagination-text-btn" id="nextPageBtn">Next</button>
+                        </div>
+
+                        <!-- Save Attendance Button -->
+                        <div
+                            class="p-3 border-top bg-white d-flex align-items-center justify-content-end gap-2 rounded-bottom">
+                            <a href="teacher-class-details.html" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                            <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-check-lg"></i> Save Attendance
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
