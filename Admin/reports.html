@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduTrack - Reports</title>
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <!-- EduTrack Layout CSS -->
+    <link rel="stylesheet" href="assets/css/center-manager-layout.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <a class="brand" href="#">
+            <span class="brand-mark">
+              <i class="bi bi-mortarboard-fill"></i>
+            </span>
+            <span class="brand-text">EduTrack</span>
+          </a>
+
+          <button
+            class="sidebar-collapse-btn"
+            id="sidebarCollapseBtn"
+            type="button"
+            aria-label="Toggle sidebar"
+          >
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <div class="center-box">
+          <span class="center-avatar">
+            <i class="bi bi-buildings-fill"></i>
+          </span>
+          <div class="center-info">
+            <span class="center-name">EduTrack Center</span>
+            <small>Learning Center</small>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <div class="nav-heading">MAIN</div>
+            <a class="nav-link" href="./center-manager-dashboard.html">
+              <i class="bi bi-grid-1x2-fill"></i>
+              <span>Dashboard</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">MANAGEMENT</div>
+            <a class="nav-link" href="./center-manager-userAccount.html">
+              <i class="bi bi-person-gear"></i>
+              <span>User Accounts</span>
+            </a>
+            <a class="nav-link" href="./students.html">
+              <i class="bi bi-mortarboard"></i>
+              <span>Students</span>
+            </a>
+            <a class="nav-link" href="./center-manager-subjects.html">
+              <i class="bi bi-journal-bookmark-fill"></i>
+              <span>Subjects</span>
+            </a>
+            <a class="nav-link" href="./center-manager-classes.html">
+              <i class="bi bi-collection-fill"></i>
+              <span>Classes</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">FINANCE</div>
+            <a class="nav-link" href="./tuition.html">
+              <i class="bi bi-cash-stack"></i>
+              <span>Tuition</span>
+            </a>
+            <a class="nav-link" href="./center-manager-approvalRequests.html">
+              <i class="bi bi-check2-square"></i>
+              <span>Approval Requests</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">COMMUNICATION</div>
+            <a class="nav-link" href="./notifications.html">
+              <i class="bi bi-megaphone-fill"></i>
+              <span>Notifications</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">REPORTING</div>
+            <a class="nav-link active" href="./reports.html">
+              <i class="bi bi-bar-chart-fill"></i>
+              <span>Reports</span>
+            </a>
+          </div>
+
+          <div class="nav-section pb-4">
+            <div class="nav-heading">SYSTEM</div>
+            <a class="nav-link" href="./center-manager-settings.html">
+              <i class="bi bi-gear-fill"></i>
+              <span>Settings</span>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main area -->
+      <div class="main-area">
+        <!-- Header -->
+        <header class="topbar">
+          <div class="topbar-left">
+            <button
+              class="mobile-menu-btn"
+              id="mobileMenuBtn"
+              type="button"
+              aria-label="Open menu"
+            >
+              <i class="bi bi-list"></i>
+            </button>
+
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input type="text" placeholder="Search" />
+            </div>
+          </div>
+
+          <div class="topbar-actions">
+            <button class="academic-year-btn" type="button">
+              <i class="bi bi-calendar3"></i>
+              <span>Academic Year : 2026 / 2027</span>
+            </button>
+
+            <button class="icon-btn" type="button" title="Language">
+              <i class="bi bi-globe2"></i>
+            </button>
+            <button class="icon-btn" type="button" title="Theme">
+              <i class="bi bi-moon-stars"></i>
+            </button>
+            <button
+              class="icon-btn notification-btn"
+              type="button"
+              title="Notifications"
+            >
+              <i class="bi bi-bell"></i>
+              <span class="status-dot"></span>
+            </button>
+            <button class="icon-btn" type="button" title="Fullscreen">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+
+            <button class="profile-btn" type="button">
+              <span class="profile-avatar">CM</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Intentionally blank content area -->
+        <main class="page-wrapper">
+          <div class="page-content">
+            <!-- Content grab here -->
+            <!-- Breadcrumb and Quick Access -->
+            <div
+              class="d-md-flex d-block align-items-center justify-content-between mb-3"
+            >
+              <div class="my-auto mb-2">
+                <h3 class="page-title mb-1">Reports</h3>
+
+                <nav>
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                      <a href="center-manager-dashboard.html">Dashboard</a>
+                    </li>
+
+                    <li class="breadcrumb-item active" aria-current="page">
+                      Reports
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary d-flex align-items-center"
+                >
+                  <i class="bi bi-file-earmark-excel me-2"></i>
+                  Export Excel
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-outline-danger d-flex align-items-center"
+                >
+                  <i class="bi bi-file-earmark-pdf me-2"></i>
+                  Export PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- Report Filter -->
+            <div class="card user-list-card mb-4">
+              <div class="card-header user-list-header">
+                <div class="row g-3 align-items-center">
+                  <!-- Report Type -->
+                  <div class="col-xl-3 col-lg-4 col-md-6">
+                    <label class="form-label fw-semibold">Report Type</label>
+
+                    <select class="form-select">
+                      <option>Student Report</option>
+                      <option>Class Report</option>
+                      <option>Teaching Report</option>
+                      <option>Attendance & Progress Report</option>
+                      <option selected>Tuition Report</option>
+                      <option>Revenue Report</option>
+                    </select>
+                  </div>
+
+                  <!-- Time Range -->
+                  <div class="col-xl-2 col-lg-4 col-md-6">
+                    <label class="form-label fw-semibold">Time Range</label>
+
+                    <select class="form-select">
+                      <option>This Month</option>
+                      <option selected>August 2026</option>
+                      <option>Last Month</option>
+                      <option>This Quarter</option>
+                      <option>This Year</option>
+                    </select>
+                  </div>
+
+                  <!-- Class -->
+                  <div class="col-xl-2 col-lg-4 col-md-6">
+                    <label class="form-label fw-semibold">Class</label>
+
+                    <select class="form-select">
+                      <option selected>All Classes</option>
+                      <option>Class 7</option>
+                      <option>Class 8</option>
+                      <option>Class 9</option>
+                    </select>
+                  </div>
+
+                  <!-- Subject -->
+                  <div class="col-xl-2 col-lg-4 col-md-6">
+                    <label class="form-label fw-semibold">Subject</label>
+
+                    <select class="form-select">
+                      <option selected>All Subjects</option>
+                      <option>Mathematics</option>
+                      <option>Physics</option>
+                      <option>Chemistry</option>
+                      <option>English</option>
+                      <option>Biology</option>
+                    </select>
+                  </div>
+
+                  <!-- Status -->
+                  <div class="col-xl-2 col-lg-4 col-md-6">
+                    <label class="form-label fw-semibold">Status</label>
+
+                    <select class="form-select">
+                      <option selected>All Statuses</option>
+                      <option>Paid</option>
+                      <option>Partially Paid</option>
+                      <option>Unpaid</option>
+                      <option>Overdue</option>
+                    </select>
+                  </div>
+
+                  <!-- Apply -->
+                  <div class="col-xl-1 col-lg-4 col-md-6">
+                    <label class="form-label d-block">&nbsp;</label>
+
+                    <button type="button" class="btn btn-primary w-100">
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Report Title -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <h4 class="mb-1 fw-bold">Tuition Report</h4>
+                <p class="text-muted mb-0">Tuition overview for August 2026</p>
+              </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row g-3 mb-4">
+              <!-- Total Tuition Due -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">Total Tuition Due</p>
+                        <h3 class="mb-0">125M</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-receipt"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-muted">128 tuition records</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Collected -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">Collected</p>
+                        <h3 class="mb-0">85M</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-success-subtle text-success">
+                        <i class="bi bi-cash-stack"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-success">68% collected</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Outstanding -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">Outstanding</p>
+                        <h3 class="mb-0">40M</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-warning-subtle text-warning">
+                        <i class="bi bi-hourglass-split"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-muted">32% remaining</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Overdue -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">Overdue</p>
+                        <h3 class="mb-0">12M</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-danger-subtle text-danger">
+                        <i class="bi bi-exclamation-circle"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-danger">18 students</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Report Charts -->
+            <div class="row g-4 mb-4">
+              <!-- Tuition by Month -->
+              <div class="col-xl-7">
+                <div class="card dashboard-card h-100">
+                  <div class="dashboard-card-header">
+                    <div>
+                      <h5>Tuition by Month</h5>
+                      <small>Collected and outstanding tuition</small>
+                    </div>
+                  </div>
+
+                  <div class="dashboard-card-body">
+                    <div class="report-chart-container">
+                      <canvas id="tuitionReportChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Status -->
+              <div class="col-xl-5">
+                <div class="card dashboard-card h-100">
+                  <div class="dashboard-card-header">
+                    <div>
+                      <h5>Payment Status</h5>
+                      <small>Distribution of tuition records</small>
+                    </div>
+                  </div>
+
+                  <div class="dashboard-card-body">
+                    <div class="report-doughnut-container">
+                      <canvas id="paymentStatusChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Data -->
+            <div class="card user-list-card">
+              <div
+                class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom"
+              >
+                <div>
+                  <h5 class="mb-1 fw-bold">Detailed Data</h5>
+                  <small class="text-muted">
+                    Tuition records included in this report
+                  </small>
+                </div>
+              </div>
+
+              <!-- Table Controls -->
+              <div
+                class="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted">Show</span>
+
+                  <select class="form-select form-select-sm user-page-size">
+                    <option>10</option>
+                    <option>20</option>
+                    <option>50</option>
+                  </select>
+
+                  <span class="text-muted">entries</span>
+                </div>
+
+                <span class="text-muted small">
+                  Total records:
+                  <strong class="text-dark">128</strong>
+                </span>
+              </div>
+
+              <!-- Report Table -->
+              <div class="table-responsive">
+                <table class="table user-table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th class="fw-bold">No.</th>
+                      <th class="fw-bold">Student</th>
+                      <th class="fw-bold">Class</th>
+                      <th class="fw-bold">Subjects</th>
+                      <th class="fw-bold">Period</th>
+                      <th class="fw-bold">Total Due</th>
+                      <th class="fw-bold">Due Date</th>
+                      <th class="fw-bold">Status</th>
+                      <th class="text-center fw-bold">Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+
+                      <td>
+                        <h6 class="mb-0">Nguyen Minh An</h6>
+                      </td>
+
+                      <td>Class 7</td>
+
+                      <td>
+                        <div class="d-flex flex-wrap gap-1">
+                          <span class="specialty-badge"> Mathematics - 7 </span>
+
+                          <span class="specialty-badge"> English - 7 </span>
+                        </div>
+                      </td>
+
+                      <td>August 2026</td>
+
+                      <td>
+                        <strong>1,000,000 VND</strong>
+                      </td>
+
+                      <td>15 Aug 2026</td>
+
+                      <td>
+                        <span class="tuition-status tuition-partial">
+                          <span></span>
+                          Partially Paid
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Details"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>2</td>
+
+                      <td>
+                        <h6 class="mb-0">Tran Gia Huy</h6>
+                      </td>
+
+                      <td>Class 8</td>
+
+                      <td>
+                        <div class="d-flex flex-wrap gap-1">
+                          <span class="specialty-badge"> Chemistry - 8 </span>
+
+                          <span class="specialty-badge"> Mathematics - 8 </span>
+                        </div>
+                      </td>
+
+                      <td>August 2026</td>
+
+                      <td>
+                        <strong>1,100,000 VND</strong>
+                      </td>
+
+                      <td>15 Aug 2026</td>
+
+                      <td>
+                        <span class="tuition-status tuition-paid">
+                          <span></span>
+                          Paid
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Details"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>3</td>
+
+                      <td>
+                        <h6 class="mb-0">Le Minh Long</h6>
+                      </td>
+
+                      <td>Class 9</td>
+
+                      <td>
+                        <div class="d-flex flex-wrap gap-1">
+                          <span class="specialty-badge"> Physics - 9 </span>
+
+                          <span class="specialty-badge"> English - 9 </span>
+                        </div>
+                      </td>
+
+                      <td>August 2026</td>
+
+                      <td>
+                        <strong>1,200,000 VND</strong>
+                      </td>
+
+                      <td>10 Aug 2026</td>
+
+                      <td>
+                        <span class="tuition-status tuition-overdue">
+                          <span></span>
+                          Overdue
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Details"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>4</td>
+
+                      <td>
+                        <h6 class="mb-0">Pham Hoang Nam</h6>
+                      </td>
+
+                      <td>Class 8</td>
+
+                      <td>
+                        <span class="specialty-badge"> Mathematics - 8 </span>
+                      </td>
+
+                      <td>August 2026</td>
+
+                      <td>
+                        <strong>550,000 VND</strong>
+                      </td>
+
+                      <td>20 Aug 2026</td>
+
+                      <td>
+                        <span class="tuition-status tuition-unpaid">
+                          <span></span>
+                          Unpaid
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Details"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div
+                class="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3"
+              >
+                <span class="text-muted small">
+                  Showing 1 to 4 of 128 records
+                </span>
+
+                <nav>
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#">
+                        <i class="bi bi-chevron-left"></i>
+                      </a>
+                    </li>
+
+                    <li class="page-item active">
+                      <a class="page-link" href="#">1</a>
+                    </li>
+
+                    <li class="page-item">
+                      <a class="page-link" href="#">2</a>
+                    </li>
+
+                    <li class="page-item">
+                      <a class="page-link" href="#">3</a>
+                    </li>
+
+                    <li class="page-item">
+                      <a class="page-link" href="#">
+                        <i class="bi bi-chevron-right"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  </body>
+</html>

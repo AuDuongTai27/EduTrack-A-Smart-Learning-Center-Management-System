@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>EduTrack - Reports</title>
+    <title>EduTrack - Tuition</title>
 
     <!-- Bootstrap -->
     <link
@@ -67,7 +67,7 @@
               <i class="bi bi-person-gear"></i>
               <span>User Accounts</span>
             </a>
-            <a class="nav-link" href="./center-manager-students.html">
+            <a class="nav-link" href="./students.html">
               <i class="bi bi-mortarboard"></i>
               <span>Students</span>
             </a>
@@ -83,7 +83,7 @@
 
           <div class="nav-section">
             <div class="nav-heading">FINANCE</div>
-            <a class="nav-link" href="./center-manager-tuition.html">
+            <a class="nav-link active" href="./tuition.html">
               <i class="bi bi-cash-stack"></i>
               <span>Tuition</span>
             </a>
@@ -95,7 +95,7 @@
 
           <div class="nav-section">
             <div class="nav-heading">COMMUNICATION</div>
-            <a class="nav-link" href="./center-manager-notifications.html">
+            <a class="nav-link" href="./notifications.html">
               <i class="bi bi-megaphone-fill"></i>
               <span>Notifications</span>
             </a>
@@ -103,7 +103,7 @@
 
           <div class="nav-section">
             <div class="nav-heading">REPORTING</div>
-            <a class="nav-link active" href="./center-manager-reports.html">
+            <a class="nav-link" href="./reports.html">
               <i class="bi bi-bar-chart-fill"></i>
               <span>Reports</span>
             </a>
@@ -178,7 +178,7 @@
               class="d-md-flex d-block align-items-center justify-content-between mb-3"
             >
               <div class="my-auto mb-2">
-                <h3 class="page-title mb-1">Reports</h3>
+                <h3 class="page-title mb-1">Tuition Management</h3>
 
                 <nav>
                   <ol class="breadcrumb mb-0">
@@ -187,122 +187,28 @@
                     </li>
 
                     <li class="breadcrumb-item active" aria-current="page">
-                      Reports
+                      Tuition
                     </li>
                   </ol>
                 </nav>
               </div>
 
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <button
-                  type="button"
-                  class="btn btn-outline-primary d-flex align-items-center"
-                >
-                  <i class="bi bi-file-earmark-excel me-2"></i>
-                  Export Excel
-                </button>
-
-                <button
-                  type="button"
-                  class="btn btn-outline-danger d-flex align-items-center"
-                >
-                  <i class="bi bi-file-earmark-pdf me-2"></i>
-                  Export PDF
-                </button>
-              </div>
-            </div>
-
-            <!-- Report Filter -->
-            <div class="card user-list-card mb-4">
-              <div class="card-header user-list-header">
-                <div class="row g-3 align-items-center">
-                  <!-- Report Type -->
-                  <div class="col-xl-3 col-lg-4 col-md-6">
-                    <label class="form-label fw-semibold">Report Type</label>
-
-                    <select class="form-select">
-                      <option>Student Report</option>
-                      <option>Class Report</option>
-                      <option>Teaching Report</option>
-                      <option>Attendance & Progress Report</option>
-                      <option selected>Tuition Report</option>
-                      <option>Revenue Report</option>
-                    </select>
-                  </div>
-
-                  <!-- Time Range -->
-                  <div class="col-xl-2 col-lg-4 col-md-6">
-                    <label class="form-label fw-semibold">Time Range</label>
-
-                    <select class="form-select">
-                      <option>This Month</option>
-                      <option selected>August 2026</option>
-                      <option>Last Month</option>
-                      <option>This Quarter</option>
-                      <option>This Year</option>
-                    </select>
-                  </div>
-
-                  <!-- Class -->
-                  <div class="col-xl-2 col-lg-4 col-md-6">
-                    <label class="form-label fw-semibold">Class</label>
-
-                    <select class="form-select">
-                      <option selected>All Classes</option>
-                      <option>Class 7</option>
-                      <option>Class 8</option>
-                      <option>Class 9</option>
-                    </select>
-                  </div>
-
-                  <!-- Subject -->
-                  <div class="col-xl-2 col-lg-4 col-md-6">
-                    <label class="form-label fw-semibold">Subject</label>
-
-                    <select class="form-select">
-                      <option selected>All Subjects</option>
-                      <option>Mathematics</option>
-                      <option>Physics</option>
-                      <option>Chemistry</option>
-                      <option>English</option>
-                      <option>Biology</option>
-                    </select>
-                  </div>
-
-                  <!-- Status -->
-                  <div class="col-xl-2 col-lg-4 col-md-6">
-                    <label class="form-label fw-semibold">Status</label>
-
-                    <select class="form-select">
-                      <option selected>All Statuses</option>
-                      <option>Paid</option>
-                      <option>Partially Paid</option>
-                      <option>Unpaid</option>
-                      <option>Overdue</option>
-                    </select>
-                  </div>
-
-                  <!-- Apply -->
-                  <div class="col-xl-1 col-lg-4 col-md-6">
-                    <label class="form-label d-block">&nbsp;</label>
-
-                    <button type="button" class="btn btn-primary w-100">
-                      Apply
-                    </button>
-                  </div>
+              <div
+                class="d-flex my-xl-auto right-content align-items-center flex-wrap"
+              >
+                <div class="mb-2">
+                  <button
+                    type="button"
+                    class="btn btn-primary d-flex align-items-center"
+                  >
+                    <i class="bi bi-plus-square me-2"></i>
+                    Generate Tuition
+                  </button>
                 </div>
               </div>
             </div>
 
-            <!-- Report Title -->
-            <div class="d-flex align-items-center justify-content-between mb-3">
-              <div>
-                <h4 class="mb-1 fw-bold">Tuition Report</h4>
-                <p class="text-muted mb-0">Tuition overview for August 2026</p>
-              </div>
-            </div>
-
-            <!-- Summary Cards -->
+            <!-- Tuition Summary -->
             <div class="row g-3 mb-4">
               <!-- Total Tuition Due -->
               <div class="col-xl-3 col-md-6">
@@ -322,7 +228,7 @@
                     </div>
 
                     <div class="border-top mt-3 pt-3">
-                      <span class="text-muted">128 tuition records</span>
+                      <span class="text-muted">August 2026</span>
                     </div>
                   </div>
                 </div>
@@ -401,55 +307,77 @@
               </div>
             </div>
 
-            <!-- Report Charts -->
-            <div class="row g-4 mb-4">
-              <!-- Tuition by Month -->
-              <div class="col-xl-7">
-                <div class="card dashboard-card h-100">
-                  <div class="dashboard-card-header">
-                    <div>
-                      <h5>Tuition by Month</h5>
-                      <small>Collected and outstanding tuition</small>
-                    </div>
-                  </div>
-
-                  <div class="dashboard-card-body">
-                    <div class="report-chart-container">
-                      <canvas id="tuitionReportChart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Payment Status -->
-              <div class="col-xl-5">
-                <div class="card dashboard-card h-100">
-                  <div class="dashboard-card-header">
-                    <div>
-                      <h5>Payment Status</h5>
-                      <small>Distribution of tuition records</small>
-                    </div>
-                  </div>
-
-                  <div class="dashboard-card-body">
-                    <div class="report-doughnut-container">
-                      <canvas id="paymentStatusChart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Detailed Data -->
+            <!-- Tuition List -->
             <div class="card user-list-card">
-              <div
-                class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom"
-              >
-                <div>
-                  <h5 class="mb-1 fw-bold">Detailed Data</h5>
-                  <small class="text-muted">
-                    Tuition records included in this report
-                  </small>
+              <!-- Filter -->
+              <div class="card-header user-list-header">
+                <div class="row g-3 align-items-center">
+                  <!-- Search -->
+                  <div class="col-xl-3 col-lg-6">
+                    <div class="user-search">
+                      <i class="bi bi-search"></i>
+
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Search student..."
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Tuition Period -->
+                  <div class="col-xl col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Periods</option>
+                      <option>August 2026</option>
+                      <option>September 2026</option>
+                      <option>October 2026</option>
+                    </select>
+                  </div>
+
+                  <!-- Class -->
+                  <div class="col-xl col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Classes</option>
+                      <option>Class 7</option>
+                      <option>Class 8</option>
+                      <option>Class 9</option>
+                    </select>
+                  </div>
+
+                  <!-- Subject -->
+                  <div class="col-xl col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Subjects</option>
+                      <option>Mathematics</option>
+                      <option>Physics</option>
+                      <option>Chemistry</option>
+                      <option>English</option>
+                      <option>Biology</option>
+                    </select>
+                  </div>
+
+                  <!-- Status -->
+                  <div class="col-xl col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Statuses</option>
+                      <option>Paid</option>
+                      <option>Partially Paid</option>
+                      <option>Unpaid</option>
+                      <option>Overdue</option>
+                      <option>Pending Adjustment</option>
+                    </select>
+                  </div>
+
+                  <!-- Sort -->
+                  <div class="col-xl col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>Sort by Newest</option>
+                      <option>Sort by Oldest</option>
+                      <option>Amount High-Low</option>
+                      <option>Amount Low-High</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -475,7 +403,7 @@
                 </span>
               </div>
 
-              <!-- Report Table -->
+              <!-- Tuition Table -->
               <div class="table-responsive">
                 <table class="table user-table align-middle mb-0">
                   <thead>
@@ -493,11 +421,15 @@
                   </thead>
 
                   <tbody>
+                    <!-- Tuition 1 -->
                     <tr>
                       <td>1</td>
 
                       <td>
-                        <h6 class="mb-0">Nguyen Minh An</h6>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="user-avatar">NA</div>
+                          <h6 class="mb-0">Nguyen Minh An</h6>
+                        </div>
                       </td>
 
                       <td>Class 7</td>
@@ -526,21 +458,79 @@
                       </td>
 
                       <td class="text-center">
-                        <button
-                          type="button"
-                          class="btn table-action-btn"
-                          title="View Details"
+                        <div
+                          class="d-flex align-items-center justify-content-center gap-1"
                         >
-                          <i class="bi bi-eye"></i>
-                        </button>
+                          <!-- View / Edit -->
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="View / Edit"
+                            data-bs-toggle="modal"
+                            data-bs-target="#tuitionDetailModal"
+                          >
+                            <i class="bi bi-pencil-square"></i>
+                          </button>
+
+                          <!-- Record Payment -->
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Record Payment"
+                          >
+                            <i class="bi bi-cash-stack"></i>
+                          </button>
+
+                          <!-- Change Status -->
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Change Status"
+                          >
+                            <i class="bi bi-arrow-repeat"></i>
+                          </button>
+
+                          <!-- More -->
+                          <div class="dropdown">
+                            <button
+                              class="btn table-action-btn"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false"
+                              title="More actions"
+                            >
+                              <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-bell me-2"></i>
+                                  Send Reminder
+                                </a>
+                              </li>
+
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-calendar-plus me-2"></i>
+                                  Extend Due Date
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
                       </td>
                     </tr>
 
+                    <!-- Tuition 2 -->
                     <tr>
                       <td>2</td>
 
                       <td>
-                        <h6 class="mb-0">Tran Gia Huy</h6>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="user-avatar">TH</div>
+                          <h6 class="mb-0">Tran Gia Huy</h6>
+                        </div>
                       </td>
 
                       <td>Class 8</td>
@@ -569,21 +559,72 @@
                       </td>
 
                       <td class="text-center">
-                        <button
-                          type="button"
-                          class="btn table-action-btn"
-                          title="View Details"
+                        <div
+                          class="d-flex align-items-center justify-content-center gap-1"
                         >
-                          <i class="bi bi-eye"></i>
-                        </button>
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="View / Edit"
+                          >
+                            <i class="bi bi-pencil-square"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Record Payment"
+                          >
+                            <i class="bi bi-cash-stack"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Change Status"
+                          >
+                            <i class="bi bi-arrow-repeat"></i>
+                          </button>
+
+                          <div class="dropdown">
+                            <button
+                              class="btn table-action-btn"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false"
+                            >
+                              <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-bell me-2"></i>
+                                  Send Reminder
+                                </a>
+                              </li>
+
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-calendar-plus me-2"></i>
+                                  Extend Due Date
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
                       </td>
                     </tr>
 
+                    <!-- Tuition 3 -->
                     <tr>
                       <td>3</td>
 
                       <td>
-                        <h6 class="mb-0">Le Minh Long</h6>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="user-avatar">ML</div>
+                          <h6 class="mb-0">Le Minh Long</h6>
+                        </div>
                       </td>
 
                       <td>Class 9</td>
@@ -612,27 +653,80 @@
                       </td>
 
                       <td class="text-center">
-                        <button
-                          type="button"
-                          class="btn table-action-btn"
-                          title="View Details"
+                        <div
+                          class="d-flex align-items-center justify-content-center gap-1"
                         >
-                          <i class="bi bi-eye"></i>
-                        </button>
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="View / Edit"
+                          >
+                            <i class="bi bi-pencil-square"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Record Payment"
+                          >
+                            <i class="bi bi-cash-stack"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Change Status"
+                          >
+                            <i class="bi bi-arrow-repeat"></i>
+                          </button>
+
+                          <div class="dropdown">
+                            <button
+                              class="btn table-action-btn"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false"
+                            >
+                              <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-bell me-2"></i>
+                                  Send Reminder
+                                </a>
+                              </li>
+
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-calendar-plus me-2"></i>
+                                  Extend Due Date
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
                       </td>
                     </tr>
 
+                    <!-- Tuition 4 -->
                     <tr>
                       <td>4</td>
 
                       <td>
-                        <h6 class="mb-0">Pham Hoang Nam</h6>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="user-avatar">PN</div>
+                          <h6 class="mb-0">Pham Hoang Nam</h6>
+                        </div>
                       </td>
 
                       <td>Class 8</td>
 
                       <td>
-                        <span class="specialty-badge"> Mathematics - 8 </span>
+                        <div class="d-flex flex-wrap gap-1">
+                          <span class="specialty-badge"> Mathematics - 8 </span>
+                        </div>
                       </td>
 
                       <td>August 2026</td>
@@ -644,20 +738,67 @@
                       <td>20 Aug 2026</td>
 
                       <td>
-                        <span class="tuition-status tuition-unpaid">
+                        <span class="tuition-status tuition-pending">
                           <span></span>
-                          Unpaid
+                          Pending Adjustment
                         </span>
                       </td>
 
                       <td class="text-center">
-                        <button
-                          type="button"
-                          class="btn table-action-btn"
-                          title="View Details"
+                        <div
+                          class="d-flex align-items-center justify-content-center gap-1"
                         >
-                          <i class="bi bi-eye"></i>
-                        </button>
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="View / Edit"
+                          >
+                            <i class="bi bi-pencil-square"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Record Payment"
+                          >
+                            <i class="bi bi-cash-stack"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="btn table-action-btn"
+                            title="Change Status"
+                          >
+                            <i class="bi bi-arrow-repeat"></i>
+                          </button>
+
+                          <div class="dropdown">
+                            <button
+                              class="btn table-action-btn"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false"
+                            >
+                              <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-bell me-2"></i>
+                                  Send Reminder
+                                </a>
+                              </li>
+
+                              <li>
+                                <a class="dropdown-item" href="#">
+                                  <i class="bi bi-calendar-plus me-2"></i>
+                                  Extend Due Date
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
