@@ -907,15 +907,13 @@ body.sidebar-collapsed .sidebar .nav-link i {
 }
 
 .user-table thead th {
-  padding: 13px 16px;
+  padding: 14px 16px;
+  color: #252936;
+  background: #f5f6fa;
+  border-bottom: 1px solid #e1e4ea;
 
-  color: #4b5563;
-  background: #f6f7fb;
-
-  border-bottom: 1px solid #e5e7eb;
-
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
 
   white-space: nowrap;
 }
