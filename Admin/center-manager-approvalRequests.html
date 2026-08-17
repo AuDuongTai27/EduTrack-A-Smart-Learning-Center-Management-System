@@ -176,6 +176,474 @@
         <main class="page-wrapper">
           <div class="page-content">
             <!-- Content grab here -->
+            <!-- Breadcrumb -->
+            <div
+              class="d-md-flex d-block align-items-center justify-content-between mb-3"
+            >
+              <div class="my-auto mb-2">
+                <h3 class="page-title mb-1">Approval Requests</h3>
+
+                <nav>
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                      <a href="center-manager-dashboard.html">Dashboard</a>
+                    </li>
+
+                    <li class="breadcrumb-item active" aria-current="page">
+                      Approval Requests
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+
+            <!-- Approval Request List -->
+            <div class="card user-list-card">
+              <!-- Filter -->
+              <div class="card-header user-list-header">
+                <div class="row g-3 align-items-center">
+                  <!-- Search -->
+                  <div class="col-xl-4 col-lg-6">
+                    <div class="user-search">
+                      <i class="bi bi-search"></i>
+
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Search request code or student..."
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Request Type -->
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Request Types</option>
+                      <option>Tuition Adjustment</option>
+                      <option>Refund</option>
+                      <option>Credit</option>
+                      <option>Due Date Extension</option>
+                      <option>Student Information Change</option>
+                    </select>
+                  </div>
+
+                  <!-- Status -->
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Statuses</option>
+                      <option>Pending</option>
+                      <option>Approved</option>
+                      <option>Rejected</option>
+                      <option>Cancelled</option>
+                    </select>
+                  </div>
+
+                  <!-- Priority -->
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>All Priorities</option>
+                      <option>High</option>
+                      <option>Medium</option>
+                      <option>Low</option>
+                    </select>
+                  </div>
+
+                  <!-- Sort -->
+                  <div class="col-xl-2 col-lg-3 col-md-6">
+                    <select class="form-select">
+                      <option selected>Sort by Newest</option>
+                      <option>Sort by Oldest</option>
+                      <option>Priority High-Low</option>
+                      <option>Priority Low-High</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table Controls -->
+              <div
+                class="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted">Show</span>
+
+                  <select class="form-select form-select-sm user-page-size">
+                    <option>10</option>
+                    <option>20</option>
+                    <option>50</option>
+                  </select>
+
+                  <span class="text-muted">entries</span>
+                </div>
+
+                <span class="text-muted small">
+                  Total requests:
+                  <strong class="text-dark">12</strong>
+                </span>
+              </div>
+
+              <!-- Approval Request Table -->
+              <div class="table-responsive">
+                <table class="table user-table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th class="fw-bold">No.</th>
+                      <th class="fw-bold">Request Code</th>
+                      <th class="fw-bold">Request Type</th>
+                      <th class="fw-bold">Related To</th>
+                      <th class="fw-bold">Requested By</th>
+                      <th class="fw-bold">Submitted Date</th>
+                      <th class="fw-bold">Priority</th>
+                      <th class="fw-bold">Status</th>
+                      <th class="text-center fw-bold">Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <!-- Request 1 -->
+                    <tr>
+                      <td>1</td>
+
+                      <td>
+                        <strong>AR0001</strong>
+                      </td>
+
+                      <td>Tuition Adjustment</td>
+
+                      <td>
+                        <div>
+                          <h6 class="mb-1">Nguyen Minh An</h6>
+                        </div>
+                      </td>
+
+                      <td>Admin Staff</td>
+
+                      <td>17 Aug 2026</td>
+
+                      <td>
+                        <span class="priority-badge priority-high"> High </span>
+                      </td>
+
+                      <td>
+                        <span class="approval-status approval-pending">
+                          <span></span>
+                          Pending
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Request"
+                          data-bs-toggle="modal"
+                          data-bs-target="#approvalRequestModal"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <!-- Request 2 -->
+                    <tr>
+                      <td>2</td>
+
+                      <td>
+                        <strong>AR0002</strong>
+                      </td>
+
+                      <td>Refund</td>
+
+                      <td>
+                        <div>
+                          <h6 class="mb-1">Tran Gia Huy</h6>
+                        </div>
+                      </td>
+
+                      <td>Admin Staff</td>
+
+                      <td>16 Aug 2026</td>
+
+                      <td>
+                        <span class="priority-badge priority-medium">
+                          Medium
+                        </span>
+                      </td>
+
+                      <td>
+                        <span class="approval-status approval-approved">
+                          <span></span>
+                          Approved
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Request"
+                          data-bs-toggle="modal"
+                          data-bs-target="#approvalRequestModal"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <!-- Request 3 -->
+                    <tr>
+                      <td>3</td>
+
+                      <td>
+                        <strong>AR0003</strong>
+                      </td>
+
+                      <td>Due Date Extension</td>
+
+                      <td>
+                        <div>
+                          <h6 class="mb-1">Le Minh Long</h6>
+                        </div>
+                      </td>
+
+                      <td>Admin Staff</td>
+
+                      <td>15 Aug 2026</td>
+
+                      <td>
+                        <span class="priority-badge priority-low"> Low </span>
+                      </td>
+
+                      <td>
+                        <span class="approval-status approval-rejected">
+                          <span></span>
+                          Rejected
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Request"
+                          data-bs-toggle="modal"
+                          data-bs-target="#approvalRequestModal"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <!-- Request 4 -->
+                    <tr>
+                      <td>4</td>
+
+                      <td>
+                        <strong>AR0004</strong>
+                      </td>
+
+                      <td>Credit</td>
+
+                      <td>
+                        <div>
+                          <h6 class="mb-1">Pham Hoang Nam</h6>
+                        </div>
+                      </td>
+
+                      <td>Admin Staff</td>
+
+                      <td>14 Aug 2026</td>
+
+                      <td>
+                        <span class="priority-badge priority-medium">
+                          Medium
+                        </span>
+                      </td>
+
+                      <td>
+                        <span class="approval-status approval-pending">
+                          <span></span>
+                          Pending
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Request"
+                          data-bs-toggle="modal"
+                          data-bs-target="#approvalRequestModal"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div
+                class="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3"
+              >
+                <span class="text-muted small">
+                  Showing 1 to 4 of 12 requests
+                </span>
+
+                <nav>
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#">
+                        <i class="bi bi-chevron-left"></i>
+                      </a>
+                    </li>
+
+                    <li class="page-item active">
+                      <a class="page-link" href="#">1</a>
+                    </li>
+
+                    <li class="page-item">
+                      <a class="page-link" href="#">2</a>
+                    </li>
+
+                    <li class="page-item">
+                      <a class="page-link" href="#">3</a>
+                    </li>
+
+                    <li class="page-item">
+                      <a class="page-link" href="#">
+                        <i class="bi bi-chevron-right"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+
+            <!-- Approval Request Modal -->
+            <div
+              class="modal fade"
+              id="approvalRequestModal"
+              tabindex="-1"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <div>
+                      <h5 class="modal-title">Approval Request</h5>
+                      <small class="text-muted">Request Code: AR0001</small>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label text-muted"
+                          >Request Type</label
+                        >
+                        <p class="fw-semibold mb-0">Tuition Adjustment</p>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label text-muted">Priority</label>
+                        <div>
+                          <span class="priority-badge priority-high">
+                            High
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label text-muted">Student</label>
+                        <p class="fw-semibold mb-0">Nguyen Minh An</p>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label text-muted">Subject</label>
+                        <p class="fw-semibold mb-0">Mathematics - 7</p>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label text-muted">
+                          Current Tuition
+                        </label>
+                        <p class="fw-semibold mb-0">500,000 VND</p>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label text-muted">
+                          Requested Tuition
+                        </label>
+                        <p class="fw-semibold text-primary mb-0">300,000 VND</p>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label text-muted"
+                          >Requested By</label
+                        >
+                        <p class="fw-semibold mb-0">Admin Staff</p>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label text-muted"
+                          >Submitted Date</label
+                        >
+                        <p class="fw-semibold mb-0">17 Aug 2026</p>
+                      </div>
+
+                      <div class="col-12">
+                        <label class="form-label text-muted">Reason</label>
+
+                        <div class="border rounded p-3 bg-light">
+                          Parent requested a tuition reduction due to temporary
+                          financial difficulties.
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <label class="form-label text-muted">
+                          Request Status
+                        </label>
+
+                        <div>
+                          <span class="approval-status approval-pending">
+                            <span></span>
+                            Pending
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-light"
+                      data-bs-dismiss="modal"
+                    >
+                      Close
+                    </button>
+
+                    <button type="button" class="btn btn-outline-danger">
+                      Reject
+                    </button>
+
+                    <button type="button" class="btn btn-success">
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>

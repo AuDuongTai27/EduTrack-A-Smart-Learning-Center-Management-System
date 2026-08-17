@@ -1134,3 +1134,170 @@ body.sidebar-collapsed .sidebar .nav-link i {
   background: #ffffff;
   border-top: 1px solid #e5e7eb;
 }
+
+/* =========================
+   Tuition Status
+   ========================= */
+
+.tuition-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 4px 8px;
+
+  border-radius: 5px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.tuition-status span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+}
+
+/* Paid */
+.tuition-paid {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.tuition-paid span {
+  background: #22c55e;
+}
+
+/* Partially Paid */
+.tuition-partial {
+  color: #a16207;
+  background: #fef3c7;
+}
+
+.tuition-partial span {
+  background: #f59e0b;
+}
+
+/* Unpaid */
+.tuition-unpaid {
+  color: #c2410c;
+  background: #ffedd5;
+}
+
+.tuition-unpaid span {
+  background: #f97316;
+}
+
+/* Overdue */
+.tuition-overdue {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.tuition-overdue span {
+  background: #ef4444;
+}
+
+/* Pending Adjustment */
+.tuition-pending {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+.tuition-pending span {
+  background: #8b5cf6;
+}
+
+/* =========================
+   Approval Requests
+   ========================= */
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 8px;
+
+  border-radius: 5px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.priority-high {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.priority-medium {
+  color: #a16207;
+  background: #fef3c7;
+}
+
+.priority-low {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.approval-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 4px 8px;
+
+  border-radius: 5px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.approval-status span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+}
+
+.approval-pending {
+  color: #a16207;
+  background: #fef3c7;
+}
+
+.approval-pending span {
+  background: #f59e0b;
+}
+
+.approval-approved {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.approval-approved span {
+  background: #22c55e;
+}
+
+.approval-rejected {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.approval-rejected span {
+  background: #ef4444;
+}
+
+.approval-cancelled {
+  color: #4b5563;
+  background: #f3f4f6;
+}
+
+.approval-cancelled span {
+  background: #9ca3af;
+}
