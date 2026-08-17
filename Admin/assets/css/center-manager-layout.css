@@ -481,234 +481,6 @@ input {
 }
 
 /* =========================
-   Shared Avatar
-   ========================= */
-
-.avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.avatar-sm {
-  width: 32px;
-  height: 32px;
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-}
-
-.avatar.rounded-circle img,
-.avatar img.rounded-circle {
-  border-radius: 50%;
-}
-
-/* =========================
-   Dashboard KPI
-   ========================= */
-
-.dashboard-kpis {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.dashboard-kpi {
-  min-width: 0;
-
-  border: 0;
-  border-radius: 8px;
-
-  box-shadow: 0 2px 8px rgba(20, 20, 40, 0.05);
-}
-
-.dashboard-kpi .card-body {
-  padding: 18px;
-}
-
-.dashboard-kpi h3 {
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.dashboard-kpi p {
-  font-size: 13px;
-}
-
-.kpi-icon {
-  width: 46px;
-  height: 46px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 8px;
-
-  font-size: 20px;
-}
-
-/* =========================
-   Shared Dashboard Card
-   Tuition + Notice + future dashboard blocks
-   ========================= */
-
-.dashboard-card {
-  width: 100%;
-
-  background: #ffffff;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-
-  box-shadow: 0 2px 8px rgba(20, 20, 40, 0.05);
-
-  overflow: hidden;
-}
-
-.dashboard-card-header {
-  min-height: 78px;
-  padding: 16px 18px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.dashboard-card-header h5 {
-  margin: 0 0 4px;
-
-  color: #20232a;
-
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.dashboard-card-header small {
-  color: #72798b;
-  font-size: 13px;
-}
-
-.dashboard-card-body {
-  padding: 18px;
-}
-
-.dashboard-view-all {
-  color: #0d6efd;
-
-  font-size: 14px;
-  font-weight: 500;
-
-  text-decoration: none;
-}
-
-.dashboard-view-all:hover {
-  text-decoration: underline;
-}
-
-/* =========================
-   Tuition Chart
-   ========================= */
-
-.chart-container {
-  position: relative;
-
-  width: 100%;
-  height: 340px;
-}
-
-.chart-filter {
-  width: auto;
-  min-width: 135px;
-}
-
-/* =========================
-   Notice Board
-   ========================= */
-
-.notice-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.notice-item {
-  min-height: 64px;
-  padding: 12px 0;
-
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  border-bottom: 1px solid #eeeeee;
-}
-
-.notice-item:last-child {
-  border-bottom: none;
-}
-
-.notice-icon {
-  width: 40px;
-  height: 40px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  border-radius: 8px;
-
-  font-size: 17px;
-}
-
-.notice-content {
-  min-width: 0;
-  flex: 1;
-}
-
-.notice-content h6 {
-  margin-bottom: 4px;
-
-  color: #20232a;
-
-  font-size: 14px;
-  font-weight: 600;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.notice-content p {
-  margin: 0;
-
-  color: #72798b;
-
-  font-size: 12px;
-}
-
-.notice-day {
-  padding: 5px 9px;
-
-  color: #495057;
-  background: #f5f6f8;
-
-  border-radius: 6px;
-
-  font-size: 11px;
-  font-weight: 600;
-
-  white-space: nowrap;
-}
-
-/* =========================
    Collapsed Sidebar
    ========================= */
 
@@ -754,102 +526,31 @@ body.sidebar-collapsed .sidebar .nav-link i {
 }
 
 /* =========================
-   Responsive
+   Shared Avatar
    ========================= */
 
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-
-  display: none;
-
-  background: rgba(5, 3, 12, 0.62);
-
-  z-index: 1030;
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-@media (max-width: 1399px) {
-  .dashboard-kpis {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.avatar-sm {
+  width: 32px;
+  height: 32px;
 }
 
-@media (max-width: 991.98px) {
-  .sidebar {
-    width: var(--sidebar-width);
-    transform: translateX(-100%);
-  }
+.avatar img {
+  width: 100%;
+  height: 100%;
 
-  .sidebar.show {
-    transform: translateX(0);
-  }
-
-  .main-area,
-  body.sidebar-collapsed .main-area {
-    margin-left: 0;
-  }
-
-  .mobile-menu-btn {
-    display: inline-flex;
-  }
-
-  .sidebar-collapse-btn {
-    display: none;
-  }
-
-  .sidebar-overlay.show {
-    display: block;
-  }
-
-  .search-box {
-    width: min(42vw, 270px);
-  }
-
-  .academic-year-btn span {
-    display: none;
-  }
-
-  .dashboard-kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  object-fit: cover;
 }
 
-@media (max-width: 700px) {
-  .topbar {
-    padding-inline: 12px;
-  }
-
-  .search-box {
-    display: none;
-  }
-
-  .topbar-actions {
-    gap: 5px;
-  }
-
-  .topbar-actions .icon-btn:nth-of-type(1),
-  .topbar-actions .icon-btn:nth-of-type(4) {
-    display: none;
-  }
-}
-
-@media (max-width: 575px) {
-  .dashboard-kpis {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-card-header {
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .chart-filter {
-    min-width: 120px;
-  }
-
-  .notice-item {
-    align-items: flex-start;
-  }
+.avatar.rounded-circle img,
+.avatar img.rounded-circle {
+  border-radius: 50%;
 }
 
 /* =========================
@@ -1135,6 +836,520 @@ body.sidebar-collapsed .sidebar .nav-link i {
   border-top: 1px solid #e5e7eb;
 }
 
+/* =========================
+   Dashboard KPI
+   ========================= */
+
+.dashboard-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashboard-kpi {
+  min-width: 0;
+
+  border: 0;
+  border-radius: 8px;
+
+  box-shadow: 0 2px 8px rgba(20, 20, 40, 0.05);
+}
+
+.dashboard-kpi .card-body {
+  padding: 18px;
+}
+
+.dashboard-kpi h3 {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.dashboard-kpi p {
+  font-size: 13px;
+}
+
+.kpi-icon {
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  font-size: 20px;
+}
+
+/* =========================
+   Shared Dashboard Card
+   Tuition + Notice + future dashboard blocks
+   ========================= */
+
+.dashboard-card {
+  width: 100%;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  box-shadow: 0 2px 8px rgba(20, 20, 40, 0.05);
+
+  overflow: hidden;
+}
+
+.dashboard-card-header {
+  min-height: 78px;
+  padding: 16px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dashboard-card-header h5 {
+  margin: 0 0 4px;
+
+  color: #20232a;
+
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dashboard-card-header small {
+  color: #72798b;
+  font-size: 13px;
+}
+
+.dashboard-card-body {
+  padding: 18px;
+}
+
+.dashboard-view-all {
+  color: #0d6efd;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  text-decoration: none;
+}
+
+.dashboard-view-all:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   Tuition Chart
+   ========================= */
+
+.chart-container {
+  position: relative;
+
+  width: 100%;
+  height: 340px;
+}
+
+.chart-filter {
+  width: auto;
+  min-width: 135px;
+}
+
+/* =========================
+   Notice Board
+   ========================= */
+
+.notice-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notice-item {
+  min-height: 64px;
+  padding: 12px 0;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.notice-item:last-child {
+  border-bottom: none;
+}
+
+.notice-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  border-radius: 8px;
+
+  font-size: 17px;
+}
+
+.notice-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.notice-content h6 {
+  margin-bottom: 4px;
+
+  color: #20232a;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notice-content p {
+  margin: 0;
+
+  color: #72798b;
+
+  font-size: 12px;
+}
+
+.notice-day {
+  padding: 5px 9px;
+
+  color: #495057;
+  background: #f5f6f8;
+
+  border-radius: 6px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+/* =========================
+   Admin Staff Dashboard
+   ========================= */
+
+.dashboard-view-link {
+  color: #5d3fd3;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-decoration: none;
+}
+
+.dashboard-view-link:hover {
+  color: #4930b5;
+}
+
+/* Today's Schedule */
+
+.schedule-list {
+  width: 100%;
+}
+
+.schedule-item {
+  min-height: 92px;
+
+  padding: 16px 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  border-bottom: 1px solid #edf0f4;
+}
+
+.schedule-item:last-child {
+  border-bottom: 0;
+}
+
+.schedule-time {
+  width: 55px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-time strong {
+  color: #252936;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.schedule-time span {
+  color: #8a90a0;
+
+  font-size: 11px;
+}
+
+.schedule-line {
+  width: 3px;
+  height: 42px;
+
+  background: #5d3fd3;
+
+  border-radius: 10px;
+}
+
+.schedule-info {
+  flex: 1;
+}
+
+.schedule-info h6 {
+  margin-bottom: 7px;
+
+  color: #252936;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.schedule-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+
+  color: #858b99;
+
+  font-size: 11px;
+}
+
+.schedule-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.schedule-status {
+  padding: 4px 8px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.schedule-ongoing {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.schedule-upcoming {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+/* Latest Notifications */
+
+.staff-notification-list {
+  width: 100%;
+}
+
+.staff-notification-item {
+  min-height: 92px;
+
+  padding: 15px 18px;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  border-bottom: 1px solid #edf0f4;
+}
+
+.staff-notification-item:last-child {
+  border-bottom: 0;
+}
+
+.staff-notification-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  color: #5d3fd3;
+  background: #f0edff;
+
+  border-radius: 8px;
+
+  font-size: 16px;
+}
+
+.staff-notification-content {
+  flex: 1;
+}
+
+.staff-notification-content h6 {
+  margin-bottom: 4px;
+
+  color: #252936;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.staff-notification-content p {
+  margin-bottom: 4px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.staff-notification-content small {
+  color: #9ca3af;
+
+  font-size: 10px;
+}
+
+@media (max-width: 767px) {
+  .schedule-item {
+    align-items: flex-start;
+  }
+
+  .schedule-status {
+    display: none;
+  }
+}
+
+.dashboard-welcome {
+  color: #ffffff;
+  background: #25223b;
+
+  border: 0;
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+.dashboard-welcome .card-body {
+  padding: 24px;
+}
+
+.welcome-subtitle {
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.welcome-title {
+  color: #ffffff;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.welcome-text {
+  color: rgba(255, 255, 255, 0.7);
+
+  font-size: 13px;
+}
+
+.welcome-date {
+  padding: 8px 12px;
+
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.class-student-count {
+  color: #5d3fd3;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.approval-draft {
+  color: #4b5563;
+  background: #f3f4f6;
+}
+
+/* =========================
+   Dashboard Welcome
+   ========================= */
+
+.dashboard-welcome {
+  background: #24232b;
+
+  border: 0;
+  border-radius: 8px;
+}
+
+.dashboard-welcome .card-body {
+  padding: 16px 18px;
+}
+
+.dashboard-welcome h4 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dashboard-welcome p {
+  color: rgba(255, 255, 255, 0.7);
+
+  font-size: 12px;
+}
+
+.welcome-date {
+  padding: 7px 10px;
+
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+
+  border-radius: 5px;
+
+  font-size: 11px;
+}
+
+.alert-message .alert {
+  min-height: 46px;
+  padding: 8px 14px;
+  margin-bottom: 18px !important;
+
+  font-size: 13px;
+}
+
+.alert-message .avatar {
+  width: 28px;
+  height: 28px;
+}
+
+.alert-message .avatar img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+}
+
+.alert-message .btn-close {
+  font-size: 11px;
+}
 /* =========================
    Tuition Status
    ========================= */
@@ -1667,4 +1882,213 @@ body.sidebar-collapsed .sidebar .nav-link i {
   background: #fafbfc;
 
   border-top: 1px solid #e5e7eb;
+}
+
+/* =========================
+   Teaching Monitoring
+   ========================= */
+
+.monitoring-card {
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  box-shadow: 0 2px 8px rgba(20, 20, 40, 0.04);
+
+  overflow: hidden;
+}
+
+.monitoring-tabs {
+  padding: 0 20px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.monitoring-tabs .nav-tabs {
+  border-bottom: 0;
+}
+
+.monitoring-tabs .nav-link {
+  padding: 16px 18px;
+
+  color: #667085;
+  background: transparent;
+
+  border: 0;
+  border-bottom: 2px solid transparent;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.monitoring-tabs .nav-link.active {
+  color: #5d3fd3;
+  background: transparent;
+
+  border-bottom-color: #5d3fd3;
+}
+
+.monitoring-tab-header,
+.monitoring-subsection-header {
+  padding: 18px 20px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.monitoring-tab-header h5,
+.monitoring-subsection-header h5 {
+  margin-bottom: 4px;
+
+  color: #252936;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.monitoring-tab-header p,
+.monitoring-subsection-header p {
+  margin: 0;
+
+  color: #8a90a0;
+
+  font-size: 12px;
+}
+
+/* Monitoring Status */
+
+.monitoring-status {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 8px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.monitoring-good {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.monitoring-attention {
+  color: #a16207;
+  background: #fef3c7;
+}
+
+.monitoring-critical {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+/* Student Progress Chart */
+
+.student-progress-chart {
+  position: relative;
+
+  width: 100%;
+  height: 280px;
+}
+/* =========================
+   Responsive
+   ========================= */
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: none;
+
+  background: rgba(5, 3, 12, 0.62);
+
+  z-index: 1030;
+}
+
+@media (max-width: 1399px) {
+  .dashboard-kpis {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+  }
+
+  .sidebar.show {
+    transform: translateX(0);
+  }
+
+  .main-area,
+  body.sidebar-collapsed .main-area {
+    margin-left: 0;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .sidebar-collapse-btn {
+    display: none;
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  .search-box {
+    width: min(42vw, 270px);
+  }
+
+  .academic-year-btn span {
+    display: none;
+  }
+
+  .dashboard-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    padding-inline: 12px;
+  }
+
+  .search-box {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: 5px;
+  }
+
+  .topbar-actions .icon-btn:nth-of-type(1),
+  .topbar-actions .icon-btn:nth-of-type(4) {
+    display: none;
+  }
+}
+
+@media (max-width: 575px) {
+  .dashboard-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-card-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .chart-filter {
+    min-width: 120px;
+  }
+
+  .notice-item {
+    align-items: flex-start;
+  }
 }

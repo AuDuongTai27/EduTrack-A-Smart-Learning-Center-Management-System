@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduTrack - Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <!-- EduTrack Layout CSS -->
+    <link rel="stylesheet" href="assets/css/center-manager-layout.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <a class="brand" href="#">
+            <span class="brand-mark">
+              <i class="bi bi-mortarboard-fill"></i>
+            </span>
+            <span class="brand-text">EduTrack</span>
+          </a>
+
+          <button
+            class="sidebar-collapse-btn"
+            id="sidebarCollapseBtn"
+            type="button"
+            aria-label="Toggle sidebar"
+          >
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <div class="center-box">
+          <span class="center-avatar">
+            <i class="bi bi-buildings-fill"></i>
+          </span>
+          <div class="center-info">
+            <span class="center-name">EduTrack Center</span>
+            <small>Learning Center</small>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <div class="nav-heading">MAIN</div>
+            <a class="nav-link active" href="admin-staff-dashboard.html">
+              <i class="bi bi-grid-1x2-fill"></i>
+              <span>Dashboard</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">MANAGEMENT</div>
+
+            <a class="nav-link" href="students.html">
+              <i class="bi bi-mortarboard"></i>
+              <span>Students</span>
+            </a>
+
+            <a class="nav-link" href="admin-staff-classes.html">
+              <i class="bi bi-collection-fill"></i>
+              <span>Classes</span>
+            </a>
+
+            <a class="nav-link" href="admin-staff-teaching-monitoring.html">
+              <i class="bi bi-activity"></i>
+              <span>Teaching Monitoring</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">FINANCE</div>
+
+            <a class="nav-link" href="tuition.html">
+              <i class="bi bi-cash-stack"></i>
+              <span>Tuition</span>
+            </a>
+
+            <a class="nav-link" href="admin-staff-approval-requests.html">
+              <i class="bi bi-check2-square"></i>
+              <span>My Approval Requests</span>
+            </a>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-heading">COMMUNICATION</div>
+
+            <a class="nav-link" href="notifications.html">
+              <i class="bi bi-megaphone-fill"></i>
+              <span>Notifications</span>
+            </a>
+          </div>
+
+          <div class="nav-section pb-4">
+            <div class="nav-heading">REPORTING</div>
+
+            <a class="nav-link" href="reports.html">
+              <i class="bi bi-bar-chart-fill"></i>
+              <span>Reports</span>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main area -->
+      <div class="main-area">
+        <!-- Header -->
+        <header class="topbar">
+          <div class="topbar-left">
+            <button
+              class="mobile-menu-btn"
+              id="mobileMenuBtn"
+              type="button"
+              aria-label="Open menu"
+            >
+              <i class="bi bi-list"></i>
+            </button>
+
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input type="text" placeholder="Search" />
+            </div>
+          </div>
+
+          <div class="topbar-actions">
+            <button class="academic-year-btn" type="button">
+              <i class="bi bi-calendar3"></i>
+              <span>Academic Year : 2026 / 2027</span>
+            </button>
+
+            <button class="icon-btn" type="button" title="Language">
+              <i class="bi bi-globe2"></i>
+            </button>
+
+            <button class="icon-btn" type="button" title="Theme">
+              <i class="bi bi-moon-stars"></i>
+            </button>
+
+            <button
+              class="icon-btn notification-btn"
+              type="button"
+              title="Notifications"
+            >
+              <i class="bi bi-bell"></i>
+              <span class="status-dot"></span>
+            </button>
+
+            <button class="icon-btn" type="button" title="Fullscreen">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+
+            <button class="profile-btn" type="button">
+              <span class="profile-avatar">AS</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Intentionally blank content area -->
+        <main class="page-wrapper">
+          <div class="page-content">
+            <!-- Content grab here -->
+            <!-- Breadcrumb and Quick Access -->
+            <div
+              class="d-md-flex d-block align-items-center justify-content-between mb-4"
+            >
+              <div class="my-auto mb-2">
+                <h3 class="page-title mb-1">Admin Staff Dashboard</h3>
+
+                <nav>
+                  <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                      <a href="admin-staff-dashboard.html">Dashboard</a>
+                    </li>
+
+                    <li class="breadcrumb-item active" aria-current="page">
+                      Overview
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+
+            <!-- Dashboard Summary -->
+            <div class="row g-3 mb-4">
+              <!-- New Students -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">New Students</p>
+                        <h3 class="mb-0">8</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-person-plus-fill"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-primary fw-semibold">
+                        Pending processing
+                      </span>
+                      <span class="text-muted ms-2"> +5 this week </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Unpaid Students -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">Unpaid Students</p>
+                        <h3 class="mb-0">24</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-warning-subtle text-warning">
+                        <i class="bi bi-person-exclamation"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-muted"> August 2026 </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Outstanding Tuition -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">Outstanding Tuition</p>
+                        <h3 class="mb-0">18.5M</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-danger-subtle text-danger">
+                        <i class="bi bi-cash-stack"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-muted"> VND · August 2026 </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- My Approval Requests -->
+              <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-kpi h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div>
+                        <p class="text-muted mb-1">My Requests</p>
+                        <h3 class="mb-0">3</h3>
+                      </div>
+
+                      <div class="kpi-icon bg-info-subtle text-info">
+                        <i class="bi bi-send-check-fill"></i>
+                      </div>
+                    </div>
+
+                    <div class="border-top mt-3 pt-3">
+                      <span class="text-warning fw-semibold"> 3 Pending </span>
+
+                      <span class="text-muted ms-2"> 2 updated this week </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Welcome -->
+            <div class="card dashboard-welcome mb-4">
+              <div class="card-body">
+                <div
+                  class="d-flex align-items-center justify-content-between flex-wrap gap-3"
+                >
+                  <div>
+                    <p class="welcome-subtitle mb-1">Welcome back</p>
+                    <h3 class="welcome-title mb-2">Admin Staff</h3>
+
+                    <p class="welcome-text mb-0">
+                      Here is an overview of today's tasks and activities.
+                    </p>
+                  </div>
+
+                  <div class="welcome-date">
+                    <i class="bi bi-calendar3 me-2"></i>
+                    Monday, 17 August 2026
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Today's Schedule and Latest Notifications -->
+            <div class="row g-4 mb-4">
+              <!-- Today's Schedule -->
+              <div class="col-xl-7">
+                <div class="card dashboard-card h-100">
+                  <div class="dashboard-card-header">
+                    <div>
+                      <h5>Today's Schedule</h5>
+                      <small>Monday, 17 August 2026</small>
+                    </div>
+
+                    <a href="#" class="dashboard-view-link">
+                      View Full Schedule
+                      <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                  </div>
+
+                  <div class="dashboard-card-body p-0">
+                    <div class="schedule-list">
+                      <div class="schedule-item">
+                        <div class="schedule-time">
+                          <strong>08:00</strong>
+                          <span>09:30</span>
+                        </div>
+
+                        <div class="schedule-line"></div>
+
+                        <div class="schedule-info">
+                          <h6>Mathematics - 7</h6>
+
+                          <div class="schedule-meta">
+                            <span>
+                              <i class="bi bi-person"></i>
+                              Nguyen Van An
+                            </span>
+
+                            <span>
+                              <i class="bi bi-geo-alt"></i>
+                              Room 201
+                            </span>
+                          </div>
+                        </div>
+
+                        <span class="schedule-status schedule-ongoing">
+                          Ongoing
+                        </span>
+                      </div>
+
+                      <div class="schedule-item">
+                        <div class="schedule-time">
+                          <strong>10:00</strong>
+                          <span>11:30</span>
+                        </div>
+
+                        <div class="schedule-line"></div>
+
+                        <div class="schedule-info">
+                          <h6>Physics - 8</h6>
+
+                          <div class="schedule-meta">
+                            <span>
+                              <i class="bi bi-person"></i>
+                              Tran Minh Hoa
+                            </span>
+
+                            <span>
+                              <i class="bi bi-geo-alt"></i>
+                              Room 305
+                            </span>
+                          </div>
+                        </div>
+
+                        <span class="schedule-status schedule-upcoming">
+                          Upcoming
+                        </span>
+                      </div>
+
+                      <div class="schedule-item">
+                        <div class="schedule-time">
+                          <strong>14:00</strong>
+                          <span>15:30</span>
+                        </div>
+
+                        <div class="schedule-line"></div>
+
+                        <div class="schedule-info">
+                          <h6>English - 9</h6>
+
+                          <div class="schedule-meta">
+                            <span>
+                              <i class="bi bi-person"></i>
+                              Le Thu Trang
+                            </span>
+
+                            <span>
+                              <i class="bi bi-geo-alt"></i>
+                              Room 204
+                            </span>
+                          </div>
+                        </div>
+
+                        <span class="schedule-status schedule-upcoming">
+                          Upcoming
+                        </span>
+                      </div>
+
+                      <div class="schedule-item">
+                        <div class="schedule-time">
+                          <strong>18:00</strong>
+                          <span>19:30</span>
+                        </div>
+
+                        <div class="schedule-line"></div>
+
+                        <div class="schedule-info">
+                          <h6>Chemistry - 8</h6>
+
+                          <div class="schedule-meta">
+                            <span>
+                              <i class="bi bi-person"></i>
+                              Pham Minh Duc
+                            </span>
+
+                            <span>
+                              <i class="bi bi-geo-alt"></i>
+                              Room 302
+                            </span>
+                          </div>
+                        </div>
+
+                        <span class="schedule-status schedule-upcoming">
+                          Upcoming
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Latest Notifications -->
+              <div class="col-xl-5">
+                <div class="card dashboard-card h-100">
+                  <div class="dashboard-card-header">
+                    <div>
+                      <h5>Latest Notifications</h5>
+                      <small>Recent center updates</small>
+                    </div>
+
+                    <a href="notifications.html" class="dashboard-view-link">
+                      View All
+                      <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                  </div>
+
+                  <div class="dashboard-card-body p-0">
+                    <div class="staff-notification-list">
+                      <div class="staff-notification-item">
+                        <div class="staff-notification-icon">
+                          <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                        <div class="staff-notification-content">
+                          <h6>Tuition Payment Reminder</h6>
+                          <p>August tuition reminder has been scheduled.</p>
+                          <small>30 minutes ago</small>
+                        </div>
+                      </div>
+
+                      <div class="staff-notification-item">
+                        <div class="staff-notification-icon">
+                          <i class="bi bi-calendar-event"></i>
+                        </div>
+
+                        <div class="staff-notification-content">
+                          <h6>Class Schedule Updated</h6>
+                          <p>Mathematics - 7 schedule has been updated.</p>
+                          <small>2 hours ago</small>
+                        </div>
+                      </div>
+
+                      <div class="staff-notification-item">
+                        <div class="staff-notification-icon">
+                          <i class="bi bi-person-plus"></i>
+                        </div>
+
+                        <div class="staff-notification-content">
+                          <h6>New Student Registered</h6>
+                          <p>A new student registration requires processing.</p>
+                          <small>4 hours ago</small>
+                        </div>
+                      </div>
+
+                      <div class="staff-notification-item">
+                        <div class="staff-notification-icon">
+                          <i class="bi bi-check2-square"></i>
+                        </div>
+
+                        <div class="staff-notification-content">
+                          <h6>Approval Request Updated</h6>
+                          <p>Request AR0008 has been approved.</p>
+                          <small>Yesterday</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Approval Requests -->
+            <div class="card user-list-card">
+              <div
+                class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom"
+              >
+                <div>
+                  <h5 class="mb-1 fw-bold">Recent Approval Requests</h5>
+                  <small class="text-muted">
+                    Latest requests submitted by you
+                  </small>
+                </div>
+
+                <a
+                  href="admin-staff-approval-requests.html"
+                  class="dashboard-view-link"
+                >
+                  View All
+                  <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table user-table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>Request Code</th>
+                      <th>Request Type</th>
+                      <th>Related To</th>
+                      <th>Submitted Date</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th class="text-center">Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+
+                      <td>
+                        <strong>AR0008</strong>
+                      </td>
+
+                      <td>Tuition Adjustment</td>
+
+                      <td>Nguyen Minh An</td>
+
+                      <td>17 Aug 2026</td>
+
+                      <td>
+                        <span class="priority-badge priority-high"> High </span>
+                      </td>
+
+                      <td>
+                        <span class="approval-status approval-pending">
+                          Pending
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Details"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>2</td>
+
+                      <td>
+                        <strong>AR0007</strong>
+                      </td>
+
+                      <td>Due Date Extension</td>
+
+                      <td>Tran Gia Huy</td>
+
+                      <td>16 Aug 2026</td>
+
+                      <td>
+                        <span class="priority-badge priority-medium">
+                          Medium
+                        </span>
+                      </td>
+
+                      <td>
+                        <span class="approval-status approval-approved">
+                          Approved
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Details"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td>3</td>
+
+                      <td>
+                        <strong>AR0006</strong>
+                      </td>
+
+                      <td>Tuition Adjustment</td>
+
+                      <td>Le Minh Long</td>
+
+                      <td>15 Aug 2026</td>
+
+                      <td>
+                        <span class="priority-badge priority-low"> Low </span>
+                      </td>
+
+                      <td>
+                        <span class="approval-status approval-rejected">
+                          Rejected
+                        </span>
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          type="button"
+                          class="btn table-action-btn"
+                          title="View Details"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  </body>
+</html>
