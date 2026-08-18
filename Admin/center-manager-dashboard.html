@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>EduTrack - Center Manager Layout</title>
+    <title>EduTrack - Dashboard</title>
 
     <!-- Bootstrap -->
     <link
@@ -55,7 +55,7 @@
         <nav class="sidebar-nav">
           <div class="nav-section">
             <div class="nav-heading">MAIN</div>
-            <a class="nav-link active" href="#">
+            <a class="nav-link active" href="center-manager-dashboard.html">
               <i class="bi bi-grid-1x2-fill"></i>
               <span>Dashboard</span>
             </a>
@@ -63,19 +63,19 @@
 
           <div class="nav-section">
             <div class="nav-heading">MANAGEMENT</div>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="center-manager-userAccount.html">
               <i class="bi bi-person-gear"></i>
               <span>User Accounts</span>
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./students.html">
               <i class="bi bi-mortarboard"></i>
               <span>Students</span>
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./center-manager-subjects.html">
               <i class="bi bi-journal-bookmark-fill"></i>
               <span>Subjects</span>
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./center-manager-classes.html">
               <i class="bi bi-collection-fill"></i>
               <span>Classes</span>
             </a>
@@ -83,11 +83,11 @@
 
           <div class="nav-section">
             <div class="nav-heading">FINANCE</div>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./tuition.html">
               <i class="bi bi-cash-stack"></i>
               <span>Tuition</span>
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./center-manager-approvalRequests.html">
               <i class="bi bi-check2-square"></i>
               <span>Approval Requests</span>
             </a>
@@ -95,7 +95,7 @@
 
           <div class="nav-section">
             <div class="nav-heading">COMMUNICATION</div>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./notifications.html">
               <i class="bi bi-megaphone-fill"></i>
               <span>Notifications</span>
             </a>
@@ -103,7 +103,7 @@
 
           <div class="nav-section">
             <div class="nav-heading">REPORTING</div>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./reports.html">
               <i class="bi bi-bar-chart-fill"></i>
               <span>Reports</span>
             </a>
@@ -111,7 +111,7 @@
 
           <div class="nav-section pb-4">
             <div class="nav-heading">SYSTEM</div>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="./center-manager-settings.html">
               <i class="bi bi-gear-fill"></i>
               <span>Settings</span>
             </a>
@@ -192,20 +192,23 @@
                 </nav>
               </div>
               <div
-                class="d-flex my-xl-auto right-content align-items-center flex-wrap"
+                class="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2"
               >
                 <div class="mb-2">
-                  <a
-                    href="#"
-                    class="btn btn-primary d-flex align-items-center me-3"
-                    ><i class="ti ti-square-rounded-plus me-2"></i>Add New
-                    Student</a
-                  >
+                  <a href="#" class="btn btn-primary d-flex align-items-center">
+                    <i class="bi bi-plus-square me-2"></i>
+                    Add Student
+                  </a>
                 </div>
+
                 <div class="mb-2">
-                  <a href="#" class="btn btn-light d-flex align-items-center"
-                    >Fees Details</a
+                  <a
+                    href="./center-manager-tuition.html"
+                    class="btn btn-outline-primary d-flex align-items-center"
                   >
+                    <i class="bi bi-cash-stack me-2"></i>
+                    Tuition Details
+                  </a>
                 </div>
               </div>
             </div>
@@ -238,39 +241,6 @@
                     >
                       <span><i class="bi bi-x"></i></span>
                     </button>
-                  </div>
-                </div>
-
-                <!-- Dashboard Content -->
-                <div class="card bg-dark">
-                  <!-- <div class="overlay-img">
-								<img src="assets/img/bg/shape-04.png" alt="img" class="img-fluid shape-01">
-								<img src="assets/img/bg/shape-01.png" alt="img" class="img-fluid shape-02">
-								<img src="assets/img/bg/shape-02.png" alt="img" class="img-fluid shape-03">
-								<img src="assets/img/bg/shape-03.png" alt="img" class="img-fluid shape-04">
-							</div> -->
-                  <div class="card-body">
-                    <div
-                      class="d-flex align-items-xl-center justify-content-xl-between flex-xl-row flex-column"
-                    >
-                      <div class="mb-3 mb-xl-0">
-                        <div class="d-flex align-items-center flex-wrap mb-2">
-                          <h1 class="text-white me-2">
-                            Welcome Back, Mr. Herald
-                          </h1>
-                          <a
-                            href="#"
-                            class="avatar avatar-sm img-rounded bg-gray-800 dark-hover"
-                            ><i class="ti ti-edit text-white"></i
-                          ></a>
-                        </div>
-                        <p class="text-white">Have a Good day at work</p>
-                      </div>
-                      <p class="text-white">
-                        <i class="ti ti-refresh me-1"></i>Updated Recently on 15
-                        Jun 2024
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -398,6 +368,23 @@
               </div>
             </div>
 
+            <!-- Welcome -->
+            <div class="card dashboard-welcome mb-4">
+              <div
+                class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2"
+              >
+                <div>
+                  <h4 class="mb-1 text-white">Welcome back, Center Manager</h4>
+
+                  <p class="mb-0">Here is today's center overview.</p>
+                </div>
+
+                <div class="welcome-date">
+                  <i class="bi bi-calendar3 me-2"></i>
+                  17 August 2026
+                </div>
+              </div>
+            </div>
             <!-- Dashboard Charts -->
             <div class="row g-4 mb-4">
               <!-- Tuition Overview -->
