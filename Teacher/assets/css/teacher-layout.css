@@ -3,19 +3,19 @@
   --sidebar-collapsed-width: 74px;
   --topbar-height: 58px;
 
-  --sidebar-bg: #0f0b1d;
-  --sidebar-border: #272039;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #eaecf0;
 
-  --topbar-bg: #100c1d;
-  --topbar-border: #251f36;
+  --topbar-bg: #ffffff;
+  --topbar-border: #eaecf0;
 
   --page-bg: #f6f7fb;
   --text-light: #f7f5ff;
   --text-dark: #1f2430;
 
   --accent: #5d3fd3;
-  --accent-soft: #21183d;
-  --icon-bg: #1c1732;
+  --accent-soft: #ede9fe;
+  --icon-bg: #f1f5f9;
 }
 
 /* =========================
@@ -67,7 +67,7 @@ input {
 
   background: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.02);
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.03);
 
   z-index: 1040;
   overflow: hidden;
@@ -85,7 +85,7 @@ input {
   align-items: center;
   justify-content: space-between;
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #f1f3f7;
 }
 
 .brand {
@@ -94,7 +94,7 @@ input {
   gap: 10px;
   min-width: 0;
 
-  color: var(--text-light);
+  color: var(--text-dark);
   text-decoration: none;
 }
 
@@ -113,27 +113,49 @@ input {
 
   background: linear-gradient(135deg, #4d8cff 0%, #7762e8 55%, #54d6c8 100%);
 
-  box-shadow: 0 6px 18px rgba(93, 63, 211, 0.25);
+  box-shadow: 0 4px 14px rgba(93, 63, 211, 0.2);
 }
 
 .brand-text {
-  color: #ffffff;
+  color: #1a162b;
   font-size: 20px;
   font-weight: 750;
   letter-spacing: -0.3px;
   white-space: nowrap;
 }
 
-.sidebar-collapse-btn,
+.sidebar-collapse-btn {
+  padding: 4px;
+
+  border: 0;
+  background: transparent;
+
+  color: #64748b;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  color: #1a162b;
+}
+
 .mobile-menu-btn {
   padding: 4px;
 
   border: 0;
   background: transparent;
 
-  color: #e9e5f5;
+  color: #475569;
   font-size: 20px;
   line-height: 1;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.mobile-menu-btn:hover {
+  color: #1a162b;
 }
 
 .center-box {
@@ -145,11 +167,11 @@ input {
   align-items: center;
   gap: 10px;
 
-  background: #ffffff;
-  border: 1px solid #eceaf2;
-  border-radius: 4px;
+  background: #f8fafc;
+  border: 1px solid #e8ebf0;
+  border-radius: 6px;
 
-  box-shadow: 0 1px 3px rgba(17, 12, 31, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .center-avatar {
@@ -164,7 +186,7 @@ input {
   border-radius: 4px;
 
   color: var(--accent);
-  background: #f1efff;
+  background: #ede9fe;
 }
 
 .center-info {
@@ -174,7 +196,7 @@ input {
 .center-name {
   display: block;
 
-  color: #252033;
+  color: #1e2430;
   font-size: 13px;
   font-weight: 650;
 
@@ -185,7 +207,7 @@ input {
   display: block;
   margin-top: 1px;
 
-  color: #7e778c;
+  color: #64748b;
   font-size: 9px;
 
   white-space: nowrap;
@@ -198,7 +220,7 @@ input {
   overflow-y: auto;
 
   scrollbar-width: thin;
-  scrollbar-color: #686175 transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -206,7 +228,7 @@ input {
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: #686175;
+  background: #cbd5e1;
   border-radius: 99px;
 }
 
@@ -223,7 +245,7 @@ input {
   align-items: center;
   gap: 8px;
 
-  color: #9a94ac;
+  color: #8c859d;
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.035em;
@@ -235,7 +257,7 @@ input {
   height: 1px;
   flex: 1;
 
-  background: rgba(255, 255, 255, 0.07);
+  background: #eaecf0;
 }
 
 .sidebar .nav-link {
@@ -247,8 +269,8 @@ input {
   align-items: center;
   gap: 10px;
 
-  color: #ddd8eb;
-  border-radius: 4px;
+  color: #4b5563;
+  border-radius: 6px;
 
   text-decoration: none;
 
@@ -268,35 +290,41 @@ input {
 
   border-radius: 4px;
 
-  color: #bbb3d2;
-  background: var(--icon-bg);
+  color: #6b7280;
+  background: #f1f5f9;
 
   font-size: 13px;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
 .sidebar .nav-link span {
   font-size: 13px;
+  font-weight: 500;
   line-height: 1.25;
   white-space: nowrap;
 }
 
 .sidebar .nav-link:hover {
-  color: #ffffff;
-  background: #171229;
+  color: #5d3fd3;
+  background: #f5f3ff;
 }
 
 .sidebar .nav-link:hover i {
-  color: #ffffff;
+  color: #5d3fd3;
+  background: #ede9fe;
 }
 
 .sidebar .nav-link.active {
-  color: #8e72ff;
-  background: #21183d;
+  color: #5d3fd3;
+  background: #ede9fe;
+  font-weight: 600;
 }
 
 .sidebar .nav-link.active i {
-  color: var(--accent);
-  background: #ffffff;
+  color: #ffffff;
+  background: var(--accent);
 }
 
 /* =========================
@@ -326,7 +354,7 @@ input {
 
   background: var(--topbar-bg);
   border-bottom: 1px solid var(--topbar-border);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.025);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 
   z-index: 1020;
 }
@@ -360,15 +388,23 @@ input {
   align-items: center;
   gap: 10px;
 
-  color: #77718d;
-  background: #151126;
+  color: #64748b;
+  background: #f8fafc;
 
-  border: 1px solid #241e38;
-  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+  background: #ffffff;
+  border-color: #5d3fd3;
+  box-shadow: 0 0 0 3px rgba(93, 63, 211, 0.1);
 }
 
 .search-box i {
-  color: #77718d;
+  color: #94a3b8;
+  font-size: 13px;
 }
 
 .search-box input {
@@ -378,14 +414,14 @@ input {
   border: 0;
   outline: 0;
 
-  color: #f1eef8;
+  color: #1e2430;
   background: transparent;
 
   font-size: 13px;
 }
 
 .search-box input::placeholder {
-  color: #8d879c;
+  color: #94a3b8;
 }
 
 .academic-year-btn,
@@ -393,21 +429,27 @@ input {
 .profile-btn {
   height: 36px;
 
-  color: #f1eef8;
-  background: #121022;
+  color: #475569;
+  background: #ffffff;
 
-  border: 1px solid #4f65a9;
-  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: all 0.18s ease;
 }
 
 .academic-year-btn {
-  padding: 0 11px;
+  padding: 0 12px;
 
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 
-  font-size: 11.5px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.academic-year-btn i {
+  color: #5d3fd3;
 }
 
 .icon-btn {
@@ -420,7 +462,8 @@ input {
   align-items: center;
   justify-content: center;
 
-  font-size: 13px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .profile-btn {
@@ -442,32 +485,90 @@ input {
   align-items: center;
   justify-content: center;
 
-  color: #201740;
-  background: linear-gradient(135deg, #9ce7ef, #b5a3ff);
+  color: #ffffff;
+  background: linear-gradient(135deg, #5d3fd3, #8b5cf6);
 
-  border-radius: 3px;
+  border-radius: 4px;
 
-  font-size: 9px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .status-dot {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 6px;
+  right: 6px;
 
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 
   background: #f43f5e;
   border-radius: 50%;
+  border: 1px solid #ffffff;
 }
 
 .academic-year-btn:hover,
-.icon-btn:hover,
-.profile-btn:hover {
+.icon-btn:hover {
+  color: #5d3fd3;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+/* =========================
+   Dashboard Welcome / Greeting
+   ========================= */
+
+.dashboard-welcome,
+.card.bg-03 {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #5d3fd3 0%, #7c5cfc 60%, #4d8cff 100%) !important;
+
+  border: 0 !important;
+  border-radius: 12px !important;
+
+  box-shadow: 0 4px 16px rgba(93, 63, 211, 0.18) !important;
+  overflow: hidden;
+}
+
+.dashboard-welcome .card-body,
+.card.bg-03 .card-body {
+  padding: 20px 24px;
+}
+
+.welcome-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.welcome-title {
   color: #ffffff;
-  background: #1a1630;
+
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.welcome-text {
+  color: rgba(255, 255, 255, 0.88);
+
+  font-size: 13px;
+}
+
+.welcome-date {
+  padding: 8px 14px;
+
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 500;
 }
 
 /* =========================
