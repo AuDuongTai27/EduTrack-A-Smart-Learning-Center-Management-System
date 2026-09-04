@@ -18,6 +18,7 @@
 appsettings.Development.json
 appsettings.Local.json
 appsettings.Production.json
+appsettings.json
 # (appsettings.json template remains tracked, secrets go into user-secrets or local configs)
 
 # Certificates & Private Keys
