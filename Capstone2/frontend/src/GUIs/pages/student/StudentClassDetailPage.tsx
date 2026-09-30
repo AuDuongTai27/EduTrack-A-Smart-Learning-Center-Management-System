@@ -34,7 +34,7 @@ export const StudentClassDetailPage: React.FC = () => {
   };
 
   return (
-    <>
+    <main className="main-content">
       <div className={`content-container class-detail-container ${cls.subjectClass}`}>
         {/* Toast Notification */}
         {toastMessage && (
@@ -77,7 +77,7 @@ export const StudentClassDetailPage: React.FC = () => {
         {/* 4. Assignments Section */}
         <ClassAssignmentsSection assignments={assignments} />
       </div>
-    </>
+    </main>
   );
 };
 
