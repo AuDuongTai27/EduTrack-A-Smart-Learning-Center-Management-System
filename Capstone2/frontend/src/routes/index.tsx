@@ -4,11 +4,13 @@ import type { RouteObject } from "react-router-dom";
 import { landingRoutes } from "./landing.routes";
 import { studentRoutes } from "./student.routes";
 import { centerManagerRoutes } from "./centerManager.routes";
+import { adminStaffRoutes } from "./adminStaff.routes";
 
 export const routes: RouteObject[] = [
   landingRoutes,
   studentRoutes,
   centerManagerRoutes,
+  adminStaffRoutes,
   {
     path: "*",
     element: <Navigate to="/" replace />,

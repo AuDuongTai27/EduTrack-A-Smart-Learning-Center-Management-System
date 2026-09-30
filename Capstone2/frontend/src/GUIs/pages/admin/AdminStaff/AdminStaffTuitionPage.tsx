@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export default function CenterManagerTuitionPage() {
+export default function AdminStaffTuitionPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -10,7 +10,7 @@ export default function CenterManagerTuitionPage() {
           <nav>
             <ol className="breadcrumb mb-0">
               <li className="breadcrumb-item">
-                <Link to="/center-manager/dashboard">Dashboard</Link>
+                <Link to="/admin-staff/dashboard">Dashboard</Link>
               </li>
               <li className="breadcrumb-item active" aria-current="page">
                 Tuition
