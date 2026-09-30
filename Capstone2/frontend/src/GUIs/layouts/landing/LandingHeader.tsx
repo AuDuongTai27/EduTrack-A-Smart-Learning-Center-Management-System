@@ -12,7 +12,15 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({ onOpenLogin }) => 
     setActiveSection(id);
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const header = document.getElementById('header');
+      const headerOffset = header ? header.offsetHeight : 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -31,7 +39,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({ onOpenLogin }) => 
           <h1 className="sitename mb-0 fw-bold">EduTrack</h1>
         </Link>
 
-        {/* Menu điều hướng với NavLink/Link và Smooth Scroll */}
+        {/* Menu điều hướng với NavLink/Link và Smooth Scroll chuẩn vị trí */}
         <nav id="navmenu" className="navmenu">
           <ul className="d-flex list-unstyled mb-0 gap-3">
             {navItems.map((item) => (
