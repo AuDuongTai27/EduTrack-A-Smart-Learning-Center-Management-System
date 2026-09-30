@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { StudentSidebar } from './StudentSidebar';
-import { StudentMobileTopbar } from './StudentMobileTopbar';
-import '../../../assets/css/student.css';
+import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
+import { StudentSidebar } from "./StudentSidebar";
+import { StudentMobileTopbar } from "./StudentMobileTopbar";
+import "../../../assets/css/student.css";
 
 export const StudentLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
