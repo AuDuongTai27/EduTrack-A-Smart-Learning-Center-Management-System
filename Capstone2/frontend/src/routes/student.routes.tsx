@@ -4,6 +4,7 @@ import { StudentLayout } from '../GUIs/layouts/student/Student-layout';
 import { StudentDashboardPage } from '../GUIs/pages/student/StudentDashboardPage';
 import { StudentClassesPage } from '../GUIs/pages/student/StudentClassesPage';
 import { StudentSchedulePage } from '../GUIs/pages/student/StudentSchedulePage';
+import { StudentProgressPage } from '../GUIs/pages/student/StudentProgressPage';
 
 export const studentRoutes: RouteObject = {
   path: '/student',
@@ -13,6 +14,7 @@ export const studentRoutes: RouteObject = {
     { path: 'dashboard', element: <StudentDashboardPage /> },
     { path: 'classes', element: <StudentClassesPage /> },
     { path: 'schedule', element: <StudentSchedulePage /> },
+    { path: 'progress', element: <StudentProgressPage /> },
   ],
 };
 
