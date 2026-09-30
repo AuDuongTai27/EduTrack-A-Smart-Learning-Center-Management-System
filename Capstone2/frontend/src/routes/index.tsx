@@ -1,11 +1,16 @@
 import React from 'react';
-import { useRoutes } from 'react-router-dom';
+import { useRoutes, Navigate } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { landingRoutes } from './landing.routes';
+import { studentRoutes } from './student.routes';
 
 export const routes: RouteObject[] = [
   landingRoutes,
-  // Sau này bạn Duy & Việt bổ sung adminRoutes, teacherRoutes, studentRoutes ở đây
+  studentRoutes,
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
+  },
 ];
 
 export const AppRoutes: React.FC = () => {
