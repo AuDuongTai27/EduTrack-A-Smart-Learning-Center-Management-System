@@ -5,7 +5,7 @@ import AdminStaffSidebar from "./AdminStaffSidebar";
 
 export default function StaffLayout() {
   return (
-    <>
+    <div className="admin-scope">
       <div className="app-shell">
         {/* Sidebar */}
         <AdminStaffSidebar />
@@ -22,6 +22,6 @@ export default function StaffLayout() {
         </div>
       </div>
       <div className="sidebar-overlay" id="sidebarOverlay" />
-    </>
+    </div>
   );
 }

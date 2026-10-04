@@ -19,20 +19,10 @@
 }
 
 /* =========================
-   Base
+   Base (Scoped to .admin-scope)
    ========================= */
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-}
-
-body {
+.admin-scope {
   font-family:
     Inter,
     ui-sans-serif,
@@ -43,13 +33,16 @@ body {
     sans-serif;
   background: var(--page-bg);
   color: var(--text-dark);
-  overflow-x: hidden;
-}
+  min-height: 100vh;
 
-button,
-input {
-  font: inherit;
-}
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
 
 .app-shell {
   min-height: 100vh;
@@ -529,42 +522,42 @@ input {
    Collapsed Sidebar
    ========================= */
 
-body.sidebar-collapsed .sidebar {
+body.sidebar-collapsed & .sidebar {
   width: var(--sidebar-collapsed-width);
 }
 
-body.sidebar-collapsed .main-area {
+body.sidebar-collapsed & .main-area {
   margin-left: var(--sidebar-collapsed-width);
 }
 
-body.sidebar-collapsed .brand-text,
-body.sidebar-collapsed .center-info,
-body.sidebar-collapsed .nav-heading,
-body.sidebar-collapsed .sidebar .nav-link span {
+body.sidebar-collapsed & .brand-text,
+body.sidebar-collapsed & .center-info,
+body.sidebar-collapsed & .nav-heading,
+body.sidebar-collapsed & .sidebar .nav-link span {
   display: none;
 }
 
-body.sidebar-collapsed .sidebar-header {
+body.sidebar-collapsed & .sidebar-header {
   padding: 0 10px;
 }
 
-body.sidebar-collapsed .center-box {
+body.sidebar-collapsed & .center-box {
   justify-content: center;
 
   margin-inline: 10px;
   padding-inline: 0;
 }
 
-body.sidebar-collapsed .sidebar-nav {
+body.sidebar-collapsed & .sidebar-nav {
   padding-inline: 10px;
 }
 
-body.sidebar-collapsed .sidebar .nav-link {
+body.sidebar-collapsed & .sidebar .nav-link {
   justify-content: center;
   padding-inline: 0;
 }
 
-body.sidebar-collapsed .sidebar .nav-link i {
+body.sidebar-collapsed & .sidebar .nav-link i {
   width: 28px;
   height: 28px;
   min-width: 28px;
@@ -2047,7 +2040,7 @@ body.sidebar-collapsed .sidebar .nav-link i {
   }
 
   .main-area,
-  body.sidebar-collapsed .main-area {
+  body.sidebar-collapsed & .main-area {
     margin-left: 0;
   }
 
@@ -2112,4 +2105,5 @@ body.sidebar-collapsed .sidebar .nav-link i {
   .notice-item {
     align-items: flex-start;
   }
+}
 }
