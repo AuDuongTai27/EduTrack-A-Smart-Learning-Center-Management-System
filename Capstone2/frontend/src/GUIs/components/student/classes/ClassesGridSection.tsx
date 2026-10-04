@@ -80,7 +80,10 @@ export const ClassesGridSection: React.FC = () => {
     <>
       {/* Section Header */}
       <div className="section-header">
-        <h2 className="section-title">Lớp học của tôi</h2>
+        <div className="section-title-wrap">
+          <h2 className="section-title">Lớp học của tôi</h2>
+          <span className="section-count-badge">6 lớp</span>
+        </div>
       </div>
 
       {/* Classes Grid (identical to dashboard) */}

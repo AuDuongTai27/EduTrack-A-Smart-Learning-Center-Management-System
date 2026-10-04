@@ -81,6 +81,7 @@ export const DashboardClassesSection: React.FC = () => {
       {/* 4. Section Header: My Classes */}
       <div className="section-header">
         <h2 className="section-title">Lớp học của tôi</h2>
+        <span className="section-count-badge">6 lớp</span>
       </div>
 
       {/* 5. Classes Grid */}

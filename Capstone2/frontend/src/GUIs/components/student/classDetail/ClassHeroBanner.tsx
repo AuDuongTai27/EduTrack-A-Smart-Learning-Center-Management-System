@@ -39,6 +39,8 @@ export const ClassHeroBanner: React.FC<ClassHeroBannerProps> = ({
             <span>Giáo viên: <strong>{cls.teacher}</strong></span>
             <span className="opacity-50">·</span>
             <span>Phòng {cls.room}</span>
+            <span className="opacity-50">·</span>
+            <span>{cls.schedule}</span>
           </p>
         </div>
 
