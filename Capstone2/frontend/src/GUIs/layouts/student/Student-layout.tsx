@@ -8,7 +8,8 @@ export const StudentLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="app-container">
+    <div className="student-scope">
+      <div className="app-container">
       {/* DESKTOP SIDEBAR */}
       <StudentSidebar />
 
@@ -25,6 +26,7 @@ export const StudentLayout: React.FC = () => {
         <Outlet />
       </div>
     </div>
+  </div>
   );
 };
 
