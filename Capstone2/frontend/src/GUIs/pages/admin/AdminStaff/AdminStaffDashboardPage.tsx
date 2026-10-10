@@ -1,24 +1,17 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function AdminStaffDashboardPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-4">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Admin Staff Dashboard</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/admin-staff/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Overview
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+      <PageHeader
+        title="Admin Staff Dashboard"
+        breadcrumbItems={[
+          { label: "Admin Staff", path: "/admin-staff" },
+          { label: "Dashboard" },
+        ]}
+      />
       {/* Dashboard Summary */}
       <div className="row g-3 mb-4">
         {/* New Students */}
