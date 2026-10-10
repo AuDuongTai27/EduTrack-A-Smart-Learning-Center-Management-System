@@ -1,24 +1,16 @@
-import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function CenterManagerSettingPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Center Settings</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/center-manager/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Settings
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+      <PageHeader
+        title="Settings"
+        breadcrumbItems={[
+          { label: "Center Manager", path: "/center-manager" },
+          { label: "Settings" },
+        ]}
+      />
       {/* Settings */}
       <div className="card settings-card">
         {/* Tabs */}

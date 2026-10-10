@@ -1,35 +1,27 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function AdminStaffStudentPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Students</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/admin-staff/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Students
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div className="mb-2">
-            <button
-              type="button"
-              className="btn btn-primary d-flex align-items-center"
-            >
-              <i className="bi bi-plus-square me-2" />
-              Add Student
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Student Management"
+        breadcrumbItems={[
+          { label: "Admin Staff", path: "/admin-staff" },
+          { label: "Students" },
+        ]}
+        action={
+          <button
+            type="button"
+            className="btn btn-primary d-flex align-items-center"
+          >
+            <i className="bi bi-plus-square me-2" />
+            Add Student
+          </button>
+        }
+      />
+
       {/* Student List */}
       <div className="card user-list-card">
         {/* Filter */}

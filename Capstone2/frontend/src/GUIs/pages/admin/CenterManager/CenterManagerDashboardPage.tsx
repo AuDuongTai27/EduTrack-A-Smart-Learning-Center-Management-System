@@ -1,44 +1,40 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function CenterManagerDashboardPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Admin Dashboard</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/center-manager/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Admin Dashboard
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
-          <div className="mb-2">
-            <Link
-              to="/center-manager/student/add-student"
-              className="btn btn-primary d-flex align-items-center"
-            >
-              <i className="bi bi-plus-square me-2" />
-              Add Student
-            </Link>
+      <PageHeader
+        title="Center Manager Dashboard"
+        breadcrumbItems={[
+          { label: "Center Manager", path: "/center-manager" },
+          { label: " Dashboard" },
+        ]}
+        action={
+          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
+            <div className="mb-2">
+              <Link
+                to="/center-manager/student/add-student"
+                className="btn btn-primary d-flex align-items-center"
+              >
+                <i className="bi bi-plus-square me-2" />
+                Add Student
+              </Link>
+            </div>
+            <div className="mb-2">
+              <Link
+                to="/center-manager/tuition/tuition-detail"
+                className="btn btn-outline-primary d-flex align-items-center"
+              >
+                <i className="bi bi-cash-stack me-2" />
+                Tuition Details
+              </Link>
+            </div>
           </div>
-          <div className="mb-2">
-            <Link
-              to="/center-manager/tuition/tuition-detail"
-              className="btn btn-outline-primary d-flex align-items-center"
-            >
-              <i className="bi bi-cash-stack me-2" />
-              Tuition Details
-            </Link>
-          </div>
-        </div>
-      </div>
+        }
+      />
+
       {/* Popup News and Hello Account */}
       <div className="row mb-4">
         <div className="col-md-12">
