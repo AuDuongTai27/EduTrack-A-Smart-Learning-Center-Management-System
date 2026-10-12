@@ -1,35 +1,27 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function CenterManagerSubjectPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Subjects</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/center-manager/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Subjects
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div className="mb-2">
-            <button
-              type="button"
-              className="btn btn-primary d-flex align-items-center"
-            >
-              <i className="bi bi-plus-square me-2" />
-              Add Subject
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Subject Management"
+        breadcrumbItems={[
+          { label: "Center Manager", path: "/center-manager" },
+          { label: "Subjects Management" },
+        ]}
+        action={
+          <button
+            type="button"
+            className="btn btn-primary d-flex align-items-center"
+          >
+            <i className="bi bi-plus-square me-2" />
+            Add Subject
+          </button>
+        }
+      />
+
       {/* Subject List */}
       <div className="card user-list-card">
         {/* Filter */}

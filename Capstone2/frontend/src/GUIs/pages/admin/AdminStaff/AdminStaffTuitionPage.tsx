@@ -1,35 +1,31 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function AdminStaffTuitionPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Tuition Management</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/admin-staff/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Tuition
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div className="mb-2">
-            <button
-              type="button"
-              className="btn btn-primary d-flex align-items-center"
-            >
-              <i className="bi bi-plus-square me-2" />
-              Generate Tuition
-            </button>
+      <PageHeader
+        title="Tuition Management"
+        breadcrumbItems={[
+          { label: "Admin Staff", path: "/admin-staff" },
+          { label: "Tuition Management" },
+        ]}
+        action={
+          <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
+            <div className="mb-2">
+              <button
+                type="button"
+                className="btn btn-primary d-flex align-items-center"
+              >
+                <i className="bi bi-plus-square me-2" />
+                Generate Tuition
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
+
       {/* Tuition Summary */}
       <div className="row g-3 mb-4">
         {/* Total Tuition Due */}

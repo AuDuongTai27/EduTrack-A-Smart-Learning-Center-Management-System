@@ -1,24 +1,17 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function CenterManagerApprovalRequestPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Approval Requests</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/center-manager/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Approval Requests
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+      <PageHeader
+        title="Approval Requests"
+        breadcrumbItems={[
+          { label: "Center Manager", path: "/center-manager/dashboard" },
+          { label: "Approval Requests" },
+        ]}
+      />
       {/* Approval Request List */}
       <div className="card user-list-card">
         {/* Filter */}

@@ -1,24 +1,22 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function AdminStaffClassPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Class Management</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/admin-staff/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Classes
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <div className="mb-2">
+      <PageHeader
+        title="Class Management"
+        breadcrumbItems={[
+          {
+            label: "Admin Staff",
+            path: "/admin-staff",
+          },
+          {
+            label: "Classes",
+          },
+        ]}
+        action={
           <button
             type="button"
             className="btn btn-primary d-flex align-items-center"
@@ -26,8 +24,9 @@ export default function AdminStaffClassPage() {
             <i className="bi bi-plus-square me-2" />
             Add Class
           </button>
-        </div>
-      </div>
+        }
+      />
+
       {/* Class Filters */}
       <div className="card user-list-card mb-4">
         <div className="card-header user-list-header">

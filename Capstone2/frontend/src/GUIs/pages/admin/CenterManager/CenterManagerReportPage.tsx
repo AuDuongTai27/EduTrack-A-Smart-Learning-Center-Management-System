@@ -1,40 +1,36 @@
 import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 
 export default function CenterManagerReportPage() {
   return (
     <>
       {/* Breadcrumb and Quick Access */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Reports</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/center-manager/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Reports
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <div className="d-flex align-items-center gap-2 mb-2">
-          <button
-            type="button"
-            className="btn btn-outline-primary d-flex align-items-center"
-          >
-            <i className="bi bi-file-earmark-excel me-2" />
-            Export Excel
-          </button>
-          <button
-            type="button"
-            className="btn btn-outline-danger d-flex align-items-center"
-          >
-            <i className="bi bi-file-earmark-pdf me-2" />
-            Export PDF
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Reports"
+        breadcrumbItems={[
+          { label: "Center Manager", path: "/center-manager" },
+          { label: "Reports" },
+        ]}
+        action={
+          <div className="d-flex align-items-center gap-2 mb-2">
+            <button
+              type="button"
+              className="btn btn-outline-primary d-flex align-items-center"
+            >
+              <i className="bi bi-file-earmark-excel me-2" />
+              Export Excel
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-danger d-flex align-items-center"
+            >
+              <i className="bi bi-file-earmark-pdf me-2" />
+              Export PDF
+            </button>
+          </div>
+        }
+      />
+
       {/* Report Filter */}
       <div className="card user-list-card mb-4">
         <div className="card-header user-list-header">
