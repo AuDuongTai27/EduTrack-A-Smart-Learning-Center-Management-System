@@ -68,10 +68,15 @@ Mở file `Capstone2/backend/appsettings.json` và cấu hình chuỗi kết n�
 
 ---
 
-### Bước 3: Viết 22 Entity Classes trong C# (`Capstone2/backend/Models/`)
+### Bước 3: Tổ chức thư mục Models và Viết 22 Entity Classes (`Capstone2/backend/Models/`)
 
-Nhóm tạo các file C# tương ứng với 22 bảng trong thư mục `Models/`.  
-**Quy ước chuyển đổi:**
+Thư mục `Models/` được tổ chức thành 3 thư mục con chuyên biệt:
+- **`Models/Entities/`**: Chứa đúng **22 Entity Classes** tương ứng 22 bảng CSDL.
+- **`Models/EF/`**: Chứa file [`EduTrackDbContext.cs`](file:///c:/Users/PC/OneDrive/Desktop/School/Project%20Capstone%201/EduTrack-A-Smart-Learning-Center-Management-System/Capstone2/backend/Models/EF/EduTrackDbContext.cs) quản lý kết nối và DbSets.
+- **`Models/DTOs/`**: Chứa các Data Transfer Objects phục vụ Request/Response API (chứa `.gitkeep` để Git theo dõi).
+
+**Quy ước chuyển đổi Entity:**
+- Namespace: `EduTrack.API.Models.Entities`.
 - Tên thuộc tính trong C#: `PascalCase` (ví dụ `UserId`, `FullName`, `MustChangePassword`).
 - Ánh xạ tên cột DB qua Data Annotation: `[Column("snake_case")]` (ví dụ `[Column("user_id")]`).
 - Tên bảng: `[Table("table_name")]`.
@@ -285,12 +290,13 @@ namespace EduTrack.API.Models
 ---
 
 ### Bước 4: Viết `EduTrackDbContext.cs` với Fluent API
-Tạo file `Capstone2/backend/Models/EduTrackDbContext.cs` để cấu hình 22 `DbSet` và các ràng buộc đặc biệt:
+Tạo file `Capstone2/backend/Models/EF/EduTrackDbContext.cs` để cấu hình 22 `DbSet` và các ràng buộc đặc biệt:
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
+using EduTrack.API.Models.Entities;
 
-namespace EduTrack.API.Models
+namespace EduTrack.API.Models.EF
 {
     public class EduTrackDbContext : DbContext
     {

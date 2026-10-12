@@ -68,8 +68,6 @@ CREATE TABLE users (
     specialty           VARCHAR(100)    NULL COMMENT 'Academic subject specialty for teachers (e.g., Mathematics, Physics)',
     enrolled_since      DATE            NULL COMMENT 'Enrollment date for students or hiring date for staff/teachers',
     status              ENUM('active', 'inactive', 'on_hold', 'locked') NOT NULL DEFAULT 'active' COMMENT 'Current operational status of account',
-    must_change_password BOOLEAN        NOT NULL DEFAULT TRUE COMMENT '[C-05] Bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên',
-    password_changed_at DATETIME        NULL COMMENT '[C-05] Thời điểm đổi mật khẩu lần gần nhất',
     created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp when the account was provisioned by Admin',
     PRIMARY KEY (user_id),
     INDEX idx_users_user_code (user_code),
@@ -150,7 +148,7 @@ CREATE TABLE classes (
     tuition_fee         DECIMAL(12,2)   NOT NULL DEFAULT 0.00 COMMENT 'Standard monthly tuition fee charged for this class',
     start_date          DATE            NOT NULL COMMENT 'Date when instruction officially begins',
     end_date            DATE            NULL COMMENT 'Date when instruction concludes for the term',
-    status              ENUM('active', 'upcoming', 'completed', 'cancelled') NOT NULL DEFAULT 'upcoming' COMMENT 'Lifecycle status of the class section',
+    status              ENUM('active', 'inactive') NOT NULL DEFAULT 'active' COMMENT 'Lifecycle status of the class section',
     PRIMARY KEY (class_id),
     CONSTRAINT fk_classes_subject FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     INDEX idx_classes_subject (subject_id),
@@ -162,12 +160,12 @@ CREATE TABLE classes (
 -- Junction entity assigning primary academic instructors to class sections.
 -- ----------------------------------------------------------------------------
 CREATE TABLE teacher_classes (
-    tc_id               INT             NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier for the assignment record',
+    teacher_class_id    INT             NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier for the assignment record',
     teacher_id          INT             NOT NULL COMMENT 'Identifier of the assigned instructor',
     class_id            INT             NOT NULL COMMENT 'Identifier of the assigned class section',
     assigned_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp when the teacher assignment was approved',
     status              ENUM('active', 'inactive') NOT NULL DEFAULT 'active' COMMENT 'Assignment status',
-    PRIMARY KEY (tc_id),
+    PRIMARY KEY (teacher_class_id),
     UNIQUE KEY uq_teacher_class (teacher_id, class_id),
     CONSTRAINT fk_teacher_classes_teacher FOREIGN KEY (teacher_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_teacher_classes_class FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -180,12 +178,12 @@ CREATE TABLE teacher_classes (
 -- Junction entity assigning Teaching Assistants (TA) to class sections.
 -- ----------------------------------------------------------------------------
 CREATE TABLE ta_classes (
-    tac_id              INT             NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier for the TA assignment record',
+    ta_class_id         INT             NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier for the TA assignment record',
     ta_id               INT             NOT NULL COMMENT 'Identifier of the assigned teaching assistant',
     class_id            INT             NOT NULL COMMENT 'Identifier of the assigned class section',
     assigned_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp when the TA assignment was recorded',
     status              ENUM('active', 'inactive') NOT NULL DEFAULT 'active' COMMENT 'TA assignment status',
-    PRIMARY KEY (tac_id),
+    PRIMARY KEY (ta_class_id),
     UNIQUE KEY uq_ta_class (ta_id, class_id),
     CONSTRAINT fk_ta_classes_ta FOREIGN KEY (ta_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_ta_classes_class FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -415,8 +413,7 @@ CREATE TABLE tuition_invoices (
     period_year         SMALLINT        NOT NULL COMMENT 'Billing calendar year (e.g., 2026)',
     amount_due          DECIMAL(12,2)   NOT NULL COMMENT 'Total billed tuition amount in VND',
     due_date            DATE            NOT NULL COMMENT 'Payment deadline date',
-    status              ENUM('unpaid', 'paid', 'partially_paid', 'overdue', 'cancelled') NOT NULL DEFAULT 'unpaid' COMMENT 'Current invoice status',
-    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp when invoice was generated',
+    status              ENUM('unpaid', 'paid', 'overdue', 'pending_adjustment') NOT NULL DEFAULT 'unpaid' COMMENT 'Current invoice status',
     PRIMARY KEY (invoice_id),
     CONSTRAINT fk_tuition_invoices_student FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_tuition_invoices_class FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -435,7 +432,7 @@ CREATE TABLE payment (
     payment_id          INT             NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier for payment transaction',
     invoice_id          INT             NOT NULL COMMENT 'Identifier of settled invoice',
     amount              DECIMAL(12,2)   NOT NULL COMMENT 'Amount paid in VND',
-    payment_method      ENUM('cash', 'bank_transfer', 'vnpay', 'momo', 'credit_card') NOT NULL DEFAULT 'cash' COMMENT 'Settlement channel',
+    payment_method      ENUM('bank_transfer', 'vnpay', 'momo') NOT NULL DEFAULT 'bank_transfer' COMMENT 'Online settlement channel',
     transaction_code    VARCHAR(100)    NULL COMMENT 'Bank transfer reference or gateway transaction ID',
     paid_at             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Payment settlement timestamp',
     paid_by_user_id     INT             NULL COMMENT 'User identifier of student or parent who made payment',
@@ -543,18 +540,18 @@ INSERT INTO roles (role_id, role_name, description) VALUES
 (5, 'student', 'Enrolled learner: view schedules, attendance, grades, submit assignments, pay tuition, submit feedback'),
 (6, 'parent', 'Parent / Legal guardian: view children progress, schedules, attendance, grades, tuition, and submit feedback');
 
--- 2. Users (Thêm cờ must_change_password & tạo tài khoản Parent theo C-02, C-05)
-INSERT INTO users (user_id, user_code, full_name, email, phone, password_hash, avatar_url, date_of_birth, gender, specialty, enrolled_since, status, must_change_password, password_changed_at, created_at) VALUES
-(1, 'MGR001', 'Nguyễn Văn Quản Lý', 'manager@edutrack.edu.vn', '0901234567', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=manager', '1985-05-15', 'male', 'Center Administration', '2022-01-01', 'active', FALSE, NOW(), NOW()),
-(2, 'ADM001', 'Trần Thị Nhân Viên', 'admin@edutrack.edu.vn', '0912345678', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin', '1992-08-20', 'female', 'Customer Service & Billing', '2023-03-15', 'active', FALSE, NOW(), NOW()),
-(3, 'TC001', 'ThS. Hoàng Quốc Việt', 'viet.hoang@edutrack.edu.vn', '0923456789', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=viet', '1990-11-10', 'male', 'Mathematics', '2023-06-01', 'active', FALSE, NOW(), NOW()),
-(4, 'TC002', 'ThS. Huỳnh Khánh Duy', 'duy.huynh@edutrack.edu.vn', '0934567890', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=duy', '1993-04-25', 'male', 'Physics', '2023-08-01', 'active', FALSE, NOW(), NOW()),
-(5, 'TA001', 'Âu Dương Tài', 'tai.auduong@edutrack.edu.vn', '0945678901', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=tai', '1998-09-12', 'male', 'Teaching Assistant', '2024-01-10', 'active', FALSE, NOW(), NOW()),
-(6, 'STU001', 'Lê Văn An', 'an.le@student.edutrack.vn', '0956789012', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=an', '2010-02-14', 'male', NULL, '2025-01-05', 'active', FALSE, NOW(), NOW()),
-(7, 'STU002', 'Phạm Thị Bích', 'bich.pham@student.edutrack.vn', '0967890123', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=bich', '2010-07-22', 'female', NULL, '2025-01-05', 'active', FALSE, NOW(), NOW()),
-(8, 'STU003', 'Đặng Minh Cường', 'cuong.dang@student.edutrack.vn', '0978901234', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=cuong', '2010-12-05', 'male', NULL, '2025-01-10', 'active', TRUE, NULL, NOW()),
-(9, 'PAR001', 'Lê Văn Nam', 'nam.le@parent.edutrack.vn', '0981112233', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=parent1', '1980-04-12', 'male', 'Phụ huynh em Lê Văn An', '2025-01-05', 'active', FALSE, NOW(), NOW()),
-(10, 'PAR002', 'Phạm Thị Mai', 'mai.pham@parent.edutrack.vn', '0982223344', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=parent2', '1982-09-18', 'female', 'Phụ huynh em Phạm Thị Bích', '2025-01-05', 'active', FALSE, NOW(), NOW());
+-- 2. Users (Tạo tài khoản theo chuẩn Capstone 1 & bổ sung Parent theo C-02)
+INSERT INTO users (user_id, user_code, full_name, email, phone, password_hash, avatar_url, date_of_birth, gender, specialty, enrolled_since, status, created_at) VALUES
+(1, 'MGR001', 'Nguyễn Văn Quản Lý', 'manager@edutrack.edu.vn', '0901234567', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=manager', '1985-05-15', 'male', 'Center Administration', '2022-01-01', 'active', NOW()),
+(2, 'ADM001', 'Trần Thị Nhân Viên', 'admin@edutrack.edu.vn', '0912345678', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin', '1992-08-20', 'female', 'Customer Service & Billing', '2023-03-15', 'active', NOW()),
+(3, 'TC001', 'ThS. Hoàng Quốc Việt', 'viet.hoang@edutrack.edu.vn', '0923456789', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=viet', '1990-11-10', 'male', 'Mathematics', '2023-06-01', 'active', NOW()),
+(4, 'TC002', 'ThS. Huỳnh Khánh Duy', 'duy.huynh@edutrack.edu.vn', '0934567890', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=duy', '1993-04-25', 'male', 'Physics', '2023-08-01', 'active', NOW()),
+(5, 'TA001', 'Âu Dương Tài', 'tai.auduong@edutrack.edu.vn', '0945678901', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=tai', '1998-09-12', 'male', 'Teaching Assistant', '2024-01-10', 'active', NOW()),
+(6, 'STU001', 'Lê Văn An', 'an.le@student.edutrack.vn', '0956789012', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=an', '2010-02-14', 'male', NULL, '2025-01-05', 'active', NOW()),
+(7, 'STU002', 'Phạm Thị Bích', 'bich.pham@student.edutrack.vn', '0967890123', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=bich', '2010-07-22', 'female', NULL, '2025-01-05', 'active', NOW()),
+(8, 'STU003', 'Đặng Minh Cường', 'cuong.dang@student.edutrack.vn', '0978901234', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=cuong', '2010-12-05', 'male', NULL, '2025-01-10', 'active', NOW()),
+(9, 'PAR001', 'Lê Văn Nam', 'nam.le@parent.edutrack.vn', '0981112233', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=parent1', '1980-04-12', 'male', 'Phụ huynh em Lê Văn An', '2025-01-05', 'active', NOW()),
+(10, 'PAR002', 'Phạm Thị Mai', 'mai.pham@parent.edutrack.vn', '0982223344', '$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h', 'https://api.dicebear.com/7.x/avataaars/svg?seed=parent2', '1982-09-18', 'female', 'Phụ huynh em Phạm Thị Bích', '2025-01-05', 'active', NOW());
 
 -- 3. User Roles
 INSERT INTO user_roles (user_id, role_id) VALUES
@@ -671,7 +668,7 @@ INSERT INTO tuition_invoices (invoice_id, student_id, class_id, period_month, pe
 -- 19. Payment
 INSERT INTO payment (payment_id, invoice_id, amount, payment_method, transaction_code, paid_at, paid_by_user_id, recorded_by, note) VALUES
 (1, 1, 1500000.00, 'bank_transfer', 'MBVCB.789123456', '2026-09-05 10:29:38', 9, 2, 'Settled via Vietcombank transfer by Parent Le Van Nam (PAR001)'),
-(2, 2, 1500000.00, 'cash', 'CASH20260906001', '2026-09-06 14:20:00', 10, 2, 'Paid cash at front desk by Parent Pham Thi Mai (PAR002)'),
+(2, 2, 1500000.00, 'vnpay', 'VNPAY20260906001', '2026-09-06 14:20:00', 10, 2, 'Settled via VNPay portal by Parent Pham Thi Mai (PAR002)'),
 (3, 4, 1400000.00, 'bank_transfer', 'MBTCB.992817263', '2026-09-07 09:15:22', 9, 2, 'Settled via Techcombank transfer by Parent Le Van Nam (PAR001)');
 
 -- 20. Approval Requests (Bổ sung class_transfer & feedback theo C-01, C-07)
