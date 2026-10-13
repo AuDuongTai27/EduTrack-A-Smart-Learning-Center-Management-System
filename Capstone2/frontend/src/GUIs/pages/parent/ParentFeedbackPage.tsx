@@ -9,8 +9,8 @@ export const ParentFeedbackPage: React.FC = () => {
   return (
     <FeedbackView
       userRole="parent"
-      userName="Nguyễn Văn Bình"
-      userPhone="0903 123 456"
+      userName="Lê Văn Nam"
+      userPhone="0981 112 233"
     />
   );
 };

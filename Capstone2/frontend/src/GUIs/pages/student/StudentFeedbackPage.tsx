@@ -9,8 +9,8 @@ export const StudentFeedbackPage: React.FC = () => {
   return (
     <FeedbackView
       userRole="student"
-      userName="Nguyễn Minh Anh"
-      userPhone="0912 345 678"
+      userName="Lê Văn An"
+      userPhone="0956 789 012"
     />
   );
 };
