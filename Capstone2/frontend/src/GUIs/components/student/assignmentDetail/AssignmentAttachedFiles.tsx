@@ -6,9 +6,9 @@ interface AssignmentAttachedFilesProps {
   onDownload: (fileName: string) => void;
 }
 
-export const AssignmentAttachedFiles: React.FC<AssignmentAttachedFilesProps> = ({
+export function AssignmentAttachedFiles({
   onDownload,
-}) => {
+}: AssignmentAttachedFilesProps) {
   return (
     <section className="mb-4">
       <h2 className="asg-section-heading">Tài liệu đính kèm</h2>

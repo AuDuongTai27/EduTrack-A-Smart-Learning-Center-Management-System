@@ -6,7 +6,7 @@ interface ProfileHeaderProps {
   onEdit: () => void;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ isEditing, onEdit }) => {
+export function ProfileHeader({ isEditing, onEdit }: ProfileHeaderProps) {
   return (
     <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
       <div>

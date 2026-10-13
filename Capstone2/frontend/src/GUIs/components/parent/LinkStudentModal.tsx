@@ -12,11 +12,11 @@ interface LinkStudentModalProps {
  * - Tab 1 (Solution 1): Nhập mã học sinh được trung tâm cấp -> Thêm tức thì
  * - Tab 2 (Solution 2): Gửi phiếu yêu cầu đến Giáo vụ trung tâm -> Chờ phê duyệt 24h
  */
-export const LinkStudentModal: React.FC<LinkStudentModalProps> = ({
+export function LinkStudentModal({
   isOpen,
   onClose,
   defaultTab = 'code',
-}) => {
+}: LinkStudentModalProps) {
   const { linkStudentByCode, requestLinkStudent } = useParent();
   const [activeTab, setActiveTab] = useState<'code' | 'request'>(defaultTab);
 

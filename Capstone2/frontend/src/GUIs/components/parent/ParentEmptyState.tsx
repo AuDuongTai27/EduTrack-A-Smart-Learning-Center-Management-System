@@ -8,7 +8,7 @@ import { useParent } from '../../../contexts/ParentContext';
  * mà hướng dẫn phụ huynh gửi Feedback / Yêu cầu tới bộ phận Staff/Giáo vụ
  * để nhân viên đối soát hồ sơ và liên kết thủ công bằng tay.
  */
-export const ParentEmptyState: React.FC = () => {
+export function ParentEmptyState() {
   const { resetDemoChildren } = useParent();
 
   return (

@@ -8,12 +8,12 @@ interface ProfileEditCardProps {
   onCancel: () => void;
 }
 
-export const ProfileEditCard: React.FC<ProfileEditCardProps> = ({
+export function ProfileEditCard({
   formData,
   onChange,
   onSave,
   onCancel,
-}) => {
+}: ProfileEditCardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

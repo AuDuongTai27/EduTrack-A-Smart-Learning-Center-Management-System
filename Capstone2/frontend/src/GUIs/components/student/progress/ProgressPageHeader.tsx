@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const ProgressPageHeader: React.FC = () => {
+export function ProgressPageHeader() {
   return (
     <>
 {/* 1. Page Header with Overall Attendance */}

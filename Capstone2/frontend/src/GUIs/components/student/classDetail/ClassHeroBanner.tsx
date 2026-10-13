@@ -8,11 +8,11 @@ interface ClassHeroBannerProps {
   assignmentsCount: number;
 }
 
-export const ClassHeroBanner: React.FC<ClassHeroBannerProps> = ({
+export function ClassHeroBanner({
   cls,
   materialsCount,
   assignmentsCount,
-}) => {
+}: ClassHeroBannerProps) {
   return (
     <div className="class-hero-banner" id="heroBanner" style={{ background: cls.grad }}>
       {/* Back Button */}

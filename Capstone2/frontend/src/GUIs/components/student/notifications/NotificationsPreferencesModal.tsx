@@ -5,10 +5,10 @@ interface NotificationsPreferencesModalProps {
   onClose: () => void;
 }
 
-export const NotificationsPreferencesModal: React.FC<NotificationsPreferencesModalProps> = ({
+export function NotificationsPreferencesModal({
   isOpen,
   onClose,
-}) => {
+}: NotificationsPreferencesModalProps) {
   if (!isOpen) return null;
 
   return (

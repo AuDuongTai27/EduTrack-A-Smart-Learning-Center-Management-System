@@ -11,10 +11,10 @@ interface ChildSwitcherProps {
  * ChildSwitcher: Selector chọn học sinh tích hợp trực tiếp trong Sidebar của Cổng phụ huynh.
  * Khi cần liên kết thêm học sinh, chuyển hướng tới trang Feedback để gửi yêu cầu cho Staff xử lý.
  */
-export const ChildSwitcher: React.FC<ChildSwitcherProps> = ({
+export function ChildSwitcher({
   className = '',
   onChildSelected,
-}) => {
+}: ChildSwitcherProps) {
   const navigate = useNavigate();
   const {
     childrenList,

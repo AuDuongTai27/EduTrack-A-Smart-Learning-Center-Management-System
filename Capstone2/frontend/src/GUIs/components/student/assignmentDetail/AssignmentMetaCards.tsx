@@ -6,10 +6,10 @@ interface AssignmentMetaCardsProps {
   currentStatus: SubmissionStatus;
 }
 
-export const AssignmentMetaCards: React.FC<AssignmentMetaCardsProps> = ({
+export function AssignmentMetaCards({
   asg,
   currentStatus,
-}) => {
+}: AssignmentMetaCardsProps) {
   return (
     <div className="asg-meta-cards-row">
       {/* Due Date Card */}

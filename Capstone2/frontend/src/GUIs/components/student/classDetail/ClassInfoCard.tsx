@@ -5,7 +5,7 @@ interface ClassInfoCardProps {
   cls: ClassDetailItem;
 }
 
-export const ClassInfoCard: React.FC<ClassInfoCardProps> = ({ cls }) => {
+export function ClassInfoCard({ cls }: ClassInfoCardProps) {
   return (
     <div className="class-info-card">
       <div className="class-info-topbar" style={{ background: cls.grad }}></div>
