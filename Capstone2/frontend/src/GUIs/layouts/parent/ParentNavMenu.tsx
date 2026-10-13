@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useParent } from '../../context/ParentContext';
+import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
 
 interface ParentNavMenuProps {
   onLinkClick?: () => void;
@@ -11,6 +12,10 @@ export const ParentNavMenu: React.FC<ParentNavMenuProps> = ({ onLinkClick }) => 
 
   return (
     <>
+      {/* BỘ CHỌN LỌC HỌC SINH ĐẶT TẠI SIDEBAR */}
+      <ChildSwitcher onChildSelected={onLinkClick} />
+
+      {/* MENU ĐIỀU HƯỚNG */}
       <nav className="sidebar-nav">
         <div className="sidebar-nav-title">Menu Phụ huynh</div>
         <ul className="sidebar-nav-list">
@@ -93,7 +98,7 @@ export const ParentNavMenu: React.FC<ParentNavMenuProps> = ({ onLinkClick }) => 
         </ul>
       </nav>
 
-      {/* Footer Profile Phụ Huynh */}
+      {/* FOOTER PROFILE PHỤ HUYNH */}
       <div className="sidebar-footer mt-auto">
         <Link
           to="/parent/profile"
