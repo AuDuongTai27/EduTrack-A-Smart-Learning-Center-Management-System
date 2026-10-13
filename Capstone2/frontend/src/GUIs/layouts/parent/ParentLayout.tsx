@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ParentSidebar } from './ParentSidebar';
 import { ParentNavMenu } from './ParentNavMenu';
 import { ParentEmptyState } from '../../components/parent/ParentEmptyState';
-import { ParentProvider, useParent } from '../../context/ParentContext';
+import { ParentProvider, useParent } from '../../../contexts/ParentContext';
 import '../../../assets/css/student.css';
 
 const ParentLayoutContent: React.FC = () => {

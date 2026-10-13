@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 
 export const ParentClassDetailPage: React.FC = () => {
   const { id: paramId } = useParams<{ id: string }>();

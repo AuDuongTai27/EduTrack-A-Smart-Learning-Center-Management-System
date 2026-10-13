@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
 
 interface ParentNavMenuProps {
@@ -122,11 +122,11 @@ export const ParentNavMenu: React.FC<ParentNavMenuProps> = ({ onLinkClick }) => 
             className="student-avatar"
             style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}
           >
-            VB
+            VN
           </div>
           <div className="student-info">
-            <div className="student-name">Nguyễn Văn Bình</div>
-            <div className="student-grade">Phụ huynh học sinh</div>
+            <div className="student-name">Lê Văn Nam</div>
+            <div className="student-grade">Phụ huynh em Lê Văn An</div>
           </div>
         </Link>
       </div>

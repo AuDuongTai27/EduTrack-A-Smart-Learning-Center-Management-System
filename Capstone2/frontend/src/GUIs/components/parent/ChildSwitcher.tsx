@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 
 interface ChildSwitcherProps {
   className?: string;

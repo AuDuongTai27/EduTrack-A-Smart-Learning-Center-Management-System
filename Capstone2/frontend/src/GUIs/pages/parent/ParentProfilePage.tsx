@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 import { LinkStudentModal } from '../../components/parent/LinkStudentModal';
 
 export const ParentProfilePage: React.FC = () => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 import { TuitionBillCard } from '../../components/student/tuition/TuitionBillCard';
 import { TuitionPaymentCTA } from '../../components/student/tuition/TuitionPaymentCTA';
 import { TuitionHistorySection } from '../../components/student/tuition/TuitionHistorySection';

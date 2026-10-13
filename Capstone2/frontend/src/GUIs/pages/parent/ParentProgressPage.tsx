@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 import { ProgressPageHeader } from '../../components/student/progress/ProgressPageHeader';
 import { ProgressStatsGrid } from '../../components/student/progress/ProgressStatsGrid';
 import { ProgressCurrentSection } from '../../components/student/progress/ProgressCurrentSection';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 import { ScheduleHeader } from '../../components/student/schedule/ScheduleHeader';
 import { ScheduleTimetableCard } from '../../components/student/schedule/ScheduleTimetableCard';
 import { ScheduleLegendStrip } from '../../components/student/schedule/ScheduleLegendStrip';

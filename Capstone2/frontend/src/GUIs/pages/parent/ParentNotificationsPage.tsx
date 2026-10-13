@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParent } from '../../context/ParentContext';
+import { useParent } from '../../../contexts/ParentContext';
 import type { NotifTabType } from '../../components/student/notifications/NotificationsFilterTabs';
 import { NotificationsFilterTabs } from '../../components/student/notifications/NotificationsFilterTabs';
 
