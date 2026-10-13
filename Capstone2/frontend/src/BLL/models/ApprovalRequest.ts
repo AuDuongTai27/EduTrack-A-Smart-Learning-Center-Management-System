@@ -8,19 +8,18 @@ import type { Class } from './Class';
 export interface ApprovalRequest {
   requestId: number;
   requestCode: string;
-  requestType: 'leave_absence' | 'class_transfer' | 'reschedule' | 'feedback' | 'other' | string;
+  requestType: string;
   studentId?: number | null;
   invoiceId?: number | null;
   classId?: number | null;
   requestedBy: number;
   reviewedBy?: number | null;
-  priority: 'low' | 'medium' | 'high' | 'urgent' | string;
-  status: 'pending' | 'approved' | 'rejected' | string;
-  title: string;
-  description?: string | null;
-  reviewNotes?: string | null;
+  priority: string;
+  status: string;
+  reason?: string | null;
   createdAt: string;
   reviewedAt?: string | null;
+  reviewNotes?: string | null;
 
   // Navigation Properties
   student?: User | null;
