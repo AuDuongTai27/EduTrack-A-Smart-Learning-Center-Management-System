@@ -4,7 +4,7 @@ import { StudentSidebar } from "./StudentSidebar";
 import { StudentNavMenu } from "./StudentNavMenu";
 import "../../../assets/css/student.css";
 
-export const StudentLayout: React.FC = () => {
+export function StudentLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);

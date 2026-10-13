@@ -8,8 +8,8 @@ import {
   STATUS_CLASS,
   SESSIONS,
   pad2,
-  fmtTime,
 } from './scheduleData';
+import { ScheduleSessionCard } from './components/ScheduleSessionCard';
 
 interface ScheduleTimetableCardProps {
   days: Date[];
@@ -18,12 +18,12 @@ interface ScheduleTimetableCardProps {
   todayDate: Date;
 }
 
-export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
+export function ScheduleTimetableCard({
   days,
   todayIdx,
   weekOffset,
   todayDate,
-}) => {
+}: ScheduleTimetableCardProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,7 +32,6 @@ export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
     }
   }, [weekOffset]);
 
-  // Now line calculations
   const nowH = todayDate.getHours();
   const nowM = todayDate.getMinutes();
   const showNowLine = weekOffset === 0 && nowH >= GRID_START && nowH < GRID_END;
@@ -40,7 +39,6 @@ export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
 
   return (
     <div className="schedule-calendar-card">
-      {/* Sticky Day Header Row */}
       <div className="day-header-row" id="dayHeaderRow">
         <div className="day-header-corner"></div>
         {days.map((date, i) => {
@@ -57,10 +55,8 @@ export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
         })}
       </div>
 
-      {/* Scrollable Time Grid */}
       <div className="timetable-grid-scroll" id="timetableGridScroll" ref={scrollRef}>
         <div className="timetable-grid-wrapper">
-          {/* Time Gutter Column (07:00 -> 20:00) */}
           <div className="time-gutter-col" id="timeGutterCol">
             {Array.from({ length: TOTAL_H }, (_, i) => (
               <div key={i} className="time-hour-slot">
@@ -69,7 +65,6 @@ export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
             ))}
           </div>
 
-          {/* Day Columns Container */}
           <div className="timetable-days-container" id="timetableDaysContainer">
             {days.map((_, di) => {
               const isToday = di === todayIdx && weekOffset === 0;
@@ -80,12 +75,10 @@ export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
                   key={di}
                   className={`grid-day-col${isToday ? ' is-today' : ''}`}
                 >
-                  {/* Hour Lines */}
                   {Array.from({ length: TOTAL_H }, (_, i) => (
                     <div key={i} className="grid-hour-line"></div>
                   ))}
 
-                  {/* Session Cards */}
                   {colSessions.map((s) => {
                     const statusCls = STATUS_CLASS[s.status] || STATUS_CLASS.upcoming;
                     const topPx = ((s.startH - GRID_START) * 60 + s.startM) / 60 * HOUR_PX;
@@ -93,33 +86,14 @@ export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
                     const isCompact = heightPx < 76;
 
                     return (
-                      <div
+                      <ScheduleSessionCard
                         key={s.id}
-                        className={`session-card ${statusCls}`}
-                        style={{ top: `${topPx}px`, height: `${heightPx}px` }}
-                        title={`${s.className} – ${s.subject} (${fmtTime(s.startH, s.startM)}–${fmtTime(s.endH, s.endM)})`}
-                      >
-                        <div className="session-card-time">
-                          {fmtTime(s.startH, s.startM)} – {fmtTime(s.endH, s.endM)}
-                        </div>
-                        <div className="session-card-title">
-                          {s.className} – {s.subject}
-                        </div>
-                        {!isCompact && (
-                          <div className="session-card-footer">
-                            <div className="session-card-teacher">
-                              <div
-                                className="session-teacher-avatar"
-                                style={{ backgroundColor: s.avatarBg }}
-                              >
-                                {s.initials}
-                              </div>
-                              <span>{s.teacher}</span>
-                            </div>
-                            <div className="session-card-room">{s.room}</div>
-                          </div>
-                        )}
-                      </div>
+                        session={s}
+                        topPx={topPx}
+                        heightPx={heightPx}
+                        isCompact={isCompact}
+                        statusCls={statusCls}
+                      />
                     );
                   })}
                 </div>
@@ -127,7 +101,6 @@ export const ScheduleTimetableCard: React.FC<ScheduleTimetableCardProps> = ({
             })}
           </div>
 
-          {/* Real-time Indicator Line */}
           {showNowLine && (
             <div
               className="now-time-line"

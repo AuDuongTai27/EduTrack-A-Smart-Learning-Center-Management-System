@@ -7,12 +7,12 @@ interface ScheduleHeaderProps {
   onNext: () => void;
 }
 
-export const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
+export function ScheduleHeader({
   weekRangeText,
   onToday,
   onPrev,
   onNext,
-}) => {
+}: ScheduleHeaderProps) {
   return (
     <header className="schedule-header">
       <h1 className="schedule-page-title">Lịch học</h1>

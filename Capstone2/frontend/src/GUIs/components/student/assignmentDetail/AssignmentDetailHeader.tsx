@@ -7,10 +7,10 @@ interface AssignmentDetailHeaderProps {
   currentStatus: SubmissionStatus;
 }
 
-export const AssignmentDetailHeader: React.FC<AssignmentDetailHeaderProps> = ({
+export function AssignmentDetailHeader({
   asg,
   currentStatus,
-}) => {
+}: AssignmentDetailHeaderProps) {
   return (
     <>
       {/* 1. Back Link */}

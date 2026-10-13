@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const ScheduleLegendStrip: React.FC = () => {
+export function ScheduleLegendStrip() {
   return (
     <div className="schedule-legend-strip">
       <span className="legend-title">Chú thích</span>

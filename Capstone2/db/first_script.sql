@@ -469,6 +469,8 @@ CREATE TABLE approval_requests (
                             'class_transfer', 
                             'feedback'
                         ) NOT NULL COMMENT '[C-01 & C-07] Loại yêu cầu phê duyệt hoặc phản hồi đóng góp ý kiến',
+    title               VARCHAR(255)    NULL COMMENT 'Tiêu đề yêu cầu / phản hồi',
+    description         TEXT            NULL COMMENT 'Mô tả chi tiết nội dung yêu cầu / phản hồi',
     student_id          INT             NULL COMMENT 'Identifier of associated student (if applicable)',
     invoice_id          INT             NULL COMMENT 'Identifier of targeted invoice (if applicable)',
     class_id            INT             NULL COMMENT 'Identifier of targeted class section (if applicable)',
@@ -672,12 +674,12 @@ INSERT INTO payment (payment_id, invoice_id, amount, payment_method, transaction
 (3, 4, 1400000.00, 'bank_transfer', 'MBTCB.992817263', '2026-09-07 09:15:22', 9, 2, 'Settled via Techcombank transfer by Parent Le Van Nam (PAR001)');
 
 -- 20. Approval Requests (Bổ sung class_transfer & feedback theo C-01, C-07)
-INSERT INTO approval_requests (request_id, request_code, request_type, student_id, invoice_id, class_id, requested_by, reviewed_by, priority, status, reason, created_at, reviewed_at, review_notes) VALUES
-(1, 'AR0001', 'due_date_extension', 8, 3, 1, 2, 1, 'medium', 'approved', 'Student family had sudden medical emergency, requested 10 days extension for invoice #3.', NOW(), NOW(), 'Approved for 10-day extension until Sept 20.'),
-(2, 'AR0002', 'tuition_adjustment', 7, 5, 2, 2, NULL, 'high', 'pending', 'Sibling discount policy (10% off for 2nd enrolled subject). Needs manager sign-off.', NOW(), NULL, NULL),
-(3, 'AR0003', 'leave_request', 7, NULL, 1, 5, 1, 'low', 'approved', 'Medical leave for session on 2026-09-10 with valid doctor confirmation.', NOW(), NOW(), 'Approved by Manager.'),
-(4, 'AR0004', 'class_transfer', 8, NULL, 1, 2, 1, 'high', 'approved', '[C-03, C-07] Học sinh Đặng Minh Cường xin chuyển từ lớp Toán 9A sang lớp Toán 9B do trùng lịch trường.', NOW(), NOW(), 'Duyệt chuyển lớp. Admin Staff thực hiện cập nhật student_classes.'),
-(5, 'AR0005', 'feedback', 6, NULL, 1, 6, 2, 'medium', 'approved', '[C-01, C-07] Em thấy phòng học 201 điều hòa bị chảy nước và hơi lạnh trong buổi học tối qua.', NOW(), NOW(), 'Trung tâm đã ghi nhận và cho bộ phận kỹ thuật bảo trì điều hòa sáng nay. Cảm ơn em!');
+INSERT INTO approval_requests (request_id, request_code, request_type, title, description, student_id, invoice_id, class_id, requested_by, reviewed_by, priority, status, reason, created_at, reviewed_at, review_notes) VALUES
+(1, 'AR0001', 'due_date_extension', 'Xin gia hạn nộp học phí', 'Student family had sudden medical emergency, requested 10 days extension for invoice #3.', 8, 3, 1, 2, 1, 'medium', 'approved', 'Student family had sudden medical emergency, requested 10 days extension for invoice #3.', NOW(), NOW(), 'Approved for 10-day extension until Sept 20.'),
+(2, 'AR0002', 'tuition_adjustment', 'Đề xuất giảm học phí anh chị em', 'Sibling discount policy (10% off for 2nd enrolled subject). Needs manager sign-off.', 7, 5, 2, 2, NULL, 'high', 'pending', 'Sibling discount policy (10% off for 2nd enrolled subject). Needs manager sign-off.', NOW(), NULL, NULL),
+(3, 'AR0003', 'leave_request', 'Xin nghỉ học buổi 2', 'Medical leave for session on 2026-09-10 with valid doctor confirmation.', 7, NULL, 1, 5, 1, 'low', 'approved', 'Medical leave for session on 2026-09-10 with valid doctor confirmation.', NOW(), NOW(), 'Approved by Manager.'),
+(4, 'AR0004', 'class_transfer', 'Xin chuyển lớp Toán 9A sang 9B', '[C-03, C-07] Học sinh Đặng Minh Cường xin chuyển từ lớp Toán 9A sang lớp Toán 9B do trùng lịch trường.', 8, NULL, 1, 2, 1, 'high', 'approved', '[C-03, C-07] Học sinh Đặng Minh Cường xin chuyển từ lớp Toán 9A sang lớp Toán 9B do trùng lịch trường.', NOW(), NOW(), 'Duyệt chuyển lớp. Admin Staff thực hiện cập nhật student_classes.'),
+(5, 'AR0005', 'feedback', 'Góp ý điều hòa phòng học 201', '[C-01, C-07] Em thấy phòng học 201 điều hòa bị chảy nước và hơi lạnh trong buổi học tối qua.', 6, NULL, 1, 6, 2, 'medium', 'approved', '[C-01, C-07] Em thấy phòng học 201 điều hòa bị chảy nước và hơi lạnh trong buổi học tối qua.', NOW(), NOW(), 'Trung tâm đã ghi nhận và cho bộ phận kỹ thuật bảo trì điều hòa sáng nay. Cảm ơn em!');
 
 -- 21. Notifications
 INSERT INTO notifications (notification_id, user_id, class_id, title, content, type, is_read, created_at) VALUES

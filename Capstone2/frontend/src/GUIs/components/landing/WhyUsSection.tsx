@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const WhyUsSection: React.FC = () => {
+export function WhyUsSection() {
   return (
     <section id="why-us" className="section why-us">
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const AssignmentInstructions: React.FC = () => {
+export function AssignmentInstructions() {
   return (
     <section className="mb-4">
       <h2 className="asg-section-heading">Hướng dẫn</h2>

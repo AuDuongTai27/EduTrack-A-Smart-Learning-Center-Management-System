@@ -10,6 +10,7 @@ import { StudentNotificationsPage } from "../GUIs/pages/student/StudentNotificat
 import { StudentProfilePage } from "../GUIs/pages/student/StudentProfilePage";
 import { StudentClassDetailPage } from "../GUIs/pages/student/StudentClassDetailPage";
 import { StudentAssignmentDetailPage } from "../GUIs/pages/student/StudentAssignmentDetailPage";
+import { StudentFeedbackPage } from "../GUIs/pages/student/StudentFeedbackPage";
 
 export const studentRoutes: RouteObject = {
   path: "/student",
@@ -23,6 +24,7 @@ export const studentRoutes: RouteObject = {
     { path: "tuition", element: <StudentTuitionPage /> },
     { path: "notifications", element: <StudentNotificationsPage /> },
     { path: "profile", element: <StudentProfilePage /> },
+    { path: "feedback", element: <StudentFeedbackPage /> },
     { path: "classes/:id", element: <StudentClassDetailPage /> },
     { path: "class-detail", element: <StudentClassDetailPage /> },
     { path: "assignments/:id", element: <StudentAssignmentDetailPage /> },

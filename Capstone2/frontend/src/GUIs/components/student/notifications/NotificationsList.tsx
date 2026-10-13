@@ -1,6 +1,6 @@
 import React from 'react';
 import type { NotificationItem } from './notificationsData';
-import { CATEGORY_CONFIG } from './notificationsData';
+import { NotificationCardItem } from './components/NotificationCardItem';
 
 interface NotificationsListProps {
   notifications: NotificationItem[];
@@ -8,11 +8,11 @@ interface NotificationsListProps {
   onMarkRead: (id: number) => void;
 }
 
-export const NotificationsList: React.FC<NotificationsListProps> = ({
+export function NotificationsList({
   notifications,
   readIds,
   onMarkRead,
-}) => {
+}: NotificationsListProps) {
   if (notifications.length === 0) {
     return (
       <div className="notif-empty-state" id="notifEmptyState">
@@ -32,39 +32,19 @@ export const NotificationsList: React.FC<NotificationsListProps> = ({
       <div className="notification-list-card" id="notifListContainer">
         {notifications.map((n) => {
           const isUnread = n.unread && !readIds.has(n.id);
-          const cfg = CATEGORY_CONFIG[n.category] || CATEGORY_CONFIG.system;
-
           return (
-            <button
+            <NotificationCardItem
               key={n.id}
-              type="button"
-              className={`notification-item-btn ${isUnread ? 'is-unread' : ''} ${cfg.cls}`}
-              onClick={() => onMarkRead(n.id)}
-            >
-              <div className="notif-category-icon-box">
-                <i className={`bi ${cfg.icon}`}></i>
-              </div>
-              <div className="notif-main-content">
-                <div className="notif-title-row">
-                  <span className="notif-title-text">{n.title}</span>
-                  <span className="notif-category-badge">{cfg.label}</span>
-                </div>
-                <p className="notif-summary-text">{n.summary}</p>
-              </div>
-              <div className="notif-right-meta">
-                <div className="notif-time-text">
-                  <i className="bi bi-clock"></i>
-                  <span>{n.timestamp}</span>
-                </div>
-                {isUnread && <span className="notif-unread-dot"></span>}
-              </div>
-            </button>
+              notification={n}
+              isUnread={isUnread}
+              onMarkRead={() => onMarkRead(n.id)}
+            />
           );
         })}
       </div>
 
       <p className="text-center text-muted small mt-4" id="notifFooterNote">
-        Hiển thị {notifications.length} thông báo · Nhấn vào thông báo để đánh dấu đã đọc
+        Hiển thị {notifications.length} thông báo &middot; Nhấn vào thông báo để đánh dấu đã đọc
       </p>
     </>
   );

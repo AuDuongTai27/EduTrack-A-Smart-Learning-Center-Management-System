@@ -5,7 +5,7 @@ interface StudentNavMenuProps {
   onLinkClick?: () => void;
 }
 
-export const StudentNavMenu: React.FC<StudentNavMenuProps> = ({ onLinkClick }) => {
+export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
   return (
     <>
       <nav className="sidebar-nav">
@@ -84,6 +84,18 @@ export const StudentNavMenu: React.FC<StudentNavMenuProps> = ({ onLinkClick }) =
               <span className="sidebar-badge">3</span>
             </NavLink>
           </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/student/feedback"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? "active" : ""}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-chat-dots"></i></span>
+              <span className="nav-label">Phản hồi & Góp ý</span>
+            </NavLink>
+          </li>
         </ul>
       </nav>
 
@@ -93,10 +105,10 @@ export const StudentNavMenu: React.FC<StudentNavMenuProps> = ({ onLinkClick }) =
           className="student-chip"
           onClick={onLinkClick}
         >
-          <div className="student-avatar">MA</div>
+          <div className="student-avatar">VA</div>
           <div className="student-info">
-            <div className="student-name" title="Nguyễn Minh Anh">Nguyễn Minh Anh</div>
-            <div className="student-grade">Học sinh · Lớp 11</div>
+            <div className="student-name" title="Lê Văn An">Lê Văn An</div>
+            <div className="student-grade">Học sinh · Lớp 9</div>
           </div>
         </Link>
       </div>

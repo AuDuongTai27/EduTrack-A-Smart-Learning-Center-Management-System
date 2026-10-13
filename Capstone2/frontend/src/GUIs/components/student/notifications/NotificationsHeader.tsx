@@ -6,11 +6,11 @@ interface NotificationsHeaderProps {
   onOpenPreferences: () => void;
 }
 
-export const NotificationsHeader: React.FC<NotificationsHeaderProps> = ({
+export function NotificationsHeader({
   unreadCount,
   onMarkAllRead,
   onOpenPreferences,
-}) => {
+}: NotificationsHeaderProps) {
   return (
     <div className="notifications-topbar-header">
       <div>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const DashboardWelcomeBanner: React.FC = () => {
+export function DashboardWelcomeBanner() {
   const getFormattedDate = (): string => {
     try {
       const now = new Date();
@@ -18,9 +18,9 @@ export const DashboardWelcomeBanner: React.FC = () => {
 
   return (
     <div className="welcome-banner">
-      <div className="banner-avatar">MA</div>
+      <div className="banner-avatar">VA</div>
       <div className="banner-content">
-        <h2 className="banner-title">Chào mừng trở lại, Nguyễn Minh Anh!</h2>
+        <h2 className="banner-title">Chào mừng trở lại, Lê Văn An!</h2>
         <p className="banner-date" id="currentDateText">{getFormattedDate()}</p>
       </div>
       <div className="banner-watermark">

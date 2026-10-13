@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export const TuitionPageHeader: React.FC = () => {
+export function TuitionPageHeader() {
   return (
     <div className="mb-4">
       <div className="d-flex align-items-center gap-2 text-muted small mb-2">

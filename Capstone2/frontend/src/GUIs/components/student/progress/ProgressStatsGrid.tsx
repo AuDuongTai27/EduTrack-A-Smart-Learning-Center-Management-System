@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const ProgressStatsGrid: React.FC = () => {
+export function ProgressStatsGrid() {
   return (
     <>
 {/* 2. 4-Stats Cards Grid */}

@@ -3,7 +3,7 @@ import { DashboardWelcomeBanner } from '../../components/student/dashboard/Dashb
 import { DashboardStatsGrid } from '../../components/student/dashboard/DashboardStatsGrid';
 import { DashboardClassesSection } from '../../components/student/dashboard/DashboardClassesSection';
 
-export const StudentDashboardPage: React.FC = () => {
+export function StudentDashboardPage() {
   return (
     <main className="main-content">
       <div className="content-container">

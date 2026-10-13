@@ -6,7 +6,7 @@ import { NotificationsFilterTabs } from '../../components/student/notifications/
 import { NotificationsList } from '../../components/student/notifications/NotificationsList';
 import { NotificationsPreferencesModal } from '../../components/student/notifications/NotificationsPreferencesModal';
 
-export const StudentNotificationsPage: React.FC = () => {
+export function StudentNotificationsPage() {
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
   const [readIds, setReadIds] = useState<Set<number>>(new Set());
   const [prefsOpen, setPrefsOpen] = useState<boolean>(false);

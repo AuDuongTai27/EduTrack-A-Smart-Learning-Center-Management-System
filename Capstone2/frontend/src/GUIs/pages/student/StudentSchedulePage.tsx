@@ -8,7 +8,7 @@ import {
   fmtDayMon,
 } from '../../components/student/schedule/scheduleData';
 
-export const StudentSchedulePage: React.FC = () => {
+export function StudentSchedulePage() {
   const [weekOffset, setWeekOffset] = useState<number>(0);
 
   // Reference date aligned with prototype (or current date)

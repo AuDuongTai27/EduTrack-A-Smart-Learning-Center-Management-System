@@ -7,7 +7,7 @@ import { FeaturesSection } from '../../components/landing/FeaturesSection';
 import { CoursesSection } from '../../components/landing/CoursesSection';
 import { TrainersSection } from '../../components/landing/TrainersSection';
 
-export const LandingPage: React.FC = () => {
+export function LandingPage() {
   return (
     <main className="main">
       {/* 1. Hero Section */}

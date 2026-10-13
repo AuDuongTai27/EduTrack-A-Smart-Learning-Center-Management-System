@@ -8,11 +8,11 @@ interface NotificationsFilterTabsProps {
   unreadCount: number;
 }
 
-export const NotificationsFilterTabs: React.FC<NotificationsFilterTabsProps> = ({
+export function NotificationsFilterTabs({
   activeTab,
   onTabChange,
   unreadCount,
-}) => {
+}: NotificationsFilterTabsProps) {
   return (
     <div className="notification-filter-tabs">
       <button

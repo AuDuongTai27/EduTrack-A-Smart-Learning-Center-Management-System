@@ -5,7 +5,7 @@ import { LandingFooter } from './LandingFooter';
 import { LoginModal } from '../../components/landing/LoginModal';
 import '../../../assets/css/main.css';
 
-export const LandingPageLayout: React.FC = () => {
+export function LandingPageLayout() {
   const [loginOpen, setLoginOpen] = useState(false);
 
   return (

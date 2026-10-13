@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const LandingFooter: React.FC = () => {
+export function LandingFooter() {
   return (
     <footer id="footer" className="footer position-relative light-background">
 

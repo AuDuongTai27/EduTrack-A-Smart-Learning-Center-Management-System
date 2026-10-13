@@ -4,7 +4,7 @@ interface TuitionPaymentCTAProps {
   onPayNow: () => void;
 }
 
-export const TuitionPaymentCTA: React.FC<TuitionPaymentCTAProps> = ({ onPayNow }) => {
+export function TuitionPaymentCTA({ onPayNow }: TuitionPaymentCTAProps) {
   return (
     <div className="payment-cta-wrap">
       <button type="button" className="btn-pay-now" id="btnPayNow" onClick={onPayNow}>

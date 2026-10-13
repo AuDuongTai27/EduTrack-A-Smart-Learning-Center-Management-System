@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const CountsSection: React.FC = () => {
+export function CountsSection() {
   return (
     <section id="counts" className="section counts light-background">
 

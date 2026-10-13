@@ -4,7 +4,7 @@ interface ProfileToastProps {
   show: boolean;
 }
 
-export const ProfileToast: React.FC<ProfileToastProps> = ({ show }) => {
+export function ProfileToast({ show }: ProfileToastProps) {
   return (
     <div className={`profile-toast-box ${show ? 'show' : ''}`} id="profileToast">
       <div className="toast-icon-circle">

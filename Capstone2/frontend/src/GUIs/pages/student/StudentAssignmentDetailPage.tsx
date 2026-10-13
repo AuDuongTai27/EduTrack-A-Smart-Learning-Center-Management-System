@@ -11,7 +11,7 @@ import { AssignmentInstructions } from '../../components/student/assignmentDetai
 import { AssignmentAttachedFiles } from '../../components/student/assignmentDetail/AssignmentAttachedFiles';
 import { AssignmentSubmissionSection } from '../../components/student/assignmentDetail/AssignmentSubmissionSection';
 
-export const StudentAssignmentDetailPage: React.FC = () => {
+export function StudentAssignmentDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
 

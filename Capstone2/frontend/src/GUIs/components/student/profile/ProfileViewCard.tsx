@@ -6,7 +6,7 @@ interface ProfileViewCardProps {
   data: StudentProfileData;
 }
 
-export const ProfileViewCard: React.FC<ProfileViewCardProps> = ({ data }) => {
+export function ProfileViewCard({ data }: ProfileViewCardProps) {
   return (
     <>
       {/* 2. Profile View Card (Chế độ xem) */}
