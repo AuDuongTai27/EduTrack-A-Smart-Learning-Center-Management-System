@@ -9,6 +9,7 @@ import { ParentTuitionPage } from "../GUIs/pages/parent/ParentTuitionPage";
 import { ParentNotificationsPage } from "../GUIs/pages/parent/ParentNotificationsPage";
 import { ParentProfilePage } from "../GUIs/pages/parent/ParentProfilePage";
 import { ParentClassDetailPage } from "../GUIs/pages/parent/ParentClassDetailPage";
+import { ParentFeedbackPage } from "../GUIs/pages/parent/ParentFeedbackPage";
 
 export const parentRoutes: RouteObject = {
   path: "/parent",
@@ -22,6 +23,7 @@ export const parentRoutes: RouteObject = {
     { path: "tuition", element: <ParentTuitionPage /> },
     { path: "notifications", element: <ParentNotificationsPage /> },
     { path: "profile", element: <ParentProfilePage /> },
+    { path: "feedback", element: <ParentFeedbackPage /> },
     { path: "classes/:id", element: <ParentClassDetailPage /> },
     { path: "class-detail", element: <ParentClassDetailPage /> },
     // Lưu ý: Không có route assignment detail cho Parent theo yêu cầu đặc tả nghiệp vụ

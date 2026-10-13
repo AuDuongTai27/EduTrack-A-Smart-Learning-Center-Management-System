@@ -84,6 +84,18 @@ export const StudentNavMenu: React.FC<StudentNavMenuProps> = ({ onLinkClick }) =
               <span className="sidebar-badge">3</span>
             </NavLink>
           </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/student/feedback"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? "active" : ""}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-chat-dots"></i></span>
+              <span className="nav-label">Phản hồi & Góp ý</span>
+            </NavLink>
+          </li>
         </ul>
       </nav>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ParentSidebar } from './ParentSidebar';
 import { ParentNavMenu } from './ParentNavMenu';
 import { ParentEmptyState } from '../../components/parent/ParentEmptyState';
@@ -9,6 +9,13 @@ import '../../../assets/css/student.css';
 const ParentLayoutContent: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { childrenList } = useParent();
+  const location = useLocation();
+
+  const isFeedbackOrProfile =
+    location.pathname.startsWith('/parent/feedback') ||
+    location.pathname.startsWith('/parent/profile');
+
+  const showEmptyState = childrenList.length === 0 && !isFeedbackOrProfile;
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -105,7 +112,7 @@ const ParentLayoutContent: React.FC = () => {
           </header>
 
           {/* Main Content Area */}
-          {childrenList.length === 0 ? (
+          {showEmptyState ? (
             <ParentEmptyState />
           ) : (
             <Outlet />

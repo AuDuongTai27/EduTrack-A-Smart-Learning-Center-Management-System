@@ -95,6 +95,18 @@ export const ParentNavMenu: React.FC<ParentNavMenuProps> = ({ onLinkClick }) => 
               <span className="sidebar-badge">2</span>
             </NavLink>
           </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/parent/feedback"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-chat-dots"></i></span>
+              <span className="nav-label">Phản hồi & Hỗ trợ</span>
+            </NavLink>
+          </li>
         </ul>
       </nav>
 

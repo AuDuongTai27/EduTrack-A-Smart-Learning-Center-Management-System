@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useParent } from '../../context/ParentContext';
-import { LinkStudentModal } from './LinkStudentModal';
 
 interface ChildSwitcherProps {
   className?: string;
@@ -9,12 +9,13 @@ interface ChildSwitcherProps {
 
 /**
  * ChildSwitcher: Selector chọn học sinh tích hợp trực tiếp trong Sidebar của Cổng phụ huynh.
- * Tuân theo chuẩn layout của student, không có header desktop trong main-wrapper.
+ * Khi cần liên kết thêm học sinh, chuyển hướng tới trang Feedback để gửi yêu cầu cho Staff xử lý.
  */
 export const ChildSwitcher: React.FC<ChildSwitcherProps> = ({
   className = '',
   onChildSelected,
 }) => {
+  const navigate = useNavigate();
   const {
     childrenList,
     selectedChildId,
@@ -25,7 +26,6 @@ export const ChildSwitcher: React.FC<ChildSwitcherProps> = ({
   } = useParent();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Đóng dropdown khi click ra ngoài
@@ -42,6 +42,12 @@ export const ChildSwitcher: React.FC<ChildSwitcherProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleRequestLinkClick = () => {
+    setIsOpen(false);
+    navigate('/parent/feedback?type=link_student');
+    if (onChildSelected) onChildSelected();
+  };
+
   if (childrenList.length === 0) {
     return (
       <div className={`sidebar-child-switcher px-3 py-2 border-bottom ${className}`}>
@@ -52,21 +58,20 @@ export const ChildSwitcher: React.FC<ChildSwitcherProps> = ({
           <button
             type="button"
             className="btn btn-sm btn-primary w-100 py-1.5 rounded-3 fw-semibold small d-flex align-items-center justify-content-center gap-1 shadow-xs"
-            onClick={() => setModalOpen(true)}
+            onClick={handleRequestLinkClick}
           >
-            <i className="bi bi-person-plus-fill"></i>
-            <span>+ Liên kết học sinh</span>
+            <i className="bi bi-chat-dots-fill"></i>
+            <span>Gửi yêu cầu liên kết</span>
           </button>
           <button
             type="button"
             className="btn btn-sm btn-outline-secondary py-1.5 px-2 rounded-3"
             onClick={resetDemoChildren}
-            title="Nạp lại học sinh mẫu"
+            title="Nạp lại 2 học sinh mẫu"
           >
             <i className="bi bi-arrow-counterclockwise"></i>
           </button>
         </div>
-        <LinkStudentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       </div>
     );
   }
@@ -212,13 +217,10 @@ export const ChildSwitcher: React.FC<ChildSwitcherProps> = ({
               type="button"
               className="btn btn-light w-100 py-1 rounded-2 text-primary fw-semibold small d-flex align-items-center justify-content-center gap-1 mb-1"
               style={{ fontSize: '11.5px' }}
-              onClick={() => {
-                setIsOpen(false);
-                setModalOpen(true);
-              }}
+              onClick={handleRequestLinkClick}
             >
-              <i className="bi bi-plus-circle-fill"></i>
-              <span>+ Thêm học sinh</span>
+              <i className="bi bi-chat-dots-fill"></i>
+              <span>+ Yêu cầu liên kết học sinh</span>
             </button>
 
             {/* Công cụ hỗ trợ demo */}
@@ -238,9 +240,6 @@ export const ChildSwitcher: React.FC<ChildSwitcherProps> = ({
           </div>
         </div>
       )}
-
-      {/* Modal liên kết */}
-      <LinkStudentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 };
