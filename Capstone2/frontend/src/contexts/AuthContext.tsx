@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, type ReactNode } from "react";
 import type { User } from "../BLL/models/User";
-import { DEFAULT_STUDENT, DEFAULT_PARENT } from "../DAL/mockData/mockUsers";
+import { MOCK_USERS, DEFAULT_STUDENT, DEFAULT_PARENT } from "../DAL/mockData/mockUsers";
 
 export type AuthState = {
   user: undefined | User;

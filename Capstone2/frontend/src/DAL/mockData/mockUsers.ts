@@ -175,3 +175,6 @@ export const MOCK_USER_ROLES: UserRole[] = [
   { userRoleId: 9, userId: 9, roleId: 6 },
   { userRoleId: 10, userId: 10, roleId: 6 },
 ];
+
+export const DEFAULT_STUDENT: User = MOCK_USERS.find((u) => u.userId === 6) || MOCK_USERS[5];
+export const DEFAULT_PARENT: User = MOCK_USERS.find((u) => u.userId === 9) || MOCK_USERS[8];
