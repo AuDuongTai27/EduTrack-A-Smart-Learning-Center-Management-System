@@ -1,0 +1,120 @@
+import React from 'react';
+import { NavLink, Link } from 'react-router-dom';
+import { useParent } from '../../context/ParentContext';
+
+interface ParentNavMenuProps {
+  onLinkClick?: () => void;
+}
+
+export const ParentNavMenu: React.FC<ParentNavMenuProps> = ({ onLinkClick }) => {
+  const { selectedChild } = useParent();
+
+  return (
+    <>
+      <nav className="sidebar-nav">
+        <div className="sidebar-nav-title">Menu Phụ huynh</div>
+        <ul className="sidebar-nav-list">
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/parent/dashboard"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-grid-1x2"></i></span>
+              <span className="nav-label">Dashboard</span>
+            </NavLink>
+          </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/parent/classes"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-collection"></i></span>
+              <span className="nav-label">Lớp học của con</span>
+            </NavLink>
+          </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/parent/schedule"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-calendar-event"></i></span>
+              <span className="nav-label">Lịch học</span>
+            </NavLink>
+          </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/parent/progress"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-graph-up-arrow"></i></span>
+              <span className="nav-label">Tiến độ & Điểm danh</span>
+            </NavLink>
+          </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/parent/tuition"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-credit-card"></i></span>
+              <span className="nav-label">Học phí</span>
+              {selectedChild && selectedChild.unpaidAmount > 0 && (
+                <span className="sidebar-badge bg-danger text-white">Cần nộp</span>
+              )}
+            </NavLink>
+          </li>
+          <li className="sidebar-nav-item">
+            <NavLink
+              to="/parent/notifications"
+              onClick={onLinkClick}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <span className="nav-icon"><i className="bi bi-bell"></i></span>
+              <span className="nav-label">Thông báo</span>
+              <span className="sidebar-badge">2</span>
+            </NavLink>
+          </li>
+        </ul>
+      </nav>
+
+      {/* Footer Profile Phụ Huynh */}
+      <div className="sidebar-footer mt-auto">
+        <Link
+          to="/parent/profile"
+          className="student-chip"
+          onClick={onLinkClick}
+          title="Xem thông tin tài khoản phụ huynh"
+        >
+          <div
+            className="student-avatar"
+            style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}
+          >
+            VB
+          </div>
+          <div className="student-info">
+            <div className="student-name">Nguyễn Văn Bình</div>
+            <div className="student-grade">Phụ huynh học sinh</div>
+          </div>
+        </Link>
+      </div>
+    </>
+  );
+};
+
+export default ParentNavMenu;
