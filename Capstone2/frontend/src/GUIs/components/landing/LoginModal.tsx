@@ -6,7 +6,7 @@ interface LoginModalProps {
   onClose: () => void;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
+export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const navigate = useNavigate();
   const [username, setUsername] = useState('student01');
   const [password, setPassword] = useState('••••••••');

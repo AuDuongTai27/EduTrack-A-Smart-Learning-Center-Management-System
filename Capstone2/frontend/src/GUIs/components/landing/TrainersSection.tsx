@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const TrainersSection: React.FC = () => {
+export function TrainersSection() {
   return (
     <section id="trainers-index" className="section trainers-index">
 

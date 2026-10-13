@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const FeaturesSection: React.FC = () => {
+export function FeaturesSection() {
   return (
     <section id="features" className="features section">
 

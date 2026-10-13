@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const HeroSection: React.FC = () => {
+export function HeroSection() {
   return (
     <section id="hero" className="hero section dark-background">
 

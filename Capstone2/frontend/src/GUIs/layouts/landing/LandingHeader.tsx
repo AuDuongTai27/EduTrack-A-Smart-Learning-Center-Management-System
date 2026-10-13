@@ -5,7 +5,7 @@ interface LandingHeaderProps {
   onOpenLogin?: () => void;
 }
 
-export const LandingHeader: React.FC<LandingHeaderProps> = ({ onOpenLogin }) => {
+export function LandingHeader({ onOpenLogin }: LandingHeaderProps) {
   const [activeSection, setActiveSection] = useState('hero');
 
   const scrollTo = (id: string) => {
