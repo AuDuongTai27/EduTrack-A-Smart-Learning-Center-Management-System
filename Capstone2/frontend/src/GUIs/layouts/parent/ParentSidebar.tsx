@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ParentNavMenu } from './ParentNavMenu';
 
-export const ParentSidebar: React.FC = () => {
+export function ParentSidebar() {
   return (
     <aside className="sidebar">
       {/* Brand / Logo */}

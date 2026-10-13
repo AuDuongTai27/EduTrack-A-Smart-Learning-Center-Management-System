@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 
-export const ParentClassesPage: React.FC = () => {
+export function ParentClassesPage() {
   const { selectedChild } = useParent();
 
   if (!selectedChild) {

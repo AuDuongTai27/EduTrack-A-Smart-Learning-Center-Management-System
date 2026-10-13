@@ -71,7 +71,7 @@ const INITIAL_PARENT_NOTIFS: ParentNotificationItem[] = [
   },
 ];
 
-export const ParentNotificationsPage: React.FC = () => {
+export function ParentNotificationsPage() {
   const { selectedChild } = useParent();
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
   const [readIds, setReadIds] = useState<Set<number>>(new Set());

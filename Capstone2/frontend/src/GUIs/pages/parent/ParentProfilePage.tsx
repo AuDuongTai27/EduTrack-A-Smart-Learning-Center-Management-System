@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
 import { LinkStudentModal } from '../../components/parent/LinkStudentModal';
 
-export const ParentProfilePage: React.FC = () => {
+export function ParentProfilePage() {
   const { childrenList, resetDemoChildren, setDemoEmptyState } = useParent();
   const [modalOpen, setModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

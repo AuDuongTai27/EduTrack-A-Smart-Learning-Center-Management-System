@@ -5,7 +5,7 @@ interface StudentNavMenuProps {
   onLinkClick?: () => void;
 }
 
-export const StudentNavMenu: React.FC<StudentNavMenuProps> = ({ onLinkClick }) => {
+export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
   return (
     <>
       <nav className="sidebar-nav">

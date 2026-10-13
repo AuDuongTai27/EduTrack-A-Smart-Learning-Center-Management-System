@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { FeedbackView } from '../../components/student/feedback/FeedbackView';
 
-export const ParentFeedbackPage: React.FC = () => {
+export function ParentFeedbackPage() {
   useEffect(() => {
     document.title = 'Phản hồi & Yêu cầu hỗ trợ (Phụ huynh) – EduTrack';
   }, []);

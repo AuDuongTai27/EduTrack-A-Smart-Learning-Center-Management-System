@@ -5,7 +5,7 @@ import { ProgressStatsGrid } from '../../components/student/progress/ProgressSta
 import { ProgressCurrentSection } from '../../components/student/progress/ProgressCurrentSection';
 import { ProgressPastHistorySection } from '../../components/student/progress/ProgressPastHistorySection';
 
-export const ParentProgressPage: React.FC = () => {
+export function ParentProgressPage() {
   const { selectedChild } = useParent();
 
   if (!selectedChild) {

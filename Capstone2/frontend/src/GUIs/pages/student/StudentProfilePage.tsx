@@ -6,7 +6,7 @@ import { ProfileViewCard } from '../../components/student/profile/ProfileViewCar
 import { ProfileEditCard } from '../../components/student/profile/ProfileEditCard';
 import { ProfileToast } from '../../components/student/profile/ProfileToast';
 
-export const StudentProfilePage: React.FC = () => {
+export function StudentProfilePage() {
   const [profile, setProfile] = useState<StudentProfileData>(INITIAL_PROFILE);
   const [formData, setFormData] = useState<StudentProfileData>(INITIAL_PROFILE);
   const [isEditing, setIsEditing] = useState<boolean>(false);

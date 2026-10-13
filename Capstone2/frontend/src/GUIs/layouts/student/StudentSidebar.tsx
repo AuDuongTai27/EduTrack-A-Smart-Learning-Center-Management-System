@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { StudentNavMenu } from "./StudentNavMenu";
 
-export const StudentSidebar: React.FC = () => {
+export function StudentSidebar() {
   return (
     <aside className="sidebar">
       {/* Brand / Logo */}

@@ -6,7 +6,7 @@ import { ParentEmptyState } from '../../components/parent/ParentEmptyState';
 import { ParentProvider, useParent } from '../../../contexts/ParentContext';
 import '../../../assets/css/student.css';
 
-const ParentLayoutContent: React.FC = () => {
+function ParentLayoutContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { childrenList } = useParent();
   const location = useLocation();
@@ -123,7 +123,7 @@ const ParentLayoutContent: React.FC = () => {
   );
 };
 
-export const ParentLayout: React.FC = () => {
+export function ParentLayout() {
   return (
     <ParentProvider>
       <ParentLayoutContent />

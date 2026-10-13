@@ -9,7 +9,7 @@ import {
   fmtDayMon,
 } from '../../components/student/schedule/scheduleData';
 
-export const ParentSchedulePage: React.FC = () => {
+export function ParentSchedulePage() {
   const { selectedChild } = useParent();
   const [weekOffset, setWeekOffset] = useState<number>(0);
 

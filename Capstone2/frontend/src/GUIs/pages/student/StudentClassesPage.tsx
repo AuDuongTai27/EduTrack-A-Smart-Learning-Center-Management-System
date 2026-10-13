@@ -1,7 +1,7 @@
 import React from 'react';
 import { ClassesGridSection } from '../../components/student/classes/ClassesGridSection';
 
-export const StudentClassesPage: React.FC = () => {
+export function StudentClassesPage() {
   return (
     <main className="main-content">
       <div className="content-container">

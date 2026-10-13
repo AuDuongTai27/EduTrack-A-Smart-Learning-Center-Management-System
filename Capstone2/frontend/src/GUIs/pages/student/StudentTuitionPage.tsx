@@ -3,7 +3,7 @@ import { TuitionPageHeader } from '../../components/student/tuition/TuitionPageH
 import { TuitionBillCard } from '../../components/student/tuition/TuitionBillCard';
 import { TuitionHistorySection } from '../../components/student/tuition/TuitionHistorySection';
 
-export const StudentTuitionPage: React.FC = () => {
+export function StudentTuitionPage() {
   return (
     <main className="main-content">
       <div className="content-container tuition-container">

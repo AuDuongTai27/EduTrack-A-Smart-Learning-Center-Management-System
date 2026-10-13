@@ -10,7 +10,7 @@ import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCar
 import { ClassMaterialsSection } from '../../components/student/classDetail/ClassMaterialsSection';
 import { ClassAssignmentsSection } from '../../components/student/classDetail/ClassAssignmentsSection';
 
-export const StudentClassDetailPage: React.FC = () => {
+export function StudentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const [toastMessage, setToastMessage] = useState<string | null>(null);

@@ -4,7 +4,7 @@ import { ProgressStatsGrid } from '../../components/student/progress/ProgressSta
 import { ProgressCurrentSection } from '../../components/student/progress/ProgressCurrentSection';
 import { ProgressPastHistorySection } from '../../components/student/progress/ProgressPastHistorySection';
 
-export const StudentProgressPage: React.FC = () => {
+export function StudentProgressPage() {
   return (
     <main className="main-content">
       <div className="content-container">

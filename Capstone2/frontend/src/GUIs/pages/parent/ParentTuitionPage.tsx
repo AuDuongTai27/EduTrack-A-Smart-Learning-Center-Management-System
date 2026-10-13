@@ -5,7 +5,7 @@ import { TuitionPaymentCTA } from '../../components/student/tuition/TuitionPayme
 import { TuitionHistorySection } from '../../components/student/tuition/TuitionHistorySection';
 import { TuitionPaymentModal } from '../../components/student/tuition/TuitionPaymentModal';
 
-export const ParentTuitionPage: React.FC = () => {
+export function ParentTuitionPage() {
   const { selectedChild } = useParent();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 

@@ -7,7 +7,7 @@ interface ParentNavMenuProps {
   onLinkClick?: () => void;
 }
 
-export const ParentNavMenu: React.FC<ParentNavMenuProps> = ({ onLinkClick }) => {
+export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const { selectedChild } = useParent();
 
   return (

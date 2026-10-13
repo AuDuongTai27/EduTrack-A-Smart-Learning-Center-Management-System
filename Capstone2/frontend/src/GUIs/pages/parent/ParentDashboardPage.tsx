@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 
-export const ParentDashboardPage: React.FC = () => {
+export function ParentDashboardPage() {
   const { selectedChild } = useParent();
 
   if (!selectedChild) {

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 
-export const ParentClassDetailPage: React.FC = () => {
+export function ParentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
   const { selectedChild } = useParent();
 
