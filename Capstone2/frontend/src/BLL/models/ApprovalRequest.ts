@@ -9,6 +9,8 @@ export interface ApprovalRequest {
   requestId: number;
   requestCode: string;
   requestType: string;
+  title?: string | null;
+  description?: string | null;
   studentId?: number | null;
   invoiceId?: number | null;
   classId?: number | null;

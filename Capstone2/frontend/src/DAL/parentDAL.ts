@@ -296,6 +296,8 @@ export const parentDAL = {
       requestId: nextId,
       requestCode: `AR${String(nextId).padStart(4, '0')}`,
       requestType: 'feedback',
+      title: payload.title,
+      description: payload.description,
       studentId: payload.studentId || null,
       invoiceId: null,
       classId: null,

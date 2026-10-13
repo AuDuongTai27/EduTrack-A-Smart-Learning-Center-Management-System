@@ -21,6 +21,13 @@ namespace EduTrack.API.Models.Entities
         [Column("request_type")]
         public string RequestType { get; set; } = null!;
 
+        [StringLength(255)]
+        [Column("title")]
+        public string? Title { get; set; }
+
+        [Column("description")]
+        public string? Description { get; set; }
+
         [Column("student_id")]
         public int? StudentId { get; set; }
 

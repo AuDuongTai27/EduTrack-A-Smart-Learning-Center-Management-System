@@ -26,60 +26,46 @@ export interface FeedbackApprovalRequest {
 interface FeedbackViewProps {
   userRole: 'parent' | 'student';
   userName: string;
+  userPhone?: string;
 }
 
-const INITIAL_REQUESTS: FeedbackApprovalRequest[] = [
-  {
-    id: 101,
-    requestType: 'feedback',
-    title: 'Yêu cầu liên kết hồ sơ học sinh Nguyễn Minh Anh (Lớp 11)',
-    description:
-      'Tôi là phụ huynh cháu Nguyễn Minh Anh, sinh ngày 15/08/2009, đang học lớp Toán nâng cao của thầy An. Nhờ giáo vụ đối soát và liên kết tài khoản giúp tôi.',
-    senderName: 'Nguyễn Văn Bình',
-    senderRole: 'parent',
-    createdAt: '10/10/2026, 09:15',
-    status: 'approved',
-    statusLabel: 'Đã giải quyết',
-    reviewedBy: 'Lê Thu Trang (Giáo vụ)',
-    reviewedAt: '10/10/2026, 11:30',
-    reviewNotes:
-      'Đã đối soát thông tin học sinh Nguyễn Minh Anh và kích hoạt liên kết thành công vào tài khoản phụ huynh.',
-  },
-  {
-    id: 102,
-    requestType: 'feedback',
-    title: 'Hỏi về biểu phí ưu đãi khi đăng ký combo 2 môn Toán - Lý',
-    description:
-      'Trung tâm hiện có chính sách giảm giá học phí khi học sinh đăng ký combo Toán và Vật Lý trong học kỳ này không?',
-    senderName: 'Nguyễn Văn Bình',
-    senderRole: 'parent',
-    createdAt: '05/10/2026, 14:20',
-    status: 'approved',
-    statusLabel: 'Đã giải quyết',
-    reviewedBy: 'Trần Văn Long (Giáo vụ)',
-    reviewedAt: '05/10/2026, 16:00',
-    reviewNotes:
-      'Trung tâm có ưu đãi giảm 10% môn thứ hai. Mức giảm sẽ được trừ trực tiếp trên hóa đơn kỳ tới.',
-  },
-  {
-    id: 103,
-    requestType: 'feedback',
-    title: 'Điều hòa phòng học P.201 hơi lạnh',
-    description:
-      'Phòng P.201 buổi chiều thứ 2 điều hòa nhiệt độ hơi thấp, mong các thầy cô điều chỉnh khoảng 26 độ để học sinh không bị lạnh.',
-    senderName: 'Nguyễn Minh Anh',
-    senderRole: 'student',
-    createdAt: '12/10/2026, 17:45',
-    status: 'pending',
-    statusLabel: 'Chờ duyệt',
-  },
-];
+import { MOCK_APPROVAL_REQUESTS, MOCK_USERS } from '../../../../DAL';
+
+const getInitialFeedbackRequests = (): FeedbackApprovalRequest[] => {
+  return MOCK_APPROVAL_REQUESTS
+    .filter((r) => r.requestType === 'feedback')
+    .map((r) => {
+      const requester = MOCK_USERS.find((u) => u.userId === r.requestedBy);
+      const isParent = requester?.userCode?.startsWith('PAR') || false;
+      const reviewer = r.reviewedBy ? MOCK_USERS.find((u) => u.userId === r.reviewedBy) : null;
+      return {
+        id: r.requestId,
+        requestType: 'feedback' as const,
+        title: r.title || (r.reason && r.reason.includes(']') ? r.reason.split(']')[0].replace('[', '').trim() : 'Phản hồi ý kiến'),
+        description: r.description || r.reason || '',
+        senderName: requester ? requester.fullName : (isParent ? 'Phụ huynh' : 'Học sinh'),
+        senderRole: (isParent ? 'parent' : 'student') as 'parent' | 'student',
+        createdAt: new Date(r.createdAt).toLocaleString('vi-VN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        status: (r.status as 'pending' | 'approved' | 'rejected') || 'pending',
+        statusLabel: r.status === 'approved' ? 'Đã giải quyết' : r.status === 'rejected' ? 'Từ chối' : 'Chờ tiếp nhận',
+        reviewedBy: reviewer ? `${reviewer.fullName} (${reviewer.specialty || 'Giáo vụ'})` : undefined,
+        reviewedAt: r.reviewedAt ? new Date(r.reviewedAt).toLocaleString('vi-VN') : undefined,
+        reviewNotes: r.reviewNotes || undefined,
+      };
+    });
+};
 
 export const FeedbackView: React.FC<FeedbackViewProps> = ({
   userRole,
   userName,
 }) => {
-  const [requests, setRequests] = useState<FeedbackApprovalRequest[]>(INITIAL_REQUESTS);
+  const [requests, setRequests] = useState<FeedbackApprovalRequest[]>(getInitialFeedbackRequests());
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [selectedId, setSelectedId] = useState<number | null>(null);

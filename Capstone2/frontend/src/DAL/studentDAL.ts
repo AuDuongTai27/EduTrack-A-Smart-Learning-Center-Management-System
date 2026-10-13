@@ -260,6 +260,8 @@ export const studentDAL = {
       requestId: nextId,
       requestCode: `AR${String(nextId).padStart(4, '0')}`,
       requestType: 'feedback',
+      title: payload.title,
+      description: payload.description,
       studentId: payload.studentId,
       invoiceId: null,
       classId: payload.classId || null,
