@@ -105,10 +105,10 @@ export const StudentNavMenu: React.FC<StudentNavMenuProps> = ({ onLinkClick }) =
           className="student-chip"
           onClick={onLinkClick}
         >
-          <div className="student-avatar">MA</div>
+          <div className="student-avatar">VA</div>
           <div className="student-info">
-            <div className="student-name" title="Nguyễn Minh Anh">Nguyễn Minh Anh</div>
-            <div className="student-grade">Học sinh · Lớp 11</div>
+            <div className="student-name" title="Lê Văn An">Lê Văn An</div>
+            <div className="student-grade">Học sinh · Lớp 9</div>
           </div>
         </Link>
       </div>
