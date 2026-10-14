@@ -5,7 +5,6 @@ import TeachingAssistantClassesPage from "../GUIs/pages/teacher/TeachingAssistan
 import TeachingAssistantClassDetailsPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantClassDetailsPage";
 import TeachingAssistantAttendancePage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantAttendancePage";
 import TeachingAssistantAssignmentPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantAssignmentPage";
-import TeachingAssistantNewAssignmentPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantNewAssignmentPage";
 import TeachingAssistantSchedulePage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantSchedulePage";
 import TeachingAssistantLearningProgressPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantLearningProgressPage";
 import TeachingAssistantNotificationPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantNotificationPage";
@@ -28,7 +27,6 @@ export const teachingAssistantRoutes: RouteObject = {
     { path: "assignment", element: <TeachingAssistantAssignmentPage /> },
     { path: "assignments/:id", element: <TeachingAssistantAssignmentPage /> },
 
-    { path: "new-assignment", element: <TeachingAssistantNewAssignmentPage /> },
     { path: "schedule", element: <TeachingAssistantSchedulePage /> },
     { path: "learning-progress", element: <TeachingAssistantLearningProgressPage /> },
     { path: "notifications", element: <TeachingAssistantNotificationPage /> },
