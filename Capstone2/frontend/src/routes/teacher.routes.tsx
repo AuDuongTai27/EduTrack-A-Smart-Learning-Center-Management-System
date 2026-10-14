@@ -1,16 +1,16 @@
 import { Navigate, type RouteObject } from "react-router-dom";
 import TeacherLayout from "../GUIs/layouts/teacher/TeacherLayout";
-import TeacherDashboardPage from "../GUIs/pages/teacher/TeacherDashboardPage";
-import TeacherClassesPage from "../GUIs/pages/teacher/TeacherClassesPage";
-import TeacherClassDetailsPage from "../GUIs/pages/teacher/TeacherClassDetailsPage";
-import TeacherAttendancePage from "../GUIs/pages/teacher/TeacherAttendancePage";
-import TeacherAssignmentPage from "../GUIs/pages/teacher/TeacherAssignmentPage";
-import TeacherNewAssignmentPage from "../GUIs/pages/teacher/TeacherNewAssignmentPage";
-import TeacherSchedulePage from "../GUIs/pages/teacher/TeacherSchedulePage";
-import TeacherLearningProgressPage from "../GUIs/pages/teacher/TeacherLearningProgressPage";
-import TeacherNotificationPage from "../GUIs/pages/teacher/TeacherNotificationPage";
-import TeacherRequestPage from "../GUIs/pages/teacher/TeacherRequestPage";
-import TeacherProfilePage from "../GUIs/pages/teacher/TeacherProfilePage";
+import TeacherDashboardPage from "../GUIs/pages/teacher/Teacher/TeacherDashboardPage";
+import TeacherClassesPage from "../GUIs/pages/teacher/Teacher/TeacherClassesPage";
+import TeacherClassDetailsPage from "../GUIs/pages/teacher/Teacher/TeacherClassDetailsPage";
+import TeacherAttendancePage from "../GUIs/pages/teacher/Teacher/TeacherAttendancePage";
+import TeacherAssignmentPage from "../GUIs/pages/teacher/Teacher/TeacherAssignmentPage";
+import TeacherNewAssignmentPage from "../GUIs/pages/teacher/Teacher/TeacherNewAssignmentPage";
+import TeacherSchedulePage from "../GUIs/pages/teacher/Teacher/TeacherSchedulePage";
+import TeacherLearningProgressPage from "../GUIs/pages/teacher/Teacher/TeacherLearningProgressPage";
+import TeacherNotificationPage from "../GUIs/pages/teacher/Teacher/TeacherNotificationPage";
+import TeacherRequestPage from "../GUIs/pages/teacher/Teacher/TeacherRequestPage";
+import TeacherProfilePage from "../GUIs/pages/teacher/Teacher/TeacherProfilePage";
 
 export const teacherRoutes: RouteObject = {
   path: "/teacher",

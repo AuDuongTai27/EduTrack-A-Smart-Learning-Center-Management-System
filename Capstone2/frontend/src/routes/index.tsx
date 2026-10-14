@@ -7,6 +7,7 @@ import { parentRoutes } from "./parent.routes";
 import { centerManagerRoutes } from "./centerManager.routes";
 import { adminStaffRoutes } from "./adminStaff.routes";
 import { teacherRoutes } from "./teacher.routes";
+import { teachingAssistantRoutes } from "./teachingAssistant.routes";
 
 export const routes: RouteObject[] = [
   landingRoutes,
@@ -15,6 +16,7 @@ export const routes: RouteObject[] = [
   centerManagerRoutes,
   adminStaffRoutes,
   teacherRoutes,
+  teachingAssistantRoutes,
   {
     path: "*",
     element: <Navigate to="/" replace />,

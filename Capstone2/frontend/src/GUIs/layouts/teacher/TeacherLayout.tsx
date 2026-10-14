@@ -13,7 +13,7 @@ export default function TeacherLayout() {
         <div className="main-area">
           {/* Header */}
           <TeacherTopBar />
-          {/* Intentionally blank content area */}
+          {/* Content area */}
           <main className="page-wrapper">
             <div className="page-content">
               <Outlet />
