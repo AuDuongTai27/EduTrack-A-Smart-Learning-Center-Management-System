@@ -5,7 +5,7 @@ import TeachingAssistantTopBar from "./TeachingAssistantTopBar";
 
 export default function TeachingAssistantLayout() {
     return (
-        <div className="admin-scope">
+        <div className="teacher-scope">
             <div className="app-shell">
                 {/* Sidebar */}
                 <TeachingAssistantSidebar />
