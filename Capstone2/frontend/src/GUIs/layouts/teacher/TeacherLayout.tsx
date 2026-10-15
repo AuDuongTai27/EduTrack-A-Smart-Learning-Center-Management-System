@@ -5,7 +5,7 @@ import TeacherSidebar from "./TeacherSidebar";
 
 export default function TeacherLayout() {
   return (
-    <div className="admin-scope">
+    <div className="teacher-scope">
       <div className="app-shell">
         {/* Sidebar */}
         <TeacherSidebar />

@@ -9,7 +9,7 @@ export function LandingPageLayout() {
   const [loginOpen, setLoginOpen] = useState(false);
 
   return (
-    <div className="landing-layout-wrapper">
+    <div className="landing-layout-wrapper landing-scope">
       {/* 1. Header phụ trợ */}
       <LandingHeader onOpenLogin={() => setLoginOpen(true)} />
 

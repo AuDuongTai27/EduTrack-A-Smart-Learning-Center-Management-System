@@ -1,4 +1,4 @@
-:root {
+.teacher-scope {
   --sidebar-width: 248px;
   --sidebar-collapsed-width: 74px;
   --topbar-height: 58px;
@@ -16,23 +16,7 @@
   --accent: #5d3fd3;
   --accent-soft: #ede9fe;
   --icon-bg: #f1f5f9;
-}
 
-/* =========================
-   Base
-   ========================= */
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-}
-
-body {
   font-family:
     Inter,
     ui-sans-serif,
@@ -43,17 +27,36 @@ body {
     sans-serif;
   background: var(--page-bg);
   color: var(--text-dark);
-  overflow-x: hidden;
-}
-
-button,
-input {
-  font: inherit;
-}
-
-.app-shell {
   min-height: 100vh;
-}
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+  }
 
 /* =========================
    Sidebar
@@ -824,42 +827,42 @@ input {
    Collapsed Sidebar
    ========================= */
 
-body.sidebar-collapsed .sidebar {
+body.sidebar-collapsed & .sidebar {
   width: var(--sidebar-collapsed-width);
 }
 
-body.sidebar-collapsed .main-area {
+body.sidebar-collapsed & .main-area {
   margin-left: var(--sidebar-collapsed-width);
 }
 
-body.sidebar-collapsed .brand-text,
-body.sidebar-collapsed .center-info,
-body.sidebar-collapsed .nav-heading,
-body.sidebar-collapsed .sidebar .nav-link span {
+body.sidebar-collapsed & .brand-text,
+body.sidebar-collapsed & .center-info,
+body.sidebar-collapsed & .nav-heading,
+body.sidebar-collapsed & .sidebar .nav-link span {
   display: none;
 }
 
-body.sidebar-collapsed .sidebar-header {
+body.sidebar-collapsed & .sidebar-header {
   padding: 0 10px;
 }
 
-body.sidebar-collapsed .center-box {
+body.sidebar-collapsed & .center-box {
   justify-content: center;
 
   margin-inline: 10px;
   padding-inline: 0;
 }
 
-body.sidebar-collapsed .sidebar-nav {
+body.sidebar-collapsed & .sidebar-nav {
   padding-inline: 10px;
 }
 
-body.sidebar-collapsed .sidebar .nav-link {
+body.sidebar-collapsed & .sidebar .nav-link {
   justify-content: center;
   padding-inline: 0;
 }
 
-body.sidebar-collapsed .sidebar .nav-link i {
+body.sidebar-collapsed & .sidebar .nav-link i {
   width: 28px;
   height: 28px;
   min-width: 28px;
@@ -897,7 +900,7 @@ body.sidebar-collapsed .sidebar .nav-link i {
   }
 
   .main-area,
-  body.sidebar-collapsed .main-area {
+  body.sidebar-collapsed & .main-area {
     margin-left: 0;
   }
 
@@ -1606,4 +1609,5 @@ details.session-docs-details[open] .details-chevron {
 
 .attachment-chip:hover {
   border-color: #cbd5e1;
+}
 }

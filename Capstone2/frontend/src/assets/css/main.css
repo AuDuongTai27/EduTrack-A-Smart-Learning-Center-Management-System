@@ -10,15 +10,12 @@
 # Font & Color Variables
 # Help: https://bootstrapmade.com/color-system/
 --------------------------------------------------------------*/
-/* Fonts */
-:root {
+/* Fonts & Colors Scoped to Landing */
+.landing-scope {
   --default-font: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --heading-font: "Raleway", sans-serif;
   --nav-font: "Poppins", sans-serif;
-}
 
-/* Global Colors - The following color variables are used throughout the website. Updating them here will change the color scheme of the entire website */
-:root {
   --background-color: #ffffff;
   /* Background color for the entire website, including individual sections */
   --default-color: #444444;
@@ -31,10 +28,7 @@
   /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
   --contrast-color: #ffffff;
   /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
-}
 
-/* Nav Menu Colors - The following color variables are used specifically for the navigation menu. They are separate from the global colors to allow for more customization options */
-:root {
   --nav-color: #272828;
   /* The default color of the main navmenu links */
   --nav-hover-color: #5fcf80;
@@ -49,14 +43,13 @@
   /* Similar to --nav-hover-color, this color is applied to dropdown navigation links when they are hovered over. */
 }
 
-/* Color Presets - These classes override global colors when applied to any section or element, providing reuse of the sam color scheme. */
-
-.light-background {
+/* Color Presets - These classes override global colors when applied to any section or element, providing reuse of the same color scheme. */
+.landing-scope .light-background {
   --background-color: #f9f9f9;
   --surface-color: #ffffff;
 }
 
-.dark-background {
+.landing-scope .dark-background {
   --background-color: #060606;
   --default-color: #ffffff;
   --heading-color: #ffffff;
@@ -72,29 +65,29 @@
 /*--------------------------------------------------------------
 # General Styling & Shared Classes
 --------------------------------------------------------------*/
-body {
+.landing-scope {
   color: var(--default-color);
   background-color: var(--background-color);
   font-family: var(--default-font);
 }
 
-a {
+.landing-scope a {
   color: var(--accent-color);
   text-decoration: none;
   transition: 0.3s;
 }
 
-a:hover {
+.landing-scope a:hover {
   color: color-mix(in srgb, var(--accent-color), transparent 25%);
   text-decoration: none;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+.landing-scope h1,
+.landing-scope h2,
+.landing-scope h3,
+.landing-scope h4,
+.landing-scope h5,
+.landing-scope h6 {
   color: var(--heading-color);
   font-family: var(--heading-font);
 }
