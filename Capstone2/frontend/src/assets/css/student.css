@@ -14,7 +14,18 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap');
 
-:root {
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+
+/* ==========================================================================
+   Scoped Student Styles (.student-scope)
+   ========================================================================== */
+.student-scope {
   /* Core Theme Palettes */
   --et-primary: #2563EB;
   --et-primary-hover: #1D4ED8;
@@ -44,21 +55,7 @@
   /* Typography */
   --font-heading: 'Poppins', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
 
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-
-/* ==========================================================================
-   Scoped Student Styles (.student-scope)
-   ========================================================================== */
-.student-scope {
   font-family: var(--font-body);
   color: var(--et-dark);
   background-color: var(--et-bg);
