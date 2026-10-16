@@ -1,22 +1,16 @@
+import PageHeader from "../../../components/Common/PageHeader";
+
 export default function TeacherNotificationPage() {
   return (
     <>
       {/* Breadcrumb & Page Title */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Notifications</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <a href="/teacher/dashboard">Dashboard</a>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Notifications
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+      <PageHeader
+        title="Notifications"
+        breadcrumbItems={[
+          { label: "Dashboard", path: "/teacher/dashboard" },
+          { label: "Notifications" },
+        ]}
+      />
 
       {/* Notification */}
       <div className="card class-list-card border-0 mb-4">

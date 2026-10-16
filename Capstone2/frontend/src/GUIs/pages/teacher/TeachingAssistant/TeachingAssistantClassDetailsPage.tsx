@@ -1,34 +1,29 @@
 
+import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
+
 export default function TeachingAssistantClassDetailsPage() {
     return (
         <>
             {/* Breadcrumb & Page Title */}
-            <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-                <div className="my-auto mb-2">
-                    <h3 className="page-title mb-1">Class Details</h3>
-                    <nav>
-                        <ol className="breadcrumb mb-0">
-                            <li className="breadcrumb-item">
-                                <a href="/teaching-assistant/dashboard">Dashboard</a>
-                            </li>
-                            <li className="breadcrumb-item">
-                                <a href="/teaching-assistant/classes">My Classes</a>
-                            </li>
-                            <li className="breadcrumb-item active" aria-current="page">
-                                Class I-A
-                            </li>
-                        </ol>
-                    </nav>
-                </div>
-                <div className="d-flex align-items-center gap-2">
-                    <a
-                        href="/teaching-assistant/classes"
-                        className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
-                    >
-                        <i className="bi bi-arrow-left" /> Back to Classes
-                    </a>
-                </div>
-            </div>
+            <PageHeader
+                title="Class Details"
+                breadcrumbItems={[
+                    { label: "Dashboard", path: "/teaching-assistant/dashboard" },
+                    { label: "My Classes", path: "/teaching-assistant/classes" },
+                    { label: "Class I-A" },
+                ]}
+                action={
+                    <div className="d-flex align-items-center gap-2">
+                        <Link
+                            to="/teaching-assistant/classes"
+                            className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                        >
+                            <i className="bi bi-arrow-left" /> Back to Classes
+                        </Link>
+                    </div>
+                }
+            />
             {/* Class Header */}
             <div className="card class-list-card border-0 mb-4">
                 <div className="card-body p-4">

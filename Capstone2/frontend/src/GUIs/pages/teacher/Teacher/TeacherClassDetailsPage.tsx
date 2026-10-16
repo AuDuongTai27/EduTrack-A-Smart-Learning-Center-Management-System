@@ -1,34 +1,27 @@
-
+import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
 export default function TeacherClassDetailsPage() {
     return (
         <>
             {/* Breadcrumb & Page Title */}
-            <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-                <div className="my-auto mb-2">
-                    <h3 className="page-title mb-1">Class Details</h3>
-                    <nav>
-                        <ol className="breadcrumb mb-0">
-                            <li className="breadcrumb-item">
-                                <a href="/teacher/dashboard">Dashboard</a>
-                            </li>
-                            <li className="breadcrumb-item">
-                                <a href="/teacher/classes">My Classes</a>
-                            </li>
-                            <li className="breadcrumb-item active" aria-current="page">
-                                Class I-A
-                            </li>
-                        </ol>
-                    </nav>
-                </div>
-                <div className="d-flex align-items-center gap-2">
-                    <a
-                        href="/teacher/classes"
-                        className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
-                    >
-                        <i className="bi bi-arrow-left" /> Back to Classes
-                    </a>
-                </div>
-            </div>
+            <PageHeader
+                title="Class Details"
+                breadcrumbItems={[
+                    { label: "Dashboard", path: "/teacher/dashboard" },
+                    { label: "My Classes", path: "/teacher/classes" },
+                    { label: "Class I-A" },
+                ]}
+                action={
+                    <div className="d-flex align-items-center gap-2">
+                        <Link
+                            to="/teacher/classes"
+                            className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                        >
+                            <i className="bi bi-arrow-left" /> Back to Classes
+                        </Link>
+                    </div>
+                }
+            />
             {/* Class Header */}
             <div className="card class-list-card border-0 mb-4">
                 <div className="card-body p-4">
@@ -312,7 +305,7 @@ export default function TeacherClassDetailsPage() {
                                             <i className="bi bi-pencil" /> Modify
                                         </button>
                                         <a
-                                            href="/teacher/attendance"
+                                            href="/teacher/classes/class-1-a/attendance"
                                             className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                                         >
                                             <i className="bi bi-clipboard-check" /> Attendance
@@ -377,7 +370,7 @@ export default function TeacherClassDetailsPage() {
                                             <i className="bi bi-pencil" /> Modify
                                         </button>
                                         <a
-                                            href="/teacher/attendance"
+                                            href="/teacher/classes/class-1-a/attendance"
                                             className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                                         >
                                             <i className="bi bi-clipboard-check" /> Attendance
@@ -436,7 +429,7 @@ export default function TeacherClassDetailsPage() {
                                             <i className="bi bi-pencil" /> Modify
                                         </button>
                                         <a
-                                            href="/teacher/attendance"
+                                            href="/teacher/classes/class-1-a/attendance"
                                             className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                                         >
                                             <i className="bi bi-clipboard-check" /> Attendance
@@ -496,7 +489,7 @@ export default function TeacherClassDetailsPage() {
                                             <i className="bi bi-pencil" /> Modify
                                         </button>
                                         <a
-                                            href="/teacher/attendance"
+                                            href="/teacher/classes/class-1-a/attendance"
                                             className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                                         >
                                             <i className="bi bi-clipboard-check" /> Attendance
@@ -526,7 +519,7 @@ export default function TeacherClassDetailsPage() {
                                             <i className="bi bi-pencil" /> Modify
                                         </button>
                                         <a
-                                            href="/teacher/attendance"
+                                            href="/teacher/classes/class-1-a/attendance"
                                             className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                                         >
                                             <i className="bi bi-clipboard-check" /> Attendance

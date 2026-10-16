@@ -1,22 +1,16 @@
+import PageHeader from "../../../components/Common/PageHeader";
+
 export default function TeachingAssistantProfilePage() {
   return (
     <>
       {/* Breadcrumb & Page Title */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Profile</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <a href="/teaching-assistant/dashboard">Dashboard</a>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Profile
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+      <PageHeader
+        title="Profile"
+        breadcrumbItems={[
+          { label: "Dashboard", path: "/teaching-assistant/dashboard" },
+          { label: "Profile" },
+        ]}
+      />
 
       {/* Profile */}
       <div className="card class-list-card border-0 mb-4">

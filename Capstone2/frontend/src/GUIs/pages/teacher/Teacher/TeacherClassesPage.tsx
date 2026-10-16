@@ -1,22 +1,15 @@
+import PageHeader from "../../../components/Common/PageHeader";
 export default function TeacherClassesPage() {
   return (
     <>
       {/* Breadcrumb & Page Title */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">My Classes</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <a href="/teacher/dashboard">Dashboard</a>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                My Classes
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+      <PageHeader
+        title="My Classes"
+        breadcrumbItems={[
+          { label: "Dashboard", path: "/teacher/dashboard" },
+          { label: "My Classes" },
+        ]}
+      />
 
       {/* Class list section */}
       <div className="card class-list-card border-0 mb-4">
@@ -189,7 +182,7 @@ export default function TeacherClassesPage() {
                 </td>
                 <td>
                   <a
-                    href="/teacher/class-details"
+                    href="/teacher/classes/class-1-a"
                     className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                   >
                     <i className="bi bi-eye" /> View

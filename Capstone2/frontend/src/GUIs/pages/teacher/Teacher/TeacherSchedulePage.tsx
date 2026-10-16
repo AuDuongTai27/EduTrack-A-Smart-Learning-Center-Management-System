@@ -1,22 +1,17 @@
+import PageHeader from "../../../components/Common/PageHeader";
+
 export default function TeacherSchedulePage() {
   return (
     <>
       {/* Breadcrumb & Page Title */}
-      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-        <div className="my-auto mb-2">
-          <h3 className="page-title mb-1">Schedule Classes</h3>
-          <nav>
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <a href="/teacher/dashboard">Dashboard</a>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Schedule
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
+      {/* Breadcrumb & Page Title */}
+      <PageHeader
+        title="Schedule Classes"
+        breadcrumbItems={[
+          { label: "Dashboard", path: "/teacher/dashboard" },
+          { label: "Schedule" },
+        ]}
+      />
 
       {/* Schedule Classes Section */}
       <div className="card class-list-card border-0 mb-4">

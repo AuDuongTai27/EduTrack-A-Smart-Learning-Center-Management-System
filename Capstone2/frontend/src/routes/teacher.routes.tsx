@@ -23,7 +23,7 @@ export const teacherRoutes: RouteObject = {
     { path: "class-details", element: <TeacherClassDetailsPage /> },
     { path: "classes/:id", element: <TeacherClassDetailsPage /> },
 
-    { path: "attendance", element: <TeacherAttendancePage /> },
+    { path: "classes/:id/attendance", element: <TeacherAttendancePage /> },
 
     { path: "assignment", element: <TeacherAssignmentPage /> },
     { path: "assignments/:id", element: <TeacherAssignmentPage /> },

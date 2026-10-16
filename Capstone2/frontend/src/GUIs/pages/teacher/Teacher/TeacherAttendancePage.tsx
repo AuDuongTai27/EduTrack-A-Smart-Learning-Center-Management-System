@@ -1,36 +1,29 @@
+import { Link } from "react-router-dom";
+import PageHeader from "../../../components/Common/PageHeader";
+
 export default function TeacherAttendancePage() {
     return (
         <>
             {/* Breadcrumb & Page Title */}
-            <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-                <div className="my-auto mb-2">
-                    <h3 className="page-title mb-1">Class Attendance</h3>
-                    <nav>
-                        <ol className="breadcrumb mb-0">
-                            <li className="breadcrumb-item">
-                                <a href="/teacher/dashboard">Dashboard</a>
-                            </li>
-                            <li className="breadcrumb-item">
-                                <a href="/teacher/classes">My Classes</a>
-                            </li>
-                            <li className="breadcrumb-item">
-                                <a href="/teacher/class-details">Class I-A</a>
-                            </li>
-                            <li className="breadcrumb-item active" aria-current="page">
-                                Attendance
-                            </li>
-                        </ol>
-                    </nav>
-                </div>
-                <div className="d-flex align-items-center gap-2">
-                    <a
-                        href="/teacher/class-details"
-                        className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
-                    >
-                        <i className="bi bi-arrow-left" /> Back to Class Details
-                    </a>
-                </div>
-            </div>
+            <PageHeader
+                title="Class Attendance"
+                breadcrumbItems={[
+                    { label: "Dashboard", path: "/teacher/dashboard" },
+                    { label: "My Classes", path: "/teacher/classes" },
+                    { label: "Class I-A", path: "/teacher/class-details" },
+                    { label: "Attendance" },
+                ]}
+                action={
+                    <div className="d-flex align-items-center gap-2">
+                        <Link
+                            to="/teacher/class-details"
+                            className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                        >
+                            <i className="bi bi-arrow-left" /> Back to Class Details
+                        </Link>
+                    </div>
+                }
+            />
             {/* Student Attendance List */}
             <div className="card class-list-card border-0 mb-4">
                 {/* Card Header */}
