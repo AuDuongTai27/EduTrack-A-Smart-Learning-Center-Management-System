@@ -1,7 +1,15 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function CenterManagerReportPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalRecords = 128;
+  const entriesPerPage = 10;
+  const totalPages = Math.ceil(totalRecords / entriesPerPage);
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -273,8 +281,8 @@ export default function CenterManagerReportPage() {
                 <td>Class 7</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge"> Mathematics - 7 </span>
-                    <span className="specialty-badge"> English - 7 </span>
+                    <SubjectBadge subject="Mathematics - 7" />
+                    <SubjectBadge subject="English - 7" />
                   </div>
                 </td>
                 <td>August 2026</td>
@@ -283,10 +291,7 @@ export default function CenterManagerReportPage() {
                 </td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-partial">
-                    <span />
-                    Partially Paid
-                  </span>
+                  <DotStatusBadge status="Partially Paid" />
                 </td>
                 <td className="text-center">
                   <button
@@ -306,8 +311,8 @@ export default function CenterManagerReportPage() {
                 <td>Class 8</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge"> Chemistry - 8 </span>
-                    <span className="specialty-badge"> Mathematics - 8 </span>
+                    <SubjectBadge subject="Chemistry - 8" />
+                    <SubjectBadge subject="Mathematics - 8" />
                   </div>
                 </td>
                 <td>August 2026</td>
@@ -316,10 +321,7 @@ export default function CenterManagerReportPage() {
                 </td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-paid">
-                    <span />
-                    Paid
-                  </span>
+                  <DotStatusBadge status="Paid" />
                 </td>
                 <td className="text-center">
                   <button
@@ -339,8 +341,8 @@ export default function CenterManagerReportPage() {
                 <td>Class 9</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge"> Physics - 9 </span>
-                    <span className="specialty-badge"> English - 9 </span>
+                    <SubjectBadge subject="Physics - 9" />
+                    <SubjectBadge subject="English - 9" />
                   </div>
                 </td>
                 <td>August 2026</td>
@@ -349,10 +351,7 @@ export default function CenterManagerReportPage() {
                 </td>
                 <td>10 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-overdue">
-                    <span />
-                    Overdue
-                  </span>
+                  <DotStatusBadge status="Overdue" />
                 </td>
                 <td className="text-center">
                   <button
@@ -371,7 +370,7 @@ export default function CenterManagerReportPage() {
                 </td>
                 <td>Class 8</td>
                 <td>
-                  <span className="specialty-badge"> Mathematics - 8 </span>
+                  <SubjectBadge subject="Mathematics - 8" />
                 </td>
                 <td>August 2026</td>
                 <td>
@@ -379,10 +378,7 @@ export default function CenterManagerReportPage() {
                 </td>
                 <td>20 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-unpaid">
-                    <span />
-                    Unpaid
-                  </span>
+                  <DotStatusBadge status="Unpaid" />
                 </td>
                 <td className="text-center">
                   <button
@@ -402,35 +398,11 @@ export default function CenterManagerReportPage() {
           <span className="text-muted small">
             Showing 1 to 4 of 128 records
           </span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>

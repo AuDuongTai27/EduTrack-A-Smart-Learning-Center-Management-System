@@ -1,7 +1,14 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function CenterManagerSubjectPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalUsers = 5;
+  const entriesPerPage = 5;
+  const totalPages = Math.ceil(totalUsers / entriesPerPage);
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -97,10 +104,7 @@ export default function CenterManagerSubjectPage() {
                   Mathematics courses for students at the learning center.
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -136,10 +140,7 @@ export default function CenterManagerSubjectPage() {
                   Physics courses covering theory and practical exercises.
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -169,10 +170,7 @@ export default function CenterManagerSubjectPage() {
                 </td>
                 <td>Chemistry courses including theory and problem solving.</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -204,10 +202,7 @@ export default function CenterManagerSubjectPage() {
                   English courses focusing on communication and language skills.
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -239,10 +234,7 @@ export default function CenterManagerSubjectPage() {
                   Biology courses covering fundamental biological concepts.
                 </td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -269,25 +261,11 @@ export default function CenterManagerSubjectPage() {
         {/* Pagination */}
         <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
           <span className="text-muted small">Showing 1 to 5 of 5 subjects</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>

@@ -1,4 +1,6 @@
 import PageHeader from "../../../components/Common/PageHeader";
+import StatusBadge from "../../../components/Common/StatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
 
 export default function AdminStaffTeachingMonitoring() {
   return (
@@ -136,8 +138,8 @@ export default function AdminStaffTeachingMonitoring() {
                     </td>
                     <td>
                       <div className="d-flex flex-wrap gap-1">
-                        <span className="specialty-badge">Mathematics - 7</span>
-                        <span className="specialty-badge">Mathematics - 8</span>
+                        <SubjectBadge subject="Mathematics - 7" />
+                        <SubjectBadge subject="Mathematics - 8" />
                       </div>
                     </td>
                     <td>16</td>
@@ -148,9 +150,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>94%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-good">
-                        Good
-                      </span>
+                      <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
                       <button
@@ -168,7 +168,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>Tran Minh Hoa</strong>
                     </td>
                     <td>
-                      <span className="specialty-badge"> Physics - 8 </span>
+                      <SubjectBadge subject="Physics - 8" />
                     </td>
                     <td>14</td>
                     <td>12</td>
@@ -178,9 +178,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>81%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-attention">
-                        Needs Attention
-                      </span>
+                      <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
                       <button
@@ -199,8 +197,8 @@ export default function AdminStaffTeachingMonitoring() {
                     </td>
                     <td>
                       <div className="d-flex flex-wrap gap-1">
-                        <span className="specialty-badge"> English - 7 </span>
-                        <span className="specialty-badge"> English - 9 </span>
+                        <SubjectBadge subject="English - 7" />
+                        <SubjectBadge subject="English - 9" />
                       </div>
                     </td>
                     <td>18</td>
@@ -211,9 +209,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>92%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-good">
-                        Good
-                      </span>
+                      <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
                       <button
@@ -231,7 +227,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>Pham Minh Duc</strong>
                     </td>
                     <td>
-                      <span className="specialty-badge"> Chemistry - 9 </span>
+                      <SubjectBadge subject="Chemistry - 9" />
                     </td>
                     <td>15</td>
                     <td>11</td>
@@ -241,9 +237,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>69%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-critical">
-                        Critical
-                      </span>
+                      <StatusBadge status="Critical" />
                     </td>
                     <td className="text-center">
                       <button
@@ -300,9 +294,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>91%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-good">
-                        Good
-                      </span>
+                      <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
                       <button
@@ -330,9 +322,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>75%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-attention">
-                        Needs Attention
-                      </span>
+                      <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
                       <button
@@ -360,9 +350,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>89%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-good">
-                        Good
-                      </span>
+                      <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
                       <button
@@ -390,9 +378,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <strong>62%</strong>
                     </td>
                     <td>
-                      <span className="monitoring-status monitoring-critical">
-                        Critical
-                      </span>
+                      <StatusBadge status="Critical" />
                     </td>
                     <td className="text-center">
                       <button
@@ -466,9 +452,7 @@ export default function AdminStaffTeachingMonitoring() {
                     </td>
                     <td>4</td>
                     <td>
-                      <span className="monitoring-status monitoring-critical">
-                        Critical
-                      </span>
+                      <StatusBadge status="Critical" />
                     </td>
                     <td className="text-center">
                       <button
@@ -493,9 +477,7 @@ export default function AdminStaffTeachingMonitoring() {
                     </td>
                     <td>3</td>
                     <td>
-                      <span className="monitoring-status monitoring-attention">
-                        Needs Attention
-                      </span>
+                      <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
                       <button
@@ -520,9 +502,7 @@ export default function AdminStaffTeachingMonitoring() {
                     </td>
                     <td>2</td>
                     <td>
-                      <span className="monitoring-status monitoring-attention">
-                        Needs Attention
-                      </span>
+                      <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
                       <button

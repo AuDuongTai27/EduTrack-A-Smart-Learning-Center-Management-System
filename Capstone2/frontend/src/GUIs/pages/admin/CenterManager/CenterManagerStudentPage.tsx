@@ -1,7 +1,16 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function CenterManagerStudentPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalUsers = 128;
+  const entriesPerPage = 12;
+  const totalPages = Math.ceil(totalUsers / entriesPerPage);
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -122,15 +131,12 @@ export default function CenterManagerStudentPage() {
                 <td>Class 7</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Mathematics - 7</span>
-                    <span className="specialty-badge">English - 7</span>
+                    <SubjectBadge subject="Mathematics - 7" />
+                    <SubjectBadge subject="English - 7" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -196,15 +202,12 @@ export default function CenterManagerStudentPage() {
                 <td>Class 8</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Chemistry - 8</span>
-                    <span className="specialty-badge">Mathematics - 8</span>
+                    <SubjectBadge subject="Chemistry - 8" />
+                    <SubjectBadge subject="Mathematics - 8" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -270,15 +273,12 @@ export default function CenterManagerStudentPage() {
                 <td>Class 9</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Physics - 9</span>
-                    <span className="specialty-badge">English - 9</span>
+                    <SubjectBadge subject="Physics - 9" />
+                    <SubjectBadge subject="English - 9" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-locked">
-                    <span />
-                    On Hold
-                  </span>
+                  <DotStatusBadge status="On Hold" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -344,17 +344,14 @@ export default function CenterManagerStudentPage() {
                 <td>Class 8</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Mathematics - 8</span>
-                    <span className="specialty-badge">Physics - 8</span>
-                    <span className="specialty-badge">Chemistry - 8</span>
-                    <span className="specialty-badge">English - 8</span>
+                    <SubjectBadge subject="Mathematics - 8" />
+                    <SubjectBadge subject="Physics - 8" />
+                    <SubjectBadge subject="Chemistry - 8" />
+                    <SubjectBadge subject="English - 8" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -413,37 +410,13 @@ export default function CenterManagerStudentPage() {
         {/* Pagination */}
         <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
           <span className="text-muted small">
-            Showing 1 to 4 of 128 students
+            Showing 1 to 12 of 128 students
           </span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>

@@ -1,7 +1,14 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function AdminStaffClassPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalClasses = 24;
+  const entriesPerPage = 10;
+  const totalPages = Math.ceil(totalClasses / entriesPerPage);
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -137,10 +144,7 @@ export default function AdminStaffClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -177,10 +181,7 @@ export default function AdminStaffClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -217,10 +218,7 @@ export default function AdminStaffClassPage() {
                 <td>05 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -257,10 +255,7 @@ export default function AdminStaffClassPage() {
                 <td>05 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -287,35 +282,11 @@ export default function AdminStaffClassPage() {
         {/* Pagination */}
         <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
           <span className="text-muted small">Showing 1 to 4 of 24 classes</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="/admin-staff/classes">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>

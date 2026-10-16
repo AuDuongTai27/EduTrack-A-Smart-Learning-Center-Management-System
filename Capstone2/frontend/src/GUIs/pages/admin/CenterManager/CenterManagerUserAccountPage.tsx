@@ -1,7 +1,16 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function CenterManagerUserAccountPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalUsers = 24;
+  const entriesPerPage = 10;
+  const totalPages = Math.ceil(totalUsers / entriesPerPage);
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -116,9 +125,9 @@ export default function CenterManagerUserAccountPage() {
                 <td>0901 234 567</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Mathematics</span>
-                    <span className="specialty-badge">Chemistry</span>
-                    <span className="specialty-badge">Physics</span>
+                    <SubjectBadge subject="Mathematics" />
+                    <SubjectBadge subject="Chemistry" />
+                    <SubjectBadge subject="Physics" />
                   </div>
                 </td>
                 <td>
@@ -128,10 +137,7 @@ export default function CenterManagerUserAccountPage() {
                   <span className="user-note">Main teacher - Grade 12</span>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -191,7 +197,7 @@ export default function CenterManagerUserAccountPage() {
                 </td>
                 <td>0912 456 789</td>
                 <td>
-                  <span className="specialty-badge">Chemistry</span>
+                  <SubjectBadge subject="Chemistry" />
                 </td>
                 <td>
                   <span className="role-badge role-ta">Teaching Assistant</span>
@@ -200,10 +206,7 @@ export default function CenterManagerUserAccountPage() {
                   <span className="user-note">Supports Grade 11</span>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -272,10 +275,7 @@ export default function CenterManagerUserAccountPage() {
                   <span className="user-note">Tuition management</span>
                 </td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -335,7 +335,7 @@ export default function CenterManagerUserAccountPage() {
                 </td>
                 <td>0934 111 222</td>
                 <td>
-                  <span className="specialty-badge">English</span>
+                  <SubjectBadge subject="English" />
                 </td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
@@ -349,10 +349,7 @@ export default function CenterManagerUserAccountPage() {
                   <span className="user-note">Center owner</span>
                 </td>
                 <td>
-                  <span className="status-badge status-locked">
-                    <span />
-                    Locked
-                  </span>
+                  <DotStatusBadge status="Locked" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -408,35 +405,11 @@ export default function CenterManagerUserAccountPage() {
         {/* Pagination */}
         <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
           <span className="text-muted small">Showing 1 to 4 of 24 users</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>

@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import StatusBadge from "../../../components/Common/StatusBadge";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 
 export default function AdminStaffDashboardPage() {
   return (
@@ -149,9 +151,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-ongoing">
-                    Ongoing
-                  </span>
+                  <StatusBadge status="Ongoing" />
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-time">
@@ -172,9 +172,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-upcoming">
-                    Upcoming
-                  </span>
+                  <StatusBadge status="Upcoming" />
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-time">
@@ -195,9 +193,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-upcoming">
-                    Upcoming
-                  </span>
+                  <StatusBadge status="Upcoming" />
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-time">
@@ -218,9 +214,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-upcoming">
-                    Upcoming
-                  </span>
+                  <StatusBadge status="Upcoming" />
                 </div>
               </div>
             </div>
@@ -330,12 +324,10 @@ export default function AdminStaffDashboardPage() {
                 <td>Nguyen Minh An</td>
                 <td>17 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-high"> High </span>
+                  <StatusBadge status="High" />
                 </td>
                 <td>
-                  <span className="approval-status approval-pending">
-                    Pending
-                  </span>
+                  <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
                   <button
@@ -356,12 +348,10 @@ export default function AdminStaffDashboardPage() {
                 <td>Tran Gia Huy</td>
                 <td>16 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-approved">
-                    Approved
-                  </span>
+                  <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
                   <button
@@ -382,12 +372,10 @@ export default function AdminStaffDashboardPage() {
                 <td>Le Minh Long</td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-low"> Low </span>
+                  <StatusBadge status="Low" />
                 </td>
                 <td>
-                  <span className="approval-status approval-rejected">
-                    Rejected
-                  </span>
+                  <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
                   <button

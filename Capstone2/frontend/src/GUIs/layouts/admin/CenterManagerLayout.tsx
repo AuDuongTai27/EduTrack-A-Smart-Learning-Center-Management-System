@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
-import "../../../assets/css/center-manager-layout.css";
+import "../../../assets/css/admin-shared.css";
+import "../../../assets/css/center-manager.css";
 import CenterManagerSidebar from "./CenterManagerSidebar";
 import AdminTopBar from "./AdminTopBar";
 

@@ -1,7 +1,15 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import StatusBadge from "../../../components/Common/StatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function CenterManagerApprovalRequestPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalRequests = 12;
+  const entriesPerPage = 10;
+  const totalPages = Math.ceil(totalRequests / entriesPerPage);
   return (
     <>
       {/* Breadcrumb */}
@@ -117,13 +125,10 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>17 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-high"> High </span>
+                  <StatusBadge status="High" />
                 </td>
                 <td>
-                  <span className="approval-status approval-pending">
-                    <span />
-                    Pending
-                  </span>
+                  <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
                   <button
@@ -152,13 +157,10 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>16 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-approved">
-                    <span />
-                    Approved
-                  </span>
+                  <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
                   <button
@@ -187,13 +189,10 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-low"> Low </span>
+                  <StatusBadge status="Low" />
                 </td>
                 <td>
-                  <span className="approval-status approval-rejected">
-                    <span />
-                    Rejected
-                  </span>
+                  <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
                   <button
@@ -222,13 +221,10 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>14 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-pending">
-                    <span />
-                    Pending
-                  </span>
+                  <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
                   <button
@@ -250,50 +246,11 @@ export default function CenterManagerApprovalRequestPage() {
           <span className="text-muted small">
             Showing 1 to 4 of 12 requests
           </span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
       {/* Approval Request Modal */}

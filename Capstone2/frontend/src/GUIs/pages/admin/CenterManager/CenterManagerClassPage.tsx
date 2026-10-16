@@ -1,7 +1,14 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function CenterManagerClassPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalUsers = 5;
+  const entriesPerPage = 5;
+  const totalPages = Math.ceil(totalUsers / entriesPerPage);
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -104,10 +111,7 @@ export default function CenterManagerClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -150,10 +154,7 @@ export default function CenterManagerClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -196,10 +197,7 @@ export default function CenterManagerClassPage() {
                 <td>05 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -242,10 +240,7 @@ export default function CenterManagerClassPage() {
                 <td>10 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
@@ -283,30 +278,11 @@ export default function CenterManagerClassPage() {
         {/* Pagination */}
         <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
           <span className="text-muted small">Showing 1 to 4 of 6 classes</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>
