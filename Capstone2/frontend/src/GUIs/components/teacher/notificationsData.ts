@@ -1,87 +1,58 @@
-export interface TeacherNotification {
-  id: string | number;
-  sender: string;
-  avatarUrl?: string;
-  initials?: string;
-  initialsBgClass?: string;
-  initialsColorClass?: string;
-  isNew?: boolean;
-  isRead?: boolean;
-  timeAgo: string;
+export interface TeacherDashboardNotification {
+  id?: string | number;
   title: string;
-  description: string;
-  hasBottomBorder?: boolean;
-  addedOn?: string;
+  addedOn: string;
   daysAgo?: string;
   icon?: string;
   iconBgClass?: string;
   iconColorClass?: string;
 }
 
-export const MOCK_TEACHER_NOTIFICATIONS: TeacherNotification[] = [
+export const MOCK_TEACHER_NOTIFICATIONS: TeacherDashboardNotification[] = [
   {
     id: 1,
-    sender: "EduTrack Center Manager",
-    avatarUrl: "/assets/img/profiles/avatar-27.jpg",
-    isNew: true,
-    isRead: false,
-    timeAgo: "10 minutes ago",
-    title: "Updated Teaching Schedule for Academic Term 2026/2027",
-    description:
-      "Please review your updated class room allocations and time slots for the upcoming term starting next Monday.",
-    hasBottomBorder: true,
+    title: "New Syllabus Instructions",
+    addedOn: "11 Mar 2024",
+    daysAgo: "20 Days",
+    icon: "bi bi-book",
+    iconBgClass: "bg-primary-subtle",
+    iconColorClass: "text-primary",
   },
   {
     id: 2,
-    sender: "EduTrack Staff",
-    initials: "ES",
-    initialsBgClass: "bg-primary-subtle",
-    initialsColorClass: "text-primary",
-    isNew: true,
-    isRead: false,
-    timeAgo: "2 hours ago",
-    title: "New Teaching Assistant Assigned to Mathematics Class IV",
-    description:
-      "Teaching Assistant Sarah Jenkins has been assigned to support your Mathematics Class IV sessions.",
-    hasBottomBorder: true,
+    title: "World Environment Day Program",
+    addedOn: "21 Apr 2024",
+    daysAgo: "15 Days",
+    icon: "bi bi-megaphone",
+    iconBgClass: "bg-success-subtle",
+    iconColorClass: "text-success",
   },
   {
     id: 3,
-    sender: "EduTrack Center Manager",
-    avatarUrl: "/assets/img/profiles/avatar-27.jpg",
-    isNew: true,
-    isRead: false,
-    timeAgo: "5 hours ago",
-    title: "Leave Request Approved",
-    description:
-      "Your request for leave on August 20, 2026 has been approved by the management team.",
-    hasBottomBorder: true,
+    title: "Exam Preparation Notification",
+    addedOn: "13 Mar 2024",
+    daysAgo: "12 Days",
+    icon: "bi bi-bell",
+    iconBgClass: "bg-danger-subtle",
+    iconColorClass: "text-danger",
   },
   {
     id: 4,
-    sender: "EduTrack Staff",
-    initials: "ES",
-    initialsBgClass: "bg-info-subtle",
-    initialsColorClass: "text-info",
-    isNew: false,
-    isRead: true,
-    timeAgo: "1 day ago",
-    title: "Monthly Learning Progress Assessment Submission Reminder",
-    description:
-      "Reminder to submit monthly learning progress evaluations for Physics Class I-A by August 18.",
-    hasBottomBorder: true,
+    title: "Online Classes Preparation",
+    addedOn: "24 May 2024",
+    daysAgo: "02 Days",
+    icon: "bi bi-laptop",
+    iconBgClass: "bg-info-subtle",
+    iconColorClass: "text-info",
   },
   {
     id: 5,
-    sender: "EduTrack Center Manager",
-    avatarUrl: "/assets/img/profiles/avatar-27.jpg",
-    isNew: false,
-    isRead: true,
-    timeAgo: "3 days ago",
-    title: "Upcoming Staff Development & Training Session",
-    description:
-      "Join us for the quarterly teacher workshop scheduled for Friday, August 22 at 14:00 in Hall B.",
-    hasBottomBorder: false,
+    title: "Exam Time Table Release",
+    addedOn: "24 May 2024",
+    daysAgo: "06 Days",
+    icon: "bi bi-calendar-event",
+    iconBgClass: "bg-warning-subtle",
+    iconColorClass: "text-warning",
   },
 ];
 

@@ -1,25 +1,36 @@
-import PageHeader from "../../../components/Common/PageHeader";
-import {
-  NewAssignmentAttachment,
-  NewAssignmentDeadline,
-  NewAssignmentDescription,
-  NewAssignmentFormAction,
-  NewAssignmentTitle,
-  NewAssignmentTypeSelector
-} from "../../../components/teacher/Teacher/newAssignment";
 export default function TeacherNewAssignmentPage() {
   return (
     <>
       {/* Breadcrumb & Page Title */}
-      <PageHeader
-        title="New Assignment"
-        breadcrumbItems={[
-          { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "My Classes", path: "/teacher/classes" },
-          { label: "Class I-A", path: "/teacher/classes/class-1-a" },
-          { label: "New Assignment" }
-        ]}
-      />
+      <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
+        <div className="my-auto mb-2">
+          <h3 className="page-title mb-1">New Assignment</h3>
+          <nav>
+            <ol className="breadcrumb mb-0">
+              <li className="breadcrumb-item">
+                <a href="/teacher/dashboard">Dashboard</a>
+              </li>
+              <li className="breadcrumb-item">
+                <a href="/teacher/classes">My Classes</a>
+              </li>
+              <li className="breadcrumb-item">
+                <a href="/teacher/class-details">Class I-A</a>
+              </li>
+              <li className="breadcrumb-item active" aria-current="page">
+                New Assignment
+              </li>
+            </ol>
+          </nav>
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <a
+            href="/teacher/class-details"
+            className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+          >
+            <i className="bi bi-arrow-left" /> Back to Class Details
+          </a>
+        </div>
+      </div>
 
       {/* New Assignment Form Card */}
       <div className="card class-list-card border-0 mb-4">
@@ -30,24 +41,121 @@ export default function TeacherNewAssignmentPage() {
           <form>
             <div className="row g-3">
               {/* Assignment Title */}
-              <NewAssignmentTitle />
+              <div className="col-md-8">
+                <label
+                  htmlFor="assignmentTitle"
+                  className="form-label fw-semibold text-dark"
+                >
+                  Assignment Title <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="assignmentTitle"
+                  placeholder="e.g. Assignment 4: Momentum & Impulse"
+                />
+              </div>
 
               {/* Deadline */}
-              <NewAssignmentDeadline />
+              <div className="col-md-4">
+                <label
+                  htmlFor="assignmentDeadline"
+                  className="form-label fw-semibold text-dark"
+                >
+                  Deadline <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  className="form-control"
+                  id="assignmentDeadline"
+                />
+              </div>
 
               {/* Assignment Type Radio Buttons */}
-              <NewAssignmentTypeSelector />
+              <div className="col-12 mt-3">
+                <label className="form-label fw-semibold text-dark d-block">
+                  Assignment Type <span className="text-danger">*</span>
+                </label>
+                <div className="d-flex align-items-center gap-4 flex-wrap">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="assignmentType"
+                      id="typeMultipleChoice"
+                      defaultChecked
+                    />
+                    <label
+                      className="form-check-label text-dark cursor-pointer fw-medium"
+                      htmlFor="typeMultipleChoice"
+                    >
+                      Multiple Choice Questions
+                    </label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="assignmentType"
+                      id="typeWritten"
+                    />
+                    <label
+                      className="form-check-label text-dark cursor-pointer fw-medium"
+                      htmlFor="typeWritten"
+                    >
+                      Written Assignment
+                    </label>
+                  </div>
+                </div>
+              </div>
 
               {/* Description */}
-              <NewAssignmentDescription />
+              <div className="col-12 mt-3">
+                <label
+                  htmlFor="assignmentDescription"
+                  className="form-label fw-semibold text-dark"
+                >
+                  Description
+                </label>
+                <textarea
+                  className="form-control"
+                  id="assignmentDescription"
+                  rows={4}
+                  placeholder="Provide instructions or details for this assignment..."
+                />
+              </div>
 
               {/* Attachment */}
-              <NewAssignmentAttachment />
+              <div className="col-12 mt-3">
+                <label
+                  htmlFor="assignmentAttachment"
+                  className="form-label fw-semibold text-dark"
+                >
+                  Attachment
+                </label>
+                <textarea
+                  className="form-control"
+                  id="assignmentAttachment"
+                  rows={3}
+                />
+              </div>
             </div>
 
             {/* Form Actions (Cancel & Save) */}
-            <NewAssignmentFormAction />
-
+            <div className="d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
+              <a
+                href="/teacher/class-details"
+                className="btn btn-outline-secondary btn-sm"
+              >
+                Cancel
+              </a>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1"
+              >
+                <i className="bi bi-check-lg" /> Save Assignment
+              </button>
+            </div>
           </form>
         </div>
       </div>
