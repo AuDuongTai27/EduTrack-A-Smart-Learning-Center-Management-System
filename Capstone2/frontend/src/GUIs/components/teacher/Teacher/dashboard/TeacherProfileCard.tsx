@@ -93,7 +93,7 @@ export function TeacherProfileCard({
           to={teacher.editProfileUrl ?? "/teacher/profile"}
           className="btn btn-primary d-inline-flex align-items-center gap-2"
         >
-          <i className="bi bi-pencil-square" /> Edit Profile
+          <i className="bi bi-pencil-square" /> View Profile
         </Link>
       </div>
     </div>
