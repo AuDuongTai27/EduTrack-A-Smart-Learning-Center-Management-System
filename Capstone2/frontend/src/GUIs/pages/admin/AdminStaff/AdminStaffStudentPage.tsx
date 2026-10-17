@@ -4,10 +4,14 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
 
 export default function AdminStaffStudentPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(128 / 10);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalStudents = 128;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -84,21 +88,15 @@ export default function AdminStaffStudentPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total students:
-            <strong className="text-dark">128</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalStudents}
+          totalLabel="Total Students"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Student Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -405,16 +403,13 @@ export default function AdminStaffStudentPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">
-            Showing 1 to 4 of 128 students
-          </span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalStudents}
+          entriesPerPage={entriesPerPage}
+          itemLabel="students"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

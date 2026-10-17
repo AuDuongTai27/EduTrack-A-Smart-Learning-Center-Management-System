@@ -1,65 +1,76 @@
 interface PaginationProps {
   currentPage: number;
-  totalPages: number;
+  totalItems: number;
+  entriesPerPage: number;
+  itemLabel: string;
   onPageChange: (page: number) => void;
 }
 
 export default function Pagination({
   currentPage,
-  totalPages,
+  totalItems,
+  entriesPerPage,
+  itemLabel,
   onPageChange,
 }: PaginationProps) {
+  const totalPages = Math.ceil(totalItems / entriesPerPage);
+
   return (
-    <nav>
-      <ul className="pagination pagination-sm mb-0">
-        {/* Previous */}
-        <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-          <button
-            className="page-link"
-            type="button"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            <i className="bi bi-chevron-left" />
-          </button>
-        </li>
+    <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <span className="text-muted small">
+        Showing {(currentPage - 1) * entriesPerPage + 1} to{" "}
+        {Math.min(currentPage * entriesPerPage, totalItems)} of {totalItems}{" "}
+        {itemLabel}
+      </span>
 
-        {/* Pages */}
-        {Array.from({ length: totalPages }, (_, index) => {
-          const page = index + 1;
-
-          return (
-            <li
-              key={page}
-              className={`page-item ${currentPage === page ? "active" : ""}`}
+      <nav>
+        <ul className="pagination pagination-sm mb-0">
+          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+            <button
+              className="page-link"
+              type="button"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
             >
-              <button
-                className="page-link"
-                type="button"
-                onClick={() => onPageChange(page)}
-              >
-                {page}
-              </button>
-            </li>
-          );
-        })}
+              <i className="bi bi-chevron-left" />
+            </button>
+          </li>
 
-        {/* Next */}
-        <li
-          className={`page-item ${
-            currentPage === totalPages ? "disabled" : ""
-          }`}
-        >
-          <button
-            className="page-link"
-            type="button"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
+          {Array.from({ length: totalPages }, (_, index) => {
+            const page = index + 1;
+
+            return (
+              <li
+                key={page}
+                className={`page-item ${currentPage === page ? "active" : ""}`}
+              >
+                <button
+                  className="page-link"
+                  type="button"
+                  onClick={() => onPageChange(page)}
+                >
+                  {page}
+                </button>
+              </li>
+            );
+          })}
+
+          <li
+            className={`page-item ${
+              currentPage === totalPages ? "disabled" : ""
+            }`}
           >
-            <i className="bi bi-chevron-right" />
-          </button>
-        </li>
-      </ul>
-    </nav>
+            <button
+              className="page-link"
+              type="button"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <i className="bi bi-chevron-right" />
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
   );
 }

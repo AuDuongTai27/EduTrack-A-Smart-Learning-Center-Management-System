@@ -7,8 +7,8 @@ export default function AdminStaffNotificationPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalNotifications = 12;
-  const notificationsPerPage = 4;
-  const totalPages = Math.ceil(totalNotifications / notificationsPerPage);
+  const entriesPerPage = 4;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -167,14 +167,13 @@ export default function AdminStaffNotificationPage() {
                 </div>
               </div>
             </div>
-            <div className="notification-list-footer d-flex align-items-center justify-content-between">
-              <small className="text-muted">Showing 1 to 4 of 12</small>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalNotifications}
+              entriesPerPage={entriesPerPage}
+              itemLabel="notifications"
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
         {/* Notification Preview */}

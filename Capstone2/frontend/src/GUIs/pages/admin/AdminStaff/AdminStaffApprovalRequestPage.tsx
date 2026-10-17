@@ -3,13 +3,14 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
 
 export default function AdminStaffApprovalRequestPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   const totalRequests = 12;
-  const entriesPerPage = 4;
-  const totalPages = Math.ceil(totalRequests / entriesPerPage);
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -102,21 +103,15 @@ export default function AdminStaffApprovalRequestPage() {
             </small>
           </div>
         </div>
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total Requests:
-            <strong className="text-dark">12</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalRequests}
+          totalLabel="Total Requests"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -274,16 +269,13 @@ export default function AdminStaffApprovalRequestPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">
-            Showing 1 to 4 of 12 requests
-          </span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalRequests}
+          entriesPerPage={entriesPerPage}
+          itemLabel="requests"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

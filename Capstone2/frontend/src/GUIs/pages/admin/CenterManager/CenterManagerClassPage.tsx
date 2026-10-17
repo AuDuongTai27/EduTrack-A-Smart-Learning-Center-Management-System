@@ -2,13 +2,14 @@ import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
 
 export default function CenterManagerClassPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
-  const totalUsers = 5;
-  const entriesPerPage = 5;
-  const totalPages = Math.ceil(totalUsers / entriesPerPage);
+  const totalClasses = 6;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -69,21 +70,15 @@ export default function CenterManagerClassPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total classes:
-            <strong className="text-dark">6</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalClasses}
+          totalLabel="Total classes"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Class Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -276,14 +271,13 @@ export default function CenterManagerClassPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">Showing 1 to 4 of 6 classes</span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalClasses}
+          entriesPerPage={entriesPerPage}
+          itemLabel="classes"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

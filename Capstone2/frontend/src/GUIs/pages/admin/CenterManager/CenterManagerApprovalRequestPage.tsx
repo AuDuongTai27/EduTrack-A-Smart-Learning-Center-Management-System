@@ -3,13 +3,14 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
 
 export default function CenterManagerApprovalRequestPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   const totalRequests = 12;
-  const entriesPerPage = 10;
-  const totalPages = Math.ceil(totalRequests / entriesPerPage);
+
   return (
     <>
       {/* Breadcrumb */}
@@ -78,21 +79,15 @@ export default function CenterManagerApprovalRequestPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total requests:
-            <strong className="text-dark">12</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalRequests}
+          totalLabel="Total requests"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Approval Request Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -242,16 +237,13 @@ export default function CenterManagerApprovalRequestPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">
-            Showing 1 to 4 of 12 requests
-          </span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalRequests}
+          entriesPerPage={entriesPerPage}
+          itemLabel="requests"
+          onPageChange={setCurrentPage}
+        />
       </div>
       {/* Approval Request Modal */}
       <div
@@ -283,7 +275,7 @@ export default function CenterManagerApprovalRequestPage() {
                 <div className="col-md-6">
                   <label className="form-label text-muted">Priority</label>
                   <div>
-                    <span className="priority-badge priority-high">High</span>
+                    <StatusBadge status="High" />
                   </div>
                 </div>
                 <div className="col-md-6">
@@ -328,10 +320,7 @@ export default function CenterManagerApprovalRequestPage() {
                     Request Status
                   </label>
                   <div>
-                    <span className="approval-status approval-pending">
-                      <span />
-                      Pending
-                    </span>
+                    <DotStatusBadge status="Pending" />
                   </div>
                 </div>
               </div>
