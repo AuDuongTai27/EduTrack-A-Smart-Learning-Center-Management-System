@@ -5,6 +5,8 @@ import SubjectBadge from "../../../components/Common/SubjectBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
+import UserAvatar from "../../../components/Common/UserAvatar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function AdminStaffTuitionPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -214,7 +216,7 @@ export default function AdminStaffTuitionPage() {
                 <td>1</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">NA</div>
+                    <UserAvatar name="Nguyen Minh An" />
                     <h6 className="mb-0">Nguyen Minh An</h6>
                   </div>
                 </td>
@@ -235,43 +237,11 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    {/* View / Edit */}
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#tuitionDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    {/* Record Payment */}
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    {/* Change Status */}
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    {/* More */}
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        title="More actions"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -295,7 +265,7 @@ export default function AdminStaffTuitionPage() {
                 <td>2</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">TH</div>
+                    <UserAvatar name="Tran Gia Huy" />
                     <h6 className="mb-0">Tran Gia Huy</h6>
                   </div>
                 </td>
@@ -316,36 +286,11 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -369,7 +314,7 @@ export default function AdminStaffTuitionPage() {
                 <td>3</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">ML</div>
+                    <UserAvatar name="Le Minh Long" />
                     <h6 className="mb-0">Le Minh Long</h6>
                   </div>
                 </td>
@@ -390,36 +335,11 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -443,7 +363,7 @@ export default function AdminStaffTuitionPage() {
                 <td>4</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">PN</div>
+                    <UserAvatar name="Pham Hoang Nam" />
                     <h6 className="mb-0">Pham Hoang Nam</h6>
                   </div>
                 </td>
@@ -463,36 +383,11 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">

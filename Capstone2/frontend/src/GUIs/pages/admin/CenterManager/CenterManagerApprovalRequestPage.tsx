@@ -4,6 +4,7 @@ import StatusBadge from "../../../components/Common/StatusBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function CenterManagerApprovalRequestPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,15 +127,10 @@ export default function CenterManagerApprovalRequestPage() {
                   <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
               {/* Request 2 */}
@@ -158,15 +154,10 @@ export default function CenterManagerApprovalRequestPage() {
                   <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
               {/* Request 3 */}
@@ -190,15 +181,10 @@ export default function CenterManagerApprovalRequestPage() {
                   <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
               {/* Request 4 */}
@@ -222,15 +208,10 @@ export default function CenterManagerApprovalRequestPage() {
                   <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
             </tbody>

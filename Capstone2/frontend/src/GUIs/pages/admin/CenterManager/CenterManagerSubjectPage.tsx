@@ -3,6 +3,7 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function CenterManagerSubjectPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,24 +104,8 @@ export default function CenterManagerSubjectPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#subjectDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeSubjectStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -139,20 +124,8 @@ export default function CenterManagerSubjectPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -169,20 +142,8 @@ export default function CenterManagerSubjectPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -201,20 +162,8 @@ export default function CenterManagerSubjectPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -233,20 +182,8 @@ export default function CenterManagerSubjectPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>

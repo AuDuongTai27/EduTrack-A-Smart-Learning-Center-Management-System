@@ -1,6 +1,7 @@
 import PageHeader from "../../../components/Common/PageHeader";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function AdminStaffTeachingMonitoring() {
   return (
@@ -153,13 +154,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -181,13 +176,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -212,13 +201,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -240,13 +223,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Critical" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                 </tbody>
@@ -297,13 +274,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -325,13 +296,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -353,13 +318,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Good" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -381,13 +340,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Critical" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                 </tbody>
@@ -455,13 +408,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Critical" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Student Progress"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -480,13 +427,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Student Progress"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                   <tr>
@@ -505,13 +446,7 @@ export default function AdminStaffTeachingMonitoring() {
                       <StatusBadge status="Needs Attention" />
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn table-action-btn"
-                        title="View Student Progress"
-                      >
-                        <i className="bi bi-eye" />
-                      </button>
+                      <TableActionButton action="View" />
                     </td>
                   </tr>
                 </tbody>

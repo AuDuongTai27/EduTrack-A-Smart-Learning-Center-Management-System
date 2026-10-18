@@ -4,6 +4,7 @@ import SubjectBadge from "../../../components/Common/SubjectBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function CenterManagerReportPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -289,13 +290,7 @@ export default function CenterManagerReportPage() {
                   <DotStatusBadge status="Partially Paid" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               <tr>
@@ -319,13 +314,7 @@ export default function CenterManagerReportPage() {
                   <DotStatusBadge status="Paid" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               <tr>
@@ -349,13 +338,7 @@ export default function CenterManagerReportPage() {
                   <DotStatusBadge status="Overdue" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               <tr>
@@ -376,13 +359,7 @@ export default function CenterManagerReportPage() {
                   <DotStatusBadge status="Unpaid" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
             </tbody>

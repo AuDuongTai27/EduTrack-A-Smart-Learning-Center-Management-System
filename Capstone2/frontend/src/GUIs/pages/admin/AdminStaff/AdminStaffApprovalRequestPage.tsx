@@ -4,6 +4,7 @@ import StatusBadge from "../../../components/Common/StatusBadge";
 import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function AdminStaffApprovalRequestPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -147,34 +148,9 @@ export default function AdminStaffApprovalRequestPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View Details"
-                    >
-                      <i className="bi bi-eye" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Edit Draft"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Submit Request"
-                    >
-                      <i className="bi bi-send" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn text-danger"
-                      title="Delete Draft"
-                    >
-                      <i className="bi bi-trash" />
-                    </button>
+                    <TableActionButton action="View Details" />
+                    <TableActionButton action="Submit Request" />
+                    <TableActionButton action="Delete Draft" />
                   </div>
                 </td>
               </tr>
@@ -196,20 +172,8 @@ export default function AdminStaffApprovalRequestPage() {
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View Details"
-                    >
-                      <i className="bi bi-eye" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Withdraw Request"
-                    >
-                      <i className="bi bi-arrow-counterclockwise" />
-                    </button>
+                    <TableActionButton action="View Details" />
+                    <TableActionButton action="Withdraw Request" />
                   </div>
                 </td>
               </tr>
@@ -230,13 +194,7 @@ export default function AdminStaffApprovalRequestPage() {
                   <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               {/* Rejected */}
@@ -256,13 +214,7 @@ export default function AdminStaffApprovalRequestPage() {
                   <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
             </tbody>

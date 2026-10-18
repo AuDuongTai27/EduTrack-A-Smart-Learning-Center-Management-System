@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function AdminStaffDashboardPage() {
   return (
@@ -330,13 +331,7 @@ export default function AdminStaffDashboardPage() {
                   <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               <tr>
@@ -354,13 +349,7 @@ export default function AdminStaffDashboardPage() {
                   <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               <tr>
@@ -378,13 +367,7 @@ export default function AdminStaffDashboardPage() {
                   <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
             </tbody>
