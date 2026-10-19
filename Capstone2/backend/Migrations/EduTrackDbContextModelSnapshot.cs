@@ -87,6 +87,10 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext")
+                        .HasColumnName("description");
+
                     b.Property<int?>("InvoiceId")
                         .HasColumnType("int")
                         .HasColumnName("invoice_id");
@@ -138,6 +142,11 @@ namespace EduTrack.API.Migrations
                     b.Property<int?>("StudentId")
                         .HasColumnType("int")
                         .HasColumnName("student_id");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("title");
 
                     b.HasKey("RequestId");
 
