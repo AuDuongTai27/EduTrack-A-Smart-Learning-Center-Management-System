@@ -19,16 +19,10 @@ export const teacherRoutes: RouteObject = {
     { index: true, element: <Navigate to="/teacher/dashboard" replace /> },
     { path: "dashboard", element: <TeacherDashboardPage /> },
     { path: "classes", element: <TeacherClassesPage /> },
-
-    { path: "class-details", element: <TeacherClassDetailsPage /> },
     { path: "classes/:id", element: <TeacherClassDetailsPage /> },
-
-    { path: "attendance", element: <TeacherAttendancePage /> },
-
-    { path: "assignment", element: <TeacherAssignmentPage /> },
-    { path: "assignments/:id", element: <TeacherAssignmentPage /> },
-
-    { path: "new-assignment", element: <TeacherNewAssignmentPage /> },
+    { path: "classes/:id/attendance", element: <TeacherAttendancePage /> },
+    { path: "classes/:id/assignment/:id", element: <TeacherAssignmentPage /> },
+    { path: "classes/:id/assignment/new-assignment", element: <TeacherNewAssignmentPage /> },
     { path: "schedule", element: <TeacherSchedulePage /> },
     { path: "learning-progress", element: <TeacherLearningProgressPage /> },
     { path: "notifications", element: <TeacherNotificationPage /> },

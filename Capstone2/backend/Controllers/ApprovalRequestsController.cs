@@ -1,0 +1,47 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Models.DTOs;
+using EduTrack.API.Services.Interfaces;
+
+namespace EduTrack.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ApprovalRequestsController : ControllerBase
+    {
+        private readonly IApprovalRequestService _service;
+
+        public ApprovalRequestsController(IApprovalRequestService service)
+        {
+            _service = service;
+        }
+
+        /// <summary>
+        /// Lấy toàn bộ danh sách ApprovalRequest
+        /// GET: api/approvalrequests
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ApprovalRequestDto>>> GetAll()
+        {
+            var list = await _service.GetAllApprovalRequestsAsync();
+            return Ok(list);
+        }
+
+        /// <summary>
+        /// Lấy chi tiết ApprovalRequest theo ID
+        /// GET: api/approvalrequests/{id}
+        /// </summary>
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<ApprovalRequestDto>> GetById(int id)
+        {
+            var item = await _service.GetApprovalRequestByIdAsync(id);
+            if (item == null)
+            {
+                return NotFound(new { message = "Không tìm thấy dữ liệu có ID = " + id });
+            }
+
+            return Ok(item);
+        }
+    }
+}
