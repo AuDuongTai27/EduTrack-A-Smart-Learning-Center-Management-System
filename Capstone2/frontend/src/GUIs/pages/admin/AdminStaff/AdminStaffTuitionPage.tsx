@@ -7,6 +7,7 @@ import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
 import TableActionButton from "../../../components/Common/TableActionButton";
+import KpiCard from "../../../components/Common/KpiCard";
 
 export default function AdminStaffTuitionPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,79 +43,49 @@ export default function AdminStaffTuitionPage() {
       <div className="row g-3 mb-4">
         {/* Total Tuition Due */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Total Tuition Due</p>
-                  <h3 className="mb-0">125M</h3>
-                </div>
-                <div className="kpi-icon bg-primary-subtle text-primary">
-                  <i className="bi bi-receipt" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-muted">August 2026</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="total"
+            title="Total Tuition Due"
+            value="125M"
+            footerValue="August 2026"
+          />
         </div>
+
         {/* Collected */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Collected</p>
-                  <h3 className="mb-0">85M</h3>
-                </div>
-                <div className="kpi-icon bg-success-subtle text-success">
-                  <i className="bi bi-cash-stack" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-success">68% collected</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="collected"
+            title="Collected"
+            value="85M"
+            footerValue="68%"
+            footerLabel="collected"
+          />
         </div>
+
         {/* Outstanding */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Outstanding</p>
-                  <h3 className="mb-0">40M</h3>
-                </div>
-                <div className="kpi-icon bg-warning-subtle text-warning">
-                  <i className="bi bi-hourglass-split" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-muted">32% remaining</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="outstanding"
+            title="Outstanding"
+            value="40M"
+            footerValue="32%"
+            footerLabel="remaining"
+          />
         </div>
+
         {/* Overdue */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Overdue</p>
-                  <h3 className="mb-0">12M</h3>
-                </div>
-                <div className="kpi-icon bg-danger-subtle text-danger">
-                  <i className="bi bi-exclamation-circle" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-danger">18 students</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="overdue"
+            title="Overdue"
+            value="12M"
+            footerValue={18}
+            footerLabel="students"
+          />
         </div>
       </div>
       {/* Tuition List */}
