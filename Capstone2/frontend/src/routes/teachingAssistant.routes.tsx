@@ -18,15 +18,9 @@ export const teachingAssistantRoutes: RouteObject = {
     { index: true, element: <Navigate to="/teaching-assistant/dashboard" replace /> },
     { path: "dashboard", element: <TeachingAssistantDashboardPage /> },
     { path: "classes", element: <TeachingAssistantClassesPage /> },
-
-    { path: "class-details", element: <TeachingAssistantClassDetailsPage /> },
     { path: "classes/:id", element: <TeachingAssistantClassDetailsPage /> },
-
-    { path: "attendance", element: <TeachingAssistantAttendancePage /> },
-
-    { path: "assignment", element: <TeachingAssistantAssignmentPage /> },
-    { path: "assignments/:id", element: <TeachingAssistantAssignmentPage /> },
-
+    { path: "classes/:id/attendance", element: <TeachingAssistantAttendancePage /> },
+    { path: "classes/:id/assignment/:id", element: <TeachingAssistantAssignmentPage /> },
     { path: "schedule", element: <TeachingAssistantSchedulePage /> },
     { path: "learning-progress", element: <TeachingAssistantLearningProgressPage /> },
     { path: "notifications", element: <TeachingAssistantNotificationPage /> },
