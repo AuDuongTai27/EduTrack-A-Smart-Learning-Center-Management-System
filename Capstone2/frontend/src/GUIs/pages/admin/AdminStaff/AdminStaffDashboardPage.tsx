@@ -1,5 +1,9 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import StatusBadge from "../../../components/Common/StatusBadge";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import TableActionButton from "../../../components/Common/TableActionButton";
+import KpiCard from "../../../components/Common/KpiCard";
 
 export default function AdminStaffDashboardPage() {
   return (
@@ -16,83 +20,47 @@ export default function AdminStaffDashboardPage() {
       <div className="row g-3 mb-4">
         {/* New Students */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">New Students</p>
-                  <h3 className="mb-0">8</h3>
-                </div>
-                <div className="kpi-icon bg-primary-subtle text-primary">
-                  <i className="bi bi-person-plus-fill" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-primary fw-semibold">
-                  Pending processing
-                </span>
-                <span className="text-muted ms-2"> +5 this week </span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="student"
+            status="new"
+            title="New Students"
+            value={8}
+            footerValue="Pending processing"
+            footerLabel="+5 this week"
+          />
         </div>
+
         {/* Unpaid Students */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Unpaid Students</p>
-                  <h3 className="mb-0">24</h3>
-                </div>
-                <div className="kpi-icon bg-warning-subtle text-warning">
-                  <i className="bi bi-person-exclamation" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-muted"> August 2026 </span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="student"
+            status="unpaid"
+            title="Unpaid Students"
+            value={24}
+            footerValue="August 2026"
+          />
         </div>
+
         {/* Outstanding Tuition */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Outstanding Tuition</p>
-                  <h3 className="mb-0">18.5M</h3>
-                </div>
-                <div className="kpi-icon bg-danger-subtle text-danger">
-                  <i className="bi bi-cash-stack" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-muted"> VND · August 2026 </span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="outstanding"
+            title="Outstanding Tuition"
+            value="18.5M"
+            footerValue="VND · August 2026"
+          />
         </div>
+
         {/* My Approval Requests */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">My Requests</p>
-                  <h3 className="mb-0">3</h3>
-                </div>
-                <div className="kpi-icon bg-info-subtle text-info">
-                  <i className="bi bi-send-check-fill" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-warning fw-semibold"> 3 Pending </span>
-                <span className="text-muted ms-2"> 2 updated this week </span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="request"
+            title="My Requests"
+            value={3}
+            footerValue="3 Pending"
+            footerLabel="2 updated this week"
+          />
         </div>
       </div>
       {/* Welcome */}
@@ -149,9 +117,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-ongoing">
-                    Ongoing
-                  </span>
+                  <StatusBadge status="Ongoing" />
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-time">
@@ -172,9 +138,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-upcoming">
-                    Upcoming
-                  </span>
+                  <StatusBadge status="Upcoming" />
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-time">
@@ -195,9 +159,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-upcoming">
-                    Upcoming
-                  </span>
+                  <StatusBadge status="Upcoming" />
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-time">
@@ -218,9 +180,7 @@ export default function AdminStaffDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <span className="schedule-status schedule-upcoming">
-                    Upcoming
-                  </span>
+                  <StatusBadge status="Upcoming" />
                 </div>
               </div>
             </div>
@@ -330,21 +290,13 @@ export default function AdminStaffDashboardPage() {
                 <td>Nguyen Minh An</td>
                 <td>17 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-high"> High </span>
+                  <StatusBadge status="High" />
                 </td>
                 <td>
-                  <span className="approval-status approval-pending">
-                    Pending
-                  </span>
+                  <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               <tr>
@@ -356,21 +308,13 @@ export default function AdminStaffDashboardPage() {
                 <td>Tran Gia Huy</td>
                 <td>16 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-approved">
-                    Approved
-                  </span>
+                  <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               <tr>
@@ -382,21 +326,13 @@ export default function AdminStaffDashboardPage() {
                 <td>Le Minh Long</td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-low"> Low </span>
+                  <StatusBadge status="Low" />
                 </td>
                 <td>
-                  <span className="approval-status approval-rejected">
-                    Rejected
-                  </span>
+                  <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
             </tbody>

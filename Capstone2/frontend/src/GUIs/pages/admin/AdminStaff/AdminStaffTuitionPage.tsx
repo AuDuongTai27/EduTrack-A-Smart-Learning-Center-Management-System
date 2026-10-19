@@ -1,7 +1,20 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import UserAvatar from "../../../components/Common/UserAvatar";
+import TableActionButton from "../../../components/Common/TableActionButton";
+import KpiCard from "../../../components/Common/KpiCard";
 
 export default function AdminStaffTuitionPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalRecords = 128;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -30,79 +43,49 @@ export default function AdminStaffTuitionPage() {
       <div className="row g-3 mb-4">
         {/* Total Tuition Due */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Total Tuition Due</p>
-                  <h3 className="mb-0">125M</h3>
-                </div>
-                <div className="kpi-icon bg-primary-subtle text-primary">
-                  <i className="bi bi-receipt" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-muted">August 2026</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="total"
+            title="Total Tuition Due"
+            value="125M"
+            footerValue="August 2026"
+          />
         </div>
+
         {/* Collected */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Collected</p>
-                  <h3 className="mb-0">85M</h3>
-                </div>
-                <div className="kpi-icon bg-success-subtle text-success">
-                  <i className="bi bi-cash-stack" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-success">68% collected</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="collected"
+            title="Collected"
+            value="85M"
+            footerValue="68%"
+            footerLabel="collected"
+          />
         </div>
+
         {/* Outstanding */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Outstanding</p>
-                  <h3 className="mb-0">40M</h3>
-                </div>
-                <div className="kpi-icon bg-warning-subtle text-warning">
-                  <i className="bi bi-hourglass-split" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-muted">32% remaining</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="outstanding"
+            title="Outstanding"
+            value="40M"
+            footerValue="32%"
+            footerLabel="remaining"
+          />
         </div>
+
         {/* Overdue */}
         <div className="col-xl-3 col-md-6">
-          <div className="card dashboard-kpi h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <p className="text-muted mb-1">Overdue</p>
-                  <h3 className="mb-0">12M</h3>
-                </div>
-                <div className="kpi-icon bg-danger-subtle text-danger">
-                  <i className="bi bi-exclamation-circle" />
-                </div>
-              </div>
-              <div className="border-top mt-3 pt-3">
-                <span className="text-danger">18 students</span>
-              </div>
-            </div>
-          </div>
+          <KpiCard
+            type="tuition"
+            status="overdue"
+            title="Overdue"
+            value="12M"
+            footerValue={18}
+            footerLabel="students"
+          />
         </div>
       </div>
       {/* Tuition List */}
@@ -173,21 +156,15 @@ export default function AdminStaffTuitionPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total records:
-            <strong className="text-dark">128</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalRecords}
+          totalLabel="Total records"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Tuition Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -210,15 +187,15 @@ export default function AdminStaffTuitionPage() {
                 <td>1</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">NA</div>
+                    <UserAvatar name="Nguyen Minh An" />
                     <h6 className="mb-0">Nguyen Minh An</h6>
                   </div>
                 </td>
                 <td>Class 7</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge"> Mathematics - 7 </span>
-                    <span className="specialty-badge"> English - 7 </span>
+                    <SubjectBadge subject="Mathematics - 7" />
+                    <SubjectBadge subject="English - 7" />
                   </div>
                 </td>
                 <td>August 2026</td>
@@ -227,50 +204,15 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-partial">
-                    <span />
-                    Partially Paid
-                  </span>
+                  <DotStatusBadge status="Partially Paid" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    {/* View / Edit */}
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#tuitionDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    {/* Record Payment */}
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    {/* Change Status */}
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    {/* More */}
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        title="More actions"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -294,15 +236,15 @@ export default function AdminStaffTuitionPage() {
                 <td>2</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">TH</div>
+                    <UserAvatar name="Tran Gia Huy" />
                     <h6 className="mb-0">Tran Gia Huy</h6>
                   </div>
                 </td>
                 <td>Class 8</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge"> Chemistry - 8 </span>
-                    <span className="specialty-badge"> Mathematics - 8 </span>
+                    <SubjectBadge subject="Chemistry - 8" />
+                    <SubjectBadge subject="Mathematics - 8" />
                   </div>
                 </td>
                 <td>August 2026</td>
@@ -311,43 +253,15 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-paid">
-                    <span />
-                    Paid
-                  </span>
+                  <DotStatusBadge status="Paid" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -371,15 +285,15 @@ export default function AdminStaffTuitionPage() {
                 <td>3</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">ML</div>
+                    <UserAvatar name="Le Minh Long" />
                     <h6 className="mb-0">Le Minh Long</h6>
                   </div>
                 </td>
                 <td>Class 9</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge"> Physics - 9 </span>
-                    <span className="specialty-badge"> English - 9 </span>
+                    <SubjectBadge subject="Physics - 9" />
+                    <SubjectBadge subject="English - 9" />
                   </div>
                 </td>
                 <td>August 2026</td>
@@ -388,43 +302,15 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td>10 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-overdue">
-                    <span />
-                    Overdue
-                  </span>
+                  <DotStatusBadge status="Overdue" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -448,14 +334,14 @@ export default function AdminStaffTuitionPage() {
                 <td>4</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">PN</div>
+                    <UserAvatar name="Pham Hoang Nam" />
                     <h6 className="mb-0">Pham Hoang Nam</h6>
                   </div>
                 </td>
                 <td>Class 8</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge"> Mathematics - 8 </span>
+                    <SubjectBadge subject="Mathematics - 8" />
                   </div>
                 </td>
                 <td>August 2026</td>
@@ -464,43 +350,15 @@ export default function AdminStaffTuitionPage() {
                 </td>
                 <td>20 Aug 2026</td>
                 <td>
-                  <span className="tuition-status tuition-pending">
-                    <span />
-                    Pending Adjustment
-                  </span>
+                  <DotStatusBadge status="Pending Adjustment" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Record Payment" />
+                    <TableActionButton action="Change Status" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -523,40 +381,13 @@ export default function AdminStaffTuitionPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">
-            Showing 1 to 4 of 128 records
-          </span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalRecords}
+          entriesPerPage={entriesPerPage}
+          itemLabel="records"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

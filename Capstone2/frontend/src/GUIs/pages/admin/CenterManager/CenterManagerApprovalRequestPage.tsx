@@ -1,7 +1,17 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import StatusBadge from "../../../components/Common/StatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function CenterManagerApprovalRequestPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalRequests = 12;
+
   return (
     <>
       {/* Breadcrumb */}
@@ -70,21 +80,15 @@ export default function CenterManagerApprovalRequestPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total requests:
-            <strong className="text-dark">12</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalRequests}
+          totalLabel="Total requests"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Approval Request Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -117,24 +121,16 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>17 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-high"> High </span>
+                  <StatusBadge status="High" />
                 </td>
                 <td>
-                  <span className="approval-status approval-pending">
-                    <span />
-                    Pending
-                  </span>
+                  <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
               {/* Request 2 */}
@@ -152,24 +148,16 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>16 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-approved">
-                    <span />
-                    Approved
-                  </span>
+                  <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
               {/* Request 3 */}
@@ -187,24 +175,16 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-low"> Low </span>
+                  <StatusBadge status="Low" />
                 </td>
                 <td>
-                  <span className="approval-status approval-rejected">
-                    <span />
-                    Rejected
-                  </span>
+                  <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
               {/* Request 4 */}
@@ -222,79 +202,29 @@ export default function CenterManagerApprovalRequestPage() {
                 <td>Admin Staff</td>
                 <td>14 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-pending">
-                    <span />
-                    Pending
-                  </span>
+                  <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Request"
-                    data-bs-toggle="modal"
-                    data-bs-target="#approvalRequestModal"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton
+                    action="View Request"
+                    target="#approvalRequestModal"
+                  />
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">
-            Showing 1 to 4 of 12 requests
-          </span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link
-                  className="page-link"
-                  to="/center-manager/approval-requests"
-                >
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalRequests}
+          entriesPerPage={entriesPerPage}
+          itemLabel="requests"
+          onPageChange={setCurrentPage}
+        />
       </div>
       {/* Approval Request Modal */}
       <div
@@ -326,7 +256,7 @@ export default function CenterManagerApprovalRequestPage() {
                 <div className="col-md-6">
                   <label className="form-label text-muted">Priority</label>
                   <div>
-                    <span className="priority-badge priority-high">High</span>
+                    <StatusBadge status="High" />
                   </div>
                 </div>
                 <div className="col-md-6">
@@ -371,10 +301,7 @@ export default function CenterManagerApprovalRequestPage() {
                     Request Status
                   </label>
                   <div>
-                    <span className="approval-status approval-pending">
-                      <span />
-                      Pending
-                    </span>
+                    <DotStatusBadge status="Pending" />
                   </div>
                 </div>
               </div>

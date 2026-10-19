@@ -1,7 +1,16 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function CenterManagerClassPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalClasses = 6;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -62,21 +71,15 @@ export default function CenterManagerClassPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total classes:
-            <strong className="text-dark">6</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalClasses}
+          totalLabel="Total classes"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Class Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -104,38 +107,21 @@ export default function CenterManagerClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#classDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeClassStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Manage Subjects"
-                    >
-                      <i className="bi bi-journals" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#classDetailModal"
+                    />
+
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeClassStatusModal"
+                    />
+
+                    <TableActionButton action="Manage Subjects" />
                   </div>
                 </td>
               </tr>
@@ -150,38 +136,21 @@ export default function CenterManagerClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#classDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeClassStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Manage Subjects"
-                    >
-                      <i className="bi bi-journals" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#classDetailModal"
+                    />
+
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeClassStatusModal"
+                    />
+
+                    <TableActionButton action="Manage Subjects" />
                   </div>
                 </td>
               </tr>
@@ -196,38 +165,21 @@ export default function CenterManagerClassPage() {
                 <td>05 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#classDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeClassStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Manage Subjects"
-                    >
-                      <i className="bi bi-journals" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#classDetailModal"
+                    />
+
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeClassStatusModal"
+                    />
+
+                    <TableActionButton action="Manage Subjects" />
                   </div>
                 </td>
               </tr>
@@ -242,38 +194,21 @@ export default function CenterManagerClassPage() {
                 <td>10 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#classDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeClassStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Manage Subjects"
-                    >
-                      <i className="bi bi-journals" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#classDetailModal"
+                    />
+
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeClassStatusModal"
+                    />
+
+                    <TableActionButton action="Manage Subjects" />
                   </div>
                 </td>
               </tr>
@@ -281,33 +216,13 @@ export default function CenterManagerClassPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">Showing 1 to 4 of 6 classes</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalClasses}
+          entriesPerPage={entriesPerPage}
+          itemLabel="classes"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

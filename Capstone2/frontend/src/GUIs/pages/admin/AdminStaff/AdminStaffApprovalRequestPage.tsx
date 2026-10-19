@@ -1,7 +1,17 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import StatusBadge from "../../../components/Common/StatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function AdminStaffApprovalRequestPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalRequests = 12;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -94,21 +104,15 @@ export default function AdminStaffApprovalRequestPage() {
             </small>
           </div>
         </div>
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total Requests:
-            <strong className="text-dark">12</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalRequests}
+          totalLabel="Total Requests"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -137,41 +141,16 @@ export default function AdminStaffApprovalRequestPage() {
                 <td>Request 20% tuition discount for August.</td>
                 <td>—</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-draft">Draft</span>
+                  <DotStatusBadge status="Draft" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View Details"
-                    >
-                      <i className="bi bi-eye" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Edit Draft"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Submit Request"
-                    >
-                      <i className="bi bi-send" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn text-danger"
-                      title="Delete Draft"
-                    >
-                      <i className="bi bi-trash" />
-                    </button>
+                    <TableActionButton action="View Details" />
+                    <TableActionButton action="Submit Request" />
+                    <TableActionButton action="Delete Draft" />
                   </div>
                 </td>
               </tr>
@@ -186,29 +165,15 @@ export default function AdminStaffApprovalRequestPage() {
                 <td>Extend tuition due date to 25 Aug 2026.</td>
                 <td>17 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-high"> High </span>
+                  <StatusBadge status="High" />
                 </td>
                 <td>
-                  <span className="approval-status approval-pending">
-                    Pending
-                  </span>
+                  <DotStatusBadge status="Pending" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View Details"
-                    >
-                      <i className="bi bi-eye" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Withdraw Request"
-                    >
-                      <i className="bi bi-arrow-counterclockwise" />
-                    </button>
+                    <TableActionButton action="View Details" />
+                    <TableActionButton action="Withdraw Request" />
                   </div>
                 </td>
               </tr>
@@ -223,21 +188,13 @@ export default function AdminStaffApprovalRequestPage() {
                 <td>Request tuition adjustment for Physics - 9.</td>
                 <td>15 Aug 2026</td>
                 <td>
-                  <span className="priority-badge priority-medium">Medium</span>
+                  <StatusBadge status="Medium" />
                 </td>
                 <td>
-                  <span className="approval-status approval-approved">
-                    Approved
-                  </span>
+                  <DotStatusBadge status="Approved" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
               {/* Rejected */}
@@ -254,58 +211,23 @@ export default function AdminStaffApprovalRequestPage() {
                   <span className="priority-badge priority-low"> Low </span>
                 </td>
                 <td>
-                  <span className="approval-status approval-rejected">
-                    Rejected
-                  </span>
+                  <DotStatusBadge status="Rejected" />
                 </td>
                 <td className="text-center">
-                  <button
-                    type="button"
-                    className="btn table-action-btn"
-                    title="View Details"
-                  >
-                    <i className="bi bi-eye" />
-                  </button>
+                  <TableActionButton action="View Details" />
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">
-            Showing 1 to 4 of 12 requests
-          </span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalRequests}
+          entriesPerPage={entriesPerPage}
+          itemLabel="requests"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

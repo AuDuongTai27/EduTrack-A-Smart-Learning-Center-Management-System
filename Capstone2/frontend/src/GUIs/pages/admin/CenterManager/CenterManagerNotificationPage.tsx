@@ -1,7 +1,14 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import StatusBadge from "../../../components/Common/StatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
 
 export default function CenterManagerNotificationPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalNotifications = 12;
+  const entriesPerPage = 4;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -90,9 +97,7 @@ export default function CenterManagerNotificationPage() {
               <div className="notification-item active">
                 <div className="notification-item-top">
                   <h6>Tuition Payment Reminder</h6>
-                  <span className="notification-status status-scheduled">
-                    Scheduled
-                  </span>
+                  <StatusBadge status="Scheduled" />
                 </div>
                 <p className="notification-summary">
                   Reminder for students with outstanding tuition payments.
@@ -111,7 +116,7 @@ export default function CenterManagerNotificationPage() {
               <div className="notification-item">
                 <div className="notification-item-top">
                   <h6>Class Schedule Updated</h6>
-                  <span className="notification-status status-sent">Sent</span>
+                  <StatusBadge status="Sent" />
                 </div>
                 <p className="notification-summary">
                   Updated schedule for Mathematics - 7.
@@ -130,9 +135,7 @@ export default function CenterManagerNotificationPage() {
               <div className="notification-item">
                 <div className="notification-item-top">
                   <h6>September Academic Notice</h6>
-                  <span className="notification-status status-draft">
-                    Draft
-                  </span>
+                  <StatusBadge status="Draft" />
                 </div>
                 <p className="notification-summary">
                   General academic announcement for the entire center.
@@ -151,9 +154,7 @@ export default function CenterManagerNotificationPage() {
               <div className="notification-item">
                 <div className="notification-item-top">
                   <h6>Physics Class Cancellation</h6>
-                  <span className="notification-status status-cancelled">
-                    Cancelled
-                  </span>
+                  <StatusBadge status="Cancelled" />
                 </div>
                 <p className="notification-summary">
                   Previous scheduled notice for Physics - 9.
@@ -170,38 +171,13 @@ export default function CenterManagerNotificationPage() {
                 </div>
               </div>
             </div>
-            <div className="notification-list-footer d-flex align-items-center justify-content-between">
-              <small className="text-muted">Showing 1 to 4 of 12</small>
-              <nav>
-                <ul className="pagination pagination-sm mb-0">
-                  <li className="page-item disabled">
-                    <Link className="page-link" to="#">
-                      <i className="bi bi-chevron-left" />
-                    </Link>
-                  </li>
-                  <li className="page-item active">
-                    <Link className="page-link" to="#">
-                      1
-                    </Link>
-                  </li>
-                  <li className="page-item">
-                    <Link className="page-link" to="#">
-                      2
-                    </Link>
-                  </li>
-                  <li className="page-item">
-                    <Link className="page-link" to="#">
-                      3
-                    </Link>
-                  </li>
-                  <li className="page-item">
-                    <Link className="page-link" to="#">
-                      <i className="bi bi-chevron-right" />
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalNotifications}
+              entriesPerPage={entriesPerPage}
+              itemLabel="notifications"
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
         {/* Notification Preview */}
@@ -211,9 +187,7 @@ export default function CenterManagerNotificationPage() {
               <div>
                 <div className="d-flex align-items-center gap-2 mb-2">
                   <h5 className="mb-0">Tuition Payment Reminder</h5>
-                  <span className="notification-status status-scheduled">
-                    Scheduled
-                  </span>
+                  <StatusBadge status="Scheduled" />
                 </div>
                 <small className="text-muted">
                   Created on 17 Aug 2026 at 10:30 AM

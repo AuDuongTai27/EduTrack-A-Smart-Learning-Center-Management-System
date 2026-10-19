@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import KpiCard from "../../../components/Common/KpiCard";
 
 export default function CenterManagerDashboardPage() {
   return (
@@ -73,97 +74,54 @@ export default function CenterManagerDashboardPage() {
       {/* Dashboard KPI Cards */}
       <div className="dashboard-kpis mb-4">
         {/* Active Students */}
-        <div className="card dashboard-kpi border-0">
-          <div className="card-body">
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <p className="text-muted mb-1">Active Students</p>
-                <h3 className="mb-0">3654</h3>
-              </div>
-              <div className="kpi-icon bg-primary-subtle text-primary">
-                <i className="bi bi-mortarboard-fill" />
-              </div>
-            </div>
-            <div className="border-top mt-3 pt-3">
-              <span className="text-success">
-                <i className="bi bi-arrow-up" /> 2.4%
-              </span>
-              <span className="text-muted ms-1">this month</span>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          type="student"
+          status="active"
+          title="Active Students"
+          value={3654}
+          footerValue="2.4%"
+          footerLabel="this month"
+          trend="up"
+        />
+
         {/* Active Classes */}
-        <div className="card dashboard-kpi border-0">
-          <div className="card-body">
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <p className="text-muted mb-1">Active Classes</p>
-                <h3 className="mb-0">24</h3>
-              </div>
-              <div className="kpi-icon bg-info-subtle text-info">
-                <i className="bi bi-collection-fill" />
-              </div>
-            </div>
-            <div className="border-top mt-3 pt-3">
-              <span className="text-muted">6 classes today</span>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          type="class"
+          title="Active Classes"
+          value={24}
+          footerValue={6}
+          footerLabel="classes today"
+        />
+
         {/* Active Staff */}
-        <div className="card dashboard-kpi border-0">
-          <div className="card-body">
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <p className="text-muted mb-1">Active Staff</p>
-                <h3 className="mb-0">42</h3>
-              </div>
-              <div className="kpi-icon bg-warning-subtle text-warning">
-                <i className="bi bi-people-fill" />
-              </div>
-            </div>
-            <div className="border-top mt-3 pt-3">
-              <span className="text-muted">Teachers, TAs &amp; Staff</span>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          type="staff"
+          title="Active Staff"
+          value={42}
+          footerValue="Teachers, TAs & Staff"
+        />
+
         {/* Tuition Collected */}
-        <div className="card dashboard-kpi border-0">
-          <div className="card-body">
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <p className="text-muted mb-1">Tuition Collected</p>
-                <h3 className="mb-0">485M</h3>
-              </div>
-              <div className="kpi-icon bg-success-subtle text-success">
-                <i className="bi bi-cash-stack" />
-              </div>
-            </div>
-            <div className="border-top mt-3 pt-3">
-              <span className="text-success">
-                <i className="bi bi-arrow-up" /> 8.2%
-              </span>
-              <span className="text-muted ms-1">this month</span>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          type="tuition"
+          status="collected"
+          title="Tuition Collected"
+          value="485M"
+          footerValue="8.2%"
+          footerLabel="this month"
+          trend="up"
+        />
+
         {/* Outstanding Tuition */}
-        <div className="card dashboard-kpi border-0">
-          <div className="card-body">
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <p className="text-muted mb-1">Outstanding Tuition</p>
-                <h3 className="mb-0">72M</h3>
-              </div>
-              <div className="kpi-icon bg-danger-subtle text-danger">
-                <i className="bi bi-exclamation-circle-fill" />
-              </div>
-            </div>
-            <div className="border-top mt-3 pt-3 d-flex justify-content-between">
-              <span className="text-muted">Overdue</span>
-              <strong className="text-danger">18M</strong>
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          type="tuition"
+          status="overdue"
+          title="Outstanding Tuition"
+          value="72M"
+          footerLabel="Overdue"
+          footerValue="18M"
+          footerLayout="between"
+        />
       </div>
       {/* Welcome */}
       <div className="card dashboard-welcome mb-4">

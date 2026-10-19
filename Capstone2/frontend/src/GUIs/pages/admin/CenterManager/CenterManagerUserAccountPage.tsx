@@ -1,7 +1,19 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import UserAvatar from "../../../components/Common/UserAvatar";
+import RoleBadge from "../../../components/Common/RoleBadge";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function CenterManagerUserAccountPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalUsers = 24;
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -74,21 +86,15 @@ export default function CenterManagerUserAccountPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total users:
-            <strong className="text-dark">24</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalUsers}
+          totalLabel="Total users"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* User Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -109,50 +115,37 @@ export default function CenterManagerUserAccountPage() {
                 <td>1</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">HD</div>
+                    <UserAvatar name="Huỳnh Khánh Duy" />
                     <h6 className="mb-0">Huỳnh Khánh Duy</h6>
                   </div>
                 </td>
                 <td>0901 234 567</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Mathematics</span>
-                    <span className="specialty-badge">Chemistry</span>
-                    <span className="specialty-badge">Physics</span>
+                    <SubjectBadge subject="Mathematics" />
+                    <SubjectBadge subject="Chemistry" />
+                    <SubjectBadge subject="Physics" />
                   </div>
                 </td>
                 <td>
-                  <span className="role-badge role-teacher">Teacher</span>
+                  <RoleBadge role="Teacher" />
                 </td>
                 <td>
                   <span className="user-note">Main teacher - Grade 12</span>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#userDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#userDetailModal"
+                    />
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeStatusModal"
+                    />
                     <div className="dropdown">
                       <button
                         className="btn table-action-btn"
@@ -185,46 +178,33 @@ export default function CenterManagerUserAccountPage() {
                 <td>2</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">AT</div>
+                    <UserAvatar name="Âu Dương Tài" />
                     <h6 className="mb-0">Âu Dương Tài</h6>
                   </div>
                 </td>
                 <td>0912 456 789</td>
                 <td>
-                  <span className="specialty-badge">Chemistry</span>
+                  <SubjectBadge subject="Chemistry" />
                 </td>
                 <td>
-                  <span className="role-badge role-ta">Teaching Assistant</span>
+                  <RoleBadge role="Teaching Assistant" />
                 </td>
                 <td>
                   <span className="user-note">Supports Grade 11</span>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#userDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#userDetailModal"
+                    />
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeStatusModal"
+                    />
                     <div className="dropdown">
                       <button
                         className="btn table-action-btn"
@@ -257,7 +237,7 @@ export default function CenterManagerUserAccountPage() {
                 <td>3</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">HV</div>
+                    <UserAvatar name="Hoàng Quốc Việt" />
                     <h6 className="mb-0">Hoàng Quốc Việt</h6>
                   </div>
                 </td>
@@ -266,37 +246,24 @@ export default function CenterManagerUserAccountPage() {
                   <span className="text-muted">—</span>
                 </td>
                 <td>
-                  <span className="role-badge role-admin">Admin Staff</span>
+                  <RoleBadge role="Admin Staff" />
                 </td>
                 <td>
                   <span className="user-note">Tuition management</span>
                 </td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#userDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#userDetailModal"
+                    />
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeStatusModal"
+                    />
                     <div className="dropdown">
                       <button
                         className="btn table-action-btn"
@@ -329,51 +296,36 @@ export default function CenterManagerUserAccountPage() {
                 <td>4</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">NA</div>
+                    <UserAvatar name="No Name ABC" />
                     <h6 className="mb-0">No Name ABC</h6>
                   </div>
                 </td>
                 <td>0934 111 222</td>
                 <td>
-                  <span className="specialty-badge">English</span>
+                  <SubjectBadge subject="English" />
                 </td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="role-badge role-teacher">Teacher</span>
-                    <span className="role-badge role-manager">
-                      Center Manager
-                    </span>
+                    <RoleBadge role="Teacher" />
+                    <RoleBadge role="Center Manager" />
                   </div>
                 </td>
                 <td>
                   <span className="user-note">Center owner</span>
                 </td>
                 <td>
-                  <span className="status-badge status-locked">
-                    <span />
-                    Locked
-                  </span>
+                  <DotStatusBadge status="Locked" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#userDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton
+                      action="View / Edit"
+                      target="#userDetailModal"
+                    />
+                    <TableActionButton
+                      action="Change Status"
+                      target="#changeStatusModal"
+                    />
                     <div className="dropdown">
                       <button
                         className="btn table-action-btn"
@@ -406,38 +358,13 @@ export default function CenterManagerUserAccountPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">Showing 1 to 4 of 24 users</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalUsers}
+          entriesPerPage={entriesPerPage}
+          itemLabel="users"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

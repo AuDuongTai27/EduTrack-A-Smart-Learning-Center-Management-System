@@ -1,7 +1,16 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function AdminStaffClassPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalClasses = 24;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -89,21 +98,15 @@ export default function AdminStaffClassPage() {
             </small>
           </div>
         </div>
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total Classes:
-            <strong className="text-dark">24</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalClasses}
+          totalLabel="Total Classes"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -137,27 +140,12 @@ export default function AdminStaffClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -177,27 +165,12 @@ export default function AdminStaffClassPage() {
                 <td>01 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -217,27 +190,12 @@ export default function AdminStaffClassPage() {
                 <td>05 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -257,27 +215,12 @@ export default function AdminStaffClassPage() {
                 <td>05 Aug 2026</td>
                 <td>31 May 2027</td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -285,38 +228,13 @@ export default function AdminStaffClassPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">Showing 1 to 4 of 24 classes</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="/admin-staff/classes">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalClasses}
+          entriesPerPage={entriesPerPage}
+          itemLabel="classes"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

@@ -1,7 +1,16 @@
-import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function CenterManagerSubjectPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalSubjects = 5;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -58,21 +67,15 @@ export default function CenterManagerSubjectPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total subjects:
-            <strong className="text-dark">5</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalSubjects}
+          totalLabel="Total subjects"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Subject Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -97,31 +100,12 @@ export default function CenterManagerSubjectPage() {
                   Mathematics courses for students at the learning center.
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                      data-bs-toggle="modal"
-                      data-bs-target="#subjectDetailModal"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                      data-bs-toggle="modal"
-                      data-bs-target="#changeSubjectStatusModal"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -136,27 +120,12 @@ export default function CenterManagerSubjectPage() {
                   Physics courses covering theory and practical exercises.
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -169,27 +138,12 @@ export default function CenterManagerSubjectPage() {
                 </td>
                 <td>Chemistry courses including theory and problem solving.</td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -204,27 +158,12 @@ export default function CenterManagerSubjectPage() {
                   English courses focusing on communication and language skills.
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -239,27 +178,12 @@ export default function CenterManagerSubjectPage() {
                   Biology courses covering fundamental biological concepts.
                 </td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
                   </div>
                 </td>
               </tr>
@@ -267,28 +191,13 @@ export default function CenterManagerSubjectPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">Showing 1 to 5 of 5 subjects</span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalSubjects}
+          entriesPerPage={entriesPerPage}
+          itemLabel="subjects"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

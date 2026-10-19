@@ -1,7 +1,19 @@
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
+import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
+import { useState } from "react";
+import Pagination from "../../../components/Common/Pagination";
+import TableToolbar from "../../../components/Common/TableToolbar";
+import UserAvatar from "../../../components/Common/UserAvatar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 
 export default function AdminStaffStudentPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+
+  const totalStudents = 128;
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -78,21 +90,15 @@ export default function AdminStaffStudentPage() {
           </div>
         </div>
         {/* Table Controls */}
-        <div className="user-table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Show</span>
-            <select className="form-select form-select-sm user-page-size">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-            <span className="text-muted">entries</span>
-          </div>
-          <span className="text-muted small">
-            Total students:
-            <strong className="text-dark">128</strong>
-          </span>
-        </div>
+        <TableToolbar
+          totalItems={totalStudents}
+          totalLabel="Total Students"
+          entriesPerPage={entriesPerPage}
+          onEntriesPerPageChange={(value) => {
+            setEntriesPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
         {/* Student Table */}
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0">
@@ -113,7 +119,7 @@ export default function AdminStaffStudentPage() {
                 <td>1</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">NA</div>
+                    <UserAvatar name="Nguyen Minh An" />
                     <h6 className="mb-0">Nguyen Minh An</h6>
                   </div>
                 </td>
@@ -122,49 +128,20 @@ export default function AdminStaffStudentPage() {
                 <td>Class 7</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Mathematics - 7</span>
-                    <span className="specialty-badge">English - 7</span>
+                    <SubjectBadge subject="Mathematics - 7" />
+                    <SubjectBadge subject="English - 7" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Tuition Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
+                    <TableActionButton action="Record Payment" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        title="More actions"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -187,7 +164,7 @@ export default function AdminStaffStudentPage() {
                 <td>2</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">TH</div>
+                    <UserAvatar name="Tran Gia Huy" />
                     <h6 className="mb-0">Tran Gia Huy</h6>
                   </div>
                 </td>
@@ -196,49 +173,20 @@ export default function AdminStaffStudentPage() {
                 <td>Class 8</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Chemistry - 8</span>
-                    <span className="specialty-badge">Mathematics - 8</span>
+                    <SubjectBadge subject="Chemistry - 8" />
+                    <SubjectBadge subject="Mathematics - 8" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-active">
-                    <span />
-                    Active
-                  </span>
+                  <DotStatusBadge status="Active" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Tuition Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
+                    <TableActionButton action="Record Payment" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        title="More actions"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -261,7 +209,7 @@ export default function AdminStaffStudentPage() {
                 <td>3</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">ML</div>
+                    <UserAvatar name="Le Minh Long" />
                     <h6 className="mb-0">Le Minh Long</h6>
                   </div>
                 </td>
@@ -270,49 +218,20 @@ export default function AdminStaffStudentPage() {
                 <td>Class 9</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Physics - 9</span>
-                    <span className="specialty-badge">English - 9</span>
+                    <SubjectBadge subject="Physics - 9" />
+                    <SubjectBadge subject="English - 9" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-locked">
-                    <span />
-                    On Hold
-                  </span>
+                  <DotStatusBadge status="On Hold" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Tuition Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
+                    <TableActionButton action="Record Payment" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        title="More actions"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -335,7 +254,7 @@ export default function AdminStaffStudentPage() {
                 <td>4</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div className="user-avatar">PN</div>
+                    <UserAvatar name="Pham Hoang Nam" />
                     <h6 className="mb-0">Pham Hoang Nam</h6>
                   </div>
                 </td>
@@ -344,51 +263,22 @@ export default function AdminStaffStudentPage() {
                 <td>Class 8</td>
                 <td>
                   <div className="d-flex flex-wrap gap-1">
-                    <span className="specialty-badge">Mathematics - 8</span>
-                    <span className="specialty-badge">Physics - 8</span>
-                    <span className="specialty-badge">Chemistry - 8</span>
-                    <span className="specialty-badge">English - 8</span>
+                    <SubjectBadge subject="Mathematics - 8" />
+                    <SubjectBadge subject="Physics - 8" />
+                    <SubjectBadge subject="Chemistry - 8" />
+                    <SubjectBadge subject="English - 8" />
                   </div>
                 </td>
                 <td>
-                  <span className="status-badge status-inactive">
-                    <span />
-                    Inactive
-                  </span>
+                  <DotStatusBadge status="Inactive" />
                 </td>
                 <td className="text-center">
                   <div className="d-flex align-items-center justify-content-center gap-1">
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="View / Edit"
-                    >
-                      <i className="bi bi-pencil-square" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Change Status"
-                    >
-                      <i className="bi bi-arrow-repeat" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn table-action-btn"
-                      title="Record Tuition Payment"
-                    >
-                      <i className="bi bi-cash-stack" />
-                    </button>
+                    <TableActionButton action="View / Edit" />
+                    <TableActionButton action="Change Status" />
+                    <TableActionButton action="Record Payment" />
                     <div className="dropdown">
-                      <button
-                        className="btn table-action-btn"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        title="More actions"
-                      >
-                        <i className="bi bi-three-dots-vertical" />
-                      </button>
+                      <TableActionButton action="More" />
                       <ul className="dropdown-menu dropdown-menu-end">
                         <li>
                           <Link className="dropdown-item" to="#">
@@ -411,40 +301,13 @@ export default function AdminStaffStudentPage() {
           </table>
         </div>
         {/* Pagination */}
-        <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <span className="text-muted small">
-            Showing 1 to 4 of 128 students
-          </span>
-          <nav>
-            <ul className="pagination pagination-sm mb-0">
-              <li className="page-item disabled">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-left" />
-                </Link>
-              </li>
-              <li className="page-item active">
-                <Link className="page-link" to="#">
-                  1
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  2
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  3
-                </Link>
-              </li>
-              <li className="page-item">
-                <Link className="page-link" to="#">
-                  <i className="bi bi-chevron-right" />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalStudents}
+          entriesPerPage={entriesPerPage}
+          itemLabel="students"
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );
