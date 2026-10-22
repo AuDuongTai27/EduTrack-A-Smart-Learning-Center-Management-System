@@ -1,4 +1,4 @@
-﻿export interface EnrolledClassItem {
+export interface EnrolledClassItem {
   classId: number;
   className: string;
   badge: string;
@@ -71,3 +71,43 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     room: 'Phòng B104',
   },
 ];
+
+import type { ClassDto } from '../../../../BLL/models/ClassDto';
+
+/**
+ * Chuyển đổi dữ liệu ClassDto từ Backend (.NET API) sang định dạng hiển thị EnrolledClassItem
+ */
+export function mapClassDtoToEnrolledItem(dto: ClassDto): EnrolledClassItem {
+  let subjectThemeClass = 'theme-math';
+  let badge = dto.subjectName || 'Toán học';
+  const code = (dto.subjectCode || '').toUpperCase();
+
+  if (code.includes('PHYS') || code.includes('VAT') || code.includes('LY')) {
+    subjectThemeClass = 'theme-physics';
+    badge = 'Vật lý';
+  } else if (code.includes('CHEM') || code.includes('HOA')) {
+    subjectThemeClass = 'theme-chemistry';
+    badge = 'Hóa học';
+  } else if (code.includes('ENG') || code.includes('ANH')) {
+    subjectThemeClass = 'theme-english';
+    badge = 'Tiếng Anh';
+  } else if (code.includes('LIT') || code.includes('VAN')) {
+    subjectThemeClass = 'theme-literature';
+    badge = 'Ngữ văn';
+  } else if (code.includes('BIO') || code.includes('SINH')) {
+    subjectThemeClass = 'theme-biology';
+    badge = 'Sinh học';
+  }
+
+  return {
+    classId: dto.classId,
+    className: dto.className,
+    badge: badge,
+    subjectThemeClass: subjectThemeClass,
+    teacherName: 'Giáo viên phụ trách',
+    teacherInitials: dto.className.slice(0, 2).toUpperCase(),
+    scheduleText: dto.startDate ? `Khai giảng: ${new Date(dto.startDate).toLocaleDateString('vi-VN')}` : 'Đang cập nhật lịch',
+    room: dto.room || 'Phòng học chính',
+  };
+}
+
