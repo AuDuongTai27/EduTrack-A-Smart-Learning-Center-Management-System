@@ -30,16 +30,16 @@ export const STATUS_CLASS: Record<string, string> = {
 };
 
 export const SESSIONS: SessionItem[] = [
-  { id: 's1', className: 'Lớp Toán A1', subject: 'Toán học', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 0, status: 'upcoming' },
-  { id: 's2', className: 'Lớp Văn B2', subject: 'Ngữ văn', startH: 9, startM: 0, endH: 10, endM: 30, teacher: 'Trần Thị Mai', initials: 'TM', avatarBg: '#7C3AED', room: 'P.B105', day: 1, status: 'completed' },
-  { id: 's3', className: 'Lớp Toán A1', subject: 'Toán học', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 1, status: 'completed' },
-  { id: 's4', className: 'Lớp Anh C1', subject: 'Tiếng Anh', startH: 9, startM: 30, endH: 11, endM: 0, teacher: 'Lê Minh Tuấn', initials: 'LT', avatarBg: '#0EA5E9', room: 'P.C302', day: 2, status: 'completed' },
-  { id: 's5', className: 'Lớp Lý A3', subject: 'Vật lý', startH: 17, startM: 0, endH: 18, endM: 30, teacher: 'Phạm Thu Hà', initials: 'PH', avatarBg: '#0D9488', room: 'P.D104', day: 3, status: 'upcoming' },
-  { id: 's6', className: 'Lớp Hóa B1', subject: 'Hóa học', startH: 8, startM: 0, endH: 9, endM: 30, teacher: 'Hoàng Văn Nam', initials: 'HN', avatarBg: '#D97706', room: 'P.A101', day: 4, status: 'completed' },
-  { id: 's7', className: 'Lớp Toán A2', subject: 'Toán học', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 4, status: 'ongoing' },
-  { id: 's8', className: 'Lớp Sinh C2', subject: 'Sinh học', startH: 10, startM: 0, endH: 11, endM: 30, teacher: 'Vũ Thị Lan', initials: 'VL', avatarBg: '#059669', room: 'P.B202', day: 5, status: 'upcoming' },
-  { id: 's9', className: 'Lớp Sử D1', subject: 'Lịch sử', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Đặng Minh Khoa', initials: 'ĐK', avatarBg: '#DC2626', room: 'P.C401', day: 6, status: 'cancelled' },
-  { id: 's10', className: 'Lớp Địa E1', subject: 'Địa lý', startH: 8, startM: 30, endH: 10, endM: 0, teacher: 'Bùi Thị Nga', initials: 'BN', avatarBg: '#9333EA', room: 'P.E201', day: 3, status: 'completed' },
+  { id: 's1', className: '[FE-Mock] Lớp Toán A1', subject: 'Toán học', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 0, status: 'upcoming' },
+  { id: 's2', className: '[FE-Mock] Lớp Văn B2', subject: 'Ngữ văn', startH: 9, startM: 0, endH: 10, endM: 30, teacher: 'Trần Thị Mai', initials: 'TM', avatarBg: '#7C3AED', room: 'P.B105', day: 1, status: 'completed' },
+  { id: 's3', className: '[FE-Mock] Lớp Toán A1', subject: 'Toán học', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 1, status: 'completed' },
+  { id: 's4', className: '[FE-Mock] Lớp Anh C1', subject: 'Tiếng Anh', startH: 9, startM: 30, endH: 11, endM: 0, teacher: 'Lê Minh Tuấn', initials: 'LT', avatarBg: '#0EA5E9', room: 'P.C302', day: 2, status: 'completed' },
+  { id: 's5', className: '[FE-Mock] Lớp Lý A3', subject: 'Vật lý', startH: 17, startM: 0, endH: 18, endM: 30, teacher: 'Phạm Thu Hà', initials: 'PH', avatarBg: '#0D9488', room: 'P.D104', day: 3, status: 'upcoming' },
+  { id: 's6', className: '[FE-Mock] Lớp Hóa B1', subject: 'Hóa học', startH: 8, startM: 0, endH: 9, endM: 30, teacher: 'Hoàng Văn Nam', initials: 'HN', avatarBg: '#D97706', room: 'P.A101', day: 4, status: 'completed' },
+  { id: 's7', className: '[FE-Mock] Lớp Toán A2', subject: 'Toán học', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 4, status: 'ongoing' },
+  { id: 's8', className: '[FE-Mock] Lớp Sinh C2', subject: 'Sinh học', startH: 10, startM: 0, endH: 11, endM: 30, teacher: 'Vũ Thị Lan', initials: 'VL', avatarBg: '#059669', room: 'P.B202', day: 5, status: 'upcoming' },
+  { id: 's9', className: '[FE-Mock] Lớp Sử D1', subject: 'Lịch sử', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Đặng Minh Khoa', initials: 'ĐK', avatarBg: '#DC2626', room: 'P.C401', day: 6, status: 'cancelled' },
+  { id: 's10', className: '[FE-Mock] Lớp Địa E1', subject: 'Địa lý', startH: 8, startM: 30, endH: 10, endM: 0, teacher: 'Bùi Thị Nga', initials: 'BN', avatarBg: '#9333EA', room: 'P.E201', day: 3, status: 'completed' },
 ];
 
 export function getMonday(d: Date): Date {

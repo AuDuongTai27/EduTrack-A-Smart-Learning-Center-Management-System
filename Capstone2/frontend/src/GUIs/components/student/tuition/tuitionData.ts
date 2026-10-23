@@ -1,4 +1,4 @@
-﻿export interface TuitionBreakdownItem {
+export interface TuitionBreakdownItem {
   name: string;
   amount: string;
 }
@@ -26,11 +26,11 @@ export const CURRENT_TUITION_BILL: TuitionBill = {
   dueDate: '15/08/2026',
   remainingDaysText: 'Còn 8 ngày để thanh toán',
   items: [
-    { name: 'Lớp Toán 9A – Đại Số', amount: '3.500.000 đ' },
-    { name: 'Lớp Vật Lý 9B – Cơ Học', amount: '2.000.000 đ' },
-    { name: 'Lớp Tiếng Anh – Giao Tiếp', amount: '1.500.000 đ' },
-    { name: 'Tài liệu học tập', amount: '300.000 đ' },
-    { name: 'Phí quản lý nền tảng', amount: '200.000 đ' },
+    { name: '[FE-Mock] Lớp Toán 9A – Đại Số', amount: '3.500.000 đ' },
+    { name: '[FE-Mock] Lớp Vật Lý 9B – Cơ Học', amount: '2.000.000 đ' },
+    { name: '[FE-Mock] Lớp Tiếng Anh – Giao Tiếp', amount: '1.500.000 đ' },
+    { name: '[FE-Mock] Tài liệu học tập', amount: '300.000 đ' },
+    { name: '[FE-Mock] Phí quản lý nền tảng', amount: '200.000 đ' },
   ],
   subTotal: '7.500.000 đ',
 };

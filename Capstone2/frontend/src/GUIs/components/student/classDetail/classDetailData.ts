@@ -37,7 +37,7 @@ export interface AssignmentItem {
 export const CLASSES_DATA: ClassDetailItem[] = [
   {
     id: 1,
-    name: 'Class 9 - Advanced Mathematics',
+    name: '[FE-Mock] Class 9 - Advanced Mathematics',
     subject: 'Mathematics',
     subjectClass: 'subject-toan',
     grad: 'linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)',
@@ -53,7 +53,7 @@ export const CLASSES_DATA: ClassDetailItem[] = [
   },
   {
     id: 2,
-    name: 'Class 9 - Intensive Physics',
+    name: '[FE-Mock] Class 9 - Intensive Physics',
     subject: 'Physics',
     subjectClass: 'subject-vat-ly',
     grad: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 60%, #8B5CF6 100%)',

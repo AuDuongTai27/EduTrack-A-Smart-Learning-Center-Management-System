@@ -23,7 +23,7 @@ export interface ProgressClassItem {
 export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
   {
     id: 'card1',
-    className: 'Lớp Toán 10A',
+    className: '[FE-Mock] Lớp Toán 10A',
     subjectName: 'Toán học',
     colorTheme: 'prog-blue',
     icon: 'bi-calculator',
@@ -59,7 +59,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
   },
   {
     id: 'card2',
-    className: 'Lớp Vật Lý 10B',
+    className: '[FE-Mock] Lớp Vật Lý 10B',
     subjectName: 'Vật lý',
     colorTheme: 'prog-purple',
     icon: 'bi-lightning-charge',
@@ -87,7 +87,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
   },
   {
     id: 'card3',
-    className: 'Lớp Tiếng Anh B1',
+    className: '[FE-Mock] Lớp Tiếng Anh B1',
     subjectName: 'Tiếng Anh',
     colorTheme: 'prog-green',
     icon: 'bi-translate',

@@ -9,7 +9,7 @@ import type { StudentClass } from '../../BLL/models/StudentClass';
 export const MOCK_CLASSES: Class[] = [
   {
     classId: 1,
-    className: 'Class 9 - Advanced Mathematics',
+    className: '[FE-Mock] Class 9 - Advanced Mathematics',
     subjectId: 1,
     room: 'Room 201',
     tuitionFee: 1500000.0,
@@ -19,7 +19,7 @@ export const MOCK_CLASSES: Class[] = [
   },
   {
     classId: 2,
-    className: 'Class 9 - Intensive Physics',
+    className: '[FE-Mock] Class 9 - Intensive Physics',
     subjectId: 2,
     room: 'Room 202',
     tuitionFee: 1400000.0,
@@ -29,7 +29,7 @@ export const MOCK_CLASSES: Class[] = [
   },
   {
     classId: 3,
-    className: 'Class 8 - English Foundation',
+    className: '[FE-Mock] Class 8 - English Foundation',
     subjectId: 4,
     room: 'Lab 101',
     tuitionFee: 1800000.0,

@@ -25,7 +25,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 1,
     category: 'class',
-    title: 'Bài tập mới: Phương trình lượng giác nâng cao',
+    title: '[FE-Mock] Bài tập mới: Phương trình lượng giác nâng cao',
     summary: 'Thầy Nguyễn Văn An vừa giao 5 bài tập tự luận mới cho lớp Toán 10A. Hạn nộp: 23:59 Chủ Nhật tuần này.',
     timestamp: '10 phút trước',
     unread: true,
@@ -33,7 +33,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 2,
     category: 'payment',
-    title: 'Hóa đơn học phí Tháng 8 đã phát hành',
+    title: '[FE-Mock] Hóa đơn học phí Tháng 8 đã phát hành',
     summary: 'Học phí kỳ Tháng 8 / 2026 với tổng số tiền 7.500.000 đ đã được tạo. Hạn thanh toán đến hết ngày 15/08/2026.',
     timestamp: '2 giờ trước',
     unread: true,
@@ -41,7 +41,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 3,
     category: 'class',
-    title: 'Thay đổi phòng học môn Vật Lý 10B',
+    title: '[FE-Mock] Thay đổi phòng học môn Vật Lý 10B',
     summary: 'Buổi học chiều Thứ 5 (17:00) chuyển từ Phòng P.103 sang Lab Thực hành Lý L.02 (Tầng 2, Tòa B).',
     timestamp: '5 giờ trước',
     unread: true,

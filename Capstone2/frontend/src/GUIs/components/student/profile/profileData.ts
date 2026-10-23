@@ -17,7 +17,7 @@ export function formatDate(iso: string): string {
 }
 
 export const INITIAL_PROFILE: StudentProfileData = {
-  fullName: 'Nguyễn Thị Minh Anh',
+  fullName: '[FE-Mock] Nguyễn Thị Minh Anh',
   dob: '2006-03-15',
   gender: 'Nữ',
   enrollDate: '2023-09-01',

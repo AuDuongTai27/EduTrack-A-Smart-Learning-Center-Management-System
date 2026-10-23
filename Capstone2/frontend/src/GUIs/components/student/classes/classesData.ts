@@ -12,7 +12,7 @@ export interface EnrolledClassItem {
 export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   {
     classId: 1,
-    className: 'Toán 9A – Đại Số',
+    className: '[FE-Mock] Toán 9A – Đại Số',
     badge: 'Toán học',
     subjectThemeClass: 'theme-math',
     teacherName: 'Nguyễn Văn Minh',
@@ -22,7 +22,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 2,
-    className: 'Vật Lý 9B – Cơ Học',
+    className: '[FE-Mock] Vật Lý 9B – Cơ Học',
     badge: 'Vật lý',
     subjectThemeClass: 'theme-physics',
     teacherName: 'Trần Thị Hà',
@@ -32,7 +32,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 3,
-    className: 'Hóa Học 9A – Hóa Vô Cơ',
+    className: '[FE-Mock] Hóa Học 9A – Hóa Vô Cơ',
     badge: 'Hóa học',
     subjectThemeClass: 'theme-chemistry',
     teacherName: 'Lê Hoàng Nam',
@@ -42,7 +42,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 4,
-    className: 'Tiếng Anh 9 – Giao Tiếp',
+    className: '[FE-Mock] Tiếng Anh 9 – Giao Tiếp',
     badge: 'Tiếng Anh',
     subjectThemeClass: 'theme-english',
     teacherName: 'Phạm Thu Thảo',
@@ -52,7 +52,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 5,
-    className: 'Ngữ Văn 9 – Luyện Đề',
+    className: '[FE-Mock] Ngữ Văn 9 – Luyện Đề',
     badge: 'Ngữ văn',
     subjectThemeClass: 'theme-literature',
     teacherName: 'Võ Thị Mai',
@@ -62,7 +62,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 6,
-    className: 'Sinh Học 9 – Di Truyền Học',
+    className: '[FE-Mock] Sinh Học 9 – Di Truyền Học',
     badge: 'Sinh học',
     subjectThemeClass: 'theme-biology',
     teacherName: 'Đỗ Tuấn Anh',
