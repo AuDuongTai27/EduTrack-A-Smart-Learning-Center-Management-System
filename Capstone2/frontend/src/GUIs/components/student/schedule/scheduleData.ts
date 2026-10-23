@@ -67,3 +67,78 @@ export function fmtDayMon(d: Date): string {
 export function fmtTime(h: number, m: number): string {
   return `${pad2(h)}:${pad2(m)}`;
 }
+
+import type { ClassScheduleDto } from '../../../../BLL/models/ClassScheduleDto';
+
+const DAY_MAP: Record<string, number> = {
+  monday: 0,
+  mon: 0,
+  tuesday: 1,
+  tue: 1,
+  wednesday: 2,
+  wed: 2,
+  thursday: 3,
+  thu: 3,
+  friday: 4,
+  fri: 4,
+  saturday: 5,
+  sat: 5,
+  sunday: 6,
+  sun: 6,
+};
+
+/**
+ * Chuyển đổi ClassScheduleDto từ Backend .NET sang SessionItem cho lưới thời khóa biểu
+ */
+export function mapClassScheduleDtoToSessionItem(dto: ClassScheduleDto, index = 0): SessionItem {
+  const dayKey = (dto.dayOfWeek || '').toLowerCase().trim();
+  const day = DAY_MAP[dayKey] ?? (index % 7);
+
+  const startParts = (dto.startTime || '18:00:00').split(':');
+  const startH = parseInt(startParts[0], 10) || 18;
+  const startM = parseInt(startParts[1], 10) || 0;
+
+  const endParts = (dto.endTime || '20:00:00').split(':');
+  const endH = parseInt(endParts[0], 10) || 20;
+  const endM = parseInt(endParts[1], 10) || 0;
+
+  let subject = 'Môn học';
+  let avatarBg = '#2563EB';
+  const nameLower = (dto.className || '').toLowerCase();
+  if (nameLower.includes('toán') || nameLower.includes('math')) {
+    subject = 'Toán học';
+    avatarBg = '#2563EB';
+  } else if (nameLower.includes('lý') || nameLower.includes('phys')) {
+    subject = 'Vật lý';
+    avatarBg = '#7C3AED';
+  } else if (nameLower.includes('hóa') || nameLower.includes('chem')) {
+    subject = 'Hóa học';
+    avatarBg = '#D97706';
+  } else if (nameLower.includes('anh') || nameLower.includes('eng')) {
+    subject = 'Tiếng Anh';
+    avatarBg = '#0EA5E9';
+  } else if (nameLower.includes('văn') || nameLower.includes('lit')) {
+    subject = 'Ngữ văn';
+    avatarBg = '#DC2626';
+  } else if (nameLower.includes('sinh') || nameLower.includes('bio')) {
+    subject = 'Sinh học';
+    avatarBg = '#059669';
+  }
+
+  return {
+    id: `sched_${dto.scheduleId}`,
+    className: dto.className,
+    subject,
+    startH,
+    startM,
+    endH,
+    endM,
+    teacher: 'Giáo viên phụ trách',
+    initials: 'GV',
+    avatarBg,
+    room: dto.room || 'P.A101',
+    day,
+    status: 'upcoming',
+  };
+}
+
