@@ -119,3 +119,43 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     unread: false,
   },
 ];
+
+import type { NotificationDto } from '../../../../BLL/models/NotificationDto';
+
+/**
+ * Chuyển đổi NotificationDto từ Backend sang NotificationItem cho UI
+ */
+export function mapNotificationDtoToItem(dto: NotificationDto): NotificationItem {
+  let category: NotificationItem['category'] = 'system';
+  const typeLower = (dto.type || '').toLowerCase();
+  if (typeLower.includes('class') || typeLower.includes('homework') || typeLower.includes('assignment') || typeLower.includes('schedule')) {
+    category = 'class';
+  } else if (typeLower.includes('tuition') || typeLower.includes('payment') || typeLower.includes('fee')) {
+    category = 'payment';
+  } else if (typeLower.includes('message')) {
+    category = 'message';
+  } else if (typeLower.includes('achievement')) {
+    category = 'achievement';
+  }
+
+  let timestamp = 'Vừa xong';
+  if (dto.createdAt) {
+    try {
+      const d = new Date(dto.createdAt);
+      if (!isNaN(d.getTime())) {
+        timestamp = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      }
+    } catch {
+      timestamp = dto.createdAt;
+    }
+  }
+
+  return {
+    id: dto.notificationId,
+    category,
+    title: dto.title,
+    summary: dto.content,
+    timestamp,
+    unread: !dto.isRead,
+  };
+}

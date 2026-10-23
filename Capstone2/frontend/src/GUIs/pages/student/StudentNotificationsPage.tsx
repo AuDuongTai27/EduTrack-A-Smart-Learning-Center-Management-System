@@ -1,18 +1,46 @@
-import React, { useState } from 'react';
-import { INITIAL_NOTIFICATIONS } from '../../components/student/notifications/notificationsData';
+import React, { useState, useEffect } from 'react';
+import {
+  INITIAL_NOTIFICATIONS,
+  mapNotificationDtoToItem,
+  type NotificationItem,
+} from '../../components/student/notifications/notificationsData';
 import type { NotifTabType } from '../../components/student/notifications/NotificationsFilterTabs';
 import { NotificationsHeader } from '../../components/student/notifications/NotificationsHeader';
 import { NotificationsFilterTabs } from '../../components/student/notifications/NotificationsFilterTabs';
 import { NotificationsList } from '../../components/student/notifications/NotificationsList';
 import { NotificationsPreferencesModal } from '../../components/student/notifications/NotificationsPreferencesModal';
+import { notificationDAL } from '../../../DAL/notificationDAL';
 
 export function StudentNotificationsPage() {
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [readIds, setReadIds] = useState<Set<number>>(new Set());
   const [prefsOpen, setPrefsOpen] = useState<boolean>(false);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadNotifications() {
+      try {
+        const result = await notificationDAL.getAllNotifications();
+        if (isMounted && result.data && result.data.length > 0) {
+          const mapped = result.data.map(mapNotificationDtoToItem);
+          setNotifications(mapped);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải thông báo học sinh:', err);
+      }
+    }
+
+    loadNotifications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const getUnreadCount = (): number => {
-    return INITIAL_NOTIFICATIONS.filter((n) => n.unread && !readIds.has(n.id)).length;
+    return notifications.filter((n) => n.unread && !readIds.has(n.id)).length;
   };
 
   const handleMarkRead = (id: number) => {
@@ -24,10 +52,10 @@ export function StudentNotificationsPage() {
   };
 
   const handleMarkAllRead = () => {
-    setReadIds(new Set(INITIAL_NOTIFICATIONS.map((n) => n.id)));
+    setReadIds(new Set(notifications.map((n) => n.id)));
   };
 
-  const filteredNotifications = INITIAL_NOTIFICATIONS.filter((n) => {
+  const filteredNotifications = notifications.filter((n) => {
     const isUnread = n.unread && !readIds.has(n.id);
     if (activeTab === 'Unread') return isUnread;
     if (activeTab === 'Class') return n.category === 'class';
