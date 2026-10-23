@@ -8,6 +8,7 @@ export interface AssignmentDetailItem {
   defaultStatus: SubmissionStatus;
   classId: number;
   score?: string;
+  description?: string | null;
 }
 
 export interface AttachedFileItem {
@@ -79,3 +80,39 @@ export const ATTACHED_FILES: AttachedFileItem[] = [
     iconColor: '#16A34A',
   },
 ];
+
+import type { AssignmentDto } from '../../../../BLL/models/AssignmentDto';
+
+/**
+ * Chuyển đổi AssignmentDto từ Backend .NET sang AssignmentDetailItem cho màn hình chi tiết bài tập
+ */
+export function mapAssignmentDtoToDetailItem(
+  dto: AssignmentDto,
+  fallback?: AssignmentDetailItem
+): AssignmentDetailItem {
+  const due = new Date(dto.dueDate);
+  const now = new Date();
+  let defaultStatus: SubmissionStatus = 'not-submitted';
+
+  if (fallback?.defaultStatus) {
+    defaultStatus = fallback.defaultStatus;
+  } else if (due < now) {
+    defaultStatus = 'overdue';
+  }
+
+  const formattedDate = !isNaN(due.getTime())
+    ? `${String(due.getDate()).padStart(2, '0')}/${String(due.getMonth() + 1).padStart(2, '0')}/${due.getFullYear()}`
+    : 'Chưa có hạn';
+
+  return {
+    id: dto.assignmentId,
+    title: dto.title,
+    class: dto.className || fallback?.class || 'Lớp học',
+    dueDate: formattedDate,
+    defaultStatus,
+    classId: dto.classId,
+    score: fallback?.score || `${dto.maxScore} điểm`,
+    description: dto.description || fallback?.description || null,
+  };
+}
+

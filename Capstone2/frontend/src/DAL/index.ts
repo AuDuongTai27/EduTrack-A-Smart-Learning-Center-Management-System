@@ -2,3 +2,6 @@
 export * from './mockData';
 export * from './studentDAL';
 export * from './parentDAL';
+export * from './classDAL';
+export * from './assignmentDAL';
+

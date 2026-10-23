@@ -3,8 +3,11 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import {
   ASSIGNMENTS_DB,
   DEFAULT_ASG,
+  mapAssignmentDtoToDetailItem,
+  type AssignmentDetailItem,
+  type SubmissionStatus,
 } from '../../components/student/assignmentDetail/assignmentDetailData';
-import type { SubmissionStatus } from '../../components/student/assignmentDetail/assignmentDetailData';
+import { assignmentDAL } from '../../../DAL/assignmentDAL';
 import { AssignmentDetailHeader } from '../../components/student/assignmentDetail/AssignmentDetailHeader';
 import { AssignmentMetaCards } from '../../components/student/assignmentDetail/AssignmentMetaCards';
 import { AssignmentInstructions } from '../../components/student/assignmentDetail/AssignmentInstructions';
@@ -17,17 +20,41 @@ export function StudentAssignmentDetailPage() {
 
   const rawId = paramId || searchParams.get('id') || '1';
   const asgId = parseInt(rawId, 10) || 1;
-  const asg = ASSIGNMENTS_DB[asgId] || DEFAULT_ASG;
+  const initialAsg = ASSIGNMENTS_DB[asgId] || DEFAULT_ASG;
 
-  const [status, setStatus] = useState<SubmissionStatus>(asg.defaultStatus || 'not-submitted');
+  const [asg, setAsg] = useState<AssignmentDetailItem>(initialAsg);
+  const [status, setStatus] = useState<SubmissionStatus>(initialAsg.defaultStatus || 'not-submitted');
   const [submittedFileName, setSubmittedFileName] = useState('Bai_lam_PT_bac2_NguyenHai.pdf');
   const [submittedMeta, setSubmittedMeta] = useState('Đã nộp lúc 18:42, Thứ Tư 19/08/2026 • 3.1 MB');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
+    async function loadAssignmentDetail() {
+      try {
+        const dto = await assignmentDAL.getAssignmentById(asgId);
+        if (isMounted && dto) {
+          const fallback = ASSIGNMENTS_DB[asgId] || DEFAULT_ASG;
+          const mapped = mapAssignmentDtoToDetailItem(dto, fallback);
+          setAsg(mapped);
+          setStatus(mapped.defaultStatus || 'not-submitted');
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải chi tiết bài tập:', err);
+      }
+    }
+
+    loadAssignmentDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [asgId]);
+
+  useEffect(() => {
     document.title = `${asg.title} – EduTrack`;
-    setStatus(asg.defaultStatus || 'not-submitted');
-  }, [asg]);
+  }, [asg.title]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -96,7 +123,7 @@ export function StudentAssignmentDetailPage() {
         <AssignmentMetaCards asg={asg} currentStatus={status} />
 
         {/* 5. Instructions Section */}
-        <AssignmentInstructions />
+        <AssignmentInstructions description={asg.description} />
 
         {/* 6. Attached Files Section */}
         <AssignmentAttachedFiles onDownload={handleDownload} />
