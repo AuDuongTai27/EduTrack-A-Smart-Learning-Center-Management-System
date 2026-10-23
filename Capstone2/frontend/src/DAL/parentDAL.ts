@@ -3,6 +3,8 @@ import type { TuitionInvoice } from '../BLL/models/TuitionInvoice';
 import type { Payment } from '../BLL/models/Payment';
 import type { ApprovalRequest } from '../BLL/models/ApprovalRequest';
 import type { Notification } from '../BLL/models/Notification';
+import type { ClassDto } from '../BLL/models/ClassDto';
+import { classDAL } from './classDAL';
 
 import {
   MOCK_USERS,
@@ -53,6 +55,17 @@ export interface ChildStudent {
   averageScore: number;
   unpaidAmount: number;
   classes: ChildClassItem[];
+}
+
+export interface PendingLinkRequest {
+  id: string;
+  studentName: string;
+  dob: string;
+  school: string;
+  parentPhone: string;
+  note?: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 /**
@@ -192,7 +205,7 @@ export const parentDAL = {
         grade: 'Lớp 9',
         school: 'THCS Lê Quý Đôn',
         dob: studentUser.dateOfBirth ? studentUser.dateOfBirth.slice(0, 10) : '2010-02-14',
-        phone: studentUser.phone,
+        phone: studentUser.phone ?? undefined,
         classesCount: classItems.length,
         attendanceRate,
         averageScore: avgScore,
@@ -321,4 +334,88 @@ export const parentDAL = {
   async getNotifications(parentId = DEFAULT_PARENT_ID): Promise<Notification[]> {
     return MOCK_NOTIFICATIONS.filter((n) => n.userId === null || n.userId === parentId);
   },
+
+  /**
+   * Lấy danh sách tất cả lớp học liên kết cho phụ huynh (gọi Backend qua classDAL với fallback)
+   */
+  async getAllClasses(): Promise<ChildClassItem[]> {
+    const res = await classDAL.getAllClasses();
+    const linkedChildren = this.getLinkedChildrenSync();
+    const fallbackClasses = linkedChildren[0]?.classes || [];
+
+    if (res.data && res.data.length > 0) {
+      return res.data.map((dto) => {
+        const fb = fallbackClasses.find((c) => c.id === dto.classId);
+        return mapClassDtoToChildClassItem(dto, fb);
+      });
+    }
+    return fallbackClasses;
+  },
+
+  /**
+   * Lấy chi tiết lớp học theo ID (gọi Backend qua classDAL với fallback)
+   */
+  async getChildClassById(classId: number): Promise<ChildClassItem | null> {
+    const dto = await classDAL.getClassById(classId);
+    const linkedChildren = this.getLinkedChildrenSync();
+    let fallbackCls: ChildClassItem | undefined;
+
+    for (const child of linkedChildren) {
+      const match = child.classes.find((c) => c.id === classId);
+      if (match) {
+        fallbackCls = match;
+        break;
+      }
+    }
+
+    if (dto) {
+      return mapClassDtoToChildClassItem(dto, fallbackCls);
+    }
+    return fallbackCls || null;
+  },
 };
+
+/**
+ * Helper chuyển đổi ClassDto sang ChildClassItem cho giao diện phụ huynh
+ */
+export function mapClassDtoToChildClassItem(
+  dto: ClassDto,
+  fallbackItem?: ChildClassItem
+): ChildClassItem {
+  let badge = 'Toán';
+  let subjectClass = 'subject-toan';
+  const code = (dto.subjectCode || '').toUpperCase();
+
+  if (code.includes('PHYS') || code.includes('VAT') || code.includes('LY')) {
+    badge = 'Vật Lý';
+    subjectClass = 'subject-vat-ly';
+  } else if (code.includes('CHEM') || code.includes('HOA')) {
+    badge = 'Hóa Học';
+    subjectClass = 'subject-hoa-hoc';
+  } else if (code.includes('ENG') || code.includes('ANH')) {
+    badge = 'Tiếng Anh';
+    subjectClass = 'subject-tieng-anh';
+  } else if (code.includes('LIT') || code.includes('VAN')) {
+    badge = 'Ngữ Văn';
+    subjectClass = 'subject-ngu-van';
+  } else if (code.includes('BIO') || code.includes('SINH')) {
+    badge = 'Sinh Học';
+    subjectClass = 'subject-sinh-hoc';
+  }
+
+  return {
+    id: dto.classId,
+    name: dto.className,
+    subject: dto.subjectName || fallbackItem?.subject || 'Chung',
+    subjectClass,
+    badge,
+    teacher: fallbackItem?.teacher || 'Giáo viên trung tâm',
+    teacherInitials: fallbackItem?.teacherInitials || 'GV',
+    schedule: fallbackItem?.schedule || 'Lịch học cập nhật theo khóa',
+    room: dto.room || fallbackItem?.room || 'Phòng học trung tâm',
+    attendedLessons: fallbackItem?.attendedLessons || 6,
+    totalLessons: fallbackItem?.totalLessons || 10,
+    notes: fallbackItem?.notes || 'Điểm danh đầy đủ, tương tác tích cực trên lớp.',
+  };
+}
+

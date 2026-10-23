@@ -153,3 +153,57 @@ export const ASSIGNMENTS_DATA: AssignmentItem[] = [
 
   // Class 9 - Intensive Physics
 ];
+
+import type { ClassDto } from '../../../../BLL/models/ClassDto';
+
+/**
+ * Chuyển đổi dữ liệu ClassDto từ API backend (.NET) sang ClassDetailItem cho giao diện chi tiết lớp học
+ */
+export function mapClassDtoToDetailItem(dto: ClassDto, fallbackItem?: ClassDetailItem): ClassDetailItem {
+  let subjectClass = fallbackItem?.subjectClass || 'subject-toan';
+  let accent = fallbackItem?.accent || '#2563EB';
+  let grad = fallbackItem?.grad || 'linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)';
+  const code = (dto.subjectCode || '').toUpperCase();
+
+  if (code.includes('PHYS') || code.includes('VAT') || code.includes('LY')) {
+    subjectClass = 'subject-vat-ly';
+    accent = '#7C3AED';
+    grad = 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 60%, #8B5CF6 100%)';
+  } else if (code.includes('CHEM') || code.includes('HOA')) {
+    subjectClass = 'subject-hoa-hoc';
+    accent = '#DC2626';
+    grad = 'linear-gradient(135deg, #991B1B 0%, #DC2626 60%, #EF4444 100%)';
+  } else if (code.includes('ENG') || code.includes('ANH')) {
+    subjectClass = 'subject-tieng-anh';
+    accent = '#059669';
+    grad = 'linear-gradient(135deg, #065F46 0%, #059669 60%, #10B981 100%)';
+  } else if (code.includes('LIT') || code.includes('VAN')) {
+    subjectClass = 'subject-ngu-van';
+    accent = '#D97706';
+    grad = 'linear-gradient(135deg, #92400E 0%, #D97706 60%, #F59E0B 100%)';
+  } else if (code.includes('BIO') || code.includes('SINH')) {
+    subjectClass = 'subject-sinh-hoc';
+    accent = '#0891B2';
+    grad = 'linear-gradient(135deg, #164E63 0%, #0891B2 60%, #06B6D4 100%)';
+  }
+
+  const startDateFormatted = dto.startDate ? new Date(dto.startDate).toLocaleDateString('vi-VN') : '';
+
+  return {
+    id: dto.classId,
+    name: dto.className,
+    subject: dto.subjectName || fallbackItem?.subject || 'Môn học',
+    subjectClass,
+    grad,
+    accent,
+    teacher: fallbackItem?.teacher || 'Giáo viên phụ trách',
+    teacherInitials: fallbackItem?.teacherInitials || 'GV',
+    schedule: fallbackItem?.schedule || 'Lịch học cập nhật theo khóa',
+    room: dto.room || fallbackItem?.room || 'Phòng học trung tâm',
+    email: fallbackItem?.email || 'contact@edutrack.edu.vn',
+    phone: fallbackItem?.phone || '0901234567',
+    description: fallbackItem?.description || `Lớp ${dto.className}${startDateFormatted ? ' khai giảng ngày ' + startDateFormatted : ''}. Trạng thái: ${dto.status}.`,
+    studentCount: fallbackItem?.studentCount || 20,
+  };
+}
+

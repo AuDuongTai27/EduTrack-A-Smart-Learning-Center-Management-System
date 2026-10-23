@@ -14,6 +14,8 @@ export interface SessionItem {
   status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
 }
 
+export type SessionSlot = SessionItem;
+
 export const GRID_START = 7;
 export const GRID_END = 21;
 export const TOTAL_H = GRID_END - GRID_START; // 14 hours

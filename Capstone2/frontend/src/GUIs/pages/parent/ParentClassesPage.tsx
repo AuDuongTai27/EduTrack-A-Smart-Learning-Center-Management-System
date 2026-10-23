@@ -1,9 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
+import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
 
 export function ParentClassesPage() {
   const { selectedChild } = useParent();
+  const [classes, setClasses] = useState<ChildClassItem[]>(selectedChild?.classes || []);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadClasses() {
+      try {
+        setLoading(true);
+        const data = await parentDAL.getAllClasses();
+        if (isMounted && data && data.length > 0) {
+          setClasses(data);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải danh sách lớp của con:', err);
+        if (isMounted && selectedChild) {
+          setClasses(selectedChild.classes);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    loadClasses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedChild]);
 
   if (!selectedChild) {
     return null;
@@ -22,13 +52,13 @@ export function ParentClassesPage() {
           </div>
 
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-            {selectedChild.grade} · {selectedChild.classes.length} môn học
+            {selectedChild.grade} · {classes.length} môn học
           </span>
         </div>
 
         {/* Classes Grid */}
         <div className="classes-grid">
-          {selectedChild.classes.map((cls) => (
+          {classes.map((cls) => (
             <Link
               key={cls.id}
               to={`/parent/classes/${cls.id}`}
