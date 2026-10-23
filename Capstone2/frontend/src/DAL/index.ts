@@ -6,5 +6,9 @@ export * from './classDAL';
 export * from './assignmentDAL';
 export * from './scheduleDAL';
 export * from './notificationDAL';
+export * from './tuitionDAL';
+export * from './progressDAL';
+export * from './feedbackDAL';
+export * from './userDAL';
 
 

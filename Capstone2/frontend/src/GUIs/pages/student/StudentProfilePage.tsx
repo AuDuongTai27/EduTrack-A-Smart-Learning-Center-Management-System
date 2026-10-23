@@ -1,16 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { StudentProfileData } from '../../components/student/profile/profileData';
 import { INITIAL_PROFILE } from '../../components/student/profile/profileData';
 import { ProfileHeader } from '../../components/student/profile/ProfileHeader';
 import { ProfileViewCard } from '../../components/student/profile/ProfileViewCard';
 import { ProfileEditCard } from '../../components/student/profile/ProfileEditCard';
 import { ProfileToast } from '../../components/student/profile/ProfileToast';
+import { userDAL } from '../../../DAL/userDAL';
 
 export function StudentProfilePage() {
   const [profile, setProfile] = useState<StudentProfileData>(INITIAL_PROFILE);
   const [formData, setFormData] = useState<StudentProfileData>(INITIAL_PROFILE);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProfile() {
+      try {
+        const u = await userDAL.getUserById(6);
+        if (isMounted && u) {
+          const mapped: StudentProfileData = {
+            fullName: u.fullName,
+            dob: u.dateOfBirth ? u.dateOfBirth.split('T')[0] : '2010-02-14',
+            gender: u.gender === 'female' ? 'Nữ' : 'Nam',
+            enrollDate: u.enrolledSince ? u.enrolledSince.split('T')[0] : '2025-01-05',
+            address: '45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh',
+            phone: u.phone || '0956 789 012',
+            email: u.email || 'an.le@student.edutrack.vn',
+            avatarUrl: u.avatarUrl || INITIAL_PROFILE.avatarUrl,
+          };
+          setProfile(mapped);
+          setFormData(mapped);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải hồ sơ học sinh:', err);
+      }
+    }
+    loadProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleStartEdit = () => {
     setFormData(profile);

@@ -17,12 +17,12 @@ export function formatDate(iso: string): string {
 }
 
 export const INITIAL_PROFILE: StudentProfileData = {
-  fullName: '[FE-Mock] Nguyễn Thị Minh Anh',
-  dob: '2006-03-15',
-  gender: 'Nữ',
-  enrollDate: '2023-09-01',
+  fullName: '[FE-Mock] Lê Văn An',
+  dob: '2010-02-14',
+  gender: 'Nam',
+  enrollDate: '2025-01-05',
   address: '45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh',
-  phone: '0901 234 567',
-  email: 'minhanh.nguyen@gmail.com',
-  avatarUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=240&h=240&fit=crop&auto=format',
+  phone: '0956 789 012',
+  email: 'an.le@student.edutrack.vn',
+  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=an',
 };

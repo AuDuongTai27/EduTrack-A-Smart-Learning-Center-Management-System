@@ -25,7 +25,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                   <span className="profile-online-dot"></span>
                 </div>
                 <div className="profile-identity-info">
-                  <h2 className="profile-student-fullname" id="viewFullName">Nguyễn Thị Minh Anh</h2>
+                  <h2 className="profile-student-fullname" id="viewFullName">{data.fullName}</h2>
                   <div className="profile-meta-tags">
                     <span className="profile-role-tag">
                       <i className="bi bi-mortarboard-fill"></i>
@@ -49,7 +49,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                   <div className="profile-info-label-group">
                     <span className="profile-info-label">Ngày sinh</span>
                   </div>
-                  <p className="profile-info-value" id="viewDob">15/03/2006</p>
+                  <p className="profile-info-value" id="viewDob">{formatDate(data.dob)}</p>
                 </div>
               </div>
 
@@ -61,7 +61,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                   <div className="profile-info-label-group">
                     <span className="profile-info-label">Giới tính</span>
                   </div>
-                  <p className="profile-info-value" id="viewGender">Nữ</p>
+                  <p className="profile-info-value" id="viewGender">{data.gender}</p>
                 </div>
               </div>
 
@@ -77,7 +77,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                       <span>Hệ thống</span>
                     </span>
                   </div>
-                  <p className="profile-info-value locked">01/09/2023</p>
+                  <p className="profile-info-value locked">{formatDate(data.enrollDate)}</p>
                 </div>
               </div>
 
@@ -89,7 +89,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                   <div className="profile-info-label-group">
                     <span className="profile-info-label">Địa chỉ</span>
                   </div>
-                  <p className="profile-info-value" id="viewAddress">45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh</p>
+                  <p className="profile-info-value" id="viewAddress">{data.address}</p>
                 </div>
               </div>
 
@@ -101,7 +101,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                   <div className="profile-info-label-group">
                     <span className="profile-info-label">Số điện thoại</span>
                   </div>
-                  <p className="profile-info-value" id="viewPhone">0901 234 567</p>
+                  <p className="profile-info-value" id="viewPhone">{data.phone}</p>
                 </div>
               </div>
 
@@ -113,7 +113,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                   <div className="profile-info-label-group">
                     <span className="profile-info-label">Email</span>
                   </div>
-                  <p className="profile-info-value" id="viewEmail">minhanh.nguyen@gmail.com</p>
+                  <p className="profile-info-value" id="viewEmail">{data.email}</p>
                 </div>
               </div>
             </div>

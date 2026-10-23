@@ -1,8 +1,11 @@
-﻿import React from 'react';
-import { CURRENT_TUITION_BILL } from './tuitionData';
+import React from 'react';
+import { CURRENT_TUITION_BILL, type TuitionBill } from './tuitionData';
 
-export function TuitionBillCard() {
-  const bill = CURRENT_TUITION_BILL;
+export interface TuitionBillCardProps {
+  bill?: TuitionBill;
+}
+
+export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCardProps) {
 
   return (
     <div className="bill-card">
