@@ -19,26 +19,26 @@ export function NotificationsSection({
     <div className="card dashboard-card flex-fill d-flex flex-column">
       <div className="card-header dashboard-card-header d-flex align-items-center justify-content-between">
         <div>
-          <h5 className="mb-1">Notifications</h5>
+          <h5 className="mb-1">Thông Báo Mới</h5>
           <small className="text-muted">
-            Latest announcements and updates
+            Cập nhật và tin tức từ trung tâm
           </small>
         </div>
         <Link to={viewAllUrl} className="dashboard-view-all">
-          View All
+          Xem tất cả
         </Link>
       </div>
 
       <div className="card-body dashboard-card-body d-flex flex-column flex-fill">
         {notifications.length === 0 ? (
-          <p className="text-muted text-center my-4">No notifications at this time.</p>
+          <p className="text-muted text-center my-4">Không có thông báo mới vào lúc này.</p>
         ) : (
           <div className="notice-list d-flex flex-column flex-fill justify-content-between">
             {notifications.map((item, idx) => {
               const timeLabel =
-                item.timeAgo || (item.addedOn ? `Added on : ${item.addedOn}` : "");
+                item.timeAgo || (item.addedOn ? `Ngày tạo : ${item.addedOn}` : "");
               const badgeLabel =
-                item.daysAgo || (item.isNew ? "New!" : undefined);
+                item.daysAgo || (item.isNew ? "Mới!" : undefined);
 
               return (
                 <div key={item.id ?? idx} className="notice-item">
@@ -65,7 +65,7 @@ export function NotificationsSection({
                   )}
 
                   <div className="notice-content">
-                    <h6 className="mb-1">{item.title}</h6>
+                    <h6 className="mb-1">{item.title.startsWith("[FE-Mock]") ? item.title : `[FE-Mock] ${item.title}`}</h6>
                     {timeLabel && (
                       <p className="mb-0 text-muted">
                         <i className="bi bi-clock me-1" />

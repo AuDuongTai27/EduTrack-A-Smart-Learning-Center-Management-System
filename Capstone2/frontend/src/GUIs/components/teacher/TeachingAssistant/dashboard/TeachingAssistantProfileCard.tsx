@@ -11,12 +11,12 @@ export interface TeachingAssistantProfileCardProps {
 }
 
 export const teachingAssistantProfileData: TeachingAssistantProfileCardProps = {
-  id: "#T594651",
-  name: "Henriques Morgan",
+  id: "#TA001",
+  name: "[FE-Mock] Âu Dương Tài",
   avatar: "/assets/img/profiles/avatar-27.jpg",
-  role: "Teaching Assistant",
-  classes: "I-A, V-B",
-  subject: "Physics",
+  role: "Trợ giảng chuyên môn",
+  classes: "Toán 12, Vật lý 12",
+  subject: "Teaching Assistant",
   profileUrl: "/teaching-assistant/profile",
 };
 
@@ -37,6 +37,9 @@ export function TeachingAssistantProfileCard({
               src={avatar}
               alt={name}
               className="profile-avatar-img"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/assets/img/profiles/avatar-27.jpg";
+              }}
             />
           </div>
           <div>
@@ -70,7 +73,7 @@ export function TeachingAssistantProfileCard({
           to={profileUrl ?? "/teaching-assistant/profile"}
           className="btn btn-primary d-inline-flex align-items-center gap-2"
         >
-          <i className="bi bi-pencil-square" /> View Profile
+          <i className="bi bi-pencil-square" /> Xem hồ sơ
         </Link>
       </div>
     </div>

@@ -1,25 +1,73 @@
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
+import { Link, useParams } from "react-router-dom";
 import {
-  AssignmentOverviewCard,
   StudentSubmissionsTable,
+  AssignmentOverviewCard,
 } from "../../../components/teacher/TeachingAssistant/assignment";
+import assignmentDAL from "../../../../DAL/assignmentDAL";
+import classDAL from "../../../../DAL/classDAL";
+import submissionDAL from "../../../../DAL/submissionDAL";
+import type { AssignmentDto } from "../../../../BLL/models/AssignmentDto";
+import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import type { SubmissionDto } from "../../../../BLL/models/SubmissionDto";
 
 export default function TeachingAssistantAssignmentPage() {
   const { id, classId, assignmentId } = useParams<{ id?: string; classId?: string; assignmentId?: string }>();
-  const targetClassId = classId || (assignmentId ? id : undefined) || "1";
-  const targetAssignmentId = assignmentId || (classId ? id : undefined) || "1";
+  const numAssignmentId = Number(assignmentId || (classId ? id : undefined) || "1");
+  const numClassId = Number(classId || (assignmentId ? id : undefined) || "1");
+  const targetClassId = String(numClassId);
+  const targetAssignmentId = String(numAssignmentId);
+
+  const [assignment, setAssignment] = useState<AssignmentDto | null>(null);
+  const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
+  const [submissions, setSubmissions] = useState<SubmissionDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchAssignmentData() {
+      try {
+        setLoading(true);
+        // 1. GetId: Fetch assignment detail by ID
+        const asg = await assignmentDAL.getById(numAssignmentId);
+
+        // 2. GetId: Fetch class detail by ID
+        const cls = await classDAL.getClassById(numClassId);
+
+        // 3. GetAll: Fetch submissions for this assignment
+        const subsResult = await submissionDAL.getSubmissionsByAssignmentId(numAssignmentId);
+
+        if (isMounted) {
+          setAssignment(asg);
+          setClassInfo(cls);
+          setSubmissions(subsResult.data);
+        }
+      } catch (err) {
+        console.error("Failed to load TA assignment page data:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    fetchAssignmentData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [numAssignmentId, numClassId]);
 
   return (
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Assignment Details"
+        title={assignment ? `${assignment.title} (Chi Tiết Bài Tập)` : `Assignment #${targetAssignmentId}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },
-          { label: `Class #${targetClassId}`, path: `/teaching-assistant/classes/${targetClassId}` },
-          { label: `Assignment #${targetAssignmentId}` },
+          { label: classInfo ? classInfo.className : `Class #${targetClassId}`, path: `/teaching-assistant/classes/${targetClassId}` },
+          { label: assignment ? assignment.title : `Assignment #${targetAssignmentId}` },
         ]}
         action={
           <div className="d-flex align-items-center gap-2">
@@ -32,10 +80,19 @@ export default function TeachingAssistantAssignmentPage() {
           </div>
         }
       />
+
+      {loading && (
+        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
+          <div className="spinner-border spinner-border-sm" role="status" />
+          <span>Đang tải thông tin bài tập và bài nộp sinh viên...</span>
+        </div>
+      )}
+
       {/* Assignment Overview Header Card */}
-      <AssignmentOverviewCard />
+      <AssignmentOverviewCard assignment={assignment} className={classInfo?.className} />
+
       {/* Student List Section */}
-      <StudentSubmissionsTable />
+      <StudentSubmissionsTable submissions={submissions} />
     </>
   );
 }
