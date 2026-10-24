@@ -95,9 +95,9 @@ export default function SessionsSection({ classId = "1" }: SessionsSectionProps)
                   <button type="button" className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-pencil" /> Modify
                   </button>
-                  <a href="/teacher/classes/class-1-a/attendance" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                  <Link to={`/teacher/classes/${classId}/attendance`} className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-clipboard-check" /> Attendance
-                  </a>
+                  </Link>
                 </div>
               </td>
             </tr>
@@ -139,9 +139,9 @@ export default function SessionsSection({ classId = "1" }: SessionsSectionProps)
                   <button type="button" className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-pencil" /> Modify
                   </button>
-                  <a href="/teacher/classes/class-1-a/attendance" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                  <Link to={`/teacher/classes/${classId}/attendance`} className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-clipboard-check" /> Attendance
-                  </a>
+                  </Link>
                 </div>
               </td>
             </tr>
@@ -183,9 +183,9 @@ export default function SessionsSection({ classId = "1" }: SessionsSectionProps)
                   <button type="button" className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-pencil" /> Modify
                   </button>
-                  <a href="/teacher/classes/class-1-a/attendance" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                  <Link to={`/teacher/classes/${classId}/attendance`} className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-clipboard-check" /> Attendance
-                  </a>
+                  </Link>
                 </div>
               </td>
             </tr>
@@ -205,9 +205,9 @@ export default function SessionsSection({ classId = "1" }: SessionsSectionProps)
                   <button type="button" className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-pencil" /> Modify
                   </button>
-                  <a href="/teacher/classes/class-1-a/attendance" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                  <Link to={`/teacher/classes/${classId}/attendance`} className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                     <i className="bi bi-clipboard-check" /> Attendance
-                  </a>
+                  </Link>
                 </div>
               </td>
             </tr>

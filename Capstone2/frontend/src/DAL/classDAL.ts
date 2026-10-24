@@ -81,6 +81,14 @@ export const classDAL = {
       };
     }
   },
+
+  getAll(): Promise<ClassesFetchResult> {
+    return this.getAllClasses();
+  },
+
+  getById(id: number): Promise<ClassDto | null> {
+    return this.getClassById(id);
+  },
 };
 
 export default classDAL;

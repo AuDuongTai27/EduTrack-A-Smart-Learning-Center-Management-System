@@ -92,6 +92,14 @@ export const assignmentDAL = {
       };
     }
   },
+
+  getAll(): Promise<AssignmentsFetchResult> {
+    return this.getAllAssignments();
+  },
+
+  getById(id: number): Promise<AssignmentDto | null> {
+    return this.getAssignmentById(id);
+  },
 };
 
 export default assignmentDAL;

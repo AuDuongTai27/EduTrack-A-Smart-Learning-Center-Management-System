@@ -100,6 +100,28 @@ export const progressDAL = {
       };
     }
   },
+
+  /**
+   * Lấy chi tiết điểm danh theo ID
+   */
+  async getAttendanceById(id: number): Promise<AttendanceDto | null> {
+    try {
+      return await progressApi.getAttendanceById(id);
+    } catch (err: any) {
+      console.warn(`🟡 [progressDAL] Backend API Attendance #${id} không phản hồi, dùng mockData:`, err.message);
+      const all = await this.getAllAttendances();
+      const found = all.data.find((a) => a.attendanceId === id);
+      return found || null;
+    }
+  },
+
+  getAll(): Promise<AttendancesFetchResult> {
+    return this.getAllAttendances();
+  },
+
+  getById(id: number): Promise<AttendanceDto | null> {
+    return this.getAttendanceById(id);
+  },
 };
 
 export default progressDAL;
