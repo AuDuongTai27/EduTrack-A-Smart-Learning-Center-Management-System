@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
     AttendanceListHeader,
@@ -9,6 +9,9 @@ import {
 } from "../../../components/teacher/Teacher/attendance";
 
 export default function TeacherAttendancePage() {
+    const { id, classId } = useParams<{ id?: string; classId?: string }>();
+    const targetClassId = classId || id || "1";
+
     return (
         <>
             {/* Breadcrumb & Page Title */}
@@ -17,13 +20,13 @@ export default function TeacherAttendancePage() {
                 breadcrumbItems={[
                     { label: "Dashboard", path: "/teacher/dashboard" },
                     { label: "My Classes", path: "/teacher/classes" },
-                    { label: "Class I-A", path: "/teacher/classes/class-1-a" },
+                    { label: `Class #${targetClassId}`, path: `/teacher/classes/${targetClassId}` },
                     { label: "Attendance" },
                 ]}
                 action={
                     <div className="d-flex align-items-center gap-2">
                         <Link
-                            to="/teacher/class-details"
+                            to={`/teacher/classes/${targetClassId}`}
                             className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
                         >
                             <i className="bi bi-arrow-left" /> Back to Class Details

@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 
-export default function AssignmentsSection() {
+export interface AssignmentsSectionProps {
+  classId?: string | number;
+}
+
+export default function AssignmentsSection({ classId = "1" }: AssignmentsSectionProps) {
   return (
     <details className="card class-list-card border-0 mb-4" open>
       <summary className="class-list-header d-flex align-items-center justify-content-between cursor-pointer py-3 px-4">
@@ -30,7 +34,7 @@ export default function AssignmentsSection() {
             <tr>
               <td className="fw-semibold text-dark">
                 <Link
-                  to="/teaching-assistant/classes/class-1-a/assignment/assign-1"
+                  to={`/teaching-assistant/classes/${classId}/assignment/1`}
                   className="text-decoration-none text-dark"
                 >
                   <i className="bi bi-file-earmark-text me-1 text-primary" />{" "}
@@ -55,7 +59,7 @@ export default function AssignmentsSection() {
               </td>
               <td className="text-end">
                 <Link
-                  to="/teaching-assistant/classes/class-1-a/assignment/assign-1"
+                  to={`/teaching-assistant/classes/${classId}/assignment/1`}
                   className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                 >
                   <i className="bi bi-eye" /> View

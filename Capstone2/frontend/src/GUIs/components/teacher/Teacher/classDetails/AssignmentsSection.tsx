@@ -1,4 +1,10 @@
-export default function AssignmentsSection() {
+import { Link } from "react-router-dom";
+
+export interface AssignmentsSectionProps {
+  classId?: string | number;
+}
+
+export default function AssignmentsSection({ classId = "1" }: AssignmentsSectionProps) {
   return (
     <details className="card class-list-card border-0 mb-4" open>
       <summary className="class-list-header d-flex align-items-center justify-content-between cursor-pointer py-3 px-4">
@@ -13,12 +19,12 @@ export default function AssignmentsSection() {
       </summary>
       {/* New Assignment Button */}
       <div className="px-4 py-3 border-bottom bg-white d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <a
-          href="/teacher/classes/class-1-a/assignment/new-assignment"
+        <Link
+          to={`/teacher/classes/${classId}/assignment/new-assignment`}
           className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1"
         >
           <i className="bi bi-plus-lg" /> New Assignment
-        </a>
+        </Link>
       </div>
       <div className="table-responsive-container">
         <table className="table custom-table align-middle mb-0">
@@ -36,10 +42,10 @@ export default function AssignmentsSection() {
             {/* Assignment 1 */}
             <tr>
               <td className="fw-semibold text-dark">
-                <a href="/teacher/classes/class-1-a/assignment/assign-1" className="text-decoration-none text-dark">
+                <Link to={`/teacher/classes/${classId}/assignment/1`} className="text-decoration-none text-dark">
                   <i className="bi bi-file-earmark-text me-1 text-primary" />{" "}
                   Assignment 1: Kinematics Problem Set
-                </a>
+                </Link>
               </td>
               <td>Aug 04, 2026</td>
               <td>
@@ -54,9 +60,9 @@ export default function AssignmentsSection() {
                 <small className="text-muted">/ 10</small>
               </td>
               <td className="text-end">
-                <a href="/teacher/classes/class-1-a/assignment/assign-1" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                <Link to={`/teacher/classes/${classId}/assignment/1`} className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
                   <i className="bi bi-eye" /> View
-                </a>
+                </Link>
               </td>
             </tr>
             {/* Assignment 2 */}

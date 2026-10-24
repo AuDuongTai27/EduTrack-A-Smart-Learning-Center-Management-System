@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
     AssignmentsSection,
@@ -8,6 +8,9 @@ import {
 } from "../../../components/teacher/Teacher/classDetails";
 
 export default function TeacherClassDetailsPage() {
+    const { id, classId } = useParams<{ id?: string; classId?: string }>();
+    const targetClassId = classId || id || "1";
+
     return (
         <>
             {/* Breadcrumb & Page Title */}
@@ -16,7 +19,7 @@ export default function TeacherClassDetailsPage() {
                 breadcrumbItems={[
                     { label: "Dashboard", path: "/teacher/dashboard" },
                     { label: "My Classes", path: "/teacher/classes" },
-                    { label: "Class I-A" },
+                    { label: `Class #${targetClassId}` },
                 ]}
                 action={
                     <div className="d-flex align-items-center gap-2">
@@ -34,9 +37,9 @@ export default function TeacherClassDetailsPage() {
             {/* Participant List */}
             <ParticipantsSection />
             {/* Sessions List */}
-            <SessionsSection />
+            <SessionsSection classId={targetClassId} />
             {/* Assignment list*/}
-            <AssignmentsSection />
+            <AssignmentsSection classId={targetClassId} />
         </>
     );
 }

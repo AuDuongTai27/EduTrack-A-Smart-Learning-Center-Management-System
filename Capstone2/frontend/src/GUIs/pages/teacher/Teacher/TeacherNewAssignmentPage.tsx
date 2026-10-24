@@ -1,4 +1,5 @@
 import PageHeader from "../../../components/Common/PageHeader";
+import { useParams } from "react-router-dom";
 import {
   NewAssignmentAttachment,
   NewAssignmentDeadline,
@@ -7,7 +8,11 @@ import {
   NewAssignmentTitle,
   NewAssignmentTypeSelector
 } from "../../../components/teacher/Teacher/newAssignment";
+
 export default function TeacherNewAssignmentPage() {
+  const { id, classId } = useParams<{ id?: string; classId?: string }>();
+  const targetClassId = classId || id || "1";
+
   return (
     <>
       {/* Breadcrumb & Page Title */}
@@ -16,7 +21,7 @@ export default function TeacherNewAssignmentPage() {
         breadcrumbItems={[
           { label: "Dashboard", path: "/teacher/dashboard" },
           { label: "My Classes", path: "/teacher/classes" },
-          { label: "Class I-A", path: "/teacher/classes/class-1-a" },
+          { label: `Class #${targetClassId}`, path: `/teacher/classes/${targetClassId}` },
           { label: "New Assignment" }
         ]}
       />
