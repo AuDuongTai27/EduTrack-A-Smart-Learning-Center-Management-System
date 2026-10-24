@@ -72,6 +72,13 @@ export const scheduleDAL = {
       };
     }
   },
+
+  /**
+   * Alias getAll() cho getAllClassSchedules()
+   */
+  async getAll(): Promise<SchedulesFetchResult> {
+    return this.getAllClassSchedules();
+  },
 };
 
 export default scheduleDAL;

@@ -10,5 +10,5 @@ export * from './tuitionDAL';
 export * from './progressDAL';
 export * from './feedbackDAL';
 export * from './userDAL';
-
-
+export * from './subjectDAL';
+export * from './centerSettingDAL';

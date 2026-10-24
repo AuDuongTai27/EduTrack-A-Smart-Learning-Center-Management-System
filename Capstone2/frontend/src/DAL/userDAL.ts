@@ -1,6 +1,6 @@
 import { userApi } from '../api/userApi';
 import type { UserDto } from '../BLL/models/UserDto';
-import { MOCK_USERS } from './mockData/mockUsers';
+import { MOCK_USERS, MOCK_ROLES, MOCK_USER_ROLES } from './mockData/mockUsers';
 
 export interface UsersFetchResult {
   data: UserDto[];
@@ -23,21 +23,26 @@ export const userDAL = {
     } catch (err: any) {
       console.warn('🟡 [userDAL] Backend API Users không phản hồi, tự động dùng mockData:', err.message);
 
-      const fallback: UserDto[] = MOCK_USERS.map((u) => ({
-        userId: u.userId,
-        userCode: u.userCode,
-        fullName: u.fullName,
-        email: u.email,
-        phone: u.phone,
-        avatarUrl: u.avatarUrl,
-        dateOfBirth: u.dateOfBirth,
-        gender: u.gender,
-        specialty: u.specialty,
-        enrolledSince: u.enrolledSince,
-        status: u.status,
-        createdAt: u.createdAt,
-        roles: [],
-      }));
+      const fallback: UserDto[] = MOCK_USERS.map((u) => {
+        const userRoles = MOCK_USER_ROLES.filter((ur) => ur.userId === u.userId)
+          .map((ur) => MOCK_ROLES.find((r) => r.roleId === ur.roleId)?.roleName || '')
+          .filter(Boolean);
+        return {
+          userId: u.userId,
+          userCode: u.userCode,
+          fullName: u.fullName,
+          email: u.email,
+          phone: u.phone,
+          avatarUrl: u.avatarUrl,
+          dateOfBirth: u.dateOfBirth,
+          gender: u.gender,
+          specialty: u.specialty,
+          enrolledSince: u.enrolledSince,
+          status: u.status,
+          createdAt: u.createdAt,
+          roles: userRoles,
+        };
+      });
 
       return {
         data: fallback,
@@ -57,6 +62,9 @@ export const userDAL = {
       console.warn(`🟡 [userDAL] Không thể gọi API cho user #${id}, tìm trong mockData:`, err);
       const found = MOCK_USERS.find((u) => u.userId === id);
       if (!found) return null;
+      const userRoles = MOCK_USER_ROLES.filter((ur) => ur.userId === found.userId)
+        .map((ur) => MOCK_ROLES.find((r) => r.roleId === ur.roleId)?.roleName || '')
+        .filter(Boolean);
       return {
         userId: found.userId,
         userCode: found.userCode,
@@ -70,7 +78,7 @@ export const userDAL = {
         enrolledSince: found.enrolledSince,
         status: found.status,
         createdAt: found.createdAt,
-        roles: [],
+        roles: userRoles,
       };
     }
   },
