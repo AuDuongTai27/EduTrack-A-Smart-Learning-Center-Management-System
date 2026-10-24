@@ -76,6 +76,15 @@ export const feedbackDAL = {
       };
     }
   },
+
+  getAll(): Promise<ApprovalRequestsFetchResult> {
+    return this.getAllRequests();
+  },
+
+  getById(id: number): Promise<ApprovalRequestDto | null> {
+    return this.getRequestById(id);
+  },
 };
 
+export const approvalRequestDAL = feedbackDAL;
 export default feedbackDAL;
