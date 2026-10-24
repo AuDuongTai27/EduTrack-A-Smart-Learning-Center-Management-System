@@ -1,14 +1,44 @@
+import React, { useState, useEffect } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
-import { ClassListHeader, ClassListPagination, ClassListTable, ClassListToolbar } from "../../../components/teacher/Teacher/classes";
+import {
+  ClassListHeader,
+  ClassListPagination,
+  ClassListTable,
+  ClassListToolbar,
+} from "../../../components/teacher/Teacher/classes";
+import { classDAL } from "../../../../DAL/classDAL";
+import type { ClassDto } from "../../../../BLL/models/ClassDto";
+
 export default function TeacherClassesPage() {
+  const [classes, setClasses] = useState<ClassDto[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadClasses() {
+      try {
+        const res = await classDAL.getAllClasses();
+        if (isMounted && res.data) {
+          setClasses(res.data);
+        }
+      } catch (err) {
+        console.warn("Lỗi tải danh sách lớp học của giáo viên:", err);
+      }
+    }
+    loadClasses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="My Classes"
+        title="Lớp Học Của Tôi"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "My Classes" },
+          { label: "Danh sách lớp học" },
         ]}
       />
 
@@ -21,12 +51,10 @@ export default function TeacherClassesPage() {
         <ClassListToolbar />
 
         {/* Table */}
-        <ClassListTable />
-
+        <ClassListTable classes={classes} />
 
         {/* Footer Pagination */}
         <ClassListPagination />
-
       </div>
     </>
   );

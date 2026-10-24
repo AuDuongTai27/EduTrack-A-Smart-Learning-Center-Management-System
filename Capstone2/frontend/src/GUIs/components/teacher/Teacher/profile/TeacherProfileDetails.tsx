@@ -1,76 +1,102 @@
 import React from "react";
+import type { UserDto } from "../../../../../BLL/models/UserDto";
 
-export function TeacherProfileDetails() {
-    return (
-        <div className="row g-4 mb-4">
-            <div className="col-md-6 col-lg-4">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-person me-1 text-primary" />Full Name
-                    </small>
-                    <span className="fw-semibold text-dark">Henriques Morgan</span>
-                </div>
-            </div>
-            <div className="col-md-6 col-lg-4">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-briefcase me-1 text-primary" />Role
-                    </small>
-                    <span className="fw-semibold text-dark">Teacher</span>
-                </div>
-            </div>
-            <div className="col-md-6 col-lg-4">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-calendar-event me-1 text-primary" />Date of Birth
-                    </small>
-                    <span className="fw-semibold text-dark">May 14, 1988</span>
-                </div>
-            </div>
-            <div className="col-md-6 col-lg-4">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-gender-ambiguous me-1 text-primary" />Gender
-                    </small>
-                    <span className="fw-semibold text-dark">Male</span>
-                </div>
-            </div>
-            <div className="col-md-6 col-lg-4">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-calendar-check me-1 text-primary" />Start Work Date
-                    </small>
-                    <span className="fw-semibold text-dark">September 01, 2021</span>
-                </div>
-            </div>
-            <div className="col-md-6 col-lg-4">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-telephone me-1 text-primary" />Phone Number
-                    </small>
-                    <span className="fw-semibold text-dark">+84 912 345 678</span>
-                </div>
-            </div>
-            <div className="col-md-6 col-lg-6">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-envelope me-1 text-primary" />Email
-                    </small>
-                    <span className="fw-semibold text-dark">example@abc.com</span>
-                </div>
-            </div>
-            <div className="col-md-6 col-lg-6">
-                <div className="p-3 bg-light rounded-3 border">
-                    <small className="text-muted d-block mb-1">
-                        <i className="bi bi-geo-alt me-1 text-primary" />Address
-                    </small>
-                    <span className="fw-semibold text-dark">
-                        123 Education St, District 1, Ho Chi Minh City
-                    </span>
-                </div>
-            </div>
+export interface TeacherProfileDetailsProps {
+  teacher?: UserDto | null;
+}
+
+export function TeacherProfileDetails({ teacher }: TeacherProfileDetailsProps) {
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return "10/11/1990";
+    try {
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) {
+        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+      }
+    } catch {
+      // ignore
+    }
+    return dateStr;
+  };
+
+  const fullName = teacher?.fullName || "ThS. Hoàng Quốc Việt";
+  const email = teacher?.email || "viet.hoang@edutrack.edu.vn";
+  const phone = teacher?.phone || "0923456789";
+  const gender = teacher?.gender === "female" ? "Nữ" : "Nam";
+  const specialty = teacher?.specialty || "Toán Học & Phương Pháp Giảng Dạy";
+  const dob = formatDate(teacher?.dateOfBirth);
+  const enrolledSince = formatDate(teacher?.enrolledSince || teacher?.createdAt);
+
+  return (
+    <div className="row g-4 mb-4">
+      <div className="col-md-6 col-lg-4">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-person me-1 text-primary" />Họ và tên
+          </small>
+          <span className="fw-semibold text-dark">{fullName}</span>
         </div>
-    );
+      </div>
+      <div className="col-md-6 col-lg-4">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-briefcase me-1 text-primary" />Vai trò &amp; Chuyên môn
+          </small>
+          <span className="fw-semibold text-dark">Giáo viên ({specialty})</span>
+        </div>
+      </div>
+      <div className="col-md-6 col-lg-4">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-calendar-event me-1 text-primary" />Ngày sinh
+          </small>
+          <span className="fw-semibold text-dark">{dob}</span>
+        </div>
+      </div>
+      <div className="col-md-6 col-lg-4">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-gender-ambiguous me-1 text-primary" />Giới tính
+          </small>
+          <span className="fw-semibold text-dark">{gender}</span>
+        </div>
+      </div>
+      <div className="col-md-6 col-lg-4">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-calendar-check me-1 text-primary" />Ngày gia nhập trung tâm
+          </small>
+          <span className="fw-semibold text-dark">{enrolledSince}</span>
+        </div>
+      </div>
+      <div className="col-md-6 col-lg-4">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-telephone me-1 text-primary" />Số điện thoại
+          </small>
+          <span className="fw-semibold text-dark">{phone}</span>
+        </div>
+      </div>
+      <div className="col-md-6 col-lg-6">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-envelope me-1 text-primary" />Email liên hệ
+          </small>
+          <span className="fw-semibold text-dark">{email}</span>
+        </div>
+      </div>
+      <div className="col-md-6 col-lg-6">
+        <div className="p-3 bg-light rounded-3 border">
+          <small className="text-muted d-block mb-1">
+            <i className="bi bi-geo-alt me-1 text-primary" />Địa chỉ công tác
+          </small>
+          <span className="fw-semibold text-dark">
+            123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default TeacherProfileDetails;

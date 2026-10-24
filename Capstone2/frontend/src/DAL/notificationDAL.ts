@@ -73,6 +73,13 @@ export const notificationDAL = {
       };
     }
   },
+
+  /**
+   * Alias getAll() cho getAllNotifications()
+   */
+  async getAll(): Promise<NotificationsFetchResult> {
+    return this.getAllNotifications();
+  },
 };
 
 export default notificationDAL;
