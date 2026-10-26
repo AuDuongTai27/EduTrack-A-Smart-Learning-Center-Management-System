@@ -8,7 +8,18 @@ export interface TuitionInvoiceDto {
   amountDue: number;
   dueDate: string;
   status: string;
+
+  // Extended compatibility fields for UI/Reports
+  tuitionId?: number;
+  invoiceCode?: string;
+  period?: string;
+  amount?: number;
+  paidAmount?: number;
+  createdAt?: string;
+  notes?: string;
 }
+
+export type TuitionDto = TuitionInvoiceDto;
 
 export interface PaymentDto {
   paymentId: number;

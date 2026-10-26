@@ -39,12 +39,17 @@ export const tuitionDAL = {
         const cls = MOCK_CLASSES.find((c) => c.classId === inv.classId);
         return {
           invoiceId: inv.invoiceId,
+          tuitionId: inv.invoiceId,
+          invoiceCode: `INV-${inv.invoiceId}`,
           studentId: inv.studentId,
           studentName: student?.fullName || 'Học sinh',
           studentCode: student?.userCode || `STU${inv.studentId}`,
           classId: inv.classId,
           className: cls?.className || '[FE-Mock] Lớp học',
           amountDue: inv.amountDue,
+          amount: inv.amountDue,
+          paidAmount: inv.status === 'Paid' ? inv.amountDue : 0,
+          period: 'August 2026',
           dueDate: inv.dueDate,
           status: inv.status,
         };
@@ -56,6 +61,33 @@ export const tuitionDAL = {
         error: 'Backend API chưa bật (Đang dùng dữ liệu dự phòng mockData)',
       };
     }
+  },
+
+  /**
+   * Alias getAllTuitions() đồng bộ hóa dữ liệu Tuition
+   */
+  async getAllTuitions(): Promise<InvoicesFetchResult> {
+    const res = await this.getAllInvoices();
+    const mapped = res.data.map((inv) => ({
+      ...inv,
+      tuitionId: inv.invoiceId,
+      invoiceCode: inv.invoiceCode || `INV-${inv.invoiceId}`,
+      amount: inv.amount || inv.amountDue,
+      paidAmount: inv.paidAmount !== undefined ? inv.paidAmount : (inv.status === 'Paid' ? inv.amountDue : 0),
+      period: inv.period || 'August 2026',
+    }));
+    return {
+      ...res,
+      data: mapped,
+    };
+  },
+
+  /**
+   * Lấy chi tiết học phí / hóa đơn theo ID
+   */
+  async getTuitionById(id: number): Promise<TuitionInvoiceDto | null> {
+    const res = await this.getAllTuitions();
+    return res.data.find((t) => t.tuitionId === id || t.invoiceId === id) || null;
   },
 
   /**
@@ -96,6 +128,14 @@ export const tuitionDAL = {
         error: 'Backend API chưa bật (Đang dùng dữ liệu dự phòng mockData)',
       };
     }
+  },
+
+  getAll(): Promise<InvoicesFetchResult> {
+    return this.getAllTuitions();
+  },
+
+  getById(id: number): Promise<TuitionInvoiceDto | null> {
+    return this.getTuitionById(id);
   },
 };
 
