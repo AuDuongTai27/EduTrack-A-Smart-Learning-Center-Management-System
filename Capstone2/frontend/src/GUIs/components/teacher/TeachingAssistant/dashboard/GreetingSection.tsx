@@ -8,16 +8,16 @@ export interface GreetingSectionProps {
 }
 
 export function GreetingSection({
-  name = "Henriques",
+  name = "[FE-Mock] Âu Dương Tài",
   greeting,
-  message = "Have a Good day at work",
+  message = "Chúc bạn một ngày làm việc hỗ trợ lớp học thật hiệu quả tại EduTrack!",
 }: GreetingSectionProps) {
   const getGreetingText = (): string => {
     if (greeting) return greeting;
     const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
+    if (hour < 12) return "Chào buổi sáng,";
+    if (hour < 18) return "Chào buổi chiều,";
+    return "Chào buổi tối,";
   };
 
   return (

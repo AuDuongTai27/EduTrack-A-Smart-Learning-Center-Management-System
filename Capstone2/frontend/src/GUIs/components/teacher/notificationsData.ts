@@ -26,7 +26,7 @@ export const MOCK_TEACHER_NOTIFICATIONS: TeacherNotification[] = [
     isNew: true,
     isRead: false,
     timeAgo: "10 minutes ago",
-    title: "Updated Teaching Schedule for Academic Term 2026/2027",
+    title: "[FE-Mock] Updated Teaching Schedule for Academic Term 2026/2027",
     description:
       "Please review your updated class room allocations and time slots for the upcoming term starting next Monday.",
     hasBottomBorder: true,

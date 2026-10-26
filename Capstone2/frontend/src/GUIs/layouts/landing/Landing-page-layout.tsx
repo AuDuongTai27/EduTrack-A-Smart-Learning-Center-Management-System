@@ -14,7 +14,7 @@ export function LandingPageLayout() {
       <LandingHeader onOpenLogin={() => setLoginOpen(true)} />
 
       {/* 2. Vùng hiển thị nội dung động của trang */}
-      <Outlet />
+      <Outlet context={{ onOpenLogin: () => setLoginOpen(true) }} />
 
       {/* 3. Footer phụ trợ */}
       <LandingFooter />

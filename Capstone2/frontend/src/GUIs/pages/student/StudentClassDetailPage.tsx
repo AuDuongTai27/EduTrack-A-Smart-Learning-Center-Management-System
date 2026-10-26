@@ -4,7 +4,10 @@ import {
   CLASSES_DATA,
   MATERIALS_DATA,
   ASSIGNMENTS_DATA,
+  mapClassDtoToDetailItem,
+  type ClassDetailItem,
 } from '../../components/student/classDetail/classDetailData';
+import { classDAL } from '../../../DAL/classDAL';
 import { ClassHeroBanner } from '../../components/student/classDetail/ClassHeroBanner';
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
 import { ClassMaterialsSection } from '../../components/student/classDetail/ClassMaterialsSection';
@@ -18,9 +21,33 @@ export function StudentClassDetailPage() {
   const rawId = paramId || searchParams.get('id') || '1';
   const classId = parseInt(rawId, 10) || 1;
 
-  const cls = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
+  const initialCls = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
+  const [cls, setCls] = useState<ClassDetailItem>(initialCls);
+
   const materials = MATERIALS_DATA.filter((m) => m.classId === cls.id);
   const assignments = ASSIGNMENTS_DATA.filter((a) => a.classId === cls.id);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadClassDetail() {
+      try {
+        const dto = await classDAL.getClassById(classId);
+        if (isMounted && dto) {
+          const fallback = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
+          setCls(mapClassDtoToDetailItem(dto, fallback));
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải chi tiết lớp học:', err);
+      }
+    }
+
+    loadClassDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [classId]);
 
   useEffect(() => {
     document.title = `${cls.name} – EduTrack`;

@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
+import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
 
 export function ParentDashboardPage() {
   const { selectedChild } = useParent();
+  const [classes, setClasses] = useState<ChildClassItem[]>(selectedChild?.classes || []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadClasses() {
+      try {
+        const data = await parentDAL.getAllClasses();
+        if (isMounted && data && data.length > 0) {
+          setClasses(data);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải danh sách lớp con ở dashboard:', err);
+        if (isMounted && selectedChild) {
+          setClasses(selectedChild.classes);
+        }
+      }
+    }
+
+    loadClasses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedChild]);
 
   if (!selectedChild) {
     return null;
@@ -161,7 +187,7 @@ export function ParentDashboardPage() {
         <div className="d-flex align-items-center justify-content-between mb-3">
           <div className="section-title-wrap">
             <h2 className="section-title h5 fw-bold mb-0">Lớp học con đang tham gia</h2>
-            <span className="section-count-badge">{selectedChild.classes.length} lớp</span>
+            <span className="section-count-badge">{classes.length} lớp</span>
           </div>
           <Link to="/parent/classes" className="btn btn-sm btn-outline-primary rounded-pill px-3">
             Xem tất cả <i className="bi bi-chevron-right ms-1"></i>
@@ -169,7 +195,7 @@ export function ParentDashboardPage() {
         </div>
 
         <div className="classes-grid mb-4">
-          {selectedChild.classes.map((cls) => (
+          {classes.map((cls) => (
             <Link
               key={cls.id}
               to={`/parent/classes/${cls.id}`}

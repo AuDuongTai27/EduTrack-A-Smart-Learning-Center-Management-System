@@ -11,9 +11,9 @@ export interface TeachingAssistantKpiCardsProps {
 
 export function TeachingAssistantKpiCards({
   activeAssignments = 10,
-  assignmentsDueToday = 7,
+  assignmentsDueToday = 4,
   activeClasses = 6,
-  classesToday = 4,
+  classesToday = 3,
 }: TeachingAssistantKpiCardsProps = {}) {
   return (
     <div className="dashboard-kpis teacher-kpis mb-4">
@@ -22,7 +22,7 @@ export function TeachingAssistantKpiCards({
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between">
             <div>
-              <p className="text-muted mb-1">Active Assignments</p>
+              <p className="text-muted mb-1">Bài tập đang mở</p>
               <h3 className="mb-0">{activeAssignments}</h3>
             </div>
             <div className="kpi-icon bg-primary-subtle text-primary">
@@ -30,7 +30,7 @@ export function TeachingAssistantKpiCards({
             </div>
           </div>
           <div className="border-top mt-3 pt-3">
-            <span className="text-muted ms-1">{assignmentsDueToday} assignments due today</span>
+            <span className="text-muted ms-1">{assignmentsDueToday} bài cần chấm / hỗ trợ hôm nay</span>
           </div>
         </div>
       </div>
@@ -40,7 +40,7 @@ export function TeachingAssistantKpiCards({
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between">
             <div>
-              <p className="text-muted mb-1">Active Classes</p>
+              <p className="text-muted mb-1">Lớp học phụ trách</p>
               <h3 className="mb-0">{activeClasses}</h3>
             </div>
             <div className="kpi-icon bg-info-subtle text-info">
@@ -48,7 +48,7 @@ export function TeachingAssistantKpiCards({
             </div>
           </div>
           <div className="border-top mt-3 pt-3">
-            <span className="text-muted">{classesToday} classes today</span>
+            <span className="text-muted">{classesToday} ca trực lớp hôm nay</span>
           </div>
         </div>
       </div>

@@ -84,6 +84,13 @@ export default function AdminStaffSidebar() {
           <div className="nav-heading">COMMUNICATION</div>
           <NavLink
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+            to="/admin-staff/feedback"
+          >
+            <i className="bi bi-inbox-fill" />
+            <span>Received Requests &amp; Feedback</span>
+          </NavLink>
+          <NavLink
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             to="/admin-staff/notifications"
           >
             <i className="bi bi-megaphone-fill" />

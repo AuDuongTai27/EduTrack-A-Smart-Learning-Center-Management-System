@@ -8,6 +8,7 @@ import {
   STATUS_CLASS,
   SESSIONS,
   pad2,
+  type SessionItem,
 } from './scheduleData';
 import { ScheduleSessionCard } from './components/ScheduleSessionCard';
 
@@ -16,6 +17,7 @@ interface ScheduleTimetableCardProps {
   todayIdx: number;
   weekOffset: number;
   todayDate: Date;
+  sessions?: SessionItem[];
 }
 
 export function ScheduleTimetableCard({
@@ -23,6 +25,7 @@ export function ScheduleTimetableCard({
   todayIdx,
   weekOffset,
   todayDate,
+  sessions = SESSIONS,
 }: ScheduleTimetableCardProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -68,7 +71,7 @@ export function ScheduleTimetableCard({
           <div className="timetable-days-container" id="timetableDaysContainer">
             {days.map((_, di) => {
               const isToday = di === todayIdx && weekOffset === 0;
-              const colSessions = SESSIONS.filter((s) => s.day === di);
+              const colSessions = sessions.filter((s) => s.day === di);
 
               return (
                 <div

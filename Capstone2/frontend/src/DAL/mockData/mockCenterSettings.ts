@@ -7,7 +7,7 @@ export const MOCK_CENTER_SETTINGS: CenterSetting[] = [
   {
     settingId: 1,
     settingKey: 'center_name',
-    settingValue: 'EduTrack Smart Learning Center',
+    settingValue: '[FE-Mock] EduTrack Smart Learning Center',
     updatedBy: 1,
   },
   {

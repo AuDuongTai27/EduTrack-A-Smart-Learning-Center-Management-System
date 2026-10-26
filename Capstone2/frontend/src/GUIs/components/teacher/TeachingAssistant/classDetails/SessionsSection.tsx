@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 
-export default function SessionsSection() {
+export interface SessionsSectionProps {
+  classId?: string | number;
+}
+
+export default function SessionsSection({ classId = "1" }: SessionsSectionProps) {
   return (
     <details className="card class-list-card border-0 mb-4" open>
       <summary className="class-list-header d-flex align-items-center justify-content-between cursor-pointer py-3 px-4">
@@ -42,7 +46,7 @@ export default function SessionsSection() {
               <td className="text-muted small" />
               <td className="text-end">
                 <Link
-                  to="/teaching-assistant/classes/class-1-a/attendance"
+                  to={`/teaching-assistant/classes/${classId}/attendance`}
                   className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                 >
                   <i className="bi bi-clipboard-check" /> Attendance

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
 import type { NotifTabType } from '../../components/student/notifications/NotificationsFilterTabs';
 import { NotificationsFilterTabs } from '../../components/student/notifications/NotificationsFilterTabs';
+import { notificationDAL } from '../../../DAL/notificationDAL';
+import type { NotificationDto } from '../../../BLL/models/NotificationDto';
 
 interface ParentNotificationItem {
   id: number;
@@ -23,7 +25,7 @@ const INITIAL_PARENT_NOTIFS: ParentNotificationItem[] = [
     badgeLabel: 'Học phí',
     badgeClass: 'badge-tuition',
     icon: 'bi-wallet2',
-    title: 'Thông báo học phí kỳ mới tháng 10/2026',
+    title: '[FE-Mock] Thông báo học phí kỳ mới tháng 10/2026',
     snippet:
       'Hóa đơn học phí kỳ 2 cho học sinh Nguyễn Minh Anh đã được phát hành. Quý phụ huynh vui lòng hoàn thành trước ngày 25/10/2026.',
     meta: 'Học phí · 2.400.000 ₫',
@@ -36,7 +38,7 @@ const INITIAL_PARENT_NOTIFS: ParentNotificationItem[] = [
     badgeLabel: 'Lớp học',
     badgeClass: 'badge-attendance',
     icon: 'bi-check-circle',
-    title: 'Ghi nhận điểm danh buổi học Toán Nâng Cao',
+    title: '[FE-Mock] Ghi nhận điểm danh buổi học Toán Nâng Cao',
     snippet:
       'Học sinh Nguyễn Minh Anh đã có mặt đúng giờ tại phòng P.201. Giáo viên đánh giá con tích cực tham gia phát biểu.',
     meta: 'Điểm danh · Toán Nâng Cao',
@@ -49,7 +51,7 @@ const INITIAL_PARENT_NOTIFS: ParentNotificationItem[] = [
     badgeLabel: 'Trung tâm',
     badgeClass: 'badge-notice',
     icon: 'bi-megaphone',
-    title: 'Thông báo lịch nghỉ lễ và học bù của trung tâm',
+    title: '[FE-Mock] Thông báo lịch nghỉ lễ và học bù của trung tâm',
     snippet:
       'EduTrack xin gửi tới Quý phụ huynh kế hoạch nghỉ lễ Quốc khánh và lịch học bù của các lớp trong tuần tới.',
     meta: 'Thông báo chung',
@@ -62,7 +64,7 @@ const INITIAL_PARENT_NOTIFS: ParentNotificationItem[] = [
     badgeLabel: 'Đánh giá',
     badgeClass: 'badge-assignment',
     icon: 'bi-star',
-    title: 'Báo cáo định kỳ tháng 9 từ Thầy Nguyễn Văn An',
+    title: '[FE-Mock] Báo cáo định kỳ tháng 9 từ Thầy Nguyễn Văn An',
     snippet:
       'Thầy An đã cập nhật phiếu nhận xét học tập tháng 9 cho con. Quý phụ huynh có thể vào mục Tiến độ để xem chi tiết.',
     meta: 'Nhận xét giáo viên',
@@ -71,13 +73,86 @@ const INITIAL_PARENT_NOTIFS: ParentNotificationItem[] = [
   },
 ];
 
+function mapNotificationDtoToParentItem(dto: NotificationDto): ParentNotificationItem {
+  let category: ParentNotificationItem['category'] = 'system';
+  let badgeLabel = 'Trung tâm';
+  let badgeClass = 'badge-notice';
+  let icon = 'bi-megaphone';
+
+  const typeLower = (dto.type || '').toLowerCase();
+  if (typeLower.includes('tuition') || typeLower.includes('payment') || typeLower.includes('fee')) {
+    category = 'payment';
+    badgeLabel = 'Học phí';
+    badgeClass = 'badge-tuition';
+    icon = 'bi-wallet2';
+  } else if (
+    typeLower.includes('class') ||
+    typeLower.includes('homework') ||
+    typeLower.includes('assignment') ||
+    typeLower.includes('schedule')
+  ) {
+    category = 'class';
+    badgeLabel = dto.className || 'Lớp học';
+    badgeClass = 'badge-attendance';
+    icon = 'bi-check-circle';
+  }
+
+  let timestamp = 'Vừa xong';
+  if (dto.createdAt) {
+    try {
+      const d = new Date(dto.createdAt);
+      if (!isNaN(d.getTime())) {
+        timestamp = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      }
+    } catch {
+      timestamp = dto.createdAt;
+    }
+  }
+
+  return {
+    id: dto.notificationId,
+    category,
+    badgeLabel,
+    badgeClass,
+    icon,
+    title: dto.title,
+    snippet: dto.content,
+    meta: dto.className ? `${badgeLabel} · ${dto.className}` : badgeLabel,
+    timestamp,
+    unread: !dto.isRead,
+  };
+}
+
 export function ParentNotificationsPage() {
   const { selectedChild } = useParent();
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
+  const [notifications, setNotifications] = useState<ParentNotificationItem[]>(INITIAL_PARENT_NOTIFS);
   const [readIds, setReadIds] = useState<Set<number>>(new Set());
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadNotifications() {
+      try {
+        const result = await notificationDAL.getAllNotifications();
+        if (isMounted && result.data && result.data.length > 0) {
+          const mapped = result.data.map(mapNotificationDtoToParentItem);
+          setNotifications(mapped);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải thông báo phụ huynh:', err);
+      }
+    }
+
+    loadNotifications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const getUnreadCount = (): number => {
-    return INITIAL_PARENT_NOTIFS.filter((n) => n.unread && !readIds.has(n.id)).length;
+    return notifications.filter((n) => n.unread && !readIds.has(n.id)).length;
   };
 
   const handleMarkRead = (id: number) => {
@@ -89,10 +164,10 @@ export function ParentNotificationsPage() {
   };
 
   const handleMarkAllRead = () => {
-    setReadIds(new Set(INITIAL_PARENT_NOTIFS.map((n) => n.id)));
+    setReadIds(new Set(notifications.map((n) => n.id)));
   };
 
-  const filtered = INITIAL_PARENT_NOTIFS.filter((n) => {
+  const filtered = notifications.filter((n) => {
     const isUnread = n.unread && !readIds.has(n.id);
     if (activeTab === 'Unread') return isUnread;
     if (activeTab === 'Class') return n.category === 'class';

@@ -141,7 +141,7 @@ export const studentDAL = {
       result.push({
         classId: cls.classId,
         className: cls.className,
-        room: cls.room,
+        room: cls.room ?? null,
         status: cls.status,
         subject,
         teacher,

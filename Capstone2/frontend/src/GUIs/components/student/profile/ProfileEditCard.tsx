@@ -46,8 +46,14 @@ export function ProfileEditCard({
             <div className="edit-form-wrap">
               {/* Avatar Upload Row */}
               <div className="d-flex align-items-end gap-4 -mt-14 mb-4 position-relative" style={{ marginTop: '-52px' }}>
-                <div className="avatar-upload-box" id="avatarUploadBox" title="Nhấp để chọn ảnh mới">
-                  <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=240&h=240&fit=crop&auto=format" alt="Avatar" className="profile-avatar-img" id="editAvatarImg" />
+                <div
+                  className="avatar-upload-box"
+                  id="avatarUploadBox"
+                  title="Nhấp để chọn ảnh mới"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <img src={formData.avatarUrl} alt="Avatar" className="profile-avatar-img" id="editAvatarImg" />
                   <div className="avatar-upload-overlay">
                     <i className="bi bi-camera-fill fs-5"></i>
                     <span>Thay ảnh</span>
@@ -57,7 +63,12 @@ export function ProfileEditCard({
                 <input type="file" id="avatarFileInput" accept="image/*" className="d-none" ref={fileInputRef} onChange={handleFileChange} />
 
                 <div className="pb-2">
-                  <button type="button" className="btn btn-link text-decoration-none p-0 fw-bold d-flex align-items-center gap-1.5 text-primary" id="btnChangeAvatar">
+                  <button
+                    type="button"
+                    className="btn btn-link text-decoration-none p-0 fw-bold d-flex align-items-center gap-1.5 text-primary"
+                    id="btnChangeAvatar"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     <i className="bi bi-camera"></i>
                     <span>Thay ảnh đại diện</span>
                   </button>
@@ -90,9 +101,14 @@ export function ProfileEditCard({
                   <label className="form-field-label" htmlFor="inputGender">Giới tính</label>
                   <div className="input-icon-wrap">
                     <i className="bi bi-gender-ambiguous"></i>
-                    <select className="et-form-input" id="inputGender">
+                    <select
+                      className="et-form-input"
+                      id="inputGender"
+                      value={formData.gender}
+                      onChange={(e) => onChange({ ...formData, gender: e.target.value })}
+                    >
                       <option value="Nam">Nam</option>
-                      <option value="Nữ" selected>Nữ</option>
+                      <option value="Nữ">Nữ</option>
                       <option value="Khác">Khác</option>
                     </select>
                   </div>

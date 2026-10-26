@@ -1,4 +1,11 @@
-export default function ScheduleTable() {
+import { Link } from "react-router-dom";
+import type { ClassScheduleDto } from "../../../../../BLL/models/ClassScheduleDto";
+
+export interface ScheduleTableProps {
+  schedules?: ClassScheduleDto[];
+}
+
+export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
   return (
     <div className="table-responsive-container">
       <table className="table custom-table align-middle" id="scheduleTable">
@@ -13,239 +20,151 @@ export default function ScheduleTable() {
                 />
               </div>
             </th>
-            <th>
-              Class <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              Subject <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              Location <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              Date <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              Start Time <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              End Time <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              Students <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              Teacher{" "}
-              <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
-            <th>
-              Status <i className="bi bi-arrow-down-up table-sort-icon" />
-            </th>
+            <th>Class <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Subject <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Location <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Day / Date <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Start Time <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>End Time <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Students <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Teacher <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Status <i className="bi bi-arrow-down-up table-sort-icon" /></th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr data-class="Class I" data-status="Active">
-            <td>
-              <div className="form-check m-0">
-                <input
-                  className="form-check-input row-checkbox"
-                  type="checkbox"
-                />
-              </div>
-            </td>
-            <td>
-              <a href="#" className="class-id-link">
-                Class I-A
-              </a>
-            </td>
-            <td>Physics</td>
-            <td>Room 101</td>
-            <td>16 Aug 2026</td>
-            <td>08:00 AM</td>
-            <td>09:30 AM</td>
-            <td>30</td>
-            <td>
-              <div className="d-flex align-items-center gap-2">
-                <img
-                  src="/assets/img/profiles/avatar-02.jpg"
-                  className="ta-avatar-img"
-                  alt="Dr. Alex Morgan"
-                />
-                <span>Dr. Alex Morgan</span>
-              </div>
-            </td>
-            <td>
-              <span className="badge-status badge-status-active">Active</span>
-            </td>
-            <td>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-              >
-                <i className="bi bi-eye" /> View
-              </button>
-            </td>
-          </tr>
-          <tr data-class="Class I" data-status="Active">
-            <td>
-              <div className="form-check m-0">
-                <input
-                  className="form-check-input row-checkbox"
-                  type="checkbox"
-                />
-              </div>
-            </td>
-            <td>
-              <a href="#" className="class-id-link">
-                Class I-A
-              </a>
-            </td>
-            <td>Physics</td>
-            <td>Lab 2</td>
-            <td>16 Aug 2026</td>
-            <td>10:00 AM</td>
-            <td>11:30 AM</td>
-            <td>30</td>
-            <td>
-              <div className="d-flex align-items-center gap-2">
-                <span className="ta-avatar-initials bg-primary-subtle text-primary">
-                  MR
-                </span>
-                <span>Michael Reed</span>
-              </div>
-            </td>
-            <td>
-              <span className="badge-status badge-status-active">Active</span>
-            </td>
-            <td>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-              >
-                <i className="bi bi-eye" /> View
-              </button>
-            </td>
-          </tr>
-          <tr data-class="Class I" data-status="Active">
-            <td>
-              <div className="form-check m-0">
-                <input
-                  className="form-check-input row-checkbox"
-                  type="checkbox"
-                />
-              </div>
-            </td>
-            <td>
-              <a href="#" className="class-id-link">
-                Class I-A
-              </a>
-            </td>
-            <td>Physics</td>
-            <td>Room 101</td>
-            <td>16 Aug 2026</td>
-            <td>01:00 PM</td>
-            <td>02:30 PM</td>
-            <td>30</td>
-            <td>
-              <span className="text-muted small fst-italic">Unassigned</span>
-            </td>
-            <td>
-              <span className="badge-status badge-status-active">Active</span>
-            </td>
-            <td>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-              >
-                <i className="bi bi-eye" /> View
-              </button>
-            </td>
-          </tr>
-          <tr data-class="Class I" data-status="Active">
-            <td>
-              <div className="form-check m-0">
-                <input
-                  className="form-check-input row-checkbox"
-                  type="checkbox"
-                />
-              </div>
-            </td>
-            <td>
-              <a href="#" className="class-id-link">
-                Class I-A
-              </a>
-            </td>
-            <td>Physics</td>
-            <td>Lab 2</td>
-            <td>16 Aug 2026</td>
-            <td>03:00 PM</td>
-            <td>04:30 PM</td>
-            <td>30</td>
-            <td>
-              <div className="d-flex align-items-center gap-2">
-                <img
-                  src="/assets/img/profiles/avatar-02.jpg"
-                  className="ta-avatar-img"
-                  alt="Dr. Alex Morgan"
-                />
-                <span>Dr. Alex Morgan</span>
-              </div>
-            </td>
-            <td>
-              <span className="badge-status badge-status-active">Active</span>
-            </td>
-            <td>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-              >
-                <i className="bi bi-eye" /> View
-              </button>
-            </td>
-          </tr>
-          <tr data-class="Class I" data-status="Inactive">
-            <td>
-              <div className="form-check m-0">
-                <input
-                  className="form-check-input row-checkbox"
-                  type="checkbox"
-                />
-              </div>
-            </td>
-            <td>
-              <a href="#" className="class-id-link">
-                Class I-A
-              </a>
-            </td>
-            <td>Physics</td>
-            <td>Room 101</td>
-            <td>16 Aug 2026</td>
-            <td>05:00 PM</td>
-            <td>06:30 PM</td>
-            <td>30</td>
-            <td>
-              <div className="d-flex align-items-center gap-2">
-                <span className="ta-avatar-initials bg-success-subtle text-success">
-                  EL
-                </span>
-                <span>Emily Lawson</span>
-              </div>
-            </td>
-            <td>
-              <span className="badge-status badge-status-inactive">
-                Inactive
-              </span>
-            </td>
-            <td>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-              >
-                <i className="bi bi-eye" /> View
-              </button>
-            </td>
-          </tr>
+          {schedules.length > 0 ? (
+            schedules.map((s, idx) => {
+              const subject = s.className?.toLowerCase().includes("physics")
+                ? "Physics"
+                : s.className?.toLowerCase().includes("math")
+                ? "Mathematics"
+                : "Môn học";
+              const teacherName = "ThS. Hoàng Quốc Việt";
+
+              return (
+                <tr key={s.scheduleId || idx}>
+                  <td>
+                    <div className="form-check m-0">
+                      <input className="form-check-input row-checkbox" type="checkbox" />
+                    </div>
+                  </td>
+                  <td>
+                    <Link to={`/teaching-assistant/classes/${s.classId}`} className="class-id-link fw-bold">
+                      {s.className}
+                    </Link>
+                  </td>
+                  <td>{subject}</td>
+                  <td>{s.room || "Room 101"}</td>
+                  <td>{s.dayOfWeek ? `Every ${s.dayOfWeek}` : "16 Aug 2026"}</td>
+                  <td>{s.startTime ? s.startTime.substring(0, 5) : "08:00 AM"}</td>
+                  <td>{s.endTime ? s.endTime.substring(0, 5) : "09:45 AM"}</td>
+                  <td>25</td>
+                  <td>
+                    <div className="d-flex align-items-center gap-2">
+                      <div
+                        className="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
+                        style={{ width: "28px", height: "28px", fontSize: "11px" }}
+                      >
+                        TC
+                      </div>
+                      <span>{teacherName}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="badge-status badge-status-active">Active</span>
+                  </td>
+                  <td>
+                    <Link
+                      to={`/teaching-assistant/classes/${s.classId}`}
+                      className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                    >
+                      <i className="bi bi-eye" /> View
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <>
+              {/* Fallback Schedule 1 */}
+              <tr>
+                <td>
+                  <div className="form-check m-0">
+                    <input className="form-check-input row-checkbox" type="checkbox" />
+                  </div>
+                </td>
+                <td>
+                  <Link to="/teaching-assistant/classes/1" className="class-id-link fw-bold">
+                    [FE-Mock] Class I-A
+                  </Link>
+                </td>
+                <td>Physics</td>
+                <td>Room 101</td>
+                <td>16 Aug 2026</td>
+                <td>09:00 AM</td>
+                <td>09:45 AM</td>
+                <td>25</td>
+                <td>
+                  <div className="d-flex align-items-center gap-2">
+                    <div
+                      className="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
+                      style={{ width: "28px", height: "28px", fontSize: "11px" }}
+                    >
+                      TC
+                    </div>
+                    <span>ThS. Hoàng Quốc Việt</span>
+                  </div>
+                </td>
+                <td>
+                  <span className="badge-status badge-status-active">Active</span>
+                </td>
+                <td>
+                  <Link to="/teaching-assistant/classes/1" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                    <i className="bi bi-eye" /> View
+                  </Link>
+                </td>
+              </tr>
+              {/* Fallback Schedule 2 */}
+              <tr>
+                <td>
+                  <div className="form-check m-0">
+                    <input className="form-check-input row-checkbox" type="checkbox" />
+                  </div>
+                </td>
+                <td>
+                  <Link to="/teaching-assistant/classes/2" className="class-id-link fw-bold">
+                    [FE-Mock] Class II-B
+                  </Link>
+                </td>
+                <td>Chemistry</td>
+                <td>Lab 2</td>
+                <td>17 Aug 2026</td>
+                <td>10:00 AM</td>
+                <td>10:45 AM</td>
+                <td>30</td>
+                <td>
+                  <div className="d-flex align-items-center gap-2">
+                    <div
+                      className="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
+                      style={{ width: "28px", height: "28px", fontSize: "11px" }}
+                    >
+                      TC
+                    </div>
+                    <span>ThS. Hoàng Quốc Việt</span>
+                  </div>
+                </td>
+                <td>
+                  <span className="badge-status badge-status-active">Active</span>
+                </td>
+                <td>
+                  <Link to="/teaching-assistant/classes/2" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                    <i className="bi bi-eye" /> View
+                  </Link>
+                </td>
+              </tr>
+            </>
+          )}
         </tbody>
       </table>
     </div>

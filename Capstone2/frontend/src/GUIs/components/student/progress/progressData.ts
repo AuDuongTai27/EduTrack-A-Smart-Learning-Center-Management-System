@@ -23,7 +23,7 @@ export interface ProgressClassItem {
 export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
   {
     id: 'card1',
-    className: 'Lớp Toán 10A',
+    className: '[FE-Mock] Lớp Toán 10A',
     subjectName: 'Toán học',
     colorTheme: 'prog-blue',
     icon: 'bi-calculator',
@@ -59,7 +59,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
   },
   {
     id: 'card2',
-    className: 'Lớp Vật Lý 10B',
+    className: '[FE-Mock] Lớp Vật Lý 10B',
     subjectName: 'Vật lý',
     colorTheme: 'prog-purple',
     icon: 'bi-lightning-charge',
@@ -87,7 +87,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
   },
   {
     id: 'card3',
-    className: 'Lớp Tiếng Anh B1',
+    className: '[FE-Mock] Lớp Tiếng Anh B1',
     subjectName: 'Tiếng Anh',
     colorTheme: 'prog-green',
     icon: 'bi-translate',
@@ -167,3 +167,75 @@ export const PAST_PROGRESS_CLASSES: ProgressClassItem[] = [
     ],
   },
 ];
+
+import type { AttendanceDto, ProgressNoteDto } from '../../../../BLL/models/ProgressDto';
+
+export function mapNotesAndAttendancesToClasses(
+  notes: ProgressNoteDto[],
+  attendances: AttendanceDto[]
+): ProgressClassItem[] {
+  if ((!notes || notes.length === 0) && (!attendances || attendances.length === 0)) {
+    return CURRENT_PROGRESS_CLASSES;
+  }
+
+  // Nhóm theo lớp học
+  const classMap = new Map<number, { className: string; feedbacks: ProgressFeedback[]; attended: number; total: number }>();
+
+  attendances.forEach((att) => {
+    const cid = att.classId || 1;
+    if (!classMap.has(cid)) {
+      classMap.set(cid, {
+        className: att.className || `Lớp học #${cid}`,
+        feedbacks: [],
+        attended: 0,
+        total: 0,
+      });
+    }
+    const record = classMap.get(cid)!;
+    record.total += 1;
+    if (att.status === 'present' || att.status === 'late') {
+      record.attended += 1;
+    }
+  });
+
+  notes.forEach((note) => {
+    const cid = note.classId || 1;
+    if (!classMap.has(cid)) {
+      classMap.set(cid, {
+        className: note.className || `Lớp học #${cid}`,
+        feedbacks: [],
+        attended: 10,
+        total: 12,
+      });
+    }
+    const record = classMap.get(cid)!;
+    record.feedbacks.push({
+      assignmentTitle: `Ghi chú tiến độ: ${note.noteType}`,
+      quote: note.content,
+      teacherName: note.authorName || 'Giáo viên',
+      statusType: note.noteType === 'praise' ? 'dat' : note.noteType === 'warning' ? 'canluuy' : 'dat',
+      statusIcon: note.noteType === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-check2-all',
+      statusLabel: note.noteType === 'praise' ? 'Khen ngợi' : note.noteType === 'warning' ? 'Cần lưu ý' : 'Đạt',
+    });
+  });
+
+  const colorThemes = ['prog-blue', 'prog-purple', 'prog-orange', 'prog-green'];
+
+  return Array.from(classMap.entries()).map(([cid, info], index) => {
+    const total = info.total > 0 ? info.total : 10;
+    const attended = info.attended > 0 ? info.attended : 8;
+    const percentage = Math.round((attended / total) * 100);
+
+    return {
+      id: `live-card-${cid}`,
+      className: info.className,
+      subjectName: info.className.split('–')[0]?.trim() || 'Môn học',
+      colorTheme: colorThemes[index % colorThemes.length],
+      icon: 'bi-calculator',
+      attended,
+      total,
+      percentage,
+      feedbacks: info.feedbacks.length > 0 ? info.feedbacks : CURRENT_PROGRESS_CLASSES[0].feedbacks,
+    };
+  });
+}

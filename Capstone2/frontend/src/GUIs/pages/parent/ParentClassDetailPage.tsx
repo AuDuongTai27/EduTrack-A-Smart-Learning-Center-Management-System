@@ -1,15 +1,39 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
+import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
 
 export function ParentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
   const { selectedChild } = useParent();
 
   const classId = parseInt(paramId || '1', 10);
-  const cls =
+  const fallbackCls =
     selectedChild?.classes.find((c) => c.id === classId) ||
     selectedChild?.classes[0];
+
+  const [cls, setCls] = useState<ChildClassItem | undefined>(fallbackCls);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDetail() {
+      try {
+        const item = await parentDAL.getChildClassById(classId);
+        if (isMounted && item) {
+          setCls(item);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải chi tiết lớp học:', err);
+      }
+    }
+
+    loadDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [classId]);
 
   useEffect(() => {
     if (cls) {

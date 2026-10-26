@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { CURRENT_PROGRESS_CLASSES } from './progressData';
+import { CURRENT_PROGRESS_CLASSES, type ProgressClassItem } from './progressData';
 import { ProgressClassAccordion } from './components/ProgressClassAccordion';
 
-export function ProgressCurrentSection() {
+export interface ProgressCurrentSectionProps {
+  classes?: ProgressClassItem[];
+}
+
+export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: ProgressCurrentSectionProps) {
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({
     card1: true,
   });
@@ -17,7 +21,7 @@ export function ProgressCurrentSection() {
         <div>
           <h2 className="progress-section-title">Tiến độ hiện tại</h2>
           <div className="progress-section-subtitle">
-            {CURRENT_PROGRESS_CLASSES.length} lớp đang học &middot; Học kỳ 1
+            {classes.length} lớp đang học &middot; Học kỳ 1
           </div>
         </div>
         <div className="live-studying-badge">
@@ -29,7 +33,7 @@ export function ProgressCurrentSection() {
         </div>
       </div>
 
-      {CURRENT_PROGRESS_CLASSES.map((cls) => (
+      {classes.map((cls) => (
         <ProgressClassAccordion
           key={cls.id}
           item={cls}

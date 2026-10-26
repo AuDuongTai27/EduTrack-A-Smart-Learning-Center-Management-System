@@ -1,17 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
 import { ScheduleHeader } from '../../components/student/schedule/ScheduleHeader';
 import { ScheduleTimetableCard } from '../../components/student/schedule/ScheduleTimetableCard';
 import { ScheduleLegendStrip } from '../../components/student/schedule/ScheduleLegendStrip';
+import { scheduleDAL } from '../../../DAL/scheduleDAL';
 import {
   getMonday,
   addDays,
   fmtDayMon,
+  SESSIONS,
+  mapClassScheduleDtoToSessionItem,
+  type SessionItem,
 } from '../../components/student/schedule/scheduleData';
 
 export function ParentSchedulePage() {
   const { selectedChild } = useParent();
   const [weekOffset, setWeekOffset] = useState<number>(0);
+  const [sessions, setSessions] = useState<SessionItem[]>(SESSIONS);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSchedules() {
+      try {
+        const result = await scheduleDAL.getAllClassSchedules();
+        if (isMounted && result.data && result.data.length > 0) {
+          const mapped = result.data.map(mapClassScheduleDtoToSessionItem);
+          setSessions(mapped);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải thời khóa biểu phụ huynh:', err);
+      }
+    }
+
+    loadSchedules();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Reference date aligned with prototype
   const todayDate = new Date('2026-08-15T15:20:00');
@@ -61,6 +88,7 @@ export function ParentSchedulePage() {
           todayIdx={todayIdx}
           weekOffset={weekOffset}
           todayDate={todayDate}
+          sessions={sessions}
         />
 
         {/* 2. Status Legend Strip */}

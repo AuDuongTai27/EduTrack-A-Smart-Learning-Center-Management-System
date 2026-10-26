@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
 import { LinkStudentModal } from '../../components/parent/LinkStudentModal';
+import { userDAL } from '../../../DAL/userDAL';
 
 export function ParentProfilePage() {
   const { childrenList, resetDemoChildren, setDemoEmptyState } = useParent();
@@ -9,16 +10,43 @@ export function ParentProfilePage() {
 
   // Thông tin phụ huynh
   const [parentInfo, setParentInfo] = useState({
-    fullName: 'Nguyễn Văn Bình',
-    phone: '0903 123 456',
-    email: 'binh.nguyen@example.com',
+    fullName: 'Lê Văn Nam',
+    phone: '0981 112 233',
+    email: 'nam.le@example.com',
     address: 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
     identityCard: '001085012345',
-    relationship: 'Bố',
+    relationship: 'Phụ huynh',
   });
 
   const [formData, setFormData] = useState(parentInfo);
   const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadParentProfile() {
+      try {
+        const u = await userDAL.getUserById(9);
+        if (isMounted && u) {
+          const info = {
+            fullName: u.fullName || 'Lê Văn Nam',
+            phone: u.phone || '0981 112 233',
+            email: u.email || 'nam.le@example.com',
+            address: 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
+            identityCard: '001085012345',
+            relationship: 'Phụ huynh',
+          };
+          setParentInfo(info);
+          setFormData(info);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải hồ sơ phụ huynh:', err);
+      }
+    }
+    loadParentProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSave = () => {
     setParentInfo(formData);

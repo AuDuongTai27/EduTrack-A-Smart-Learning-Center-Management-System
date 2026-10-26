@@ -7,6 +7,7 @@ import AdminStaffTeachingMonitoring from "../GUIs/pages/admin/AdminStaff/AdminSt
 import AdminStaffClassPage from "../GUIs/pages/admin/AdminStaff/AdminStaffClassPage";
 import AdminStaffTuitionPage from "../GUIs/pages/admin/AdminStaff/AdminStaffTuitionPage";
 import AdminStaffApprovalRequestPage from "../GUIs/pages/admin/AdminStaff/AdminStaffApprovalRequestPage";
+import AdminStaffFeedbackPage from "../GUIs/pages/admin/AdminStaff/AdminStaffFeedbackPage";
 import AdminStaffReportPage from "../GUIs/pages/admin/AdminStaff/AdminStaffReportPage";
 
 export const adminStaffRoutes: RouteObject = {
@@ -42,6 +43,10 @@ export const adminStaffRoutes: RouteObject = {
       element: <AdminStaffApprovalRequestPage />,
     },
     {
+      path: "feedback",
+      element: <AdminStaffFeedbackPage />,
+    },
+    {
       path: "notifications",
       element: <AdminStaffNotificationPage />,
     },
@@ -51,3 +56,5 @@ export const adminStaffRoutes: RouteObject = {
     },
   ],
 };
+
+export default adminStaffRoutes;

@@ -1,4 +1,4 @@
-﻿export interface EnrolledClassItem {
+export interface EnrolledClassItem {
   classId: number;
   className: string;
   badge: string;
@@ -12,7 +12,7 @@
 export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   {
     classId: 1,
-    className: 'Toán 9A – Đại Số',
+    className: '[FE-Mock] Toán 9A – Đại Số',
     badge: 'Toán học',
     subjectThemeClass: 'theme-math',
     teacherName: 'Nguyễn Văn Minh',
@@ -22,7 +22,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 2,
-    className: 'Vật Lý 9B – Cơ Học',
+    className: '[FE-Mock] Vật Lý 9B – Cơ Học',
     badge: 'Vật lý',
     subjectThemeClass: 'theme-physics',
     teacherName: 'Trần Thị Hà',
@@ -32,7 +32,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 3,
-    className: 'Hóa Học 9A – Hóa Vô Cơ',
+    className: '[FE-Mock] Hóa Học 9A – Hóa Vô Cơ',
     badge: 'Hóa học',
     subjectThemeClass: 'theme-chemistry',
     teacherName: 'Lê Hoàng Nam',
@@ -42,7 +42,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 4,
-    className: 'Tiếng Anh 9 – Giao Tiếp',
+    className: '[FE-Mock] Tiếng Anh 9 – Giao Tiếp',
     badge: 'Tiếng Anh',
     subjectThemeClass: 'theme-english',
     teacherName: 'Phạm Thu Thảo',
@@ -52,7 +52,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 5,
-    className: 'Ngữ Văn 9 – Luyện Đề',
+    className: '[FE-Mock] Ngữ Văn 9 – Luyện Đề',
     badge: 'Ngữ văn',
     subjectThemeClass: 'theme-literature',
     teacherName: 'Võ Thị Mai',
@@ -62,7 +62,7 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   },
   {
     classId: 6,
-    className: 'Sinh Học 9 – Di Truyền Học',
+    className: '[FE-Mock] Sinh Học 9 – Di Truyền Học',
     badge: 'Sinh học',
     subjectThemeClass: 'theme-biology',
     teacherName: 'Đỗ Tuấn Anh',
@@ -71,3 +71,43 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     room: 'Phòng B104',
   },
 ];
+
+import type { ClassDto } from '../../../../BLL/models/ClassDto';
+
+/**
+ * Chuyển đổi dữ liệu ClassDto từ Backend (.NET API) sang định dạng hiển thị EnrolledClassItem
+ */
+export function mapClassDtoToEnrolledItem(dto: ClassDto): EnrolledClassItem {
+  let subjectThemeClass = 'theme-math';
+  let badge = dto.subjectName || 'Toán học';
+  const code = (dto.subjectCode || '').toUpperCase();
+
+  if (code.includes('PHYS') || code.includes('VAT') || code.includes('LY')) {
+    subjectThemeClass = 'theme-physics';
+    badge = 'Vật lý';
+  } else if (code.includes('CHEM') || code.includes('HOA')) {
+    subjectThemeClass = 'theme-chemistry';
+    badge = 'Hóa học';
+  } else if (code.includes('ENG') || code.includes('ANH')) {
+    subjectThemeClass = 'theme-english';
+    badge = 'Tiếng Anh';
+  } else if (code.includes('LIT') || code.includes('VAN')) {
+    subjectThemeClass = 'theme-literature';
+    badge = 'Ngữ văn';
+  } else if (code.includes('BIO') || code.includes('SINH')) {
+    subjectThemeClass = 'theme-biology';
+    badge = 'Sinh học';
+  }
+
+  return {
+    classId: dto.classId,
+    className: dto.className,
+    badge: badge,
+    subjectThemeClass: subjectThemeClass,
+    teacherName: 'Giáo viên phụ trách',
+    teacherInitials: dto.className.slice(0, 2).toUpperCase(),
+    scheduleText: dto.startDate ? `Khai giảng: ${new Date(dto.startDate).toLocaleDateString('vi-VN')}` : 'Đang cập nhật lịch',
+    room: dto.room || 'Phòng học chính',
+  };
+}
+

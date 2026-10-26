@@ -1,8 +1,10 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { FeedbackApprovalRequest } from './feedbackData';
 import { INITIAL_FEEDBACK_REQUESTS } from './feedbackData';
 import { FeedbackFormCard } from './components/FeedbackFormCard';
 import { FeedbackItemCard } from './components/FeedbackItemCard';
+import { feedbackDAL } from '../../../../DAL/feedbackDAL';
+import type { ApprovalRequestDto } from '../../../../BLL/models/ApprovalRequestDto';
 
 export type { FeedbackApprovalRequest };
 
@@ -21,6 +23,57 @@ export function FeedbackView({
   const [description, setDescription] = useState<string>('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadRequests() {
+      try {
+        const res = await feedbackDAL.getAllRequests();
+        if (isMounted && res.data && res.data.length > 0) {
+          const mapped: FeedbackApprovalRequest[] = res.data.map((dto) => {
+            const statusMap: Record<string, string> = {
+              pending: 'Chờ duyệt',
+              approved: 'Đã duyệt',
+              rejected: 'Đã từ chối',
+            };
+            let dateStr = '08/09/2026';
+            if (dto.createdAt) {
+              try {
+                const d = new Date(dto.createdAt);
+                if (!isNaN(d.getTime())) {
+                  dateStr = d.toLocaleDateString('vi-VN');
+                }
+              } catch {
+                dateStr = dto.createdAt;
+              }
+            }
+            return {
+              id: dto.requestId,
+              requestType: 'feedback',
+              title: dto.title || `Yêu cầu #${dto.requestCode}`,
+              description: dto.description || dto.reason || '',
+              senderName: dto.requesterName || userName,
+              senderRole: userRole,
+              createdAt: dateStr,
+              status: (dto.status as any) || 'pending',
+              statusLabel: statusMap[dto.status?.toLowerCase()] || 'Đang xử lý',
+              responseMessage: dto.reviewNotes || undefined,
+            };
+          });
+          setRequests(mapped);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải danh sách phản hồi:', err);
+      }
+    }
+
+    loadRequests();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userName, userRole]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

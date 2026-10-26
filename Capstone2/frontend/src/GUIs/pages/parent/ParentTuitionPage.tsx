@@ -1,13 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
 import { TuitionBillCard } from '../../components/student/tuition/TuitionBillCard';
 import { TuitionPaymentCTA } from '../../components/student/tuition/TuitionPaymentCTA';
 import { TuitionHistorySection } from '../../components/student/tuition/TuitionHistorySection';
 import { TuitionPaymentModal } from '../../components/student/tuition/TuitionPaymentModal';
+import { tuitionDAL } from '../../../DAL/tuitionDAL';
+import {
+  CURRENT_TUITION_BILL,
+  TUITION_HISTORY,
+  mapInvoicesToTuitionBill,
+  mapPaymentsToHistoryItems,
+  type TuitionBill,
+  type TuitionHistoryItem,
+} from '../../components/student/tuition/tuitionData';
 
 export function ParentTuitionPage() {
   const { selectedChild } = useParent();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [bill, setBill] = useState<TuitionBill>(CURRENT_TUITION_BILL);
+  const [history, setHistory] = useState<TuitionHistoryItem[]>(TUITION_HISTORY);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadTuition() {
+      try {
+        const [invoicesRes, paymentsRes] = await Promise.all([
+          tuitionDAL.getAllInvoices(),
+          tuitionDAL.getAllPayments(),
+        ]);
+
+        if (isMounted) {
+          if (invoicesRes.data && invoicesRes.data.length > 0) {
+            setBill(mapInvoicesToTuitionBill(invoicesRes.data));
+          }
+          if (paymentsRes.data && paymentsRes.data.length > 0) {
+            setHistory(mapPaymentsToHistoryItems(paymentsRes.data));
+          }
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải thông tin học phí phụ huynh:', err);
+      }
+    }
+
+    loadTuition();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (!selectedChild) {
     return null;
@@ -31,13 +72,13 @@ export function ParentTuitionPage() {
         </div>
 
         {/* 2. Bill Card (Hóa đơn học phí hiện tại) */}
-        <TuitionBillCard />
+        <TuitionBillCard bill={bill} />
 
         {/* 3. Payment CTA Action (DÀNH RIÊNG CHO PHỤ HUYNH CÓ NÚT THANH TOÁN) */}
         <TuitionPaymentCTA onPayNow={() => setModalOpen(true)} />
 
         {/* 4. Payment History Section (Lịch sử các giao dịch) */}
-        <TuitionHistorySection />
+        <TuitionHistorySection history={history} />
       </div>
 
       {/* Payment Modal (Modal cổng thanh toán online VNPay, MoMo, Ngân hàng) */}

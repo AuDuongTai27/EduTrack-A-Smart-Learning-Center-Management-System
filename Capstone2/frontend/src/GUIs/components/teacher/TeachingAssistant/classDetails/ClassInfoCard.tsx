@@ -1,4 +1,16 @@
-export default function ClassInfoCard() {
+import type { ClassDto } from "../../../../../BLL/models/ClassDto";
+
+export interface ClassInfoCardProps {
+  classInfo?: ClassDto | null;
+  teacherName?: string;
+  taName?: string;
+}
+
+export default function ClassInfoCard({
+  classInfo,
+  teacherName = "ThS. Hoàng Quốc Việt",
+  taName = "Âu Dương Tài",
+}: ClassInfoCardProps) {
   return (
     <div className="card class-list-card border-0 mb-4">
       <div className="card-body p-4">
@@ -7,18 +19,15 @@ export default function ClassInfoCard() {
             <div className="d-flex align-items-center gap-3">
               <div
                 className="avatar-box rounded-3 d-flex align-items-center justify-content-center"
-                style={{
-                  width: 48,
-                  height: 48,
-                  backgroundColor: "#ede8ff",
-                  color: "#5d3fd3",
-                }}
+                style={{ width: 48, height: 48, backgroundColor: "#ede8ff", color: "#5d3fd3" }}
               >
                 <i className="bi bi-mortarboard-fill fs-4" />
               </div>
               <div>
                 <span className="text-muted small d-block">Class Name</span>
-                <h4 className="fw-bold mb-0 text-dark">Class I-A</h4>
+                <h4 className="fw-bold mb-0 text-dark">
+                  {classInfo?.className || "Class I-A"}
+                </h4>
               </div>
             </div>
           </div>
@@ -26,18 +35,15 @@ export default function ClassInfoCard() {
             <div className="d-flex align-items-center gap-3">
               <div
                 className="avatar-box rounded-3 d-flex align-items-center justify-content-center"
-                style={{
-                  width: 48,
-                  height: 48,
-                  backgroundColor: "#e0f2fe",
-                  color: "#0284c7",
-                }}
+                style={{ width: 48, height: 48, backgroundColor: "#e0f2fe", color: "#0284c7" }}
               >
                 <i className="bi bi-journal-bookmark-fill fs-4" />
               </div>
               <div>
                 <span className="text-muted small d-block">Subject</span>
-                <h4 className="fw-bold mb-0 text-dark">Physics</h4>
+                <h4 className="fw-bold mb-0 text-dark">
+                  {classInfo?.subjectName || "Physics"}
+                </h4>
               </div>
             </div>
           </div>
@@ -45,18 +51,15 @@ export default function ClassInfoCard() {
             <div className="d-flex align-items-center gap-3">
               <div
                 className="avatar-box rounded-3 d-flex align-items-center justify-content-center"
-                style={{
-                  width: 48,
-                  height: 48,
-                  backgroundColor: "#dcfce7",
-                  color: "#166534",
-                }}
+                style={{ width: 48, height: 48, backgroundColor: "#dcfce7", color: "#166534" }}
               >
                 <i className="bi bi-person-badge-fill fs-4" />
               </div>
               <div>
                 <span className="text-muted small d-block">Teacher</span>
-                <h6 className="fw-bold mb-0 text-dark">Henriques Morgan</h6>
+                <h6 className="fw-bold mb-0 text-dark">
+                  {teacherName}
+                </h6>
               </div>
             </div>
           </div>
@@ -64,18 +67,15 @@ export default function ClassInfoCard() {
             <div className="d-flex align-items-center gap-3">
               <div
                 className="avatar-box rounded-3 d-flex align-items-center justify-content-center"
-                style={{
-                  width: 48,
-                  height: 48,
-                  backgroundColor: "#fef3c7",
-                  color: "#d97706",
-                }}
+                style={{ width: 48, height: 48, backgroundColor: "#fef3c7", color: "#d97706" }}
               >
                 <i className="bi bi-person-workspace fs-4" />
               </div>
               <div>
                 <span className="text-muted small d-block">Teaching Assistant</span>
-                <h6 className="fw-bold mb-0 text-dark">Sarah Jenkins</h6>
+                <h6 className="fw-bold mb-0 text-dark">
+                  {taName}
+                </h6>
               </div>
             </div>
           </div>

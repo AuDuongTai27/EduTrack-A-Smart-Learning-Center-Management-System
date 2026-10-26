@@ -20,6 +20,8 @@ export const teachingAssistantRoutes: RouteObject = {
     { path: "classes", element: <TeachingAssistantClassesPage /> },
     { path: "classes/:id", element: <TeachingAssistantClassDetailsPage /> },
     { path: "classes/:id/attendance", element: <TeachingAssistantAttendancePage /> },
+    { path: "classes/:classId/attendance", element: <TeachingAssistantAttendancePage /> },
+    { path: "classes/:classId/assignment/:assignmentId", element: <TeachingAssistantAssignmentPage /> },
     { path: "classes/:id/assignment/:id", element: <TeachingAssistantAssignmentPage /> },
     { path: "schedule", element: <TeachingAssistantSchedulePage /> },
     { path: "learning-progress", element: <TeachingAssistantLearningProgressPage /> },

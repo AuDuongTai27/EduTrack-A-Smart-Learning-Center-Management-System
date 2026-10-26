@@ -1,460 +1,318 @@
+import { useState, useEffect } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
-import TableActionButton from "../../../components/Common/TableActionButton";
+import classDAL from "../../../../DAL/classDAL";
+import scheduleDAL from "../../../../DAL/scheduleDAL";
+import userDAL from "../../../../DAL/userDAL";
+import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import type { ClassScheduleDto } from "../../../../BLL/models/ClassScheduleDto";
+import type { UserDto } from "../../../../BLL/models/UserDto";
+
+interface MonitoringRow {
+  teacherId: number;
+  teacherName: string;
+  className: string;
+  subjectName: string;
+  scheduled: number;
+  completed: number;
+  attendanceRate: string;
+  status: "Good" | "Needs Attention" | "Critical";
+  room: string;
+}
 
 export default function AdminStaffTeachingMonitoring() {
+  const [activeTab, setActiveTab] = useState<"teacher" | "class" | "progress">("teacher");
+  const [classes, setClasses] = useState<ClassDto[]>([]);
+  const [schedules, setSchedules] = useState<ClassScheduleDto[]>([]);
+  const [teachers, setTeachers] = useState<UserDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Detail Modal state
+  const [selectedRow, setSelectedRow] = useState<MonitoringRow | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        setLoading(true);
+        const [clsRes, schRes, usersRes] = await Promise.all([
+          classDAL.getAllClasses(),
+          scheduleDAL.getAllClassSchedules(),
+          userDAL.getAllUsers(),
+        ]);
+        if (isMounted) {
+          if (clsRes.data) setClasses(clsRes.data);
+          if (schRes.data) setSchedules(schRes.data);
+          if (usersRes.data) {
+            const teacherList = usersRes.data.filter((u) => u.roles?.includes("teacher") || u.userCode.startsWith("TC"));
+            setTeachers(teacherList);
+          }
+        }
+      } catch (err) {
+        console.warn("Lỗi nạp dữ liệu giám sát giảng dạy:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const monitoringRows: MonitoringRow[] = [
+    {
+      teacherId: 3,
+      teacherName: "ThS. Hoàng Quốc Việt",
+      className: classes[0]?.className || "Toán 12 Chuyên Sâu",
+      subjectName: "Toán học",
+      scheduled: 16,
+      completed: 14,
+      attendanceRate: "96.5%",
+      status: "Good",
+      room: "Phòng P.301",
+    },
+    {
+      teacherId: 4,
+      teacherName: "ThS. Huỳnh Khánh Duy",
+      className: classes[1]?.className || "Vật Lý 12 Nâng Cao",
+      subjectName: "Vật lý",
+      scheduled: 16,
+      completed: 15,
+      attendanceRate: "94.0%",
+      status: "Good",
+      room: "Phòng P.202",
+    },
+    {
+      teacherId: 105,
+      teacherName: "ThS. Lê Thu Trang",
+      className: "Tiếng Anh Chuyên Cấp Tốc",
+      subjectName: "Tiếng Anh",
+      scheduled: 12,
+      completed: 10,
+      attendanceRate: "88.2%",
+      status: "Needs Attention",
+      room: "Phòng P.104",
+    },
+    {
+      teacherId: 106,
+      teacherName: "ThS. Phạm Minh Đức",
+      className: "Hóa Học 11 Cơ Bản",
+      subjectName: "Hóa học",
+      scheduled: 12,
+      completed: 11,
+      attendanceRate: "92.0%",
+      status: "Good",
+      room: "Phòng P.102",
+    },
+  ];
+
   return (
     <>
       {/* Breadcrumb and Quick Access */}
       <PageHeader
-        title="Teaching Monitoring"
+        title="Giám Sát Giảng Dạy &amp; Lớp Học (Teaching Monitoring)"
         breadcrumbItems={[
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Teaching Monitoring" },
         ]}
       />
-      {/* Monitoring Filters */}
-      <div className="card user-list-card mb-4">
-        <div className="card-header user-list-header">
-          <div className="row g-3 align-items-center">
-            {/* Time Range */}
-            <div className="col-xl col-lg-4 col-md-6">
-              <select className="form-select">
-                <option>Today</option>
-                <option>This Week</option>
-                <option selected>This Month</option>
-                <option>Last Month</option>
-                <option>This Semester</option>
-              </select>
-            </div>
-            {/* Class */}
-            <div className="col-xl col-lg-4 col-md-6">
-              <select className="form-select">
-                <option selected>All Classes</option>
-                <option>Class 7</option>
-                <option>Class 8</option>
-                <option>Class 9</option>
-              </select>
-            </div>
-            {/* Subject */}
-            <div className="col-xl col-lg-4 col-md-6">
-              <select className="form-select">
-                <option selected>All Subjects</option>
-                <option>Mathematics</option>
-                <option>Physics</option>
-                <option>Chemistry</option>
-                <option>English</option>
-                <option>Biology</option>
-              </select>
-            </div>
-            {/* Teacher */}
-            <div className="col-xl col-lg-4 col-md-6">
-              <select className="form-select">
-                <option selected>All Teachers</option>
-                <option>Nguyen Van An</option>
-                <option>Tran Minh Hoa</option>
-                <option>Le Thu Trang</option>
-                <option>Pham Minh Duc</option>
-              </select>
-            </div>
-            {/* Attention Status */}
-            <div className="col-xl col-lg-4 col-md-6">
-              <select className="form-select">
-                <option selected>All Statuses</option>
-                <option>Good</option>
-                <option>Needs Attention</option>
-                <option>Critical</option>
-              </select>
-            </div>
-          </div>
+
+      {loading && (
+        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
+          <div className="spinner-border spinner-border-sm" role="status" />
+          <span>Đang đối soát lịch dạy của giáo viên và phòng học...</span>
         </div>
-      </div>
+      )}
+
       {/* Monitoring Tabs */}
-      <div className="card monitoring-card">
+      <div className="card monitoring-card border-0 mb-4">
         <div className="monitoring-tabs">
-          <ul className="nav nav-tabs" role="tablist">
-            <li className="nav-item" role="presentation">
+          <ul className="nav nav-tabs">
+            <li className="nav-item">
               <button
-                className="nav-link active"
-                data-bs-toggle="tab"
-                data-bs-target="#teacher-monitoring"
+                className={`nav-link ${activeTab === "teacher" ? "active" : ""}`}
                 type="button"
+                onClick={() => setActiveTab("teacher")}
               >
-                By Teacher
+                <i className="bi bi-person-workspace me-1.5" />
+                Theo Giáo Viên (By Teacher)
               </button>
             </li>
-            <li className="nav-item" role="presentation">
+            <li className="nav-item">
               <button
-                className="nav-link"
-                data-bs-toggle="tab"
-                data-bs-target="#class-subject-monitoring"
+                className={`nav-link ${activeTab === "class" ? "active" : ""}`}
                 type="button"
+                onClick={() => setActiveTab("class")}
               >
-                By Class &amp; Subject
-              </button>
-            </li>
-            <li className="nav-item" role="presentation">
-              <button
-                className="nav-link"
-                data-bs-toggle="tab"
-                data-bs-target="#student-progress"
-                type="button"
-              >
-                Student Progress
+                <i className="bi bi-collection me-1.5" />
+                Theo Lớp &amp; Ca Trực (By Class &amp; Schedule)
               </button>
             </li>
           </ul>
         </div>
-        <div className="tab-content">
-          {/* By Teacher */}
-          <div className="tab-pane fade show active" id="teacher-monitoring">
-            <div className="monitoring-tab-header">
-              <div>
-                <h5>Teacher Activity</h5>
-                <p>Teaching activity summary for August 2026.</p>
-              </div>
-            </div>
+
+        <div className="card-body p-0">
+          {activeTab === "teacher" && (
             <div className="table-responsive">
               <table className="table user-table align-middle mb-0">
                 <thead>
                   <tr>
-                    <th>No.</th>
-                    <th>Teacher</th>
-                    <th>Class &amp; Subject</th>
-                    <th>Scheduled</th>
-                    <th>Completed</th>
-                    <th>Attendance Recorded</th>
-                    <th>Assignments</th>
-                    <th>Avg. Attendance</th>
-                    <th>Status</th>
-                    <th className="text-center">Action</th>
+                    <th className="fw-bold">STT</th>
+                    <th className="fw-bold">Giáo Viên Giảng Dạy</th>
+                    <th className="fw-bold">Lớp Phụ Trách</th>
+                    <th className="fw-bold">Số Ca Đã Xếp</th>
+                    <th className="fw-bold">Đã Hoàn Thành</th>
+                    <th className="fw-bold">Tỷ Lệ Điểm Danh</th>
+                    <th className="fw-bold">Đánh Giá Giám Sát</th>
+                    <th className="text-center fw-bold">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td>
-                      <strong>Nguyen Van An</strong>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-wrap gap-1">
-                        <SubjectBadge subject="Mathematics - 7" />
-                        <SubjectBadge subject="Mathematics - 8" />
-                      </div>
-                    </td>
-                    <td>16</td>
-                    <td>14</td>
-                    <td>14</td>
-                    <td>8</td>
-                    <td>
-                      <strong>94%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Good" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td>
-                      <strong>Tran Minh Hoa</strong>
-                    </td>
-                    <td>
-                      <SubjectBadge subject="Physics - 8" />
-                    </td>
-                    <td>14</td>
-                    <td>12</td>
-                    <td>10</td>
-                    <td>5</td>
-                    <td>
-                      <strong>81%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Needs Attention" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>3</td>
-                    <td>
-                      <strong>Le Thu Trang</strong>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-wrap gap-1">
-                        <SubjectBadge subject="English - 7" />
-                        <SubjectBadge subject="English - 9" />
-                      </div>
-                    </td>
-                    <td>18</td>
-                    <td>17</td>
-                    <td>17</td>
-                    <td>10</td>
-                    <td>
-                      <strong>92%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Good" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>4</td>
-                    <td>
-                      <strong>Pham Minh Duc</strong>
-                    </td>
-                    <td>
-                      <SubjectBadge subject="Chemistry - 9" />
-                    </td>
-                    <td>15</td>
-                    <td>11</td>
-                    <td>8</td>
-                    <td>3</td>
-                    <td>
-                      <strong>69%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Critical" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
+                  {monitoringRows.map((row, idx) => (
+                    <tr key={idx}>
+                      <td>{idx + 1}</td>
+                      <td>
+                        <strong className="text-dark d-block">{row.teacherName}</strong>
+                        <small className="text-muted">Chuyên môn: {row.subjectName}</small>
+                      </td>
+                      <td>
+                        <div className="d-flex align-items-center gap-1.5">
+                          <SubjectBadge subject={row.subjectName} />
+                          <span className="small text-dark">{row.className}</span>
+                        </div>
+                      </td>
+                      <td>{row.scheduled} buổi</td>
+                      <td>
+                        <span className="fw-semibold text-primary">{row.completed} buổi</span>
+                      </td>
+                      <td>
+                        <span className="fw-bold text-dark">{row.attendanceRate}</span>
+                      </td>
+                      <td>
+                        <StatusBadge status={row.status} />
+                      </td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                          onClick={() => setSelectedRow(row)}
+                        >
+                          <i className="bi bi-eye" /> Chi tiết
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-          </div>
-          {/* By Class & Subject */}
-          <div className="tab-pane fade" id="class-subject-monitoring">
-            <div className="monitoring-tab-header">
-              <div>
-                <h5>Class &amp; Subject Activity</h5>
-                <p>Monitor learning activities for each class subject.</p>
-              </div>
-            </div>
+          )}
+
+          {activeTab === "class" && (
             <div className="table-responsive">
               <table className="table user-table align-middle mb-0">
                 <thead>
                   <tr>
-                    <th>No.</th>
-                    <th>Class &amp; Subject</th>
-                    <th>Teacher</th>
-                    <th>Teaching Assistant</th>
-                    <th>Students</th>
-                    <th>Sessions Completed</th>
-                    <th>Attendance Rate</th>
-                    <th>Assignment Completion</th>
-                    <th>Status</th>
-                    <th className="text-center">Action</th>
+                    <th className="fw-bold">Mã Lịch</th>
+                    <th className="fw-bold">Tên Lớp Học</th>
+                    <th className="fw-bold">Thứ Trong Tuần</th>
+                    <th className="fw-bold">Khung Giờ</th>
+                    <th className="fw-bold">Phòng Học</th>
+                    <th className="fw-bold">Trạng Thái Buổi Học</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td>
-                      <strong>Mathematics - 7</strong>
-                    </td>
-                    <td>Nguyen Van An</td>
-                    <td>Le Minh Khoa</td>
-                    <td>25</td>
-                    <td>14</td>
-                    <td>
-                      <strong>95%</strong>
-                    </td>
-                    <td>
-                      <strong>91%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Good" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td>
-                      <strong>Physics - 8</strong>
-                    </td>
-                    <td>Tran Minh Hoa</td>
-                    <td>Nguyen Thanh Nam</td>
-                    <td>28</td>
-                    <td>12</td>
-                    <td>
-                      <strong>82%</strong>
-                    </td>
-                    <td>
-                      <strong>75%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Needs Attention" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>3</td>
-                    <td>
-                      <strong>English - 9</strong>
-                    </td>
-                    <td>Le Thu Trang</td>
-                    <td>Tran Gia Bao</td>
-                    <td>24</td>
-                    <td>17</td>
-                    <td>
-                      <strong>92%</strong>
-                    </td>
-                    <td>
-                      <strong>89%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Good" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>4</td>
-                    <td>
-                      <strong>Chemistry - 9</strong>
-                    </td>
-                    <td>Pham Minh Duc</td>
-                    <td>Hoang Gia Huy</td>
-                    <td>23</td>
-                    <td>11</td>
-                    <td>
-                      <strong>68%</strong>
-                    </td>
-                    <td>
-                      <strong>62%</strong>
-                    </td>
-                    <td>
-                      <StatusBadge status="Critical" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
+                  {schedules.length > 0 ? (
+                    schedules.map((s, idx) => (
+                      <tr key={s.scheduleId || idx}>
+                        <td>
+                          <span className="badge bg-secondary bg-opacity-10 text-dark">
+                            #{s.scheduleId || idx + 1}
+                          </span>
+                        </td>
+                        <td>
+                          <strong className="text-dark">{s.className || `Lớp học #${s.classId}`}</strong>
+                        </td>
+                        <td>{s.dayOfWeek ? `Mỗi ${s.dayOfWeek}` : "Thứ 2, Thứ 4"}</td>
+                        <td>
+                          <span className="badge bg-primary bg-opacity-10 text-primary">
+                            {s.startTime ? s.startTime.substring(0, 5) : "08:00"} - {s.endTime ? s.endTime.substring(0, 5) : "09:30"}
+                          </span>
+                        </td>
+                        <td>{s.room || "Phòng P.301"}</td>
+                        <td>
+                          <span className="badge bg-success bg-opacity-10 text-success">Đang hoạt động tốt</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="text-center py-4 text-muted">
+                        Chưa có lịch giảng dạy nào.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
-          </div>
-          {/* Student Progress */}
-          <div className="tab-pane fade" id="student-progress">
-            <div className="monitoring-tab-header">
-              <div>
-                <h5>Student Progress</h5>
-                <p>Identify classes and students that require attention.</p>
+          )}
+        </div>
+      </div>
+
+      {/* DETAIL MODAL (GetById) */}
+      {selectedRow && (
+        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow border-0">
+              <div className="modal-header bg-light">
+                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                  <i className="bi bi-activity text-primary" />
+                  Báo Cáo Hoạt Động Giảng Dạy: {selectedRow.teacherName}
+                </h5>
+                <button type="button" className="btn-close" onClick={() => setSelectedRow(null)} />
               </div>
-            </div>
-            {/* Progress Chart */}
-            <div className="p-3 border-bottom">
-              <div className="card dashboard-card">
-                <div className="dashboard-card-header">
-                  <div>
-                    <h5>Classes Requiring Attention</h5>
-                    <small>Average learning performance by class subject</small>
+              <div className="modal-body p-4">
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="text-muted small d-block">Giáo viên</label>
+                    <span className="fw-bold text-dark fs-6">{selectedRow.teacherName}</span>
                   </div>
-                </div>
-                <div className="dashboard-card-body">
-                  <div className="student-progress-chart">
-                    <canvas id="studentProgressChart" />
+                  <div className="col-md-6">
+                    <label className="text-muted small d-block">Lớp phụ trách</label>
+                    <span className="fw-semibold text-dark">{selectedRow.className}</span>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="text-muted small d-block">Môn học</label>
+                    <span className="badge bg-info bg-opacity-10 text-info">{selectedRow.subjectName}</span>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="text-muted small d-block">Phòng giảng dạy</label>
+                    <span className="fw-semibold text-dark">{selectedRow.room}</span>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="text-muted small d-block">Tỷ lệ chuyên cần học sinh</label>
+                    <span className="fw-bold text-success">{selectedRow.attendanceRate}</span>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="text-muted small d-block">Tiến độ ca học</label>
+                    <span>{selectedRow.completed} / {selectedRow.scheduled} buổi hoàn thành</span>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="text-muted small d-block">Đánh giá chung</label>
+                    <StatusBadge status={selectedRow.status} />
                   </div>
                 </div>
               </div>
-            </div>
-            {/* Students Requiring Attention */}
-            <div className="monitoring-subsection-header">
-              <div>
-                <h5>Students Requiring Attention</h5>
-                <p>Students with low attendance or incomplete assignments.</p>
+              <div className="modal-footer bg-light">
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedRow(null)}>
+                  Đóng
+                </button>
               </div>
-            </div>
-            <div className="table-responsive">
-              <table className="table user-table align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>No.</th>
-                    <th>Student</th>
-                    <th>Class &amp; Subject</th>
-                    <th>Attendance Rate</th>
-                    <th>Incomplete Assignments</th>
-                    <th>Learning Status</th>
-                    <th className="text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td>
-                      <strong>Le Minh Long</strong>
-                    </td>
-                    <td>
-                      <span className="specialty-badge"> Physics - 9 </span>
-                    </td>
-                    <td>
-                      <strong className="text-danger">62%</strong>
-                    </td>
-                    <td>4</td>
-                    <td>
-                      <StatusBadge status="Critical" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td>
-                      <strong>Pham Hoang Nam</strong>
-                    </td>
-                    <td>
-                      <span className="specialty-badge"> Chemistry - 8 </span>
-                    </td>
-                    <td>
-                      <strong className="text-warning">74%</strong>
-                    </td>
-                    <td>3</td>
-                    <td>
-                      <StatusBadge status="Needs Attention" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>3</td>
-                    <td>
-                      <strong>Tran Minh Khang</strong>
-                    </td>
-                    <td>
-                      <span className="specialty-badge">Mathematics - 7</span>
-                    </td>
-                    <td>
-                      <strong className="text-warning">78%</strong>
-                    </td>
-                    <td>2</td>
-                    <td>
-                      <StatusBadge status="Needs Attention" />
-                    </td>
-                    <td className="text-center">
-                      <TableActionButton action="View" />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

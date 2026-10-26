@@ -1,16 +1,115 @@
+import { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import StatusBadge from "../../../components/Common/StatusBadge";
-import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
-import TableActionButton from "../../../components/Common/TableActionButton";
+import feedbackDAL from "../../../../DAL/feedbackDAL";
+import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
 export default function CenterManagerApprovalRequestPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [requests, setRequests] = useState<ApprovalRequestDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const totalRequests = 12;
+  // Filters state
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("All");
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
+  const [selectedPriority, setSelectedPriority] = useState<string>("All");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
+
+  // Detail & Processing Modal state (GetById)
+  const [selectedRequest, setSelectedRequest] = useState<ApprovalRequestDto | null>(null);
+  const [reviewNotes, setReviewNotes] = useState<string>("");
+  const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchRequests() {
+      try {
+        setLoading(true);
+        const res = await feedbackDAL.getAllRequests();
+        if (isMounted && res.data) {
+          setRequests(res.data);
+        }
+      } catch (err) {
+        console.warn("Lỗi tải danh sách yêu cầu phê duyệt center manager:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchRequests();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter & Search logic
+  const filteredRequests = useMemo(() => {
+    return requests.filter((r) => {
+      const matchSearch =
+        searchTerm === "" ||
+        (r.requestCode && r.requestCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (r.title && r.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (r.studentName && r.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (r.description && r.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchType = selectedType === "All" || r.requestType === selectedType;
+      const matchStatus =
+        selectedStatus === "All" ||
+        (r.status && r.status.toLowerCase() === selectedStatus.toLowerCase());
+      const matchPriority =
+        selectedPriority === "All" ||
+        (r.priority && r.priority.toLowerCase() === selectedPriority.toLowerCase());
+
+      return matchSearch && matchType && matchStatus && matchPriority;
+    });
+  }, [requests, searchTerm, selectedType, selectedStatus, selectedPriority]);
+
+  // Paginated list
+  const paginatedRequests = useMemo(() => {
+    const start = (currentPage - 1) * entriesPerPage;
+    return filteredRequests.slice(start, start + entriesPerPage);
+  }, [filteredRequests, currentPage, entriesPerPage]);
+
+  // Handle open review modal (GetById)
+  const handleReviewRequest = async (req: ApprovalRequestDto) => {
+    try {
+      const detail = await feedbackDAL.getRequestById(req.requestId);
+      setSelectedRequest(detail || req);
+      setReviewNotes(detail?.reviewNotes || "");
+    } catch {
+      setSelectedRequest(req);
+      setReviewNotes(req.reviewNotes || "");
+    }
+  };
+
+  // Handle Approve or Reject
+  const handleProcessRequest = (newStatus: "Approved" | "Rejected") => {
+    if (!selectedRequest) return;
+
+    const updated = requests.map((item) =>
+      item.requestId === selectedRequest.requestId
+        ? {
+            ...item,
+            status: newStatus,
+            reviewNotes: reviewNotes || `Đã được Quản lý trung tâm ${newStatus === "Approved" ? "phê duyệt" : "từ chối"}.`,
+            reviewedAt: new Date().toISOString(),
+            reviewerName: "Nguyễn Văn Quản Lý",
+          }
+        : item
+    );
+
+    setRequests(updated);
+    setSelectedRequest(null);
+    setActionSuccessMsg(
+      `Đã ${newStatus === "Approved" ? "phê duyệt" : "từ chối"} đơn #${selectedRequest.requestCode || selectedRequest.requestId} thành công!`
+    );
+    setTimeout(() => setActionSuccessMsg(null), 3500);
+  };
 
   return (
     <>
@@ -22,66 +121,89 @@ export default function CenterManagerApprovalRequestPage() {
           { label: "Approval Requests" },
         ]}
       />
+
+      {/* Success Notification Alert */}
+      {actionSuccessMsg && (
+        <div className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+          <i className="bi bi-check-circle-fill fs-5 me-2" />
+          <div>{actionSuccessMsg}</div>
+          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+        </div>
+      )}
+
       {/* Approval Request List */}
-      <div className="card user-list-card">
+      <div className="card user-list-card border-0 shadow-sm">
         {/* Filter */}
-        <div className="card-header user-list-header">
+        <div className="card-header user-list-header bg-white py-3 border-bottom">
           <div className="row g-3 align-items-center">
-            {/* Search */}
             <div className="col-xl-4 col-lg-6">
-              <div className="user-search">
-                <i className="bi bi-search" />
+              <div className="user-search position-relative">
+                <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
                 <input
                   type="text"
-                  className="form-control"
-                  placeholder="Search request code or student..."
+                  className="form-control ps-5"
+                  placeholder="Search request code, title or student..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
             </div>
-            {/* Request Type */}
-            <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>All Request Types</option>
-                <option>Tuition Adjustment</option>
-                <option>Refund</option>
-                <option>Credit</option>
-                <option>Due Date Extension</option>
-                <option>Student Information Change</option>
+            <div className="col-xl-3 col-lg-3 col-md-6">
+              <select
+                className="form-select"
+                value={selectedType}
+                onChange={(e) => {
+                  setSelectedType(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All Request Types</option>
+                <option value="Tuition Adjustment">Tuition Adjustment</option>
+                <option value="Refund">Refund Request</option>
+                <option value="Due Date Extension">Due Date Extension</option>
+                <option value="Student Information Change">Student Info Change</option>
+                <option value="Academic">Academic Support</option>
               </select>
             </div>
-            {/* Status */}
             <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>All Statuses</option>
-                <option>Pending</option>
-                <option>Approved</option>
-                <option>Rejected</option>
-                <option>Cancelled</option>
+              <select
+                className="form-select"
+                value={selectedPriority}
+                onChange={(e) => {
+                  setSelectedPriority(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All Priorities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
               </select>
             </div>
-            {/* Priority */}
-            <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>All Priorities</option>
-                <option>High</option>
-                <option>Medium</option>
-                <option>Low</option>
-              </select>
-            </div>
-            {/* Sort */}
-            <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>Sort by Newest</option>
-                <option>Sort by Oldest</option>
-                <option>Priority High-Low</option>
-                <option>Priority Low-High</option>
+            <div className="col-xl-3 col-lg-3 col-md-6">
+              <select
+                className="form-select"
+                value={selectedStatus}
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending (Đang chờ duyệt)</option>
+                <option value="Approved">Approved (Đã duyệt)</option>
+                <option value="Rejected">Rejected (Đã từ chối)</option>
               </select>
             </div>
           </div>
         </div>
+
         {/* Table Controls */}
         <TableToolbar
-          totalItems={totalRequests}
+          totalItems={filteredRequests.length}
           totalLabel="Total requests"
           entriesPerPage={entriesPerPage}
           onEntriesPerPageChange={(value) => {
@@ -89,241 +211,212 @@ export default function CenterManagerApprovalRequestPage() {
             setCurrentPage(1);
           }}
         />
-        {/* Approval Request Table */}
+
+        {/* Request Table */}
         <div className="table-responsive">
-          <table className="table user-table align-middle mb-0">
-            <thead>
+          <table className="table user-table align-middle mb-0 table-hover">
+            <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
                 <th className="fw-bold">Request Code</th>
-                <th className="fw-bold">Request Type</th>
-                <th className="fw-bold">Related To</th>
-                <th className="fw-bold">Requested By</th>
-                <th className="fw-bold">Submitted Date</th>
+                <th className="fw-bold">Type</th>
+                <th className="fw-bold">Related Student / Target</th>
+                <th className="fw-bold">Content Summary</th>
+                <th className="fw-bold">Requester</th>
                 <th className="fw-bold">Priority</th>
                 <th className="fw-bold">Status</th>
                 <th className="text-center fw-bold">Action</th>
               </tr>
             </thead>
             <tbody>
-              {/* Request 1 */}
-              <tr>
-                <td>1</td>
-                <td>
-                  <strong>AR0001</strong>
-                </td>
-                <td>Tuition Adjustment</td>
-                <td>
-                  <div>
-                    <h6 className="mb-1">Nguyen Minh An</h6>
-                  </div>
-                </td>
-                <td>Admin Staff</td>
-                <td>17 Aug 2026</td>
-                <td>
-                  <StatusBadge status="High" />
-                </td>
-                <td>
-                  <DotStatusBadge status="Pending" />
-                </td>
-                <td className="text-center">
-                  <TableActionButton
-                    action="View Request"
-                    target="#approvalRequestModal"
-                  />
-                </td>
-              </tr>
-              {/* Request 2 */}
-              <tr>
-                <td>2</td>
-                <td>
-                  <strong>AR0002</strong>
-                </td>
-                <td>Refund</td>
-                <td>
-                  <div>
-                    <h6 className="mb-1">Tran Gia Huy</h6>
-                  </div>
-                </td>
-                <td>Admin Staff</td>
-                <td>16 Aug 2026</td>
-                <td>
-                  <StatusBadge status="Medium" />
-                </td>
-                <td>
-                  <DotStatusBadge status="Approved" />
-                </td>
-                <td className="text-center">
-                  <TableActionButton
-                    action="View Request"
-                    target="#approvalRequestModal"
-                  />
-                </td>
-              </tr>
-              {/* Request 3 */}
-              <tr>
-                <td>3</td>
-                <td>
-                  <strong>AR0003</strong>
-                </td>
-                <td>Due Date Extension</td>
-                <td>
-                  <div>
-                    <h6 className="mb-1">Le Minh Long</h6>
-                  </div>
-                </td>
-                <td>Admin Staff</td>
-                <td>15 Aug 2026</td>
-                <td>
-                  <StatusBadge status="Low" />
-                </td>
-                <td>
-                  <DotStatusBadge status="Rejected" />
-                </td>
-                <td className="text-center">
-                  <TableActionButton
-                    action="View Request"
-                    target="#approvalRequestModal"
-                  />
-                </td>
-              </tr>
-              {/* Request 4 */}
-              <tr>
-                <td>4</td>
-                <td>
-                  <strong>AR0004</strong>
-                </td>
-                <td>Credit</td>
-                <td>
-                  <div>
-                    <h6 className="mb-1">Pham Hoang Nam</h6>
-                  </div>
-                </td>
-                <td>Admin Staff</td>
-                <td>14 Aug 2026</td>
-                <td>
-                  <StatusBadge status="Medium" />
-                </td>
-                <td>
-                  <DotStatusBadge status="Pending" />
-                </td>
-                <td className="text-center">
-                  <TableActionButton
-                    action="View Request"
-                    target="#approvalRequestModal"
-                  />
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-5 text-muted">
+                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    Đang nạp danh sách yêu cầu phê duyệt...
+                  </td>
+                </tr>
+              ) : paginatedRequests.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-5 text-muted">
+                    <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
+                    Không tìm thấy yêu cầu nào phù hợp.
+                  </td>
+                </tr>
+              ) : (
+                paginatedRequests.map((req, idx) => {
+                  const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
+
+                  return (
+                    <tr key={req.requestId || idx}>
+                      <td>{itemIndex}</td>
+                      <td>
+                        <strong className="text-primary font-monospace">
+                          {req.requestCode || `AR${req.requestId}`}
+                        </strong>
+                      </td>
+                      <td>
+                        <span className="badge bg-light text-dark border">{req.requestType}</span>
+                      </td>
+                      <td>
+                        <div className="fw-semibold text-dark">{req.studentName || "Trung tâm"}</div>
+                        {req.className && <small className="text-muted">{req.className}</small>}
+                      </td>
+                      <td>
+                        <div className="text-truncate fw-medium" style={{ maxWidth: "250px" }} title={req.title || undefined}>
+                          {req.title}
+                        </div>
+                        <small className="text-muted text-truncate d-block" style={{ maxWidth: "250px" }}>
+                          {req.description || req.reason || "—"}
+                        </small>
+                      </td>
+                      <td>
+                        <span className="badge bg-secondary-subtle text-secondary">
+                          {req.requesterName || "Admin Staff"}
+                        </span>
+                      </td>
+                      <td>
+                        <StatusBadge status={req.priority || "Medium"} />
+                      </td>
+                      <td>
+                        <DotStatusBadge status={req.status || "Pending"} />
+                      </td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
+                          onClick={() => handleReviewRequest(req)}
+                        >
+                          <i className="bi bi-shield-check" />
+                          Thẩm định
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
-        {/* Pagination */}
-        <Pagination
-          currentPage={currentPage}
-          totalItems={totalRequests}
-          entriesPerPage={entriesPerPage}
-          itemLabel="requests"
-          onPageChange={setCurrentPage}
-        />
+
+        {/* Footer */}
+        <div className="p-3 border-top bg-white">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredRequests.length}
+            entriesPerPage={entriesPerPage}
+            itemLabel="requests"
+            onPageChange={setCurrentPage}
+          />
+        </div>
       </div>
-      {/* Approval Request Modal */}
-      <div
-        className="modal fade"
-        id="approvalRequestModal"
-        tabIndex={-1}
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <div>
-                <h5 className="modal-title">Approval Request</h5>
-                <small className="text-muted">Request Code: AR0001</small>
+
+      {/* DETAIL & PROCESSING MODAL (GetById) */}
+      {selectedRequest && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <div className="d-flex align-items-center gap-2">
+                  <span className="badge bg-white text-primary font-monospace fs-6">
+                    {selectedRequest.requestCode || `AR${selectedRequest.requestId}`}
+                  </span>
+                  <h5 className="modal-title fw-bold mb-0">
+                    Thẩm định & Phê duyệt yêu cầu
+                  </h5>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedRequest(null)}
+                />
               </div>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              />
-            </div>
-            <div className="modal-body">
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <label className="form-label text-muted">Request Type</label>
-                  <p className="fw-semibold mb-0">Tuition Adjustment</p>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label text-muted">Priority</label>
+
+              <div className="modal-body p-4">
+                <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
                   <div>
-                    <StatusBadge status="High" />
+                    <h5 className="fw-bold mb-1 text-dark">{selectedRequest.title}</h5>
+                    <div className="d-flex align-items-center gap-3 text-muted small">
+                      <span>Loại: <strong>{selectedRequest.requestType}</strong></span>
+                      <span>Người gửi: <strong>{selectedRequest.requesterName || "Admin Staff"}</strong></span>
+                      <span>Thời điểm gửi: {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleString("vi-VN") : "—"}</span>
+                    </div>
+                  </div>
+                  <div className="d-flex flex-column align-items-end gap-1">
+                    <DotStatusBadge status={selectedRequest.status || "Pending"} />
+                    <StatusBadge status={selectedRequest.priority || "Medium"} />
                   </div>
                 </div>
-                <div className="col-md-6">
-                  <label className="form-label text-muted">Student</label>
-                  <p className="fw-semibold mb-0">Nguyen Minh An</p>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label text-muted">Subject</label>
-                  <p className="fw-semibold mb-0">Mathematics - 7</p>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label text-muted">
-                    Current Tuition
-                  </label>
-                  <p className="fw-semibold mb-0">500,000 VND</p>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label text-muted">
-                    Requested Tuition
-                  </label>
-                  <p className="fw-semibold text-primary mb-0">300,000 VND</p>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label text-muted">Requested By</label>
-                  <p className="fw-semibold mb-0">Admin Staff</p>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label text-muted">
-                    Submitted Date
-                  </label>
-                  <p className="fw-semibold mb-0">17 Aug 2026</p>
-                </div>
-                <div className="col-12">
-                  <label className="form-label text-muted">Reason</label>
-                  <div className="border rounded p-3 bg-light">
-                    Parent requested a tuition reduction due to temporary
-                    financial difficulties.
+
+                <div className="row g-3 mb-4">
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded-3">
+                      <small className="text-muted d-block mb-1">Đối tượng áp dụng</small>
+                      <strong className="text-dark">{selectedRequest.studentName || "Không xác định"}</strong>
+                      {selectedRequest.className && <div className="small text-muted">{selectedRequest.className}</div>}
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded-3">
+                      <small className="text-muted d-block mb-1">Độ ưu tiên xử lý</small>
+                      <strong className="text-dark">{selectedRequest.priority || "Medium"}</strong>
+                    </div>
                   </div>
                 </div>
-                <div className="col-12">
-                  <label className="form-label text-muted">
-                    Request Status
-                  </label>
-                  <div>
-                    <DotStatusBadge status="Pending" />
+
+                <div className="mb-4">
+                  <h6 className="fw-bold text-dark mb-2">Lý do & Nội dung yêu cầu từ Giáo vụ:</h6>
+                  <div className="p-3 bg-light rounded border text-secondary" style={{ whiteSpace: "pre-line", minHeight: "90px" }}>
+                    {selectedRequest.description || selectedRequest.reason || "Không có thêm thông tin chi tiết."}
                   </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-bold text-dark">
+                    Ý kiến phê duyệt của Quản lý trung tâm (Center Manager):
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    placeholder="Nhập ghi chú phản hồi, căn cứ đồng ý hoặc lý do từ chối đơn..."
+                    value={reviewNotes}
+                    onChange={(e) => setReviewNotes(e.target.value)}
+                  />
                 </div>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-light"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button type="button" className="btn btn-outline-danger">
-                Reject
-              </button>
-              <button type="button" className="btn btn-success">
-                Approve
-              </button>
+
+              <div className="modal-footer bg-light d-flex justify-content-between">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => setSelectedRequest(null)}
+                >
+                  Đóng
+                </button>
+
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-danger px-3"
+                    onClick={() => handleProcessRequest("Rejected")}
+                  >
+                    <i className="bi bi-x-circle me-1" />
+                    Từ chối yêu cầu
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-success px-4"
+                    onClick={() => handleProcessRequest("Approved")}
+                  >
+                    <i className="bi bi-check-circle me-1" />
+                    Phê duyệt chấp thuận
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

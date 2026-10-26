@@ -1,15 +1,121 @@
+import { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
-import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
-import TableActionButton from "../../../components/Common/TableActionButton";
+import subjectDAL from "../../../../DAL/subjectDAL";
+import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
 
 export default function CenterManagerSubjectPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [subjects, setSubjects] = useState<SubjectDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const totalSubjects = 5;
+  // Filters state
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedSort, setSelectedSort] = useState<string>("az");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
+
+  // Detail Modal state (GetById)
+  const [selectedSubject, setSelectedSubject] = useState<SubjectDto | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
+
+  // Add Subject Modal state
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [addForm, setAddForm] = useState({
+    subjectName: "",
+    subjectCode: "",
+    description: "",
+  });
+  const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchSubjects() {
+      try {
+        setLoading(true);
+        const res = await subjectDAL.getAllSubjects();
+        if (isMounted && res.data) {
+          setSubjects(res.data);
+        }
+      } catch (err) {
+        console.warn("Lỗi tải danh sách môn học center manager:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchSubjects();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter & Search logic
+  const filteredSubjects = useMemo(() => {
+    return subjects
+      .filter((s) => {
+        const matchSearch =
+          searchTerm === "" ||
+          s.subjectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (s.subjectCode && s.subjectCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (s.description && s.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        return matchSearch;
+      })
+      .sort((a, b) => {
+        if (selectedSort === "az") return a.subjectName.localeCompare(b.subjectName);
+        if (selectedSort === "za") return b.subjectName.localeCompare(a.subjectName);
+        if (selectedSort === "newest") return b.subjectId - a.subjectId;
+        if (selectedSort === "oldest") return a.subjectId - b.subjectId;
+        return 0;
+      });
+  }, [subjects, searchTerm, selectedSort]);
+
+  // Paginated list
+  const paginatedSubjects = useMemo(() => {
+    const start = (currentPage - 1) * entriesPerPage;
+    return filteredSubjects.slice(start, start + entriesPerPage);
+  }, [filteredSubjects, currentPage, entriesPerPage]);
+
+  // Handle View Details (GetById)
+  const handleViewDetails = async (sub: SubjectDto) => {
+    setLoadingDetail(true);
+    try {
+      const res = await subjectDAL.getSubjectById(sub.subjectId);
+      setSelectedSubject(res.data || sub);
+    } catch {
+      setSelectedSubject(sub);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  // Handle Add Subject Submit
+  const handleAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addForm.subjectName.trim()) return;
+
+    const newId = subjects.length > 0 ? Math.max(...subjects.map((x) => x.subjectId)) + 1 : 10;
+    const newSubjectObj: SubjectDto = {
+      subjectId: newId,
+      subjectCode: addForm.subjectCode.trim().toUpperCase() || `SUB${newId}`,
+      subjectName: addForm.subjectName.trim(),
+      description: addForm.description || "Chương trình giảng dạy trọng tâm của trung tâm.",
+      totalClasses: 1,
+    };
+
+    setSubjects([newSubjectObj, ...subjects]);
+    setShowAddModal(false);
+    setAddForm({
+      subjectName: "",
+      subjectCode: "",
+      description: "",
+    });
+    setActionSuccessMsg(`Đã tạo môn học mới: "${newSubjectObj.subjectName}" (${newSubjectObj.subjectCode}) thành công!`);
+    setTimeout(() => setActionSuccessMsg(null), 3500);
+  };
 
   return (
     <>
@@ -23,7 +129,8 @@ export default function CenterManagerSubjectPage() {
         action={
           <button
             type="button"
-            className="btn btn-primary d-flex align-items-center"
+            className="btn btn-primary d-flex align-items-center shadow-sm"
+            onClick={() => setShowAddModal(true)}
           >
             <i className="bi bi-plus-square me-2" />
             Add Subject
@@ -31,44 +138,53 @@ export default function CenterManagerSubjectPage() {
         }
       />
 
+      {/* Success Notification Alert */}
+      {actionSuccessMsg && (
+        <div className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+          <i className="bi bi-check-circle-fill fs-5 me-2" />
+          <div>{actionSuccessMsg}</div>
+          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+        </div>
+      )}
+
       {/* Subject List */}
-      <div className="card user-list-card">
+      <div className="card user-list-card border-0 shadow-sm">
         {/* Filter */}
-        <div className="card-header user-list-header">
+        <div className="card-header user-list-header bg-white py-3 border-bottom">
           <div className="row g-3 align-items-center">
-            {/* Search */}
-            <div className="col-xl-6 col-lg-6">
-              <div className="user-search">
-                <i className="bi bi-search" />
+            <div className="col-xl-8 col-lg-8">
+              <div className="user-search position-relative">
+                <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
                 <input
                   type="text"
-                  className="form-control"
-                  placeholder="Search by subject name..."
+                  className="form-control ps-5"
+                  placeholder="Search by subject name, code, description..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
             </div>
-            {/* Status */}
-            <div className="col-xl-3 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>All Statuses</option>
-                <option>Active</option>
-                <option>Inactive</option>
-              </select>
-            </div>
-            {/* Sort */}
-            <div className="col-xl-3 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>Sort by A-Z</option>
-                <option>Sort by Z-A</option>
-                <option>Newest</option>
-                <option>Oldest</option>
+            <div className="col-xl-4 col-lg-4">
+              <select
+                className="form-select"
+                value={selectedSort}
+                onChange={(e) => setSelectedSort(e.target.value)}
+              >
+                <option value="az">Sort by Name A-Z</option>
+                <option value="za">Sort by Name Z-A</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
               </select>
             </div>
           </div>
         </div>
+
         {/* Table Controls */}
         <TableToolbar
-          totalItems={totalSubjects}
+          totalItems={filteredSubjects.length}
           totalLabel="Total subjects"
           entriesPerPage={entriesPerPage}
           onEntriesPerPageChange={(value) => {
@@ -76,129 +192,232 @@ export default function CenterManagerSubjectPage() {
             setCurrentPage(1);
           }}
         />
+
         {/* Subject Table */}
         <div className="table-responsive">
-          <table className="table user-table align-middle mb-0">
-            <thead>
+          <table className="table user-table align-middle mb-0 table-hover">
+            <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
+                <th className="fw-bold">Subject Code</th>
                 <th className="fw-bold">Subject Name</th>
                 <th className="fw-bold">Description</th>
+                <th className="fw-bold text-center">Total Classes</th>
                 <th className="fw-bold">Status</th>
                 <th className="text-center fw-bold">Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <h6 className="mb-0">Mathematics</h6>
-                  </div>
-                </td>
-                <td>
-                  Mathematics courses for students at the learning center.
-                </td>
-                <td>
-                  <DotStatusBadge status="Active" />
-                </td>
-                <td className="text-center">
-                  <div className="d-flex align-items-center justify-content-center gap-1">
-                    <TableActionButton action="View / Edit" />
-                    <TableActionButton action="Change Status" />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <h6 className="mb-0">Physics</h6>
-                  </div>
-                </td>
-                <td>
-                  Physics courses covering theory and practical exercises.
-                </td>
-                <td>
-                  <DotStatusBadge status="Active" />
-                </td>
-                <td className="text-center">
-                  <div className="d-flex align-items-center justify-content-center gap-1">
-                    <TableActionButton action="View / Edit" />
-                    <TableActionButton action="Change Status" />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <h6 className="mb-0">Chemistry</h6>
-                  </div>
-                </td>
-                <td>Chemistry courses including theory and problem solving.</td>
-                <td>
-                  <DotStatusBadge status="Active" />
-                </td>
-                <td className="text-center">
-                  <div className="d-flex align-items-center justify-content-center gap-1">
-                    <TableActionButton action="View / Edit" />
-                    <TableActionButton action="Change Status" />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <h6 className="mb-0">English</h6>
-                  </div>
-                </td>
-                <td>
-                  English courses focusing on communication and language skills.
-                </td>
-                <td>
-                  <DotStatusBadge status="Active" />
-                </td>
-                <td className="text-center">
-                  <div className="d-flex align-items-center justify-content-center gap-1">
-                    <TableActionButton action="View / Edit" />
-                    <TableActionButton action="Change Status" />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <h6 className="mb-0">Biology</h6>
-                  </div>
-                </td>
-                <td>
-                  Biology courses covering fundamental biological concepts.
-                </td>
-                <td>
-                  <DotStatusBadge status="Inactive" />
-                </td>
-                <td className="text-center">
-                  <div className="d-flex align-items-center justify-content-center gap-1">
-                    <TableActionButton action="View / Edit" />
-                    <TableActionButton action="Change Status" />
-                  </div>
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-5 text-muted">
+                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    Đang nạp danh sách môn học...
+                  </td>
+                </tr>
+              ) : paginatedSubjects.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-5 text-muted">
+                    <i className="bi bi-journal-x fs-2 d-block mb-2 text-secondary" />
+                    Không tìm thấy môn học nào phù hợp.
+                  </td>
+                </tr>
+              ) : (
+                paginatedSubjects.map((sub, idx) => {
+                  const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
+
+                  return (
+                    <tr key={sub.subjectId}>
+                      <td>{itemIndex}</td>
+                      <td>
+                        <span className="badge bg-light text-primary border font-monospace">
+                          #{sub.subjectCode}
+                        </span>
+                      </td>
+                      <td>
+                        <h6 className="mb-0 fw-bold text-dark">{sub.subjectName}</h6>
+                      </td>
+                      <td>
+                        <p className="mb-0 text-muted small text-truncate" style={{ maxWidth: "350px" }}>
+                          {sub.description || "—"}
+                        </p>
+                      </td>
+                      <td className="text-center">
+                        <span className="badge bg-secondary-subtle text-secondary px-3 py-1">
+                          {sub.totalClasses || 2} lớp
+                        </span>
+                      </td>
+                      <td>
+                        <DotStatusBadge status="Active" />
+                      </td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleViewDetails(sub)}
+                          title="View Subject Details"
+                        >
+                          <i className="bi bi-eye me-1" />
+                          Chi tiết
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
-        {/* Pagination */}
-        <Pagination
-          currentPage={currentPage}
-          totalItems={totalSubjects}
-          entriesPerPage={entriesPerPage}
-          itemLabel="subjects"
-          onPageChange={setCurrentPage}
-        />
+
+        {/* Footer */}
+        <div className="p-3 border-top bg-white">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredSubjects.length}
+            entriesPerPage={entriesPerPage}
+            itemLabel="subjects"
+            onPageChange={setCurrentPage}
+          />
+        </div>
       </div>
+
+      {/* ADD SUBJECT MODAL */}
+      {showAddModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-journal-plus me-2" />
+                  Mở môn học mới (Center Manager)
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowAddModal(false)}
+                />
+              </div>
+              <form onSubmit={handleAddSubmit}>
+                <div className="modal-body p-4">
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Tên môn học <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Ví dụ: Lập trình Python, Sinh học nâng cao..."
+                      value={addForm.subjectName}
+                      onChange={(e) => setAddForm({ ...addForm, subjectName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Mã môn học (Code)</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Ví dụ: BIO, PYT, ENG..."
+                      value={addForm.subjectCode}
+                      onChange={(e) => setAddForm({ ...addForm, subjectCode: e.target.value })}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Mô tả giáo trình / Mục tiêu môn học</label>
+                    <textarea
+                      className="form-control"
+                      rows={3}
+                      placeholder="Mô tả tóm tắt nội dung môn học..."
+                      value={addForm.description}
+                      onChange={(e) => setAddForm({ ...addForm, description: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowAddModal(false)}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn btn-primary px-4">
+                    Lưu môn học
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DETAIL MODAL (GetById) */}
+      {selectedSubject && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom">
+                <div className="d-flex align-items-center gap-2">
+                  <span className="badge bg-primary fs-6 font-monospace">
+                    #{selectedSubject.subjectCode}
+                  </span>
+                  <h5 className="modal-title fw-bold mb-0 text-dark">
+                    Chi tiết môn học
+                  </h5>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setSelectedSubject(null)}
+                />
+              </div>
+
+              <div className="modal-body p-4">
+                {loadingDetail ? (
+                  <div className="text-center py-4 text-muted">
+                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    Đang nạp thông tin môn học...
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-3">
+                      <small className="text-muted d-block mb-1">Tên môn học</small>
+                      <h4 className="fw-bold text-dark">{selectedSubject.subjectName}</h4>
+                    </div>
+
+                    <div className="mb-3">
+                      <small className="text-muted d-block mb-1">Mã định danh</small>
+                      <span className="badge bg-light text-dark border font-monospace fs-6">
+                        {selectedSubject.subjectCode}
+                      </span>
+                    </div>
+
+                    <div className="mb-3">
+                      <small className="text-muted d-block mb-1">Số lớp học đang vận hành</small>
+                      <strong className="text-primary">{selectedSubject.totalClasses || 3} lớp học</strong>
+                    </div>
+
+                    <div className="mb-3">
+                      <small className="text-muted d-block mb-1">Mô tả chương trình học</small>
+                      <div className="p-3 bg-light rounded border text-secondary">
+                        {selectedSubject.description || "Không có ghi chú thêm."}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="modal-footer bg-light">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedSubject(null)}
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

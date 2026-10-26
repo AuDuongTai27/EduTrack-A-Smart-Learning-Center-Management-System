@@ -1,13 +1,145 @@
+import { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
-import StatusBadge from "../../../components/Common/StatusBadge";
-import { useState } from "react";
 import Pagination from "../../../components/Common/Pagination";
+import notificationDAL from "../../../../DAL/notificationDAL";
+import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
 
 export default function CenterManagerNotificationPage() {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const totalNotifications = 12;
-  const entriesPerPage = 4;
+  // Filters state
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("All");
+  const [selectedSort, setSelectedSort] = useState<string>("newest");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const entriesPerPage = 5;
+
+  // Selected Notification (GetById)
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<NotificationDto | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
+
+  // Modal create state
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [createForm, setCreateForm] = useState({
+    title: "",
+    type: "Announcement",
+    targetAudience: "Entire Center",
+    content: "",
+  });
+  const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchNotifications() {
+      try {
+        setLoading(true);
+        const res = await notificationDAL.getAllNotifications();
+        if (isMounted && res.data) {
+          setNotifications(res.data);
+          if (res.data.length > 0) {
+            setSelectedId(res.data[0].notificationId);
+            setSelectedNotification(res.data[0]);
+          }
+        }
+      } catch (err) {
+        console.warn("Lỗi tải thông báo center manager:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchNotifications();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter & Search logic
+  const filteredNotifications = useMemo(() => {
+    return notifications
+      .filter((n) => {
+        const matchSearch =
+          searchTerm === "" ||
+          n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (n.content && n.content.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchType = selectedType === "All" || n.type === selectedType;
+
+        return matchSearch && matchType;
+      })
+      .sort((a, b) => {
+        if (selectedSort === "newest") {
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        }
+        if (selectedSort === "oldest") {
+          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+        }
+        if (selectedSort === "title-asc") {
+          return a.title.localeCompare(b.title);
+        }
+        if (selectedSort === "title-desc") {
+          return b.title.localeCompare(a.title);
+        }
+        return 0;
+      });
+  }, [notifications, searchTerm, selectedType, selectedSort]);
+
+  // Paginated list
+  const paginatedNotifications = useMemo(() => {
+    const start = (currentPage - 1) * entriesPerPage;
+    return filteredNotifications.slice(start, start + entriesPerPage);
+  }, [filteredNotifications, currentPage, entriesPerPage]);
+
+  // Handle select item (GetById)
+  const handleSelectNotification = async (item: NotificationDto) => {
+    setSelectedId(item.notificationId);
+    setLoadingDetail(true);
+    try {
+      const detail = await notificationDAL.getNotificationById(item.notificationId);
+      setSelectedNotification(detail || item);
+    } catch {
+      setSelectedNotification(item);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  // Handle create notification submit
+  const handleCreateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createForm.title.trim() || !createForm.content.trim()) {
+      alert("Vui lòng điền tiêu đề và nội dung thông báo!");
+      return;
+    }
+
+    const newNotif: NotificationDto = {
+      notificationId: Date.now(),
+      title: createForm.title,
+      type: createForm.type,
+      content: createForm.content,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      className: createForm.targetAudience,
+      userName: "Nguyễn Văn Quản Lý",
+    };
+
+    const updated = [newNotif, ...notifications];
+    setNotifications(updated);
+    setSelectedId(newNotif.notificationId);
+    setSelectedNotification(newNotif);
+    setShowCreateModal(false);
+    setCreateForm({
+      title: "",
+      type: "Announcement",
+      targetAudience: "Entire Center",
+      content: "",
+    });
+    setActionSuccessMsg(`Đã tạo và phát hành thông báo cấp trung tâm: "${newNotif.title}" thành công!`);
+    setTimeout(() => setActionSuccessMsg(null), 4000);
+  };
 
   return (
     <>
@@ -21,7 +153,8 @@ export default function CenterManagerNotificationPage() {
         action={
           <button
             type="button"
-            className="btn btn-primary d-flex align-items-center"
+            className="btn btn-primary d-flex align-items-center shadow-sm"
+            onClick={() => setShowCreateModal(true)}
           >
             <i className="bi bi-plus-square me-2" />
             New Notification
@@ -29,242 +162,360 @@ export default function CenterManagerNotificationPage() {
         }
       />
 
+      {/* Success Notification Alert */}
+      {actionSuccessMsg && (
+        <div className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+          <i className="bi bi-check-circle-fill fs-5 me-2" />
+          <div>{actionSuccessMsg}</div>
+          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+        </div>
+      )}
+
       {/* Filter */}
-      <div className="card user-list-card mb-4">
-        <div className="card-header user-list-header">
+      <div className="card user-list-card mb-4 border-0 shadow-sm">
+        <div className="card-header user-list-header bg-white py-3">
           <div className="row g-3 align-items-center">
-            <div className="col-xl-4 col-lg-6">
-              <div className="user-search">
-                <i className="bi bi-search" />
+            <div className="col-xl-6 col-lg-6">
+              <div className="user-search position-relative">
+                <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
                 <input
                   type="text"
-                  className="form-control"
-                  placeholder="Search notifications..."
+                  className="form-control ps-5"
+                  placeholder="Search notifications by title or content..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
             </div>
-            <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>All Types</option>
-                <option>Announcement</option>
-                <option>Tuition Reminder</option>
-                <option>Schedule Update</option>
-                <option>Academic Notice</option>
+            <div className="col-xl-3 col-lg-3 col-md-6">
+              <select
+                className="form-select"
+                value={selectedType}
+                onChange={(e) => {
+                  setSelectedType(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All Types</option>
+                <option value="Announcement">Announcement</option>
+                <option value="System">System Notice</option>
+                <option value="Tuition">Tuition Reminder</option>
+                <option value="Academic">Academic Notice</option>
               </select>
             </div>
-            <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>All Recipients</option>
-                <option>Entire Center</option>
-                <option>Role</option>
-                <option>Class</option>
-                <option>Class Subject</option>
-                <option>Specific Users</option>
-              </select>
-            </div>
-            <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>All Statuses</option>
-                <option>Draft</option>
-                <option>Scheduled</option>
-                <option>Sent</option>
-                <option>Cancelled</option>
-              </select>
-            </div>
-            <div className="col-xl-2 col-lg-3 col-md-6">
-              <select className="form-select">
-                <option selected>Sort by Newest</option>
-                <option>Sort by Oldest</option>
-                <option>Title A-Z</option>
-                <option>Title Z-A</option>
+            <div className="col-xl-3 col-lg-3 col-md-6">
+              <select
+                className="form-select"
+                value={selectedSort}
+                onChange={(e) => setSelectedSort(e.target.value)}
+              >
+                <option value="newest">Sort by Newest</option>
+                <option value="oldest">Sort by Oldest</option>
+                <option value="title-asc">Title A-Z</option>
+                <option value="title-desc">Title Z-A</option>
               </select>
             </div>
           </div>
         </div>
       </div>
+
       {/* Notification Content */}
       <div className="row g-4">
-        {/* Notification List */}
+        {/* Notification List (Left col) */}
         <div className="col-xl-5">
-          <div className="card notification-card">
-            <div className="notification-card-header">
+          <div className="card notification-card border-0 shadow-sm h-100">
+            <div className="notification-card-header d-flex align-items-center justify-content-between p-3 border-bottom bg-white">
               <div>
-                <h5 className="mb-1">Notification List</h5>
-                <small>12 notifications</small>
+                <h5 className="mb-0 fw-bold">Notification List</h5>
+                <small className="text-muted">{filteredNotifications.length} notifications found</small>
               </div>
             </div>
-            <div className="notification-list">
-              <div className="notification-item active">
-                <div className="notification-item-top">
-                  <h6>Tuition Payment Reminder</h6>
-                  <StatusBadge status="Scheduled" />
+
+            <div className="notification-list p-2" style={{ maxHeight: "600px", overflowY: "auto" }}>
+              {loading ? (
+                <div className="text-center py-5 text-muted">
+                  <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                  Đang tải thông báo...
                 </div>
-                <p className="notification-summary">
-                  Reminder for students with outstanding tuition payments.
-                </p>
-                <div className="notification-meta">
-                  <span>
-                    <i className="bi bi-people me-1" />
-                    Parents
-                  </span>
-                  <span>
-                    <i className="bi bi-clock me-1" />
-                    18 Aug 2026
-                  </span>
+              ) : paginatedNotifications.length === 0 ? (
+                <div className="text-center py-5 text-muted">
+                  <i className="bi bi-bell-slash fs-2 d-block mb-2 text-secondary" />
+                  Không có thông báo nào phù hợp.
                 </div>
-              </div>
-              <div className="notification-item">
-                <div className="notification-item-top">
-                  <h6>Class Schedule Updated</h6>
-                  <StatusBadge status="Sent" />
-                </div>
-                <p className="notification-summary">
-                  Updated schedule for Mathematics - 7.
-                </p>
-                <div className="notification-meta">
-                  <span>
-                    <i className="bi bi-people me-1" />
-                    Mathematics - 7
-                  </span>
-                  <span>
-                    <i className="bi bi-clock me-1" />
-                    16 Aug 2026
-                  </span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <div className="notification-item-top">
-                  <h6>September Academic Notice</h6>
-                  <StatusBadge status="Draft" />
-                </div>
-                <p className="notification-summary">
-                  General academic announcement for the entire center.
-                </p>
-                <div className="notification-meta">
-                  <span>
-                    <i className="bi bi-people me-1" />
-                    Entire Center
-                  </span>
-                  <span>
-                    <i className="bi bi-clock me-1" />
-                    15 Aug 2026
-                  </span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <div className="notification-item-top">
-                  <h6>Physics Class Cancellation</h6>
-                  <StatusBadge status="Cancelled" />
-                </div>
-                <p className="notification-summary">
-                  Previous scheduled notice for Physics - 9.
-                </p>
-                <div className="notification-meta">
-                  <span>
-                    <i className="bi bi-people me-1" />
-                    Physics - 9
-                  </span>
-                  <span>
-                    <i className="bi bi-clock me-1" />
-                    14 Aug 2026
-                  </span>
-                </div>
-              </div>
+              ) : (
+                paginatedNotifications.map((n) => {
+                  const isSelected = selectedId === n.notificationId;
+                  const dateStr = n.createdAt
+                    ? new Date(n.createdAt).toLocaleDateString("vi-VN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })
+                    : "—";
+
+                  return (
+                    <div
+                      key={n.notificationId}
+                      className={`notification-item p-3 mb-2 rounded-3 border transition-all cursor-pointer ${
+                        isSelected ? "bg-primary-subtle border-primary" : "bg-white hover-shadow"
+                      }`}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleSelectNotification(n)}
+                    >
+                      <div className="notification-item-top d-flex align-items-center justify-content-between mb-2">
+                        <h6 className={`mb-0 fw-bold text-truncate ${isSelected ? "text-primary" : "text-dark"}`} style={{ maxWidth: "230px" }}>
+                          {n.title}
+                        </h6>
+                        <span className={`badge ${isSelected ? "bg-primary text-white" : "bg-light text-dark border"}`}>
+                          {n.type || "Notice"}
+                        </span>
+                      </div>
+                      <p className="notification-summary text-muted small mb-2 text-truncate">
+                        {n.content || "Không có nội dung mô tả."}
+                      </p>
+                      <div className="notification-meta d-flex align-items-center justify-content-between small text-muted">
+                        <span>
+                          <i className="bi bi-people me-1" />
+                          {n.className || "Entire Center"}
+                        </span>
+                        <span>
+                          <i className="bi bi-clock me-1" />
+                          {dateStr}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
-            <Pagination
-              currentPage={currentPage}
-              totalItems={totalNotifications}
-              entriesPerPage={entriesPerPage}
-              itemLabel="notifications"
-              onPageChange={setCurrentPage}
-            />
+
+            <div className="p-3 border-top mt-auto bg-white">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredNotifications.length}
+                entriesPerPage={entriesPerPage}
+                itemLabel="notifications"
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </div>
         </div>
-        {/* Notification Preview */}
+
+        {/* Notification Preview (Right col - GetById) */}
         <div className="col-xl-7">
-          <div className="card notification-card">
-            <div className="notification-preview-header">
-              <div>
-                <div className="d-flex align-items-center gap-2 mb-2">
-                  <h5 className="mb-0">Tuition Payment Reminder</h5>
-                  <StatusBadge status="Scheduled" />
-                </div>
-                <small className="text-muted">
-                  Created on 17 Aug 2026 at 10:30 AM
-                </small>
+          <div className="card notification-card border-0 shadow-sm h-100">
+            {loadingDetail ? (
+              <div className="text-center py-5 text-muted">
+                <div className="spinner-border text-primary mb-3" role="status" />
+                <p>Đang tải chi tiết thông báo...</p>
               </div>
-              <button
-                type="button"
-                className="btn table-action-btn"
-                title="More actions"
-              >
-                <i className="bi bi-three-dots-vertical" />
-              </button>
-            </div>
-            <div className="notification-preview-body">
-              <div className="notification-info-grid">
-                <div>
-                  <span className="notification-label">Type</span>
-                  <strong>Tuition Reminder</strong>
-                </div>
-                <div>
-                  <span className="notification-label">Sender</span>
-                  <strong>Center Manager</strong>
-                </div>
-                <div>
-                  <span className="notification-label">Recipients</span>
-                  <strong>Parents</strong>
-                </div>
-                <div>
-                  <span className="notification-label">Scheduled Time</span>
-                  <strong>18 Aug 2026 - 08:00 AM</strong>
-                </div>
-              </div>
-              <hr />
-              <div className="notification-message">
-                <span className="notification-label">Message</span>
-                <p>Dear Parent,</p>
-                <p>
-                  This is a reminder that the tuition payment for August 2026 is
-                  currently outstanding. Please complete the payment before the
-                  due date to avoid an overdue status.
-                </p>
-                <p className="mb-0">Thank you for your cooperation.</p>
-              </div>
-              <hr />
-              <div>
-                <span className="notification-label">Attachment</span>
-                <div className="notification-attachment">
+            ) : selectedNotification ? (
+              <>
+                <div className="notification-preview-header d-flex align-items-start justify-content-between p-4 border-bottom bg-white">
                   <div>
-                    <strong>tuition-notice.pdf</strong>
-                    <small>248 KB</small>
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <h4 className="mb-0 fw-bold text-dark">{selectedNotification.title}</h4>
+                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
+                        {selectedNotification.type || "Notice"}
+                      </span>
+                    </div>
+                    <small className="text-muted">
+                      Created on:{" "}
+                      {selectedNotification.createdAt
+                        ? new Date(selectedNotification.createdAt).toLocaleString("vi-VN")
+                        : "—"}
+                    </small>
                   </div>
+                </div>
+
+                <div className="notification-preview-body p-4 flex-grow-1">
+                  <div className="row g-3 mb-4">
+                    <div className="col-sm-6 col-md-3">
+                      <div className="p-3 bg-light rounded-3 text-center">
+                        <small className="text-muted d-block mb-1">Loại thông báo</small>
+                        <strong className="text-dark">{selectedNotification.type || "Announcement"}</strong>
+                      </div>
+                    </div>
+                    <div className="col-sm-6 col-md-3">
+                      <div className="p-3 bg-light rounded-3 text-center">
+                        <small className="text-muted d-block mb-1">Người phát hành</small>
+                        <strong className="text-dark">{selectedNotification.userName || "Center Manager"}</strong>
+                      </div>
+                    </div>
+                    <div className="col-sm-6 col-md-3">
+                      <div className="p-3 bg-light rounded-3 text-center">
+                        <small className="text-muted d-block mb-1">Phạm vi nhận</small>
+                        <strong className="text-dark">{selectedNotification.className || "Toàn trung tâm"}</strong>
+                      </div>
+                    </div>
+                    <div className="col-sm-6 col-md-3">
+                      <div className="p-3 bg-light rounded-3 text-center">
+                        <small className="text-muted d-block mb-1">Trạng thái</small>
+                        <span className="badge bg-success-subtle text-success border border-success-subtle">Đã phát hành</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr className="my-4" />
+
+                  <div className="notification-message">
+                    <h6 className="fw-bold text-dark mb-3">Nội dung thông cáo trung tâm:</h6>
+                    <div className="p-4 bg-light rounded-3 border text-secondary" style={{ whiteSpace: "pre-line", minHeight: "150px", lineHeight: "1.7" }}>
+                      {selectedNotification.content || "Không có nội dung thông báo."}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="notification-preview-footer p-4 border-top bg-light d-flex justify-content-between align-items-center">
                   <button
                     type="button"
-                    className="btn table-action-btn"
-                    title="View Attachment"
+                    className="btn btn-outline-danger"
+                    onClick={() => {
+                      if (window.confirm("Bạn có chắc chắn muốn thu hồi/xóa thông báo này?")) {
+                        const remaining = notifications.filter((x) => x.notificationId !== selectedNotification.notificationId);
+                        setNotifications(remaining);
+                        if (remaining.length > 0) {
+                          setSelectedId(remaining[0].notificationId);
+                          setSelectedNotification(remaining[0]);
+                        } else {
+                          setSelectedId(null);
+                          setSelectedNotification(null);
+                        }
+                        setActionSuccessMsg("Đã thu hồi thông báo thành công!");
+                        setTimeout(() => setActionSuccessMsg(null), 3000);
+                      }
+                    }}
                   >
-                    <i className="bi bi-eye" />
+                    <i className="bi bi-trash me-1" />
+                    Thu hồi thông báo
                   </button>
+
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setActionSuccessMsg(`Đã phát lại thông báo tới toàn bộ tài khoản mục tiêu!`);
+                        setTimeout(() => setActionSuccessMsg(null), 3500);
+                      }}
+                    >
+                      <i className="bi bi-broadcast me-1" />
+                      Phát sóng khẩn cấp
+                    </button>
+                  </div>
                 </div>
+              </>
+            ) : (
+              <div className="text-center py-5 text-muted p-4">
+                <i className="bi bi-bell fs-1 d-block mb-3 text-secondary" />
+                <h5>Chưa chọn thông báo nào</h5>
+                <p>Vui lòng chọn một thông báo từ danh sách bên trái để xem chi tiết.</p>
               </div>
-            </div>
-            <div className="notification-preview-footer">
-              <button type="button" className="btn btn-outline-danger">
-                Cancel Schedule
-              </button>
-              <div className="d-flex gap-2">
-                <button type="button" className="btn btn-light border">
-                  Edit
-                </button>
-                <button type="button" className="btn btn-primary">
-                  Send Now
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* CREATE NEW NOTIFICATION MODAL */}
+      {showCreateModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-megaphone-fill me-2" />
+                  Soạn thảo & Phát hành thông báo (Center Manager)
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowCreateModal(false)}
+                />
+              </div>
+              <form onSubmit={handleCreateSubmit}>
+                <div className="modal-body p-4">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Loại thông báo <span className="text-danger">*</span></label>
+                      <select
+                        className="form-select"
+                        value={createForm.type}
+                        onChange={(e) => setCreateForm({ ...createForm, type: e.target.value })}
+                        required
+                      >
+                        <option value="Announcement">Announcement (Thông báo chung toàn viện)</option>
+                        <option value="Academic">Academic Notice (Thông báo học vụ & thi cử)</option>
+                        <option value="Tuition">Tuition Reminder (Nhắc nhở học phí)</option>
+                        <option value="System">System Notice (Bảo trì hệ thống)</option>
+                      </select>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Phạm vi nhận tin <span className="text-danger">*</span></label>
+                      <select
+                        className="form-select"
+                        value={createForm.targetAudience}
+                        onChange={(e) => setCreateForm({ ...createForm, targetAudience: e.target.value })}
+                        required
+                      >
+                        <option value="Entire Center">Toàn trung tâm (Tất cả vai trò)</option>
+                        <option value="Parents">Chỉ Phụ huynh học sinh</option>
+                        <option value="Students">Chỉ Học sinh</option>
+                        <option value="Teachers & TAs">Toàn thể Giáo viên & Trợ giảng</option>
+                        <option value="Class 7">Khối lớp 7</option>
+                        <option value="Class 8">Khối lớp 8</option>
+                        <option value="Class 9">Khối lớp 9</option>
+                        <option value="Class 12">Khối lớp 12</option>
+                      </select>
+                    </div>
+
+                    <div className="col-md-12">
+                      <label className="form-label fw-bold">Tiêu đề thông cáo <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Ví dụ: Kế hoạch tổ chức kỳ thi thử THPT Quốc Gia năm 2026..."
+                        value={createForm.title}
+                        onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-12">
+                      <label className="form-label fw-bold">Nội dung thông cáo <span className="text-danger">*</span></label>
+                      <textarea
+                        className="form-control"
+                        rows={5}
+                        placeholder="Nhập chi tiết nội dung thông báo gửi tới các đối tượng nhận..."
+                        value={createForm.content}
+                        onChange={(e) => setCreateForm({ ...createForm, content: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn btn-primary px-4">
+                    <i className="bi bi-send-fill me-1" />
+                    Phát hành ngay
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

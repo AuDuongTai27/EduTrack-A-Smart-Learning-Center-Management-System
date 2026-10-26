@@ -91,7 +91,7 @@ export const MOCK_USERS: User[] = [
   {
     userId: 6,
     userCode: 'STU001',
-    fullName: 'Lê Văn An',
+    fullName: '[FE-Mock] Lê Văn An',
     email: 'an.le@student.edutrack.vn',
     phone: '0956789012',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=an',
@@ -105,7 +105,7 @@ export const MOCK_USERS: User[] = [
   {
     userId: 7,
     userCode: 'STU002',
-    fullName: 'Phạm Thị Bích',
+    fullName: '[FE-Mock] Phạm Thị Bích',
     email: 'bich.pham@student.edutrack.vn',
     phone: '0967890123',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=bich',
@@ -119,7 +119,7 @@ export const MOCK_USERS: User[] = [
   {
     userId: 8,
     userCode: 'STU003',
-    fullName: 'Đặng Minh Cường',
+    fullName: '[FE-Mock] Đặng Minh Cường',
     email: 'cuong.dang@student.edutrack.vn',
     phone: '0978901234',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=cuong',
@@ -133,7 +133,7 @@ export const MOCK_USERS: User[] = [
   {
     userId: 9,
     userCode: 'PAR001',
-    fullName: 'Lê Văn Nam',
+    fullName: '[FE-Mock] Lê Văn Nam',
     email: 'nam.le@parent.edutrack.vn',
     phone: '0981112233',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=parent1',

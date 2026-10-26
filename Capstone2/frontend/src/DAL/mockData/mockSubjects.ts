@@ -7,7 +7,7 @@ export const MOCK_SUBJECTS: Subject[] = [
   {
     subjectId: 1,
     subjectCode: 'MATH',
-    subjectName: 'Mathematics',
+    subjectName: '[FE-Mock] Mathematics',
     description: 'Core mathematical concepts, algebra, geometry, calculus and logical problem solving.',
   },
   {
