@@ -33,5 +33,85 @@ namespace EduTrack.API.Repositories.Implementation
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.UserId == id);
         }
+
+        public async Task<User> CreateUserWithRoleAsync(User user, string roleName)
+        {
+            await _dbSet.AddAsync(user);
+            await _context.SaveChangesAsync();
+
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+            if (role != null)
+            {
+                var userRole = new UserRole
+                {
+                    UserId = user.UserId,
+                    RoleId = role.RoleId
+                };
+                await _context.UserRoles.AddAsync(userRole);
+                await _context.SaveChangesAsync();
+            }
+
+            return await GetByIdAsync(user.UserId) ?? user;
+        }
+
+        public async Task<User?> UpdateUserWithRoleAsync(int id, User updatedUser, string? roleName)
+        {
+            var existing = await _dbSet
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (existing == null) return null;
+
+            existing.FullName = updatedUser.FullName;
+            existing.Email = updatedUser.Email;
+            existing.Phone = updatedUser.Phone;
+            existing.Specialty = updatedUser.Specialty;
+            if (!string.IsNullOrWhiteSpace(updatedUser.Gender)) existing.Gender = updatedUser.Gender;
+            if (!string.IsNullOrWhiteSpace(updatedUser.Status)) existing.Status = updatedUser.Status;
+
+            if (!string.IsNullOrWhiteSpace(roleName))
+            {
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+                if (role != null)
+                {
+                    _context.UserRoles.RemoveRange(existing.UserRoles);
+                    existing.UserRoles.Add(new UserRole
+                    {
+                        UserId = existing.UserId,
+                        RoleId = role.RoleId,
+                        Role = role
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return await GetByIdAsync(id);
+        }
+
+        public async Task<bool> UpdateStatusAsync(int id, string status)
+        {
+            var user = await _dbSet.FindAsync(id);
+            if (user == null) return false;
+
+            user.Status = status;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteUserAsync(int id)
+        {
+            var user = await _dbSet
+                .Include(u => u.UserRoles)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null) return false;
+
+            _context.UserRoles.RemoveRange(user.UserRoles);
+            _dbSet.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
+

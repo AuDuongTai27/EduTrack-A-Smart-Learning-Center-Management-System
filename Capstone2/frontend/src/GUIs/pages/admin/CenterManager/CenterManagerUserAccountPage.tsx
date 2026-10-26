@@ -9,6 +9,8 @@ import RoleBadge from "../../../components/Common/RoleBadge";
 import userDAL from "../../../../DAL/userDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 
+const INTERNAL_STAFF_ROLES = ["center_manager", "admin_staff", "teacher", "teaching_assistant"];
+
 export default function CenterManagerUserAccountPage() {
   const [users, setUsers] = useState<UserDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -35,8 +37,30 @@ export default function CenterManagerUserAccountPage() {
     email: "",
     role: "teacher",
     specialty: "Mathematics",
+    gender: "male",
   });
+
+  // Edit User Modal state
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editForm, setEditForm] = useState({
+    userId: 0,
+    userCode: "",
+    fullName: "",
+    phone: "",
+    email: "",
+    role: "teacher",
+    specialty: "",
+    gender: "male",
+    status: "active",
+  });
+
+  // Delete User Modal state
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [userToDelete, setUserToDelete] = useState<UserDto | null>(null);
+
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+  const [actionErrorMsg, setActionErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -45,7 +69,11 @@ export default function CenterManagerUserAccountPage() {
         setLoading(true);
         const res = await userDAL.getAllUsers();
         if (isMounted && res.data) {
-          setUsers(res.data);
+          // Lưu ý quan trọng: Chỉ quản lý nhân sự nội bộ (center_manager, admin_staff, teacher, teaching_assistant)
+          const staffOnly = res.data.filter((u) =>
+            u.roles && u.roles.some((r) => INTERNAL_STAFF_ROLES.includes(r.toLowerCase()))
+          );
+          setUsers(staffOnly);
         }
       } catch (err) {
         console.warn("Lỗi tải danh sách tài khoản người dùng:", err);
@@ -103,7 +131,7 @@ export default function CenterManagerUserAccountPage() {
     return filteredUsers.slice(start, start + entriesPerPage);
   }, [filteredUsers, currentPage, entriesPerPage]);
 
-  // Handle View / Edit Details (GetById)
+  // Handle View Details (GetById)
   const handleViewDetails = async (u: UserDto) => {
     setLoadingDetail(true);
     try {
@@ -117,45 +145,130 @@ export default function CenterManagerUserAccountPage() {
   };
 
   // Handle Add User Submit
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.fullName.trim()) return;
 
-    const newId = users.length > 0 ? Math.max(...users.map((x) => x.userId)) + 1 : 101;
-    const prefix = addForm.role === "teacher" ? "TEA" : addForm.role === "teaching_assistant" ? "TA" : addForm.role === "admin_staff" ? "ADM" : "USR";
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await userDAL.createUser({
+        fullName: addForm.fullName.trim(),
+        phone: addForm.phone.trim() || undefined,
+        email: addForm.email.trim() || undefined,
+        role: addForm.role,
+        specialty: addForm.specialty.trim() || undefined,
+        gender: addForm.gender,
+      });
 
-    const newUserObj: UserDto = {
-      userId: newId,
-      userCode: `${prefix}${String(newId).padStart(3, "0")}`,
-      fullName: addForm.fullName.trim(),
-      phone: addForm.phone || "0912 345 678",
-      email: addForm.email || `${prefix.toLowerCase()}${newId}@edutrack.edu.vn`,
-      specialty: addForm.specialty,
-      roles: [addForm.role],
-      status: "active",
-      createdAt: new Date().toISOString(),
-    };
+      setUsers([res.data, ...users]);
+      setShowAddModal(false);
+      setAddForm({
+        fullName: "",
+        phone: "",
+        email: "",
+        role: "teacher",
+        specialty: "Mathematics",
+        gender: "male",
+      });
+      setActionSuccessMsg(`Đã tạo tài khoản mới: "${res.data.fullName}" (${res.data.userCode}) thành công!`);
+      setTimeout(() => setActionSuccessMsg(null), 3500);
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Không thể tạo tài khoản.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    setUsers([newUserObj, ...users]);
-    setShowAddModal(false);
-    setAddForm({
-      fullName: "",
-      phone: "",
-      email: "",
-      role: "teacher",
-      specialty: "Mathematics",
+  // Open Edit Modal
+  const handleOpenEditModal = (u: UserDto) => {
+    setEditForm({
+      userId: u.userId,
+      userCode: u.userCode || `USR${u.userId}`,
+      fullName: u.fullName,
+      phone: u.phone || "",
+      email: u.email || "",
+      role: u.roles && u.roles.length > 0 ? u.roles[0] : "teacher",
+      specialty: u.specialty || "",
+      gender: u.gender || "male",
+      status: u.status || "active",
     });
-    setActionSuccessMsg(`Đã tạo tài khoản mới: "${newUserObj.fullName}" (${newUserObj.userCode}) thành công!`);
-    setTimeout(() => setActionSuccessMsg(null), 3500);
+    setShowEditModal(true);
+    setActionErrorMsg(null);
+  };
+
+  // Handle Edit User Submit
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editForm.fullName.trim()) return;
+
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await userDAL.updateUser(editForm.userId, {
+        fullName: editForm.fullName.trim(),
+        phone: editForm.phone.trim() || undefined,
+        email: editForm.email.trim() || undefined,
+        role: editForm.role,
+        specialty: editForm.specialty.trim() || undefined,
+        gender: editForm.gender,
+        status: editForm.status,
+      });
+
+      setUsers(users.map((item) => (item.userId === editForm.userId ? res.data : item)));
+      setShowEditModal(false);
+      setActionSuccessMsg(`Đã cập nhật thông tin tài khoản "${res.data.fullName}" thành công!`);
+      setTimeout(() => setActionSuccessMsg(null), 3500);
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Không thể cập nhật tài khoản.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Handle Status Toggle
-  const handleToggleStatus = (u: UserDto) => {
+  const handleToggleStatus = async (u: UserDto) => {
     const nextStatus = u.status === "active" ? "locked" : "active";
-    const updated = users.map((item) => (item.userId === u.userId ? { ...item, status: nextStatus } : item));
-    setUsers(updated);
-    setActionSuccessMsg(`Đã cập nhật trạng thái tài khoản ${u.fullName} thành: ${nextStatus.toUpperCase()}!`);
-    setTimeout(() => setActionSuccessMsg(null), 3000);
+    try {
+      await userDAL.updateUserStatus(u.userId, nextStatus);
+      const updated = users.map((item) => (item.userId === u.userId ? { ...item, status: nextStatus } : item));
+      setUsers(updated);
+      setActionSuccessMsg(`Đã cập nhật trạng thái tài khoản ${u.fullName} thành: ${nextStatus.toUpperCase()}!`);
+      setTimeout(() => setActionSuccessMsg(null), 3000);
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Lỗi cập nhật trạng thái.");
+    }
+  };
+
+  // Open Delete Modal
+  const handleOpenDeleteModal = (u: UserDto) => {
+    setUserToDelete(u);
+    setShowDeleteModal(true);
+    setActionErrorMsg(null);
+  };
+
+  // Handle Confirm Delete
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await userDAL.deleteUser(userToDelete.userId);
+      if (res.success) {
+        setUsers(users.filter((item) => item.userId !== userToDelete.userId));
+        setShowDeleteModal(false);
+        setActionSuccessMsg(`Đã xóa tài khoản "${userToDelete.fullName}" (${userToDelete.userCode}) thành công!`);
+        setTimeout(() => setActionSuccessMsg(null), 3500);
+      } else {
+        setActionErrorMsg(res.message || "Không thể xóa tài khoản người dùng.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Lỗi xóa tài khoản người dùng.");
+    } finally {
+      setSubmitting(false);
+      setUserToDelete(null);
+    }
   };
 
   return (
@@ -171,10 +284,13 @@ export default function CenterManagerUserAccountPage() {
           <button
             type="button"
             className="btn btn-primary d-flex align-items-center shadow-sm"
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setShowAddModal(true);
+              setActionErrorMsg(null);
+            }}
           >
-            <i className="bi bi-plus-square me-2" />
-            Add User
+            <i className="bi bi-person-plus me-2" />
+            Add Staff User
           </button>
         }
       />
@@ -185,6 +301,15 @@ export default function CenterManagerUserAccountPage() {
           <i className="bi bi-check-circle-fill fs-5 me-2" />
           <div>{actionSuccessMsg}</div>
           <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+        </div>
+      )}
+
+      {/* Error Notification Alert */}
+      {actionErrorMsg && (
+        <div className="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+          <i className="bi bi-exclamation-triangle-fill fs-5 me-2" />
+          <div>{actionErrorMsg}</div>
+          <button type="button" className="btn-close" onClick={() => setActionErrorMsg(null)} aria-label="Close" />
         </div>
       )}
 
@@ -217,13 +342,11 @@ export default function CenterManagerUserAccountPage() {
                   setCurrentPage(1);
                 }}
               >
-                <option value="All">All Roles</option>
+                <option value="All">All Staff Roles</option>
                 <option value="center_manager">Center Manager</option>
                 <option value="admin_staff">Admin Staff</option>
                 <option value="teacher">Teacher</option>
                 <option value="teaching_assistant">Teaching Assistant</option>
-                <option value="student">Student</option>
-                <option value="parent">Parent</option>
               </select>
             </div>
             <div className="col-xl-2 col-lg-3 col-md-6">
@@ -249,8 +372,8 @@ export default function CenterManagerUserAccountPage() {
               >
                 <option value="az">Sort by A-Z</option>
                 <option value="za">Sort by Z-A</option>
-                <option value="newest">Newest Created</option>
-                <option value="oldest">Oldest Created</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
               </select>
             </div>
           </div>
@@ -259,7 +382,7 @@ export default function CenterManagerUserAccountPage() {
         {/* Table Controls */}
         <TableToolbar
           totalItems={filteredUsers.length}
-          totalLabel="Total users"
+          totalLabel="Total staff users"
           entriesPerPage={entriesPerPage}
           onEntriesPerPageChange={(value) => {
             setEntriesPerPage(value);
@@ -274,12 +397,12 @@ export default function CenterManagerUserAccountPage() {
               <tr>
                 <th className="fw-bold">No.</th>
                 <th className="fw-bold">User Code</th>
-                <th className="fw-bold">Full Name</th>
-                <th className="fw-bold">Phone / Email</th>
+                <th className="fw-bold">Staff Name</th>
+                <th className="fw-bold">Phone Number</th>
                 <th className="fw-bold">Specialty</th>
                 <th className="fw-bold">Role</th>
                 <th className="fw-bold">Status</th>
-                <th className="text-center fw-bold">Action</th>
+                <th className="text-center fw-bold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -287,14 +410,14 @@ export default function CenterManagerUserAccountPage() {
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang nạp danh sách tài khoản người dùng...
+                    Đang nạp danh sách tài khoản nhân sự...
                   </td>
                 </tr>
               ) : paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-people fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy tài khoản người dùng nào phù hợp.
+                    Không tìm thấy tài khoản nhân sự nào phù hợp.
                   </td>
                 </tr>
               ) : (
@@ -330,23 +453,38 @@ export default function CenterManagerUserAccountPage() {
                         <DotStatusBadge status={u.status || "active"} />
                       </td>
                       <td className="text-center">
-                        <div className="d-flex align-items-center justify-content-center gap-1">
+                        <div className="btn-group" role="group">
                           <button
                             type="button"
                             className="btn btn-sm btn-outline-primary"
                             onClick={() => handleViewDetails(u)}
-                            title="View / Edit Profile"
+                            title="Xem chi tiết"
                           >
-                            <i className="bi bi-eye me-1" />
-                            Chi tiết
+                            <i className="bi bi-eye" />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleOpenEditModal(u)}
+                            title="Sửa tài khoản"
+                          >
+                            <i className="bi bi-pencil" />
                           </button>
                           <button
                             type="button"
                             className={`btn btn-sm ${u.status === "active" ? "btn-outline-warning" : "btn-outline-success"}`}
                             onClick={() => handleToggleStatus(u)}
-                            title="Toggle Status"
+                            title={u.status === "active" ? "Khóa tài khoản" : "Mở khóa tài khoản"}
                           >
                             {u.status === "active" ? <i className="bi bi-lock" /> : <i className="bi bi-unlock" />}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleOpenDeleteModal(u)}
+                            title="Xóa tài khoản"
+                          >
+                            <i className="bi bi-trash" />
                           </button>
                         </div>
                       </td>
@@ -378,7 +516,7 @@ export default function CenterManagerUserAccountPage() {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-person-plus me-2" />
-                  Thêm tài khoản người dùng mới (Center Manager)
+                  Thêm tài khoản nhân sự mới (Center Manager)
                 </h5>
                 <button
                   type="button"
@@ -411,8 +549,6 @@ export default function CenterManagerUserAccountPage() {
                         <option value="teaching_assistant">Trợ giảng (Teaching Assistant)</option>
                         <option value="admin_staff">Giáo vụ (Admin Staff)</option>
                         <option value="center_manager">Quản lý trung tâm (Center Manager)</option>
-                        <option value="student">Học sinh (Student)</option>
-                        <option value="parent">Phụ huynh (Parent)</option>
                       </select>
                     </div>
                     <div className="col-md-6">
@@ -435,7 +571,19 @@ export default function CenterManagerUserAccountPage() {
                         onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                       />
                     </div>
-                    <div className="col-md-12">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Giới tính</label>
+                      <select
+                        className="form-select"
+                        value={addForm.gender}
+                        onChange={(e) => setAddForm({ ...addForm, gender: e.target.value })}
+                      >
+                        <option value="male">Nam (Male)</option>
+                        <option value="female">Nữ (Female)</option>
+                        <option value="other">Khác</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
                       <label className="form-label fw-bold">Chuyên môn / Khối lớp</label>
                       <input
                         type="text"
@@ -452,14 +600,199 @@ export default function CenterManagerUserAccountPage() {
                     type="button"
                     className="btn btn-outline-secondary"
                     onClick={() => setShowAddModal(false)}
+                    disabled={submitting}
                   >
                     Hủy bỏ
                   </button>
-                  <button type="submit" className="btn btn-primary px-4">
-                    Tạo tài khoản
+                  <button type="submit" className="btn btn-primary px-4" disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" />
+                        Đang tạo...
+                      </>
+                    ) : (
+                      "Tạo tài khoản"
+                    )}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT USER MODAL */}
+      {showEditModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-warning-subtle border-bottom">
+                <h5 className="modal-title fw-bold text-dark">
+                  <i className="bi bi-pencil-square me-2 text-warning" />
+                  Chỉnh sửa tài khoản nhân sự: #{editForm.userCode}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowEditModal(false)}
+                />
+              </div>
+              <form onSubmit={handleEditSubmit}>
+                <div className="modal-body p-4">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Họ và tên <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editForm.fullName}
+                        onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Vai trò hệ thống <span className="text-danger">*</span></label>
+                      <select
+                        className="form-select"
+                        value={editForm.role}
+                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                      >
+                        <option value="teacher">Giáo viên (Teacher)</option>
+                        <option value="teaching_assistant">Trợ giảng (Teaching Assistant)</option>
+                        <option value="admin_staff">Giáo vụ (Admin Staff)</option>
+                        <option value="center_manager">Quản lý trung tâm (Center Manager)</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Số điện thoại</label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Email</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Trạng thái tài khoản</label>
+                      <select
+                        className="form-select"
+                        value={editForm.status}
+                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                      >
+                        <option value="active">Active (Hoạt động)</option>
+                        <option value="inactive">Inactive (Tạm ngừng)</option>
+                        <option value="locked">Locked (Đã khóa)</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Chuyên môn / Khối lớp</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editForm.specialty}
+                        onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowEditModal(false)}
+                    disabled={submitting}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" />
+                        Đang lưu...
+                      </>
+                    ) : (
+                      "Cập nhật tài khoản"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {showDeleteModal && userToDelete && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-exclamation-triangle-fill me-2" />
+                  Xác nhận xóa tài khoản người dùng
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowDeleteModal(false)}
+                />
+              </div>
+              <div className="modal-body p-4">
+                <p className="mb-2">
+                  Bạn có chắc chắn muốn xóa tài khoản nhân sự sau khỏi hệ thống không?
+                </p>
+                <div className="p-3 bg-light rounded border mb-3">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <UserAvatar name={userToDelete.fullName} />
+                    <div>
+                      <h6 className="fw-bold mb-0 text-dark">{userToDelete.fullName}</h6>
+                      <small className="text-muted">{userToDelete.email || "No email"}</small>
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center gap-2">
+                    <span className="badge bg-secondary font-monospace">#{userToDelete.userCode}</span>
+                    <RoleBadge role={userToDelete.roles?.[0] || "user"} />
+                  </div>
+                </div>
+                <div className="alert alert-warning py-2 mb-0 small">
+                  <i className="bi bi-info-circle me-1" />
+                  Hành động này sẽ xóa dữ liệu vai trò và tài khoản truy cập tương ứng.
+                </div>
+              </div>
+              <div className="modal-footer bg-light">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={submitting}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger px-4"
+                  onClick={handleConfirmDelete}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" />
+                      Đang xóa...
+                    </>
+                  ) : (
+                    "Xác nhận xóa"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
