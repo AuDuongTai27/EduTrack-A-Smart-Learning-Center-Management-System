@@ -81,6 +81,63 @@ export const subjectDAL = {
       };
     }
   },
+
+  /**
+   * Tạo mới một môn học
+   */
+  async createSubject(dto: { subjectCode: string; subjectName: string; description?: string }): Promise<{ data: SubjectDto; isLiveApi: boolean }> {
+    try {
+      const created = await subjectApi.create(dto);
+      console.log('🟢 [subjectDAL] Tạo môn học thành công qua API:', created);
+      return { data: created, isLiveApi: true };
+    } catch (err: any) {
+      console.warn('🟡 [subjectDAL] API create thất bại, fallback local:', err.message);
+      const fallback: SubjectDto = {
+        subjectId: Date.now(),
+        subjectCode: dto.subjectCode.toUpperCase(),
+        subjectName: dto.subjectName,
+        description: dto.description || null,
+        totalClasses: 0,
+      };
+      return { data: fallback, isLiveApi: false };
+    }
+  },
+
+  /**
+   * Cập nhật thông tin môn học
+   */
+  async updateSubject(id: number, dto: { subjectCode?: string; subjectName: string; description?: string }): Promise<{ data: SubjectDto; isLiveApi: boolean }> {
+    try {
+      const updated = await subjectApi.update(id, dto);
+      console.log('🟢 [subjectDAL] Cập nhật môn học thành công qua API:', updated);
+      return { data: updated, isLiveApi: true };
+    } catch (err: any) {
+      console.warn('🟡 [subjectDAL] API update thất bại, fallback local:', err.message);
+      const fallback: SubjectDto = {
+        subjectId: id,
+        subjectCode: dto.subjectCode || `SUB${id}`,
+        subjectName: dto.subjectName,
+        description: dto.description || null,
+        totalClasses: 1,
+      };
+      return { data: fallback, isLiveApi: false };
+    }
+  },
+
+  /**
+   * Xóa môn học theo ID
+   */
+  async deleteSubject(id: number): Promise<{ success: boolean; isLiveApi: boolean; message?: string }> {
+    try {
+      const res = await subjectApi.delete(id);
+      console.log('🟢 [subjectDAL] Xóa môn học thành công qua API:', res);
+      return { success: true, isLiveApi: true, message: res.message };
+    } catch (err: any) {
+      console.warn('🟡 [subjectDAL] API delete thất bại, fallback local:', err.message);
+      return { success: true, isLiveApi: false, message: err.message };
+    }
+  },
 };
 
 export default subjectDAL;
+
