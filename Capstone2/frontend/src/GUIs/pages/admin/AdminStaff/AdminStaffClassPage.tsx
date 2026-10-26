@@ -1,120 +1,279 @@
 import { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
+import SubjectBadge from "../../../components/Common/SubjectBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import classDAL from "../../../../DAL/classDAL";
+import subjectDAL from "../../../../DAL/subjectDAL";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
 
 export default function AdminStaffClassPage() {
   const [classes, setClasses] = useState<ClassDto[]>([]);
+  const [subjects, setSubjects] = useState<SubjectDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Filters
+  // Filters state
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedSubject, setSelectedSubject] = useState<string>("All");
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>("All");
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("All");
+  const [selectedSort, setSelectedSort] = useState<string>("az");
 
-  // Pagination
+  // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
 
-  // Modals
+  // Detail Modal state (GetById)
   const [selectedClass, setSelectedClass] = useState<ClassDto | null>(null);
-  const [isAddClassModalOpen, setIsAddClassModalOpen] = useState<boolean>(false);
-  const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
 
-  // New Class Form
-  const [newClassName, setNewClassName] = useState("");
-  const [newSubjectName, setNewSubjectName] = useState("Toán học");
-  const [newRoom, setNewRoom] = useState("Phòng P.301");
-  const [newTuitionFee, setNewTuitionFee] = useState("3500000");
+  // Add Class Modal state
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [addForm, setAddForm] = useState({
+    className: "",
+    subjectId: 0,
+    room: "Phòng 201",
+    tuitionFee: 3000000,
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: "",
+    status: "active",
+  });
+
+  // Edit Class Modal state
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editForm, setEditForm] = useState({
+    classId: 0,
+    className: "",
+    subjectId: 0,
+    room: "",
+    tuitionFee: 0,
+    startDate: "",
+    endDate: "",
+    status: "active",
+  });
+
+  // Delete Confirmation Modal state
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [classToDelete, setClassToDelete] = useState<ClassDto | null>(null);
+
+  // Form submission and alert states
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+  const [actionErrorMsg, setActionErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    async function loadClasses() {
+    async function loadData() {
       try {
         setLoading(true);
-        const res = await classDAL.getAllClasses();
-        if (isMounted && res.data) {
-          setClasses(res.data);
+        const [classesRes, subjectsRes] = await Promise.all([
+          classDAL.getAllClasses(),
+          subjectDAL.getAllSubjects(),
+        ]);
+
+        if (isMounted) {
+          if (classesRes.data) setClasses(classesRes.data);
+          if (subjectsRes.data) {
+            setSubjects(subjectsRes.data);
+            if (subjectsRes.data.length > 0) {
+              setAddForm((prev) => ({
+                ...prev,
+                subjectId: prev.subjectId || subjectsRes.data[0].subjectId,
+              }));
+            }
+          }
         }
       } catch (err) {
-        console.warn("Lỗi tải danh sách lớp học:", err);
+        console.warn("Lỗi nạp danh sách lớp học & môn học:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     }
-    loadClasses();
+    loadData();
     return () => {
       isMounted = false;
     };
   }, []);
 
-  // Filter
+  // Filter & Search logic
   const filteredClasses = useMemo(() => {
-    return classes.filter((c) => {
-      const matchSearch =
-        searchTerm === "" ||
-        c.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.room && c.room.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        String(c.classId).includes(searchTerm);
+    return classes
+      .filter((c) => {
+        const matchSearch =
+          searchTerm === "" ||
+          c.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (c.subjectName && c.subjectName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (c.subjectCode && c.subjectCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (c.room && c.room.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          String(c.classId).includes(searchTerm);
 
-      const matchSubject =
-        selectedSubject === "All" ||
-        (c.subjectName && c.subjectName.toLowerCase().includes(selectedSubject.toLowerCase()));
+        const matchSubject =
+          selectedSubjectFilter === "All" ||
+          String(c.subjectId) === selectedSubjectFilter ||
+          c.subjectName === selectedSubjectFilter;
 
-      return matchSearch && matchSubject;
-    });
-  }, [classes, searchTerm, selectedSubject]);
+        const matchStatus =
+          selectedStatusFilter === "All" ||
+          c.status.toLowerCase() === selectedStatusFilter.toLowerCase();
 
-  // Pagination
-  const totalItems = filteredClasses.length;
-  const totalPages = Math.ceil(totalItems / entriesPerPage) || 1;
+        return matchSearch && matchSubject && matchStatus;
+      })
+      .sort((a, b) => {
+        if (selectedSort === "az") return a.className.localeCompare(b.className);
+        if (selectedSort === "za") return b.className.localeCompare(a.className);
+        if (selectedSort === "newest") return b.classId - a.classId;
+        if (selectedSort === "oldest") return a.classId - b.classId;
+        return 0;
+      });
+  }, [classes, searchTerm, selectedSubjectFilter, selectedStatusFilter, selectedSort]);
+
+  // Paginated list
   const paginatedClasses = useMemo(() => {
     const start = (currentPage - 1) * entriesPerPage;
     return filteredClasses.slice(start, start + entriesPerPage);
   }, [filteredClasses, currentPage, entriesPerPage]);
 
-  // Handle View Class (GetById)
-  const handleViewClass = async (classId: number) => {
+  // Handle View Details (GetById)
+  const handleViewDetails = async (cls: ClassDto) => {
+    setLoadingDetail(true);
     try {
-      const detail = await classDAL.getClassById(classId);
-      setSelectedClass(detail);
-    } catch (err) {
-      console.warn("Lỗi nạp chi tiết lớp học:", err);
+      const detail = await classDAL.getClassById(cls.classId);
+      setSelectedClass(detail || cls);
+    } catch {
+      setSelectedClass(cls);
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
   // Handle Add Class Submit
-  const handleAddClassSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newClassName.trim()) return;
+    if (!addForm.className.trim()) return;
 
-    const newId = classes.length > 0 ? Math.max(...classes.map((c) => c.classId)) + 1 : 10;
-    const newClassObj: ClassDto = {
-      classId: newId,
-      className: newClassName.trim(),
-      subjectId: 1,
-      subjectCode: "MATH",
-      subjectName: newSubjectName,
-      room: newRoom,
-      tuitionFee: Number(newTuitionFee) || 3000000,
-      startDate: new Date().toISOString().split("T")[0],
-      status: "active",
-    };
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await classDAL.createClass({
+        className: addForm.className.trim(),
+        subjectId: Number(addForm.subjectId) || (subjects[0]?.subjectId ?? 1),
+        room: addForm.room.trim() || undefined,
+        tuitionFee: Number(addForm.tuitionFee) || 0,
+        startDate: addForm.startDate,
+        endDate: addForm.endDate ? addForm.endDate : undefined,
+        status: addForm.status,
+      });
 
-    setClasses((prev) => [newClassObj, ...prev]);
-    setIsAddClassModalOpen(false);
-    setNewClassName("");
-    setActionSuccessMsg(`Đã mở thêm lớp học mới: "${newClassObj.className}" thành công!`);
-    setTimeout(() => setActionSuccessMsg(null), 3500);
+      if (res.success && res.data) {
+        setClasses([res.data, ...classes]);
+        setShowAddModal(false);
+        setAddForm({
+          className: "",
+          subjectId: subjects[0]?.subjectId || 1,
+          room: "Phòng 201",
+          tuitionFee: 3000000,
+          startDate: new Date().toISOString().split("T")[0],
+          endDate: "",
+          status: "active",
+        });
+        setActionSuccessMsg(`Đã tạo lớp học mới "${res.data.className}" (#CLS${res.data.classId}) thành công!`);
+        setTimeout(() => setActionSuccessMsg(null), 3500);
+      } else {
+        setActionErrorMsg(res.message || "Không thể tạo lớp học.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Lỗi khi tạo lớp học.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Open Edit Modal
+  const handleOpenEditModal = (cls: ClassDto) => {
+    setEditForm({
+      classId: cls.classId,
+      className: cls.className,
+      subjectId: cls.subjectId,
+      room: cls.room || "",
+      tuitionFee: cls.tuitionFee,
+      startDate: cls.startDate ? cls.startDate.split("T")[0] : "",
+      endDate: cls.endDate ? cls.endDate.split("T")[0] : "",
+      status: cls.status || "active",
+    });
+    setShowEditModal(true);
+    setActionErrorMsg(null);
+  };
+
+  // Handle Edit Submit
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editForm.className.trim()) return;
+
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await classDAL.updateClass(editForm.classId, {
+        className: editForm.className.trim(),
+        subjectId: Number(editForm.subjectId),
+        room: editForm.room.trim() || undefined,
+        tuitionFee: Number(editForm.tuitionFee) || 0,
+        startDate: editForm.startDate,
+        endDate: editForm.endDate ? editForm.endDate : undefined,
+        status: editForm.status,
+      });
+
+      if (res.success && res.data) {
+        setClasses(classes.map((c) => (c.classId === editForm.classId ? res.data! : c)));
+        setShowEditModal(false);
+        setActionSuccessMsg(`Đã cập nhật thông tin lớp học "${res.data.className}" thành công!`);
+        setTimeout(() => setActionSuccessMsg(null), 3500);
+      } else {
+        setActionErrorMsg(res.message || "Không thể cập nhật lớp học.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Lỗi khi cập nhật lớp học.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Open Delete Modal
+  const handleOpenDeleteModal = (cls: ClassDto) => {
+    setClassToDelete(cls);
+    setShowDeleteModal(true);
+    setActionErrorMsg(null);
+  };
+
+  // Handle Confirm Delete
+  const handleConfirmDelete = async () => {
+    if (!classToDelete) return;
+
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await classDAL.deleteClass(classToDelete.classId);
+      if (res.success) {
+        setClasses(classes.filter((c) => c.classId !== classToDelete.classId));
+        setShowDeleteModal(false);
+        setActionSuccessMsg(`Đã xóa lớp học "${classToDelete.className}" thành công!`);
+        setTimeout(() => setActionSuccessMsg(null), 3500);
+      } else {
+        setActionErrorMsg(res.message || "Không thể xóa lớp học.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Lỗi khi xóa lớp học.");
+    } finally {
+      setSubmitting(false);
+      setClassToDelete(null);
+    }
   };
 
   return (
     <>
       {/* Breadcrumb and Quick Access */}
       <PageHeader
-        title="Quản Lý Lớp Học &amp; Khóa Đào Tạo (Class Management)"
+        title="Class Management"
         breadcrumbItems={[
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Classes" },
@@ -122,41 +281,48 @@ export default function AdminStaffClassPage() {
         action={
           <button
             type="button"
-            className="btn btn-primary d-flex align-items-center gap-2"
-            onClick={() => setIsAddClassModalOpen(true)}
+            className="btn btn-primary d-flex align-items-center shadow-sm"
+            onClick={() => {
+              setShowAddModal(true);
+              setActionErrorMsg(null);
+            }}
           >
-            <i className="bi bi-plus-square-fill" />
-            Mở lớp học mới
+            <i className="bi bi-plus-square me-2" />
+            Add Class
           </button>
         }
       />
 
-      {loading && (
-        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
-          <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang nạp danh sách lớp học và giáo viên phụ trách...</span>
-        </div>
-      )}
-
+      {/* Success Notification Alert */}
       {actionSuccessMsg && (
-        <div className="alert alert-success alert-dismissible fade show py-2 px-3 mb-3" role="alert">
-          <i className="bi bi-check-circle-fill me-2" />
-          {actionSuccessMsg}
-          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} />
+        <div className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+          <i className="bi bi-check-circle-fill fs-5 me-2" />
+          <div>{actionSuccessMsg}</div>
+          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
         </div>
       )}
 
-      {/* Class Filters */}
-      <div className="card user-list-card mb-4 border-0">
-        <div className="card-header user-list-header">
+      {/* Error Notification Alert */}
+      {actionErrorMsg && (
+        <div className="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+          <i className="bi bi-exclamation-triangle-fill fs-5 me-2" />
+          <div>{actionErrorMsg}</div>
+          <button type="button" className="btn-close" onClick={() => setActionErrorMsg(null)} aria-label="Close" />
+        </div>
+      )}
+
+      {/* Class List Card */}
+      <div className="card user-list-card border-0 shadow-sm">
+        {/* Filters Header */}
+        <div className="card-header user-list-header bg-white py-3 border-bottom">
           <div className="row g-3 align-items-center">
-            <div className="col-xl-5 col-lg-6">
-              <div className="user-search">
-                <i className="bi bi-search" />
+            <div className="col-xl-5 col-lg-5">
+              <div className="user-search position-relative">
+                <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
                 <input
                   type="text"
-                  className="form-control"
-                  placeholder="Tìm theo tên lớp, phòng học hoặc mã lớp..."
+                  className="form-control ps-5"
+                  placeholder="Search by class name, subject, room..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -165,42 +331,64 @@ export default function AdminStaffClassPage() {
                 />
               </div>
             </div>
-            <div className="col-xl-3 col-lg-3 col-md-6">
+
+            {/* Subject Filter */}
+            <div className="col-xl-3 col-lg-3 col-md-4">
               <select
                 className="form-select"
-                value={selectedSubject}
+                value={selectedSubjectFilter}
                 onChange={(e) => {
-                  setSelectedSubject(e.target.value);
+                  setSelectedSubjectFilter(e.target.value);
                   setCurrentPage(1);
                 }}
               >
-                <option value="All">Tất cả môn học</option>
-                <option value="Toán">Toán học (Math)</option>
-                <option value="Vật lý">Vật lý (Physics)</option>
-                <option value="Hóa học">Hóa học (Chemistry)</option>
-                <option value="Tiếng Anh">Tiếng Anh (English)</option>
+                <option value="All">All Subjects (Tất cả môn)</option>
+                {subjects.map((s) => (
+                  <option key={s.subjectId} value={String(s.subjectId)}>
+                    {s.subjectName} ({s.subjectCode})
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="col-xl-4 col-lg-3 col-md-6 d-flex justify-content-end">
-              <button
-                type="button"
-                className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedSubject("All");
+
+            {/* Status Filter */}
+            <div className="col-xl-2 col-lg-2 col-md-4">
+              <select
+                className="form-select"
+                value={selectedStatusFilter}
+                onChange={(e) => {
+                  setSelectedStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
               >
-                <i className="bi bi-arrow-clockwise" /> Đặt lại bộ lọc
-              </button>
+                <option value="All">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="completed">Completed</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            {/* Sort Filter */}
+            <div className="col-xl-2 col-lg-2 col-md-4">
+              <select
+                className="form-select"
+                value={selectedSort}
+                onChange={(e) => setSelectedSort(e.target.value)}
+              >
+                <option value="az">Sort A-Z</option>
+                <option value="za">Sort Z-A</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
             </div>
           </div>
         </div>
 
         {/* Table Controls */}
         <TableToolbar
-          totalItems={totalItems}
-          totalLabel="Tổng số lớp học"
+          totalItems={filteredClasses.length}
+          totalLabel="Total classes"
           entriesPerPage={entriesPerPage}
           onEntriesPerPageChange={(value) => {
             setEntriesPerPage(value);
@@ -210,156 +398,414 @@ export default function AdminStaffClassPage() {
 
         {/* Class Table */}
         <div className="table-responsive">
-          <table className="table user-table align-middle mb-0">
-            <thead>
+          <table className="table user-table align-middle mb-0 table-hover">
+            <thead className="table-light">
               <tr>
-                <th className="fw-bold">Mã Lớp</th>
-                <th className="fw-bold">Tên Lớp Học</th>
-                <th className="fw-bold">Môn Học</th>
-                <th className="fw-bold">Phòng Học</th>
-                <th className="fw-bold">Mức Học Phí / Tháng</th>
-                <th className="fw-bold">Giáo Viên Phụ Trách</th>
-                <th className="fw-bold">Trạng Thái</th>
-                <th className="text-center fw-bold">Thao Tác</th>
+                <th className="fw-bold">No.</th>
+                <th className="fw-bold">Mã lớp</th>
+                <th className="fw-bold">Tên lớp học</th>
+                <th className="fw-bold">Môn học</th>
+                <th className="fw-bold">Phòng học</th>
+                <th className="fw-bold">Học phí</th>
+                <th className="fw-bold">Thời gian</th>
+                <th className="fw-bold">Trạng thái</th>
+                <th className="text-center fw-bold">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedClasses.length > 0 ? (
-                paginatedClasses.map((c, idx) => {
-                  const isActive = c.status?.toLowerCase() === "active" || c.status === "Đang học";
-                  const teacherName = idx % 2 === 0 ? "ThS. Hoàng Quốc Việt" : "ThS. Huỳnh Khánh Duy";
-                  const feeStr = c.tuitionFee ? `${c.tuitionFee.toLocaleString("vi-VN")} đ` : "3.500.000 đ";
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-5 text-muted">
+                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    Đang nạp danh sách lớp học...
+                  </td>
+                </tr>
+              ) : paginatedClasses.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-5 text-muted">
+                    <i className="bi bi-collection fs-2 d-block mb-2 text-secondary" />
+                    Không tìm thấy lớp học nào phù hợp.
+                  </td>
+                </tr>
+              ) : (
+                paginatedClasses.map((cls, idx) => {
+                  const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
 
                   return (
-                    <tr key={c.classId}>
+                    <tr key={cls.classId}>
+                      <td>{itemIndex}</td>
                       <td>
-                        <span className="badge bg-primary bg-opacity-10 text-primary fw-bold">
-                          #{c.classId}
+                        <span className="badge bg-light text-primary border font-monospace">
+                          #CLS{cls.classId}
                         </span>
                       </td>
                       <td>
-                        <strong className="text-dark d-block">{c.className}</strong>
-                        <small className="text-muted">Khai giảng: {c.startDate || "01/09/2026"}</small>
+                        <h6 className="mb-0 fw-bold text-dark">{cls.className}</h6>
                       </td>
                       <td>
-                        <span className="badge bg-info bg-opacity-10 text-info px-2.5 py-1">
-                          {c.subjectName || "Toán học"}
+                        <SubjectBadge subject={cls.subjectName || "Subject"} />
+                      </td>
+                      <td>
+                        <span className="badge bg-light text-dark border">
+                          <i className="bi bi-geo-alt me-1 text-danger" />
+                          {cls.room || "Chưa xếp phòng"}
                         </span>
                       </td>
                       <td>
-                        <span className="text-secondary small">
-                          <i className="bi bi-geo-alt me-1 text-muted" />
-                          {c.room || "Phòng P.301"}
-                        </span>
+                        <strong className="text-dark">
+                          {(cls.tuitionFee || 0).toLocaleString("vi-VN")} VND
+                        </strong>
                       </td>
                       <td>
-                        <strong className="text-dark">{feeStr}</strong>
+                        <small className="text-muted d-block">
+                          {cls.startDate ? new Date(cls.startDate).toLocaleDateString("vi-VN") : "—"}
+                          {cls.endDate ? ` → ${new Date(cls.endDate).toLocaleDateString("vi-VN")}` : ""}
+                        </small>
                       </td>
                       <td>
-                        <div className="d-flex align-items-center gap-1.5">
-                          <div
-                            className="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center"
-                            style={{ width: "26px", height: "26px", fontSize: "11px", border: "1px solid #dee2e6" }}
-                          >
-                            TC
-                          </div>
-                          <span className="small">{teacherName}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <DotStatusBadge status={isActive ? "Active" : "Inactive"} />
+                        <DotStatusBadge status={cls.status || "active"} />
                       </td>
                       <td className="text-center">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                          onClick={() => handleViewClass(c.classId)}
-                        >
-                          <i className="bi bi-eye" /> Chi tiết
-                        </button>
+                        <div className="btn-group" role="group">
+                          {/* View */}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleViewDetails(cls)}
+                            title="Xem chi tiết lớp học"
+                          >
+                            <i className="bi bi-eye" />
+                          </button>
+
+                          {/* Edit */}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleOpenEditModal(cls)}
+                            title="Chỉnh sửa thông tin lớp"
+                          >
+                            <i className="bi bi-pencil" />
+                          </button>
+
+                          {/* Delete */}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleOpenDeleteModal(cls)}
+                            title="Xóa lớp học"
+                          >
+                            <i className="bi bi-trash" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
                 })
-              ) : (
-                <tr>
-                  <td colSpan={8} className="text-center py-4 text-muted">
-                    Không tìm thấy lớp học nào phù hợp.
-                  </td>
-                </tr>
               )}
             </tbody>
           </table>
         </div>
 
         {/* Footer */}
-        <div className="card-footer bg-white border-top py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <small className="text-muted">
-            Hiển thị {paginatedClasses.length} trên tổng {totalItems} lớp
-          </small>
+        <div className="p-3 border-top bg-white">
           <Pagination
             currentPage={currentPage}
-            totalItems={totalItems}
+            totalItems={filteredClasses.length}
             entriesPerPage={entriesPerPage}
             itemLabel="classes"
-            onPageChange={(page) => setCurrentPage(page)}
+            onPageChange={setCurrentPage}
           />
         </div>
       </div>
 
-      {/* DETAIL MODAL (GetById) */}
-      {selectedClass && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+      {/* ADD CLASS MODAL */}
+      {showAddModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content shadow border-0">
-              <div className="modal-header bg-light">
-                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                  <i className="bi bi-collection-fill text-primary" />
-                  Chi Tiết Lớp Học: {selectedClass.className}
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-collection-fill me-2" />
+                  Mở lớp học mới (Admin Staff)
                 </h5>
-                <button type="button" className="btn-close" onClick={() => setSelectedClass(null)} />
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowAddModal(false)}
+                />
+              </div>
+              <form onSubmit={handleAddSubmit}>
+                <div className="modal-body p-4">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Tên lớp học <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Ví dụ: Toán 12 - Luyện thi Đại học..."
+                        value={addForm.className}
+                        onChange={(e) => setAddForm({ ...addForm, className: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Môn học <span className="text-danger">*</span></label>
+                      <select
+                        className="form-select"
+                        value={addForm.subjectId}
+                        onChange={(e) => setAddForm({ ...addForm, subjectId: Number(e.target.value) })}
+                        required
+                      >
+                        {subjects.map((s) => (
+                          <option key={s.subjectId} value={s.subjectId}>
+                            {s.subjectName} ({s.subjectCode})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Phòng học phân bổ</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Ví dụ: Phòng 301 - Tầng 3..."
+                        value={addForm.room}
+                        onChange={(e) => setAddForm({ ...addForm, room: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Học phí trọn khóa (VND)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        min="0"
+                        step="50000"
+                        value={addForm.tuitionFee}
+                        onChange={(e) => setAddForm({ ...addForm, tuitionFee: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Ngày khai giảng <span className="text-danger">*</span></label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={addForm.startDate}
+                        onChange={(e) => setAddForm({ ...addForm, startDate: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Ngày kết thúc dự kiến</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={addForm.endDate}
+                        onChange={(e) => setAddForm({ ...addForm, endDate: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-12">
+                      <label className="form-label fw-bold">Trạng thái lớp</label>
+                      <select
+                        className="form-select"
+                        value={addForm.status}
+                        onChange={(e) => setAddForm({ ...addForm, status: e.target.value })}
+                      >
+                        <option value="active">Active (Đang diễn ra)</option>
+                        <option value="upcoming">Upcoming (Sắp khai giảng)</option>
+                        <option value="inactive">Inactive (Tạm ngừng)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowAddModal(false)}
+                    disabled={submitting}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn btn-primary px-4" disabled={submitting}>
+                    {submitting ? "Đang lưu..." : "Mở lớp học"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT CLASS MODAL */}
+      {showEditModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-warning-subtle border-bottom">
+                <h5 className="modal-title fw-bold text-dark">
+                  <i className="bi bi-pencil-square me-2 text-warning" />
+                  Chỉnh sửa lớp học: #CLS{editForm.classId}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowEditModal(false)}
+                />
+              </div>
+              <form onSubmit={handleEditSubmit}>
+                <div className="modal-body p-4">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Tên lớp học <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editForm.className}
+                        onChange={(e) => setEditForm({ ...editForm, className: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Môn học <span className="text-danger">*</span></label>
+                      <select
+                        className="form-select"
+                        value={editForm.subjectId}
+                        onChange={(e) => setEditForm({ ...editForm, subjectId: Number(e.target.value) })}
+                        required
+                      >
+                        {subjects.map((s) => (
+                          <option key={s.subjectId} value={s.subjectId}>
+                            {s.subjectName} ({s.subjectCode})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Phòng học phân bổ</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editForm.room}
+                        onChange={(e) => setEditForm({ ...editForm, room: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Học phí trọn khóa (VND)</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        min="0"
+                        step="50000"
+                        value={editForm.tuitionFee}
+                        onChange={(e) => setEditForm({ ...editForm, tuitionFee: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Ngày khai giảng <span className="text-danger">*</span></label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={editForm.startDate}
+                        onChange={(e) => setEditForm({ ...editForm, startDate: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Ngày kết thúc</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={editForm.endDate}
+                        onChange={(e) => setEditForm({ ...editForm, endDate: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-12">
+                      <label className="form-label fw-bold">Trạng thái lớp</label>
+                      <select
+                        className="form-select"
+                        value={editForm.status}
+                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                      >
+                        <option value="active">Active (Đang diễn ra)</option>
+                        <option value="upcoming">Upcoming (Sắp khai giảng)</option>
+                        <option value="completed">Completed (Đã kết thúc)</option>
+                        <option value="inactive">Inactive (Tạm ngừng)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowEditModal(false)}
+                    disabled={submitting}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting}>
+                    {submitting ? "Đang lưu..." : "Cập nhật lớp học"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {showDeleteModal && classToDelete && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-exclamation-triangle-fill me-2" />
+                  Xác nhận xóa lớp học
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowDeleteModal(false)}
+                />
               </div>
               <div className="modal-body p-4">
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Mã lớp học</label>
-                    <span className="fw-bold text-primary">#{selectedClass.classId}</span>
+                <p className="mb-2">
+                  Bạn có chắc chắn muốn xóa lớp học sau khỏi hệ thống không?
+                </p>
+                <div className="p-3 bg-light rounded border mb-3">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <span className="badge bg-primary font-monospace">#CLS{classToDelete.classId}</span>
+                    <h6 className="fw-bold mb-0 text-dark">{classToDelete.className}</h6>
                   </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Trạng thái lớp</label>
-                    <DotStatusBadge status={selectedClass.status || "Active"} />
+                  <div className="small text-muted mb-1">
+                    Môn học: <strong className="text-dark">{classToDelete.subjectName} ({classToDelete.subjectCode})</strong>
                   </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Tên lớp đào tạo</label>
-                    <span className="fw-bold text-dark">{selectedClass.className}</span>
+                  <div className="small text-muted">
+                    Phòng học: <strong className="text-dark">{classToDelete.room || "Chưa xếp phòng"}</strong>
                   </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Môn học</label>
-                    <span className="badge bg-info bg-opacity-10 text-info">{selectedClass.subjectName || "Toán học"}</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Phòng học</label>
-                    <span className="fw-semibold text-dark">{selectedClass.room || "Phòng P.301"}</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Mức học phí niêm yết</label>
-                    <span className="fw-bold text-success">
-                      {selectedClass.tuitionFee ? `${selectedClass.tuitionFee.toLocaleString("vi-VN")} đ / tháng` : "3.500.000 đ / tháng"}
-                    </span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Giáo viên phụ trách</label>
-                    <span className="fw-semibold text-dark">ThS. Hoàng Quốc Việt</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Trợ giảng (TA)</label>
-                    <span className="fw-semibold text-dark">Âu Dương Tài</span>
-                  </div>
+                </div>
+                <div className="alert alert-warning py-2 mb-0 small">
+                  <i className="bi bi-info-circle me-1" />
+                  Lưu ý: Không thể xóa lớp học nếu đã có học viên đăng ký tham gia hoặc lịch học đã phát sinh.
                 </div>
               </div>
               <div className="modal-footer bg-light">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedClass(null)}>
-                  Đóng
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={submitting}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger px-4"
+                  onClick={handleConfirmDelete}
+                  disabled={submitting}
+                >
+                  {submitting ? "Đang xóa..." : "Xác nhận xóa"}
                 </button>
               </div>
             </div>
@@ -367,85 +813,91 @@ export default function AdminStaffClassPage() {
         </div>
       )}
 
-      {/* ADD CLASS MODAL (POPUP) */}
-      {isAddClassModalOpen && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content shadow border-0">
-              <div className="modal-header bg-primary text-white">
-                <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
-                  <i className="bi bi-plus-square-fill" />
-                  Mở Lớp Học Mới
-                </h5>
+      {/* DETAIL MODAL (GetById) */}
+      {selectedClass && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom">
+                <div className="d-flex align-items-center gap-2">
+                  <span className="badge bg-primary fs-6 font-monospace">
+                    #CLS{selectedClass.classId}
+                  </span>
+                  <h5 className="modal-title fw-bold mb-0 text-dark">
+                    Thông tin chi tiết lớp học
+                  </h5>
+                </div>
                 <button
                   type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setIsAddClassModalOpen(false)}
+                  className="btn-close"
+                  onClick={() => setSelectedClass(null)}
                 />
               </div>
-              <form onSubmit={handleAddClassSubmit}>
-                <div className="modal-body p-4">
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Tên lớp học *</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="VD: Toán 12 Nâng Cao Cấp Tốc"
-                      required
-                      value={newClassName}
-                      onChange={(e) => setNewClassName(e.target.value)}
-                    />
+
+              <div className="modal-body p-4">
+                {loadingDetail ? (
+                  <div className="text-center py-4 text-muted">
+                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    Đang nạp chi tiết...
                   </div>
-                  <div className="row g-3 mb-3">
-                    <div className="col-md-6">
-                      <label className="form-label small fw-bold">Môn học</label>
-                      <select
-                        className="form-select"
-                        value={newSubjectName}
-                        onChange={(e) => setNewSubjectName(e.target.value)}
-                      >
-                        <option value="Toán học">Toán học</option>
-                        <option value="Vật lý">Vật lý</option>
-                        <option value="Hóa học">Hóa học</option>
-                        <option value="Tiếng Anh">Tiếng Anh</option>
-                      </select>
+                ) : (
+                  <>
+                    <div className="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+                      <div>
+                        <h4 className="fw-bold mb-1 text-dark">{selectedClass.className}</h4>
+                        <div className="d-flex align-items-center gap-2">
+                          <SubjectBadge subject={selectedClass.subjectName || "Subject"} />
+                          <DotStatusBadge status={selectedClass.status || "active"} />
+                        </div>
+                      </div>
+                      <span className="fs-5 fw-bold text-primary">
+                        {(selectedClass.tuitionFee || 0).toLocaleString("vi-VN")} VND
+                      </span>
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label small fw-bold">Phòng học</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="VD: Phòng P.202"
-                        value={newRoom}
-                        onChange={(e) => setNewRoom(e.target.value)}
-                      />
+
+                    <div className="row g-3 mb-4">
+                      <div className="col-md-6">
+                        <div className="p-3 bg-light rounded-3">
+                          <small className="text-muted d-block mb-1">Mã môn học</small>
+                          <strong className="text-dark font-monospace">{selectedClass.subjectCode || "—"}</strong>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="p-3 bg-light rounded-3">
+                          <small className="text-muted d-block mb-1">Phòng học phân bổ</small>
+                          <strong className="text-dark">{selectedClass.room || "Chưa xếp phòng"}</strong>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="p-3 bg-light rounded-3">
+                          <small className="text-muted d-block mb-1">Ngày khai giảng</small>
+                          <strong className="text-dark">
+                            {selectedClass.startDate ? new Date(selectedClass.startDate).toLocaleDateString("vi-VN") : "—"}
+                          </strong>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="p-3 bg-light rounded-3">
+                          <small className="text-muted d-block mb-1">Ngày kết thúc dự kiến</small>
+                          <strong className="text-dark">
+                            {selectedClass.endDate ? new Date(selectedClass.endDate).toLocaleDateString("vi-VN") : "Chưa xác định"}
+                          </strong>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Học phí (VND/tháng) *</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="3500000"
-                      required
-                      value={newTuitionFee}
-                      onChange={(e) => setNewTuitionFee(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="modal-footer bg-light">
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setIsAddClassModalOpen(false)}
-                  >
-                    Hủy
-                  </button>
-                  <button type="submit" className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
-                    <i className="bi bi-check-lg" /> Lưu lớp học
-                  </button>
-                </div>
-              </form>
+                  </>
+                )}
+              </div>
+
+              <div className="modal-footer bg-light">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedClass(null)}
+                >
+                  Đóng
+                </button>
+              </div>
             </div>
           </div>
         </div>
