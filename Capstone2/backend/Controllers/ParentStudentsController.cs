@@ -42,5 +42,52 @@ namespace EduTrack.API.Controllers
             }
             return Ok(item);
         }
+
+        /// <summary>
+        /// Gán hoặc cập nhật liên kết Phụ huynh - Học sinh
+        /// POST: api/parentstudents
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<ParentStudentDto>> Assign([FromBody] AssignParentStudentDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _service.AssignParentStudentAsync(dto);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Hủy liên kết giữa Phụ huynh và Học sinh
+        /// DELETE: api/parentstudents/{parentId}/{studentId}
+        /// </summary>
+        [HttpDelete("{parentId:int}/{studentId:int}")]
+        public async Task<ActionResult> Remove(int parentId, int studentId)
+        {
+            try
+            {
+                var success = await _service.RemoveParentStudentAsync(parentId, studentId);
+                if (!success)
+                {
+                    return NotFound(new { message = $"Không tìm thấy liên kết giữa Phụ huynh {parentId} và Học sinh {studentId}" });
+                }
+
+                return Ok(new { success = true, message = "Đã hủy liên kết Phụ huynh - Học sinh thành công." });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi hủy liên kết: " + ex.Message });
+            }
+        }
     }
 }
+

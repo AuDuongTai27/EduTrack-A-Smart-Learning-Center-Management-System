@@ -43,5 +43,84 @@ namespace EduTrack.API.Controllers
 
             return Ok(item);
         }
+
+        /// <summary>
+        /// Tạo mới một môn học (Subject)
+        /// POST: api/subjects
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<SubjectDto>> Create([FromBody] CreateSubjectDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var created = await _service.CreateSubjectAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.SubjectId }, created);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật thông tin môn học (Subject)
+        /// PUT: api/subjects/{id}
+        /// </summary>
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<SubjectDto>> Update(int id, [FromBody] UpdateSubjectDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var updated = await _service.UpdateSubjectAsync(id, dto);
+                if (updated == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy môn học có ID = " + id });
+                }
+
+                return Ok(updated);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Xóa môn học theo ID
+        /// DELETE: api/subjects/{id}
+        /// </summary>
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            try
+            {
+                var result = await _service.DeleteSubjectAsync(id);
+                if (!result)
+                {
+                    return NotFound(new { message = "Không tìm thấy môn học có ID = " + id });
+                }
+
+                return Ok(new { success = true, message = $"Đã xóa môn học ID = {id} thành công." });
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi khi xóa môn học: " + ex.Message });
+            }
+        }
     }
 }
+

@@ -29,7 +29,23 @@ export default function CenterManagerSubjectPage() {
     subjectCode: "",
     description: "",
   });
+
+  // Edit Subject Modal state
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editForm, setEditForm] = useState({
+    subjectId: 0,
+    subjectName: "",
+    subjectCode: "",
+    description: "",
+  });
+
+  // Delete Subject Modal state
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [subjectToDelete, setSubjectToDelete] = useState<SubjectDto | null>(null);
+
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+  const [actionErrorMsg, setActionErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -92,29 +108,99 @@ export default function CenterManagerSubjectPage() {
     }
   };
 
-  // Handle Add Subject Submit
-  const handleAddSubmit = (e: React.FormEvent) => {
+  // Handle Add Subject Submit (Create)
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.subjectName.trim()) return;
 
-    const newId = subjects.length > 0 ? Math.max(...subjects.map((x) => x.subjectId)) + 1 : 10;
-    const newSubjectObj: SubjectDto = {
-      subjectId: newId,
-      subjectCode: addForm.subjectCode.trim().toUpperCase() || `SUB${newId}`,
-      subjectName: addForm.subjectName.trim(),
-      description: addForm.description || "Chương trình giảng dạy trọng tâm của trung tâm.",
-      totalClasses: 1,
-    };
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const code = addForm.subjectCode.trim().toUpperCase() || `SUB${Date.now().toString().slice(-4)}`;
+      const res = await subjectDAL.createSubject({
+        subjectCode: code,
+        subjectName: addForm.subjectName.trim(),
+        description: addForm.description.trim() || undefined,
+      });
 
-    setSubjects([newSubjectObj, ...subjects]);
-    setShowAddModal(false);
-    setAddForm({
-      subjectName: "",
-      subjectCode: "",
-      description: "",
+      setSubjects([res.data, ...subjects]);
+      setShowAddModal(false);
+      setAddForm({ subjectName: "", subjectCode: "", description: "" });
+      setActionSuccessMsg(`Đã tạo môn học mới: "${res.data.subjectName}" (${res.data.subjectCode}) thành công!`);
+      setTimeout(() => setActionSuccessMsg(null), 3500);
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Không thể tạo môn học mới.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Open Edit Modal
+  const handleOpenEditModal = (sub: SubjectDto) => {
+    setEditForm({
+      subjectId: sub.subjectId,
+      subjectName: sub.subjectName,
+      subjectCode: sub.subjectCode,
+      description: sub.description || "",
     });
-    setActionSuccessMsg(`Đã tạo môn học mới: "${newSubjectObj.subjectName}" (${newSubjectObj.subjectCode}) thành công!`);
-    setTimeout(() => setActionSuccessMsg(null), 3500);
+    setShowEditModal(true);
+    setActionErrorMsg(null);
+  };
+
+  // Handle Edit Subject Submit (Update)
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editForm.subjectName.trim()) return;
+
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await subjectDAL.updateSubject(editForm.subjectId, {
+        subjectCode: editForm.subjectCode.trim().toUpperCase(),
+        subjectName: editForm.subjectName.trim(),
+        description: editForm.description.trim() || undefined,
+      });
+
+      setSubjects(subjects.map((s) => (s.subjectId === editForm.subjectId ? res.data : s)));
+      setShowEditModal(false);
+      setActionSuccessMsg(`Đã cập nhật môn học: "${res.data.subjectName}" (${res.data.subjectCode}) thành công!`);
+      setTimeout(() => setActionSuccessMsg(null), 3500);
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Không thể cập nhật môn học.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Open Delete Confirmation Modal
+  const handleOpenDeleteModal = (sub: SubjectDto) => {
+    setSubjectToDelete(sub);
+    setShowDeleteModal(true);
+    setActionErrorMsg(null);
+  };
+
+  // Handle Confirm Delete (Delete)
+  const handleConfirmDelete = async () => {
+    if (!subjectToDelete) return;
+
+    setSubmitting(true);
+    setActionErrorMsg(null);
+    try {
+      const res = await subjectDAL.deleteSubject(subjectToDelete.subjectId);
+      if (res.success) {
+        setSubjects(subjects.filter((s) => s.subjectId !== subjectToDelete.subjectId));
+        setShowDeleteModal(false);
+        setActionSuccessMsg(`Đã xóa môn học "${subjectToDelete.subjectName}" thành công!`);
+        setTimeout(() => setActionSuccessMsg(null), 3500);
+      } else {
+        setActionErrorMsg(res.message || "Xóa môn học không thành công.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Lỗi xóa môn học.");
+    } finally {
+      setSubmitting(false);
+      setSubjectToDelete(null);
+    }
   };
 
   return (
@@ -130,7 +216,10 @@ export default function CenterManagerSubjectPage() {
           <button
             type="button"
             className="btn btn-primary d-flex align-items-center shadow-sm"
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setShowAddModal(true);
+              setActionErrorMsg(null);
+            }}
           >
             <i className="bi bi-plus-square me-2" />
             Add Subject
@@ -144,6 +233,15 @@ export default function CenterManagerSubjectPage() {
           <i className="bi bi-check-circle-fill fs-5 me-2" />
           <div>{actionSuccessMsg}</div>
           <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+        </div>
+      )}
+
+      {/* Error Notification Alert */}
+      {actionErrorMsg && (
+        <div className="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+          <i className="bi bi-exclamation-triangle-fill fs-5 me-2" />
+          <div>{actionErrorMsg}</div>
+          <button type="button" className="btn-close" onClick={() => setActionErrorMsg(null)} aria-label="Close" />
         </div>
       )}
 
@@ -204,7 +302,7 @@ export default function CenterManagerSubjectPage() {
                 <th className="fw-bold">Description</th>
                 <th className="fw-bold text-center">Total Classes</th>
                 <th className="fw-bold">Status</th>
-                <th className="text-center fw-bold">Action</th>
+                <th className="text-center fw-bold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -238,28 +336,45 @@ export default function CenterManagerSubjectPage() {
                         <h6 className="mb-0 fw-bold text-dark">{sub.subjectName}</h6>
                       </td>
                       <td>
-                        <p className="mb-0 text-muted small text-truncate" style={{ maxWidth: "350px" }}>
+                        <p className="mb-0 text-muted small text-truncate" style={{ maxWidth: "320px" }}>
                           {sub.description || "—"}
                         </p>
                       </td>
                       <td className="text-center">
                         <span className="badge bg-secondary-subtle text-secondary px-3 py-1">
-                          {sub.totalClasses || 2} lớp
+                          {sub.totalClasses || 0} lớp
                         </span>
                       </td>
                       <td>
                         <DotStatusBadge status="Active" />
                       </td>
                       <td className="text-center">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => handleViewDetails(sub)}
-                          title="View Subject Details"
-                        >
-                          <i className="bi bi-eye me-1" />
-                          Chi tiết
-                        </button>
+                        <div className="btn-group" role="group">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleViewDetails(sub)}
+                            title="Xem chi tiết"
+                          >
+                            <i className="bi bi-eye" />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleOpenEditModal(sub)}
+                            title="Sửa môn học"
+                          >
+                            <i className="bi bi-pencil" />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleOpenDeleteModal(sub)}
+                            title="Xóa môn học"
+                          >
+                            <i className="bi bi-trash" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -311,13 +426,14 @@ export default function CenterManagerSubjectPage() {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Mã môn học (Code)</label>
+                    <label className="form-label fw-bold">Mã môn học (Code) <span className="text-danger">*</span></label>
                     <input
                       type="text"
-                      className="form-control"
+                      className="form-control font-monospace"
                       placeholder="Ví dụ: BIO, PYT, ENG..."
                       value={addForm.subjectCode}
                       onChange={(e) => setAddForm({ ...addForm, subjectCode: e.target.value })}
+                      required
                     />
                   </div>
                   <div className="mb-3">
@@ -336,14 +452,155 @@ export default function CenterManagerSubjectPage() {
                     type="button"
                     className="btn btn-outline-secondary"
                     onClick={() => setShowAddModal(false)}
+                    disabled={submitting}
                   >
                     Hủy bỏ
                   </button>
-                  <button type="submit" className="btn btn-primary px-4">
-                    Lưu môn học
+                  <button type="submit" className="btn btn-primary px-4" disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" />
+                        Đang lưu...
+                      </>
+                    ) : (
+                      "Lưu môn học"
+                    )}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT SUBJECT MODAL */}
+      {showEditModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-warning-subtle border-bottom">
+                <h5 className="modal-title fw-bold text-dark">
+                  <i className="bi bi-pencil-square me-2 text-warning" />
+                  Chỉnh sửa môn học: #{editForm.subjectCode}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowEditModal(false)}
+                />
+              </div>
+              <form onSubmit={handleEditSubmit}>
+                <div className="modal-body p-4">
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Tên môn học <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editForm.subjectName}
+                      onChange={(e) => setEditForm({ ...editForm, subjectName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Mã môn học (Code)</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      value={editForm.subjectCode}
+                      onChange={(e) => setEditForm({ ...editForm, subjectCode: e.target.value })}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Mô tả giáo trình</label>
+                    <textarea
+                      className="form-control"
+                      rows={3}
+                      value={editForm.description}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowEditModal(false)}
+                    disabled={submitting}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" />
+                        Đang lưu...
+                      </>
+                    ) : (
+                      "Cập nhật môn học"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {showDeleteModal && subjectToDelete && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-exclamation-triangle-fill me-2" />
+                  Xác nhận xóa môn học
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowDeleteModal(false)}
+                />
+              </div>
+              <div className="modal-body p-4">
+                <p className="mb-2">
+                  Bạn có chắc chắn muốn xóa môn học sau khỏi hệ thống không?
+                </p>
+                <div className="p-3 bg-light rounded border mb-3">
+                  <h6 className="fw-bold mb-1 text-dark">{subjectToDelete.subjectName}</h6>
+                  <span className="badge bg-secondary font-monospace me-2">#{subjectToDelete.subjectCode}</span>
+                  <small className="text-muted">Đang có {subjectToDelete.totalClasses || 0} lớp học</small>
+                </div>
+                <div className="alert alert-warning py-2 mb-0 small">
+                  <i className="bi bi-info-circle me-1" />
+                  Hành động này không thể hoàn tác nếu môn học chưa liên kết với lớp học nào.
+                </div>
+              </div>
+              <div className="modal-footer bg-light">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={submitting}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger px-4"
+                  onClick={handleConfirmDelete}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" />
+                      Đang xóa...
+                    </>
+                  ) : (
+                    "Xác nhận xóa"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -392,7 +649,7 @@ export default function CenterManagerSubjectPage() {
 
                     <div className="mb-3">
                       <small className="text-muted d-block mb-1">Số lớp học đang vận hành</small>
-                      <strong className="text-primary">{selectedSubject.totalClasses || 3} lớp học</strong>
+                      <strong className="text-primary">{selectedSubject.totalClasses || 0} lớp học</strong>
                     </div>
 
                     <div className="mb-3">
@@ -421,3 +678,4 @@ export default function CenterManagerSubjectPage() {
     </>
   );
 }
+

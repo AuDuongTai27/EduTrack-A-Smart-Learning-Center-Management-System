@@ -18,5 +18,21 @@ namespace EduTrack.API.Repositories.Interfaces
         /// Lấy một bản ghi theo khóa chính (int Id).
         /// </summary>
         Task<T?> GetByIdAsync(int id);
+
+        /// <summary>
+        /// Thêm mới một bản ghi và lưu thay đổi vào cơ sở dữ liệu.
+        /// </summary>
+        Task<T> AddAsync(T entity);
+
+        /// <summary>
+        /// Cập nhật một bản ghi và lưu thay đổi vào cơ sở dữ liệu.
+        /// </summary>
+        Task<T> UpdateAsync(T entity);
+
+        /// <summary>
+        /// Xóa một bản ghi theo ID và lưu thay đổi vào cơ sở dữ liệu.
+        /// </summary>
+        Task<bool> DeleteAsync(int id);
     }
 }
+
