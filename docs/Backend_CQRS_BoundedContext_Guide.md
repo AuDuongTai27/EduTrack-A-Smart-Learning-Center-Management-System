@@ -80,12 +80,12 @@ Capstone2/backend/
 * Toàn bộ 22 Controllers trong `Controllers/Queries/` hiện đang cung cấp các API `GET /api/{table}` và `GET /api/{table}/{id}` cho 12 file trong `frontend/src/api/`.
 * Giữ nguyên thư mục này giúp **100% các trang trên React Frontend luôn chạy ổn định**. Không ai cần mở các file trong `Controllers/Queries/` ra sửa nữa.
 
-### Lưu ý 2: Mỗi thành viên chỉ làm việc trong "Lãnh thổ (Bounded Context)" của mình
-| Thành viên | Nhóm Vai trò (Roles) | Chỉ tạo/sửa file trong các thư mục sau |
-| :--- | :--- | :--- |
-| **Thành viên 1** | `Center Manager` + `Admin Staff` | • `Controllers/Management/`<br>• `Services/Management/`<br>• `Models/DTOs/Management/`<br>• `Helpers/DependencyInjection/ManagementServiceExtensions.cs` |
-| **Thành viên 2** | `Teacher` + `Teaching Assistant` | • `Controllers/Teaching/`<br>• `Services/Teaching/`<br>• `Models/DTOs/Teaching/`<br>• `Helpers/DependencyInjection/TeachingServiceExtensions.cs` |
-| **Thành viên 3** | `Student` + `Parent` | • `Controllers/Learning/`<br>• `Services/Learning/`<br>• `Models/DTOs/Learning/`<br>• `Helpers/DependencyInjection/LearningServiceExtensions.cs` |
+### Lưu ý 2: Mỗi thành viên chỉ làm việc trong "Lãnh thổ (Bounded Context)" của mình (Cả Backend lẫn Frontend API/DAL)
+| Thành viên | Nhóm Vai trò (Roles) | Thư mục Backend được phép sửa | File Frontend API & DAL được phép sửa |
+| :--- | :--- | :--- | :--- |
+| **Thành viên 1** | `Center Manager` + `Admin Staff` | • `Controllers/Management/`<br>• `Services/Management/`<br>• `Models/DTOs/Management/`<br>• `Helpers/DependencyInjection/ManagementServiceExtensions.cs` | • `src/api/managementApi.ts`<br>• `src/DAL/managementDAL.ts`<br>• `src/GUIs/pages/admin/` |
+| **Thành viên 2** | `Teacher` + `Teaching Assistant` | • `Controllers/Teaching/`<br>• `Services/Teaching/`<br>• `Models/DTOs/Teaching/`<br>• `Helpers/DependencyInjection/TeachingServiceExtensions.cs` | • `src/api/teachingApi.ts`<br>• `src/DAL/teachingDAL.ts`<br>• `src/GUIs/pages/teacher/` |
+| **Thành viên 3** | `Student` + `Parent` | • `Controllers/Learning/`<br>• `Services/Learning/`<br>• `Models/DTOs/Learning/`<br>• `Helpers/DependencyInjection/LearningServiceExtensions.cs` | • `src/api/learningApi.ts`<br>• `src/DAL/learningDAL.ts`<br>• `src/GUIs/pages/student/` & `parent/` |
 
 ### Lưu ý 3: Không sửa trực tiếp vào `Program.cs` khi thêm Service mới
 * File `Program.cs` đã gọi sẵn 3 hàm mở rộng: `.AddManagementServices()`, `.AddTeachingServices()`, `.AddLearningServices()`.
@@ -105,47 +105,328 @@ Capstone2/backend/
 
 ---
 
-## 4. HƯỚNG DẪN SỬ DỤNG THỰC CHIẾN (COOKBOOK)
+## 4. QUY TRÌNH 8 BƯỚC THỰC CHIẾN TỪ A–Z (TỪ PAGE -> BACKEND -> FRONTEND)
 
-### Trường hợp A: Viết API Thêm / Sửa / Xóa (`POST`, `PUT`, `PATCH`, `DELETE`)
+Khi bắt tay vào hoàn thiện bất kỳ trang nào, bạn chỉ cần lặp lại đúng **8 bước tuần tự** dưới đây:
 
-**Ví dụ:** Thành viên 3 (nhóm `Student / Parent`) cần viết API cho Học sinh nộp bài tập (`POST /api/submissions`).
-
-1. **Bước 1 — Tạo DTO Request trong `Models/DTOs/Learning/`**:
-   Tạo file `Models/DTOs/Learning/SubmitHomeworkDto.cs`:
-   ```csharp
-   namespace EduTrack.API.Models.DTOs.Learning
-   {
-       public class SubmitHomeworkDto
-       {
-           public int AssignmentId { get; set; }
-           public int StudentId { get; set; }
-           public string? FileUrl { get; set; }
-           public string? Content { get; set; }
-       }
-   }
-   ```
-
-2. **Bước 2 — Viết Endpoint trong `Controllers/Learning/StudentHomeworkController.cs`**:
-   Bạn có thể gọi Service sẵn có hoặc tạo Service riêng trong `Services/Learning/` (tiêm `ISubmissionRepository` hoặc `EduTrackDbContext` vào):
-   ```csharp
-   [HttpPost]
-   public async Task<ActionResult<SubmissionDto>> SubmitHomework([FromBody] SubmitHomeworkDto dto)
-   {
-       // Gọi Service xử lý lưu vào bảng submissions và trả về kết quả
-   }
-   ```
+```text
+[BƯỚC 1] Nhìn Page/Component trên Frontend -> Xem nút bấm đang thiếu API gì
+   │
+   ▼  (Xuống Backend làm từ trong ra ngoài: DTO -> Service -> DI -> Controller)
+[BƯỚC 2] Tạo file DTO trong Models/DTOs/<Nhánh của bạn>/ (Định nghĩa dữ liệu gửi lên)
+   │
+[BƯỚC 3] Tạo Interface & Service trong Services/<Nhánh của bạn>/ (Lưu vào MySQL qua Repository)
+   │
+[BƯỚC 4] Đăng ký 1 dòng DI trong Helpers/DependencyInjection/<Nhánh của bạn>ServiceExtensions.cs
+   │
+[BƯỚC 5] Mở Controller trong Controllers/<Nhánh của bạn>/ viết hàm [HttpPost] / [HttpPut]
+   │
+   ▼  (Lên lại Frontend làm từ dưới lên trên: API -> DAL -> Component/Page)
+[BƯỚC 6] Mở src/api/<nhánh>Api.ts -> Viết hàm fetch() gọi xuống đường dẫn Controller
+   │
+[BƯỚC 7] Mở src/DAL/<nhánh>DAL.ts -> Bọc hàm API bằng try/catch (có fallback an toàn)
+   │
+[BƯỚC 8] Mở Component/Page -> Gọi DAL trong hàm onClick/onSubmit & cập nhật useState!
+```
 
 ---
 
-### Trường hợp B: Viết API `GET` mới kết hợp dữ liệu từ nhiều bảng (Multi-Table Join)
+### VÍ DỤ MINH HỌA TỪNG BƯỚC: Trang Gửi Phản Hồi (`StudentFeedbackPage.tsx`)
 
-> **Quy tắc:** Khi một màn hình cần lấy dữ liệu tổng hợp từ 2, 3, 4 bảng cùng lúc (mà `GetAll`/`GetById` đơn bảng trong `Queries/` không đáp ứng đủ), **hãy viết hàm `[HttpGet]` đó ngay trong Controller thuộc nhánh của bạn (`Management/`, `Teaching/`, hoặc `Learning/`)**.
+#### 🔍 BƯỚC 1: Nhìn vào Page trên Frontend để biết cần làm gì
+1. Mở `src/GUIs/pages/student/StudentFeedbackPage.tsx` $\rightarrow$ thấy nó gọi component `FeedbackView.tsx`.
+2. Mở `FeedbackView.tsx` ra đọc:
+   * Ở `useEffect`: Đã có `await feedbackDAL.getAllRequests()` lấy danh sách đơn từ Backend về rồi.
+   * Ở `handleSubmit` (Khi bấm nút **"Gửi phản hồi"**):
+     ```tsx
+     // Hiện tại đang chỉ lưu giả trên giao diện bằng Date.now() (F5 là mất):
+     const handleSubmit = (e: React.FormEvent) => {
+       e.preventDefault();
+       const newReq: FeedbackApprovalRequest = {
+         id: Date.now(), // <--- ID giả! Chưa gọi API lưu xuống MySQL!
+         title: title.trim(),
+         description: description.trim(),
+         ...
+       };
+       setRequests([newReq, ...requests]);
+     };
+     ```
+3. **Kết luận:** Cần viết 1 API **`POST /api/learning/feedback`** nhận `title`, `description`, `requestedBy` để lưu thật vào bảng `approval_requests` dưới Database.
 
-**Ví dụ:** Thành viên 2 (nhóm `Teacher / TA`) cần viết 1 API `GET` kết hợp 4 bảng (`classes` + `student_classes` + `users` + `attendances`) để đổ dữ liệu ra màn hình **Điểm danh lớp học theo buổi**.
+---
 
-1. **Bước 1 — Tạo DTO trả về trong `Models/DTOs/Teaching/`**:
-   Tạo file `Models/DTOs/Teaching/ClassAttendanceSheetDto.cs`:
+#### 🛠️ BƯỚC 2: Xuống Backend — Tạo file DTO trước tiên
+> **Mục đích:** Định nghĩa chính xác "Frontend cần gửi cục JSON gồm những trường nào xuống cho Backend".
+
+* **Vị trí tạo file:** `Capstone2/backend/Models/DTOs/Learning/CreateFeedbackDto.cs`
+* **Code mẫu:**
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+namespace EduTrack.API.Models.DTOs.Learning
+{
+    public class CreateFeedbackDto
+    {
+        [Required(ErrorMessage = "Tiêu đề không được để trống")]
+        public string Title { get; set; } = null!;
+
+        [Required(ErrorMessage = "Nội dung phản hồi không được để trống")]
+        public string Description { get; set; } = null!;
+
+        // ID của Học sinh hoặc Phụ huynh đang gửi (mặc định 6 là HS Lê Văn An, 9 là Phụ huynh)
+        public int RequestedBy { get; set; } = 6;
+
+        public int? StudentId { get; set; }
+    }
+}
+```
+
+---
+
+#### ⚙️ BƯỚC 3: Dưới Backend — Tạo Service để lưu xuống Database
+> **Làm sao lưu vào Database mà không cần viết lại câu lệnh SQL?**
+> Trong project đã có sẵn 22 `Repositories` (có sẵn các hàm `.AddAsync()`, `.UpdateAsync()`, `.DeleteAsync()`, `.GetByIdAsync()`). Bạn chỉ cần **Inject (tiêm) Repository của bảng đó** vào Service của bạn và gọi!
+
+1. **Tạo Interface:** `Capstone2/backend/Services/Learning/Interfaces/ILearnerFeedbackService.cs`
+```csharp
+using System.Threading.Tasks;
+using EduTrack.API.Models.DTOs;
+using EduTrack.API.Models.DTOs.Learning;
+
+namespace EduTrack.API.Services.Learning.Interfaces
+{
+    public interface ILearnerFeedbackService
+    {
+        Task<ApprovalRequestDto> CreateFeedbackAsync(CreateFeedbackDto dto);
+    }
+}
+```
+
+2. **Tạo Implementation:** `Capstone2/backend/Services/Learning/Implementation/LearnerFeedbackService.cs`
+```csharp
+using System;
+using System.Threading.Tasks;
+using EduTrack.API.Models.DTOs;
+using EduTrack.API.Models.DTOs.Learning;
+using EduTrack.API.Models.Entities;
+using EduTrack.API.Repositories.Interfaces;
+using EduTrack.API.Services.Learning.Interfaces;
+
+namespace EduTrack.API.Services.Learning.Implementation
+{
+    public class LearnerFeedbackService : ILearnerFeedbackService
+    {
+        private readonly IApprovalRequestRepository _repository;
+
+        // Tiêm Repository có sẵn của bảng approval_requests vào
+        public LearnerFeedbackService(IApprovalRequestRepository repository)
+        {
+            _repository = repository;
+        }
+
+        public async Task<ApprovalRequestDto> CreateFeedbackAsync(CreateFeedbackDto dto)
+        {
+            // 1. Tạo Entity từ DTO gửi lên
+            var entity = new ApprovalRequest
+            {
+                RequestCode = $"FB-{DateTime.UtcNow:MMddHHmmss}",
+                RequestType = "feedback",
+                Title = dto.Title.Trim(),
+                Description = dto.Description.Trim(),
+                Reason = dto.Description.Trim(),
+                RequestedBy = dto.RequestedBy,
+                StudentId = dto.StudentId ?? dto.RequestedBy,
+                Priority = "normal",
+                Status = "pending",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // 2. Lưu xuống MySQL
+            var saved = await _repository.AddAsync(entity);
+
+            // 3. Trả về DTO cho Frontend hiển thị
+            return new ApprovalRequestDto
+            {
+                RequestId = saved.RequestId,
+                RequestCode = saved.RequestCode,
+                RequestType = saved.RequestType,
+                Title = saved.Title,
+                Description = saved.Description,
+                RequestedBy = saved.RequestedBy,
+                Status = saved.Status,
+                CreatedAt = saved.CreatedAt
+            };
+        }
+    }
+}
+```
+
+---
+
+#### 🔌 BƯỚC 4: Đăng ký Service vào file DI của nhánh bạn
+* **Mở file:** `Capstone2/backend/Helpers/DependencyInjection/LearningServiceExtensions.cs` (hoặc `ManagementServiceExtensions.cs` / `TeachingServiceExtensions.cs`)
+* **Thêm 1 dòng đăng ký:**
+```csharp
+public static IServiceCollection AddLearningServices(this IServiceCollection services)
+{
+    services.AddScoped<ILearnerFeedbackService, LearnerFeedbackService>();
+    return services;
+}
+```
+
+---
+
+#### 🌐 BƯỚC 5: Mở Controller viết hàm nhận Request
+* **Mở file:** `Capstone2/backend/Controllers/Learning/LearnerFeedbackController.cs`
+* **Code mẫu:**
+```csharp
+[ApiController]
+[Route("api/learning/feedback")]
+[Tags("Learning - Student & Parent Feedback")]
+public class LearnerFeedbackController : ControllerBase
+{
+    private readonly ILearnerFeedbackService _feedbackService;
+
+    public LearnerFeedbackController(ILearnerFeedbackService feedbackService)
+    {
+        _feedbackService = feedbackService;
+    }
+
+    // POST: /api/learning/feedback
+    [HttpPost]
+    public async Task<ActionResult<ApprovalRequestDto>> CreateFeedback([FromBody] CreateFeedbackDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var created = await _feedbackService.CreateFeedbackAsync(dto);
+        return Ok(created);
+    }
+}
+```
+*(Đến đây là **XONG BACKEND**! Bật `dotnet run`, mở `/swagger` test thử hàm `POST /api/learning/feedback` thấy lưu vào DB ngay).*
+
+---
+
+#### 📡 BƯỚC 6: Lên Frontend — Gọi API trong `src/api/learningApi.ts`
+* **Mở file của nhánh bạn:** `Capstone2/frontend/src/api/learningApi.ts` (hoặc `managementApi.ts` / `teachingApi.ts`)
+* **Viết hàm `fetch` gọi đúng URL `/api/learning/feedback` ở Bước 5:**
+```ts
+import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+export interface CreateFeedbackPayload {
+  title: string;
+  description: string;
+  requestedBy: number;
+  studentId?: number;
+}
+
+export const learningApi = {
+  async createFeedback(payload: CreateFeedbackPayload): Promise<ApprovalRequestDto> {
+    const res = await fetch(`${API_BASE_URL}/learning/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP Error ${res.status}`);
+    }
+
+    return await res.json(); // Trả về cục ApprovalRequestDto từ Backend
+  },
+};
+```
+
+---
+
+#### 🛡️ BƯỚC 7: Điều phối trong `src/DAL/learningDAL.ts`
+* **Mở file của nhánh bạn:** `Capstone2/frontend/src/DAL/learningDAL.ts` (hoặc `managementDAL.ts` / `teachingDAL.ts`)
+* **Viết hàm bọc `learningApi.createFeedback` bằng `try / catch`:**
+```ts
+import { learningApi, type CreateFeedbackPayload } from '../api/learningApi';
+
+export const learningDAL = {
+  async createFeedback(payload: CreateFeedbackPayload) {
+    try {
+      const data = await learningApi.createFeedback(payload);
+      return { success: true, data, isLiveApi: true };
+    } catch (err: any) {
+      console.warn('🟡 [learningDAL] Backend chưa bật, dùng fallback local:', err.message);
+      return {
+        success: true,
+        data: {
+          requestId: Date.now(),
+          title: payload.title,
+          description: payload.description,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        },
+        isLiveApi: false,
+      };
+    }
+  },
+};
+```
+
+---
+
+#### 🎨 BƯỚC 8: Đưa Data vào Component / Page (`FeedbackView.tsx`)
+> **Làm sao để đưa data vừa trả về từ API vào giao diện?**
+> Trong React, mọi danh sách hiển thị trên màn hình đều nằm trong một biến **`useState`** (ví dụ ở `FeedbackView.tsx` là `const [requests, setRequests] = useState(...)`).
+> Khi gọi `learningDAL` xong, bạn lấy `res.data` (dữ liệu thật vừa lưu trong DB có `requestId` thật) và gọi **`setRequests([newReq, ...requests])`**!
+
+* **Mở file:** `Capstone2/frontend/src/GUIs/components/student/feedback/FeedbackView.tsx`
+* **Sửa hàm `handleSubmit`:**
+```tsx
+// 1. Import learningDAL ở đầu file:
+import { learningDAL } from '../../../../DAL/learningDAL';
+
+// 2. Đổi handleSubmit thành async và gọi learningDAL:
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!title.trim() || !description.trim()) return;
+
+  // Gọi xuống Backend thông qua learningDAL (ID 6 là học sinh, ID 9 là phụ huynh)
+  const requesterId = userRole === 'parent' ? 9 : 6;
+  const res = await learningDAL.createFeedback({
+    title: title.trim(),
+    description: description.trim(),
+    requestedBy: requesterId,
+  });
+
+  // Lấy dữ liệu thật từ Backend trả về để đưa vào state của React
+  const newReq: FeedbackApprovalRequest = {
+    id: res.data.requestId, // <-- ID thật từ MySQL!
+    requestType: 'feedback',
+    title: res.data.title || title.trim(),
+    description: res.data.description || description.trim(),
+    senderName: userName,
+    senderRole: userRole,
+    createdAt: new Date().toLocaleDateString('vi-VN'),
+    status: 'pending',
+    statusLabel: 'Chờ duyệt',
+  };
+
+  // Cập nhật state -> Giao diện tự động hiển thị ngay lập tức, F5 không bị mất!
+  setRequests([newReq, ...requests]);
+  setTitle('');
+  setDescription('');
+  setToastMessage('Đã gửi phản hồi thành công lên hệ thống Giáo vụ!');
+};
+```
+
+---
+
+### LƯU Ý BỔ SUNG: KHI CẦN VIẾT API `GET` MỚI KẾT HỢP NHIỀU BẢNG (MULTI-TABLE JOIN)
+
+> **Quy tắc:** Khi một màn hình cần lấy dữ liệu tổng hợp từ 2, 3, 4 bảng cùng lúc (mà `GetAll`/`GetById` đơn bảng trong `Queries/` không đáp ứng đủ), **hãy viết hàm `[HttpGet]` đó ngay trong Controller thuộc nhánh của bạn (`Management/`, `Teaching/`, hoặc `Learning/`)** theo đúng 8 bước trên.
+
+**Ví dụ:** Thành viên 2 (nhóm `Teacher / TA`) cần viết 1 API `GET` kết hợp 4 bảng (`classes` + `student_classes` + `users` + `attendances`) để đổ dữ liệu ra màn hình **Điểm danh lớp học theo buổi**:
+
+1. **Bước 1 — Tạo DTO trả về trong `Models/DTOs/Teaching/ClassAttendanceSheetDto.cs`**:
    ```csharp
    using System.Collections.Generic;
 
@@ -169,22 +450,17 @@ Capstone2/backend/
        }
    }
    ```
-
-2. **Bước 2 — Kết hợp nhiều bảng bằng `EduTrackDbContext` hoặc nhiều Repositories**:
-   Trong `Services/Teaching/` (hoặc inject trực tiếp vào `TeachingAttendanceController.cs`), bạn có thể truy vấn nhiều bảng cùng lúc bằng Entity Framework LINQ:
+2. **Bước 2 — Kết hợp nhiều bảng trong `Services/Teaching/` & `TeachingAttendanceController.cs`**:
    ```csharp
-   // Ví dụ viết trong TeachingAttendanceController.cs
    // GET: api/attendances/class/{classId}/session/{sessionId}
    [HttpGet("class/{classId:int}/session/{sessionId:int}")]
    public async Task<ActionResult<ClassAttendanceSheetDto>> GetAttendanceSheet(int classId, int sessionId)
    {
-       // Kết hợp dữ liệu từ nhiều bảng thông qua các Service/Repository hoặc DbContext
+       // Kết hợp dữ liệu từ nhiều bảng thông qua các Repository hoặc EduTrackDbContext
        // Trả về đúng 1 cục JSON duy nhất cho Frontend render bảng điểm danh
    }
    ```
-
-3. **Bước 3 — Đăng ký Service (nếu có tạo Service mới)**:
-   Mở `Helpers/DependencyInjection/TeachingServiceExtensions.cs`:
+3. **Bước 3 — Đăng ký DI trong `Helpers/DependencyInjection/TeachingServiceExtensions.cs`**:
    ```csharp
    public static IServiceCollection AddTeachingServices(this IServiceCollection services)
    {
