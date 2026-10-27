@@ -5,6 +5,7 @@ import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import TableActionButton from "../../../components/Common/TableActionButton";
 import subjectDAL from "../../../../DAL/subjectDAL";
+import managementDAL from "../../../../DAL/managementDAL";
 import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
 
 export default function CenterManagerSubjectPage() {
@@ -118,7 +119,7 @@ export default function CenterManagerSubjectPage() {
     setActionErrorMsg(null);
     try {
       const code = addForm.subjectCode.trim().toUpperCase() || `SUB${Date.now().toString().slice(-4)}`;
-      const res = await subjectDAL.createSubject({
+      const res = await managementDAL.createSubject({
         subjectCode: code,
         subjectName: addForm.subjectName.trim(),
         description: addForm.description.trim() || undefined,
@@ -156,7 +157,7 @@ export default function CenterManagerSubjectPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await subjectDAL.updateSubject(editForm.subjectId, {
+      const res = await managementDAL.updateSubject(editForm.subjectId, {
         subjectCode: editForm.subjectCode.trim().toUpperCase(),
         subjectName: editForm.subjectName.trim(),
         description: editForm.description.trim() || undefined,
@@ -187,7 +188,7 @@ export default function CenterManagerSubjectPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await subjectDAL.deleteSubject(subjectToDelete.subjectId);
+      const res = await managementDAL.deleteSubject(subjectToDelete.subjectId);
       if (res.success) {
         setSubjects(subjects.filter((s) => s.subjectId !== subjectToDelete.subjectId));
         setShowDeleteModal(false);

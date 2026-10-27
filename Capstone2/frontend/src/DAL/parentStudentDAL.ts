@@ -7,6 +7,9 @@ export interface ParentStudentsFetchResult {
   error?: string | null;
 }
 
+/**
+ * [CQRS Query Side] Tầng DAL đọc dữ liệu Liên kết Phụ huynh - Học sinh dùng chung
+ */
 export const parentStudentDAL = {
   /**
    * Lấy toàn bộ danh sách liên kết Phụ huynh - Học sinh
@@ -37,51 +40,6 @@ export const parentStudentDAL = {
       });
 
       return { data: fallback, isLiveApi: false };
-    }
-  },
-
-  /**
-   * Gán liên kết học sinh - phụ huynh
-   */
-  async assignLink(dto: {
-    parentId: number;
-    studentId: number;
-    relationship?: string;
-    isPrimaryContact?: boolean;
-  }): Promise<{ data: ParentStudentDto; isLiveApi: boolean }> {
-    try {
-      const res = await parentStudentApi.assign(dto);
-      console.log('🟢 [parentStudentDAL] Gán liên kết thành công:', res);
-      return { data: res, isLiveApi: true };
-    } catch (err: any) {
-      console.warn('🟡 [parentStudentDAL] API assign thất bại, fallback local:', err.message);
-      const fallback: ParentStudentDto = {
-        parentId: dto.parentId,
-        parentName: `Phụ huynh #${dto.parentId}`,
-        parentPhone: '0901 234 567',
-        parentEmail: 'parent@edutrack.edu.vn',
-        studentId: dto.studentId,
-        studentName: `Học sinh #${dto.studentId}`,
-        studentCode: `STU${dto.studentId}`,
-        relationship: dto.relationship || 'Parent',
-        isPrimaryContact: dto.isPrimaryContact ?? true,
-        createdAt: new Date().toISOString(),
-      };
-      return { data: fallback, isLiveApi: false };
-    }
-  },
-
-  /**
-   * Hủy liên kết phụ huynh - học sinh
-   */
-  async removeLink(parentId: number, studentId: number): Promise<{ success: boolean; isLiveApi: boolean }> {
-    try {
-      await parentStudentApi.delete(parentId, studentId);
-      console.log(`🟢 [parentStudentDAL] Hủy liên kết Parent ${parentId} - Student ${studentId} thành công.`);
-      return { success: true, isLiveApi: true };
-    } catch (err: any) {
-      console.warn('🟡 [parentStudentDAL] API delete thất bại, fallback local:', err.message);
-      return { success: true, isLiveApi: false };
     }
   },
 };

@@ -7,6 +7,7 @@ import TableToolbar from "../../../components/Common/TableToolbar";
 import TableActionButton from "../../../components/Common/TableActionButton";
 import classDAL from "../../../../DAL/classDAL";
 import subjectDAL from "../../../../DAL/subjectDAL";
+import managementDAL from "../../../../DAL/managementDAL";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
 
@@ -156,7 +157,7 @@ export default function AdminStaffClassPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await classDAL.createClass({
+      const res = await managementDAL.createClass({
         className: addForm.className.trim(),
         subjectId: Number(addForm.subjectId) || (subjects[0]?.subjectId ?? 1),
         room: addForm.room.trim() || undefined,
@@ -214,7 +215,7 @@ export default function AdminStaffClassPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await classDAL.updateClass(editForm.classId, {
+      const res = await managementDAL.updateClass(editForm.classId, {
         className: editForm.className.trim(),
         subjectId: Number(editForm.subjectId),
         room: editForm.room.trim() || undefined,
@@ -253,7 +254,7 @@ export default function AdminStaffClassPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await classDAL.deleteClass(classToDelete.classId);
+      const res = await managementDAL.deleteClass(classToDelete.classId);
       if (res.success) {
         setClasses(classes.filter((c) => c.classId !== classToDelete.classId));
         setShowDeleteModal(false);

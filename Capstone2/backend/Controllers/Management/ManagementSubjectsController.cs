@@ -3,7 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using EduTrack.API.Models.DTOs;
-using EduTrack.API.Services.Interfaces;
+using EduTrack.API.Models.DTOs.Management;
+using EduTrack.API.Services.Management.Interfaces;
 
 namespace EduTrack.API.Controllers.Management
 {
@@ -16,9 +17,9 @@ namespace EduTrack.API.Controllers.Management
     [Tags("Management - Subjects")]
     public class ManagementSubjectsController : ControllerBase
     {
-        private readonly ISubjectService _service;
+        private readonly IManagementSubjectService _service;
 
-        public ManagementSubjectsController(ISubjectService service)
+        public ManagementSubjectsController(IManagementSubjectService service)
         {
             _service = service;
         }

@@ -29,26 +29,6 @@ namespace EduTrack.API.Services.Implementation
             return item == null ? null : MapToDto(item);
         }
 
-        public async Task<ParentStudentDto> AssignParentStudentAsync(AssignParentStudentDto dto)
-        {
-            var entity = new ParentStudent
-            {
-                ParentId = dto.ParentId,
-                StudentId = dto.StudentId,
-                Relationship = string.IsNullOrWhiteSpace(dto.Relationship) ? "Parent" : dto.Relationship.Trim(),
-                IsPrimaryContact = dto.IsPrimaryContact,
-                CreatedAt = System.DateTime.UtcNow
-            };
-
-            var saved = await _repository.AssignAsync(entity);
-            return MapToDto(saved);
-        }
-
-        public async Task<bool> RemoveParentStudentAsync(int parentId, int studentId)
-        {
-            return await _repository.RemoveAsync(parentId, studentId);
-        }
-
         private static ParentStudentDto MapToDto(ParentStudent x)
         {
             return new ParentStudentDto

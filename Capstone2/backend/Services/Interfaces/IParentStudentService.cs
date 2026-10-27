@@ -8,8 +8,5 @@ namespace EduTrack.API.Services.Interfaces
     {
         Task<IEnumerable<ParentStudentDto>> GetAllParentStudentsAsync();
         Task<ParentStudentDto?> GetByIdsAsync(int parentId, int studentId);
-        Task<ParentStudentDto> AssignParentStudentAsync(AssignParentStudentDto dto);
-        Task<bool> RemoveParentStudentAsync(int parentId, int studentId);
     }
 }
-

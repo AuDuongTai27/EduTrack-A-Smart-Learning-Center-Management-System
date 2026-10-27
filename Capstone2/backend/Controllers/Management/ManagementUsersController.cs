@@ -3,7 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using EduTrack.API.Models.DTOs;
-using EduTrack.API.Services.Interfaces;
+using EduTrack.API.Models.DTOs.Management;
+using EduTrack.API.Services.Management.Interfaces;
 
 namespace EduTrack.API.Controllers.Management
 {
@@ -16,15 +17,11 @@ namespace EduTrack.API.Controllers.Management
     [Tags("Management - Users & Parent Links")]
     public class ManagementUsersController : ControllerBase
     {
-        private readonly IUserService _userService;
-        private readonly IParentStudentService _parentStudentService;
+        private readonly IManagementUserService _userService;
 
-        public ManagementUsersController(
-            IUserService userService,
-            IParentStudentService parentStudentService)
+        public ManagementUsersController(IManagementUserService userService)
         {
             _userService = userService;
-            _parentStudentService = parentStudentService;
         }
 
         /// <summary>
@@ -141,7 +138,7 @@ namespace EduTrack.API.Controllers.Management
 
             try
             {
-                var result = await _parentStudentService.AssignParentStudentAsync(dto);
+                var result = await _userService.AssignParentStudentAsync(dto);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -159,7 +156,7 @@ namespace EduTrack.API.Controllers.Management
         {
             try
             {
-                var success = await _parentStudentService.RemoveParentStudentAsync(parentId, studentId);
+                var success = await _userService.RemoveParentStudentAsync(parentId, studentId);
                 if (!success)
                 {
                     return NotFound(new { message = $"Không tìm thấy liên kết giữa Phụ huynh {parentId} và Học sinh {studentId}" });

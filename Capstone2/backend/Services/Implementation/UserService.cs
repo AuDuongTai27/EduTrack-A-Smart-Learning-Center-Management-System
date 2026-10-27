@@ -29,68 +29,6 @@ namespace EduTrack.API.Services.Implementation
             return user == null ? null : MapToDto(user);
         }
 
-        public async Task<UserDto> CreateUserAsync(CreateUserDto dto)
-        {
-            var role = string.IsNullOrWhiteSpace(dto.Role) ? "teacher" : dto.Role.Trim().ToLower();
-            var prefix = role switch
-            {
-                "center_manager" => "MGR",
-                "admin_staff" => "ADM",
-                "teaching_assistant" => "TA",
-                "student" => "STU",
-                "parent" => "PAR",
-                _ => "TEA"
-            };
-
-            var userCode = !string.IsNullOrWhiteSpace(dto.UserCode)
-                ? dto.UserCode.Trim().ToUpper()
-                : $"{prefix}{System.DateTime.UtcNow:MMddHHmm}";
-
-            var user = new User
-            {
-                UserCode = userCode,
-                FullName = dto.FullName.Trim(),
-                Email = dto.Email?.Trim(),
-                Phone = dto.Phone?.Trim(),
-                PasswordHash = "$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h",
-                AvatarUrl = $"https://api.dicebear.com/7.x/avataaars/svg?seed={userCode}",
-                Gender = dto.Gender?.Trim() ?? "other",
-                Specialty = dto.Specialty?.Trim(),
-                Status = "active",
-                CreatedAt = System.DateTime.UtcNow,
-                EnrolledSince = System.DateTime.UtcNow
-            };
-
-            var created = await _userRepository.CreateUserWithRoleAsync(user, role);
-            return MapToDto(created);
-        }
-
-        public async Task<UserDto?> UpdateUserAsync(int id, UpdateUserDto dto)
-        {
-            var updatedUser = new User
-            {
-                FullName = dto.FullName.Trim(),
-                Email = dto.Email?.Trim(),
-                Phone = dto.Phone?.Trim(),
-                Specialty = dto.Specialty?.Trim(),
-                Gender = dto.Gender?.Trim(),
-                Status = dto.Status?.Trim() ?? "active"
-            };
-
-            var result = await _userRepository.UpdateUserWithRoleAsync(id, updatedUser, dto.Role?.Trim().ToLower());
-            return result == null ? null : MapToDto(result);
-        }
-
-        public async Task<bool> UpdateStatusAsync(int id, string status)
-        {
-            return await _userRepository.UpdateStatusAsync(id, status.Trim().ToLower());
-        }
-
-        public async Task<bool> DeleteUserAsync(int id)
-        {
-            return await _userRepository.DeleteUserAsync(id);
-        }
-
         private static UserDto MapToDto(User u)
         {
             return new UserDto
@@ -112,4 +50,3 @@ namespace EduTrack.API.Services.Implementation
         }
     }
 }
-

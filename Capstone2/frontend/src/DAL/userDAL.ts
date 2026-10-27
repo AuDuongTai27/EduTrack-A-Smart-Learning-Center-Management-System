@@ -8,6 +8,9 @@ export interface UsersFetchResult {
   error?: string | null;
 }
 
+/**
+ * [CQRS Query Side] Tầng DAL đọc dữ liệu Người dùng (Users) dùng chung cho cả 6 Roles
+ */
 export const userDAL = {
   /**
    * Lấy toàn bộ danh sách người dùng (có Fallback)
@@ -82,108 +85,6 @@ export const userDAL = {
       };
     }
   },
-
-  /**
-   * Tạo người dùng mới
-   */
-  async createUser(dto: {
-    userCode?: string;
-    fullName: string;
-    email?: string;
-    phone?: string;
-    role: string;
-    specialty?: string;
-    gender?: string;
-  }): Promise<{ data: UserDto; isLiveApi: boolean }> {
-    try {
-      const created = await userApi.create(dto);
-      console.log('🟢 [userDAL] Tạo tài khoản người dùng thành công qua API:', created);
-      return { data: created, isLiveApi: true };
-    } catch (err: any) {
-      console.warn('🟡 [userDAL] API create thất bại, fallback local:', err.message);
-      const fallbackId = Date.now();
-      const prefix = dto.role === 'center_manager' ? 'MGR' : dto.role === 'admin_staff' ? 'ADM' : dto.role === 'teaching_assistant' ? 'TA' : 'TEA';
-      const fallback: UserDto = {
-        userId: fallbackId,
-        userCode: dto.userCode || `${prefix}${fallbackId.toString().slice(-4)}`,
-        fullName: dto.fullName,
-        email: dto.email || `${prefix.toLowerCase()}${fallbackId}@edutrack.edu.vn`,
-        phone: dto.phone || '0901 234 567',
-        roles: [dto.role],
-        specialty: dto.specialty || 'General',
-        gender: dto.gender || 'other',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      };
-      return { data: fallback, isLiveApi: false };
-    }
-  },
-
-  /**
-   * Cập nhật thông tin người dùng
-   */
-  async updateUser(
-    id: number,
-    dto: {
-      fullName: string;
-      email?: string;
-      phone?: string;
-      role?: string;
-      specialty?: string;
-      gender?: string;
-      status?: string;
-    }
-  ): Promise<{ data: UserDto; isLiveApi: boolean }> {
-    try {
-      const updated = await userApi.update(id, dto);
-      console.log('🟢 [userDAL] Cập nhật người dùng thành công qua API:', updated);
-      return { data: updated, isLiveApi: true };
-    } catch (err: any) {
-      console.warn('🟡 [userDAL] API update thất bại, fallback local:', err.message);
-      const fallback: UserDto = {
-        userId: id,
-        userCode: `USR${id}`,
-        fullName: dto.fullName,
-        email: dto.email || undefined,
-        phone: dto.phone || undefined,
-        roles: dto.role ? [dto.role] : ['teacher'],
-        specialty: dto.specialty || undefined,
-        gender: dto.gender || 'other',
-        status: dto.status || 'active',
-        createdAt: new Date().toISOString(),
-      };
-      return { data: fallback, isLiveApi: false };
-    }
-  },
-
-  /**
-   * Cập nhật trạng thái người dùng (Active / Inactive / Locked)
-   */
-  async updateUserStatus(id: number, status: string): Promise<{ success: boolean; isLiveApi: boolean }> {
-    try {
-      await userApi.updateStatus(id, status);
-      console.log(`🟢 [userDAL] Cập nhật trạng thái user #${id} thành ${status} qua API thành công.`);
-      return { success: true, isLiveApi: true };
-    } catch (err: any) {
-      console.warn('🟡 [userDAL] API updateStatus thất bại, fallback local:', err.message);
-      return { success: true, isLiveApi: false };
-    }
-  },
-
-  /**
-   * Xóa tài khoản người dùng
-   */
-  async deleteUser(id: number): Promise<{ success: boolean; isLiveApi: boolean; message?: string }> {
-    try {
-      const res = await userApi.delete(id);
-      console.log(`🟢 [userDAL] Xóa user #${id} thành công qua API.`);
-      return { success: true, isLiveApi: true, message: res.message };
-    } catch (err: any) {
-      console.warn('🟡 [userDAL] API delete thất bại, fallback local:', err.message);
-      return { success: true, isLiveApi: false, message: err.message };
-    }
-  },
 };
 
 export default userDAL;
-

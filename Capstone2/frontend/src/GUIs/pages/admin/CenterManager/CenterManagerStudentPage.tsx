@@ -9,6 +9,7 @@ import RoleBadge from "../../../components/Common/RoleBadge";
 import TableActionButton from "../../../components/Common/TableActionButton";
 import userDAL from "../../../../DAL/userDAL";
 import parentStudentDAL from "../../../../DAL/parentStudentDAL";
+import managementDAL from "../../../../DAL/managementDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ParentStudentDto } from "../../../../api/parentStudentApi";
 
@@ -226,7 +227,7 @@ export default function CenterManagerStudentPage() {
     setActionErrorMsg(null);
     try {
       const role = activeTab === "students" ? "student" : "parent";
-      const res = await userDAL.createUser({
+      const res = await managementDAL.createUser({
         fullName: addForm.fullName.trim(),
         phone: addForm.phone.trim() || undefined,
         email: addForm.email.trim() || undefined,
@@ -280,7 +281,7 @@ export default function CenterManagerStudentPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await userDAL.updateUser(editForm.userId, {
+      const res = await managementDAL.updateUser(editForm.userId, {
         fullName: editForm.fullName.trim(),
         phone: editForm.phone.trim() || undefined,
         email: editForm.email.trim() || undefined,
@@ -349,7 +350,7 @@ export default function CenterManagerStudentPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await parentStudentDAL.assignLink(linkForm);
+      const res = await managementDAL.assignLink(linkForm);
       // Update links state
       const existingIdx = links.findIndex(
         (l) => l.parentId === linkForm.parentId && l.studentId === linkForm.studentId
@@ -377,7 +378,7 @@ export default function CenterManagerStudentPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await parentStudentDAL.removeLink(parentId, studentId);
+      const res = await managementDAL.removeLink(parentId, studentId);
       if (res.success) {
         setLinks(links.filter((l) => !(l.parentId === parentId && l.studentId === studentId)));
         setActionSuccessMsg("Đã hủy liên kết Phụ huynh - Học sinh thành công!");
@@ -404,7 +405,7 @@ export default function CenterManagerStudentPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await userDAL.deleteUser(userToDelete.userId);
+      const res = await managementDAL.deleteUser(userToDelete.userId);
       if (res.success) {
         setUsers(users.filter((item) => item.userId !== userToDelete.userId));
         // Remove related links
