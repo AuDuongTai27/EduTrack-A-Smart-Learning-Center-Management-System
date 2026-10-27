@@ -26,11 +26,15 @@ The development phase is primarily organized within the **`Capstone2/`** directo
 
 ```text
 backend/
-├── Controllers/       # API endpoints & HTTP request handlers (Auth, Users, Classes, Tuition, Feedback...)
-├── Models/            # Database entities (EF Core models) & DTOs for request/response
-├── Services/          # Core business logic and external service integrations
-├── Repositories/      # Data access layer & database query operations (Repository pattern)
-├── Helpers/           # Utilities, common constants, JWT helpers, and custom attributes
+├── Controllers/       # API endpoints organized by CQRS Lite & Bounded Contexts:
+│   ├── Queries/       # Shared Read-only GET endpoints (GetAll, GetById) across 22 tables
+│   ├── Management/    # Center Manager & Admin Staff APIs (Users, Classes, Subjects, Tuition, Review, Settings)
+│   ├── Teaching/      # Teacher & Teaching Assistant APIs (Classes, Assignments/Grading, Attendance, Requests)
+│   └── Learning/      # Student & Parent APIs (Homework Submissions, Learning Portal, Parent Portal, Feedback)
+├── Models/            # Database entities (EF Core models) & Role-scoped DTOs (Management, Teaching, Learning)
+├── Services/          # Core business logic split into Shared, Management, Teaching, and Learning contexts
+├── Repositories/      # Data access layer & database query operations (Generic & Specific Repository pattern)
+├── Helpers/           # Utilities, JWT helpers, and modular DependencyInjection extensions
 ├── Migrations/        # Entity Framework Core database migration files
 ├── wwwroot/           # Static asset storage (uploaded avatars, assignment files)
 ├── Program.cs         # Application entry point: DI, middleware pipeline, CORS, Swagger
@@ -123,5 +127,6 @@ frontend/
 
 ## Documentation & Checklists
 
-To view the detailed API integration checklist (GetAll & GetById mapping for all 6 roles), please check:
-👉 **[`docs/API_Integration_Roles_Checklist.md`](docs/API_Integration_Roles_Checklist.md)**
+To view the detailed API integration checklist and backend architecture guide, please check:
+- 👉 **[`docs/API_Integration_Roles_Checklist.md`](docs/API_Integration_Roles_Checklist.md)** (GetAll & GetById mapping for all 6 roles)
+- 👉 **[`docs/Backend_CQRS_BoundedContext_Guide.md`](docs/Backend_CQRS_BoundedContext_Guide.md)** (CQRS Lite & Bounded Contexts guide for zero-conflict teamwork)
