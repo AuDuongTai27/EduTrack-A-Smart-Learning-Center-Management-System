@@ -6,6 +6,7 @@ import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
 import RoleBadge from "../../../components/Common/RoleBadge";
+import TableActionButton from "../../../components/Common/TableActionButton";
 import userDAL from "../../../../DAL/userDAL";
 import parentStudentDAL from "../../../../DAL/parentStudentDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
@@ -736,21 +737,15 @@ export default function CenterManagerStudentPage() {
                       </td>
 
                       <td className="text-center">
-                        <div className="btn-group" role="group">
-                          {/* View details */}
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-primary"
+                        <div className="d-flex align-items-center justify-content-center gap-1">
+                          <TableActionButton
+                            action="View"
                             onClick={() => handleViewDetails(item)}
                             title="Xem chi tiết hồ sơ"
-                          >
-                            <i className="bi bi-eye" />
-                          </button>
+                          />
 
-                          {/* Link/Unlink Action (Context-Aware) */}
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-info text-dark"
+                          <TableActionButton
+                            action="Link"
                             onClick={() => {
                               if (activeTab === "students") {
                                 handleOpenLinkModalForStudent(item);
@@ -759,29 +754,19 @@ export default function CenterManagerStudentPage() {
                               }
                             }}
                             title={activeTab === "students" ? "Gán phụ huynh cho học sinh này" : "Gán học sinh cho phụ huynh này"}
-                          >
-                            <i className="bi bi-link-45deg" />
-                          </button>
+                          />
 
-                          {/* Edit */}
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-secondary"
+                          <TableActionButton
+                            action="Edit"
                             onClick={() => handleOpenEditModal(item)}
                             title="Sửa thông tin"
-                          >
-                            <i className="bi bi-pencil" />
-                          </button>
+                          />
 
-                          {/* Delete */}
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger"
+                          <TableActionButton
+                            action="Delete"
                             onClick={() => handleOpenDeleteModal(item)}
                             title="Xóa tài khoản"
-                          >
-                            <i className="bi bi-trash" />
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>

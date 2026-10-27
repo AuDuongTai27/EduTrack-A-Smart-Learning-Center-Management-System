@@ -3,6 +3,7 @@ import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 import subjectDAL from "../../../../DAL/subjectDAL";
 import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
 
@@ -349,31 +350,22 @@ export default function CenterManagerSubjectPage() {
                         <DotStatusBadge status="Active" />
                       </td>
                       <td className="text-center">
-                        <div className="btn-group" role="group">
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-primary"
+                        <div className="d-flex align-items-center justify-content-center gap-1">
+                          <TableActionButton
+                            action="View"
                             onClick={() => handleViewDetails(sub)}
-                            title="Xem chi tiết"
-                          >
-                            <i className="bi bi-eye" />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-secondary"
+                            title="Xem chi tiết môn học"
+                          />
+                          <TableActionButton
+                            action="Edit"
                             onClick={() => handleOpenEditModal(sub)}
                             title="Sửa môn học"
-                          >
-                            <i className="bi bi-pencil" />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger"
+                          />
+                          <TableActionButton
+                            action="Delete"
                             onClick={() => handleOpenDeleteModal(sub)}
                             title="Xóa môn học"
-                          >
-                            <i className="bi bi-trash" />
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>
