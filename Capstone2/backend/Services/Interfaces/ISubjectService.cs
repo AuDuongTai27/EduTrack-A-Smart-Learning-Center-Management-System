@@ -8,9 +8,5 @@ namespace EduTrack.API.Services.Interfaces
     {
         Task<IEnumerable<SubjectDto>> GetAllSubjectsAsync();
         Task<SubjectDto?> GetSubjectByIdAsync(int id);
-        Task<SubjectDto> CreateSubjectAsync(CreateSubjectDto dto);
-        Task<SubjectDto?> UpdateSubjectAsync(int id, UpdateSubjectDto dto);
-        Task<bool> DeleteSubjectAsync(int id);
     }
 }
-

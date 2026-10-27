@@ -8,8 +8,5 @@ namespace EduTrack.API.Services.Interfaces
     {
         Task<IEnumerable<ClassDto>> GetAllClassesAsync();
         Task<ClassDto?> GetClassByIdAsync(int id);
-        Task<ClassDto> CreateClassAsync(CreateClassDto dto);
-        Task<ClassDto?> UpdateClassAsync(int id, UpdateClassDto dto);
-        Task<(bool Success, string Message)> DeleteClassAsync(int id);
     }
 }

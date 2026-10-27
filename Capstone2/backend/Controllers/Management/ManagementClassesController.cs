@@ -3,7 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using EduTrack.API.Models.DTOs;
-using EduTrack.API.Services.Interfaces;
+using EduTrack.API.Models.DTOs.Management;
+using EduTrack.API.Services.Management.Interfaces;
 
 namespace EduTrack.API.Controllers.Management
 {
@@ -16,9 +17,9 @@ namespace EduTrack.API.Controllers.Management
     [Tags("Management - Classes & Schedules")]
     public class ManagementClassesController : ControllerBase
     {
-        private readonly IClassService _service;
+        private readonly IManagementClassService _service;
 
-        public ManagementClassesController(IClassService service)
+        public ManagementClassesController(IManagementClassService service)
         {
             _service = service;
         }
@@ -89,12 +90,5 @@ namespace EduTrack.API.Controllers.Management
 
             return Ok(new { message });
         }
-
-        // TODO [Thành viên 1 - CM & Admin Staff]:
-        // Bổ sung các API Sub-resource tại đây mà không sợ đụng chạm nhóm khác:
-        // - POST   /api/classes/{id}/students  (Xếp học sinh vào lớp)
-        // - POST   /api/classes/{id}/teachers  (Gán giáo viên phụ trách)
-        // - POST   /api/classes/{id}/tas       (Gán trợ giảng)
-        // - POST   /api/classes/{id}/schedules (Tạo lịch học cho lớp)
     }
 }

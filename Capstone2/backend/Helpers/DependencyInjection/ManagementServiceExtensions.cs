@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using EduTrack.API.Services.Management.Interfaces;
+using EduTrack.API.Services.Management.Implementation;
 
 namespace EduTrack.API.Helpers.DependencyInjection
 {
@@ -10,7 +12,10 @@ namespace EduTrack.API.Helpers.DependencyInjection
     {
         public static IServiceCollection AddManagementServices(this IServiceCollection services)
         {
-            // Thành viên 1 đăng ký thêm các Service mới của nhánh Management tại đây (tránh conflict Program.cs)
+            services.AddScoped<IManagementUserService, ManagementUserService>();
+            services.AddScoped<IManagementClassService, ManagementClassService>();
+            services.AddScoped<IManagementSubjectService, ManagementSubjectService>();
+
             return services;
         }
     }

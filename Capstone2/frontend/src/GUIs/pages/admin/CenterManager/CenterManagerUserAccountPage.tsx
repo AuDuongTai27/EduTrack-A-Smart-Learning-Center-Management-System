@@ -8,6 +8,7 @@ import UserAvatar from "../../../components/Common/UserAvatar";
 import RoleBadge from "../../../components/Common/RoleBadge";
 import TableActionButton from "../../../components/Common/TableActionButton";
 import userDAL from "../../../../DAL/userDAL";
+import managementDAL from "../../../../DAL/managementDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 
 const INTERNAL_STAFF_ROLES = ["center_manager", "admin_staff", "teacher", "teaching_assistant"];
@@ -153,7 +154,7 @@ export default function CenterManagerUserAccountPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await userDAL.createUser({
+      const res = await managementDAL.createUser({
         fullName: addForm.fullName.trim(),
         phone: addForm.phone.trim() || undefined,
         email: addForm.email.trim() || undefined,
@@ -206,7 +207,7 @@ export default function CenterManagerUserAccountPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await userDAL.updateUser(editForm.userId, {
+      const res = await managementDAL.updateUser(editForm.userId, {
         fullName: editForm.fullName.trim(),
         phone: editForm.phone.trim() || undefined,
         email: editForm.email.trim() || undefined,
@@ -231,7 +232,7 @@ export default function CenterManagerUserAccountPage() {
   const handleToggleStatus = async (u: UserDto) => {
     const nextStatus = u.status === "active" ? "locked" : "active";
     try {
-      await userDAL.updateUserStatus(u.userId, nextStatus);
+      await managementDAL.updateUserStatus(u.userId, nextStatus);
       const updated = users.map((item) => (item.userId === u.userId ? { ...item, status: nextStatus } : item));
       setUsers(updated);
       setActionSuccessMsg(`Đã cập nhật trạng thái tài khoản ${u.fullName} thành: ${nextStatus.toUpperCase()}!`);
@@ -255,7 +256,7 @@ export default function CenterManagerUserAccountPage() {
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await userDAL.deleteUser(userToDelete.userId);
+      const res = await managementDAL.deleteUser(userToDelete.userId);
       if (res.success) {
         setUsers(users.filter((item) => item.userId !== userToDelete.userId));
         setShowDeleteModal(false);
