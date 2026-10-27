@@ -4,6 +4,7 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
+import TableActionButton from "../../../components/Common/TableActionButton";
 import classDAL from "../../../../DAL/classDAL";
 import subjectDAL from "../../../../DAL/subjectDAL";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
@@ -466,36 +467,27 @@ export default function AdminStaffClassPage() {
                         <DotStatusBadge status={cls.status || "active"} />
                       </td>
                       <td className="text-center">
-                        <div className="btn-group" role="group">
+                        <div className="d-flex align-items-center justify-content-center gap-1">
                           {/* View */}
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-primary"
+                          <TableActionButton
+                            action="View"
                             onClick={() => handleViewDetails(cls)}
                             title="Xem chi tiết lớp học"
-                          >
-                            <i className="bi bi-eye" />
-                          </button>
+                          />
 
                           {/* Edit */}
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-secondary"
+                          <TableActionButton
+                            action="Edit"
                             onClick={() => handleOpenEditModal(cls)}
                             title="Chỉnh sửa thông tin lớp"
-                          >
-                            <i className="bi bi-pencil" />
-                          </button>
+                          />
 
                           {/* Delete */}
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger"
+                          <TableActionButton
+                            action="Delete"
                             onClick={() => handleOpenDeleteModal(cls)}
                             title="Xóa lớp học"
-                          >
-                            <i className="bi bi-trash" />
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>

@@ -6,6 +6,7 @@ import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
 import RoleBadge from "../../../components/Common/RoleBadge";
+import TableActionButton from "../../../components/Common/TableActionButton";
 import userDAL from "../../../../DAL/userDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 
@@ -453,39 +454,27 @@ export default function CenterManagerUserAccountPage() {
                         <DotStatusBadge status={u.status || "active"} />
                       </td>
                       <td className="text-center">
-                        <div className="btn-group" role="group">
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-primary"
+                        <div className="d-flex align-items-center justify-content-center gap-1">
+                          <TableActionButton
+                            action="View"
                             onClick={() => handleViewDetails(u)}
                             title="Xem chi tiết"
-                          >
-                            <i className="bi bi-eye" />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-secondary"
+                          />
+                          <TableActionButton
+                            action="Edit"
                             onClick={() => handleOpenEditModal(u)}
                             title="Sửa tài khoản"
-                          >
-                            <i className="bi bi-pencil" />
-                          </button>
-                          <button
-                            type="button"
-                            className={`btn btn-sm ${u.status === "active" ? "btn-outline-warning" : "btn-outline-success"}`}
+                          />
+                          <TableActionButton
+                            action={u.status === "active" ? "Lock" : "Unlock"}
                             onClick={() => handleToggleStatus(u)}
                             title={u.status === "active" ? "Khóa tài khoản" : "Mở khóa tài khoản"}
-                          >
-                            {u.status === "active" ? <i className="bi bi-lock" /> : <i className="bi bi-unlock" />}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger"
+                          />
+                          <TableActionButton
+                            action="Delete"
                             onClick={() => handleOpenDeleteModal(u)}
                             title="Xóa tài khoản"
-                          >
-                            <i className="bi bi-trash" />
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>

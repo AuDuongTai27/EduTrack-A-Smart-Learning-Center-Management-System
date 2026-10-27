@@ -357,15 +357,11 @@ export default function AdminStaffApprovalRequestPage() {
                       </td>
                       <td className="text-center">
                         <div className="d-flex align-items-center justify-content-center gap-1">
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-primary"
-                            title="View Details"
+                          <TableActionButton
+                            action="View Details"
+                            title="Xem chi tiết đơn yêu cầu"
                             onClick={() => handleViewDetails(req)}
-                          >
-                            <i className="bi bi-eye me-1" />
-                            Chi tiết
-                          </button>
+                          />
                         </div>
                       </td>
                     </tr>
