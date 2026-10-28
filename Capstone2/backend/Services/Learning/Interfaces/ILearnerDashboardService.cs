@@ -24,5 +24,7 @@ namespace EduTrack.API.Services.Learning.Interfaces
         Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null);
         Task<bool> MarkNotificationAsReadAsync(int notificationId);
         Task<int> MarkAllNotificationsAsReadAsync(int userId, int? studentId = null);
+        Task<LearnerProfileDto?> GetLearnerProfileAsync(int userId);
+        Task<LearnerProfileDto?> UpdateLearnerProfileAsync(int userId, UpdateLearnerProfileRequestDto request);
     }
 }

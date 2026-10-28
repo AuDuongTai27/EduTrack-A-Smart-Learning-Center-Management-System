@@ -8,7 +8,14 @@ import {
   type CreateLearnerFeedbackPayload,
   type UpdateLearnerFeedbackPayload,
   type LearnerNotificationItemApiDto,
+  type LearnerProfileApiDto,
+  type UpdateLearnerProfilePayload,
+  type ParentChildOverviewApiDto,
 } from '../api/learningApi';
+import {
+  INITIAL_PROFILE,
+  type StudentProfileData,
+} from '../GUIs/components/student/profile/profileData';
 import {
   INITIAL_FEEDBACK_REQUESTS,
   type FeedbackApprovalRequest,
@@ -354,6 +361,50 @@ export function mapApiLearnerNotifToStudentItem(dto: LearnerNotificationItemApiD
     summary: dto.content,
     timestamp: formatDateTimeVi(dto.createdAt) || 'Vừa xong',
     unread: !dto.isRead,
+  };
+}
+
+function mapApiChildrenListToChildStudents(apiChildren: ParentChildOverviewApiDto[]): ChildStudent[] {
+  return (apiChildren || []).map((child) => ({
+    id: child.id,
+    code: child.code,
+    name: child.name,
+    avatar: child.avatar,
+    grade: child.grade,
+    school: child.school,
+    dob: child.dob,
+    phone: child.phone,
+    classesCount: child.classesCount,
+    attendanceRate: child.attendanceRate,
+    averageScore: child.averageScore,
+    unpaidAmount: child.unpaidAmount,
+    classes: (child.classes || []).map((cls) => ({
+      id: cls.id,
+      name: cls.name,
+      subject: cls.subject,
+      subjectClass: cls.subjectClass,
+      badge: cls.badge,
+      teacher: cls.teacher,
+      teacherInitials: cls.teacherInitials,
+      schedule: cls.schedule,
+      room: cls.room,
+      attendedLessons: cls.attendedLessons,
+      totalLessons: cls.totalLessons,
+      notes: cls.notes,
+    })),
+  }));
+}
+
+function mapApiProfileToStudentProfile(dto: LearnerProfileApiDto): StudentProfileData {
+  return {
+    fullName: dto.fullName || INITIAL_PROFILE.fullName,
+    dob: dto.dateOfBirth ? dto.dateOfBirth.split('T')[0] : '2010-02-14',
+    gender: dto.gender || 'Nam',
+    enrollDate: dto.enrolledSince ? dto.enrolledSince.split('T')[0] : '2025-01-05',
+    address: dto.address || '45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh',
+    phone: dto.phone || '0956 789 012',
+    email: dto.email || 'an.le@student.edutrack.vn',
+    avatarUrl: dto.avatarUrl || INITIAL_PROFILE.avatarUrl,
   };
 }
 
@@ -854,6 +905,62 @@ export const learningDAL = {
       console.warn('[learningDAL] Không thể lưu trạng thái đã đọc tất cả lên Backend:', error);
       return 0;
     }
+  },
+
+  /**
+   * Lấy thông tin Hồ sơ cá nhân của Học sinh
+   */
+  async getStudentProfile(studentId = DEFAULT_STUDENT_ID): Promise<StudentProfileData> {
+    try {
+      const dto = await learningApi.getStudentProfile(studentId);
+      if (dto) {
+        return mapApiProfileToStudentProfile(dto);
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Student Profile, dùng mock fallback:', error);
+    }
+    return INITIAL_PROFILE;
+  },
+
+  /**
+   * Cập nhật thông tin Hồ sơ cá nhân của Học sinh xuống CSDL
+   */
+  async updateStudentProfile(
+    data: StudentProfileData,
+    studentId = DEFAULT_STUDENT_ID
+  ): Promise<StudentProfileData> {
+    const payload: UpdateLearnerProfilePayload = {
+      fullName: data.fullName,
+      email: data.email,
+      phone: data.phone,
+      dateOfBirth: data.dob,
+      gender: data.gender,
+      avatarUrl: data.avatarUrl,
+      address: data.address,
+    };
+    const dto = await learningApi.updateStudentProfile(studentId, payload);
+    return mapApiProfileToStudentProfile(dto);
+  },
+
+  /**
+   * Lấy thông tin Hồ sơ cá nhân của Phụ huynh
+   */
+  async getParentProfile(parentId = DEFAULT_PARENT_ID): Promise<LearnerProfileApiDto> {
+    const dto = await learningApi.getParentProfile(parentId);
+    if (!dto) {
+      throw new Error('Không tìm thấy hồ sơ phụ huynh');
+    }
+    return dto;
+  },
+
+  /**
+   * Cập nhật thông tin Hồ sơ cá nhân của Phụ huynh xuống CSDL
+   */
+  async updateParentProfile(
+    payload: UpdateLearnerProfilePayload,
+    parentId = DEFAULT_PARENT_ID
+  ): Promise<LearnerProfileApiDto> {
+    return await learningApi.updateParentProfile(parentId, payload);
   },
 };
 

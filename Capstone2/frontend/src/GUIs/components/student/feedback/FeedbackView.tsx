@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { FeedbackApprovalRequest } from './feedbackData';
 import { INITIAL_FEEDBACK_REQUESTS } from './feedbackData';
 import { FeedbackFormCard } from './components/FeedbackFormCard';
@@ -22,16 +23,27 @@ export function FeedbackView({
   userId,
   studentId,
 }: FeedbackViewProps) {
+  const [searchParams] = useSearchParams();
+  const isLinkStudentRequest = searchParams.get('type') === 'link_student';
+
   const resolvedUserId = userId ?? (userRole === 'parent' ? DEFAULT_PARENT_ID : DEFAULT_STUDENT_ID);
   const resolvedStudentId = studentId ?? DEFAULT_STUDENT_ID;
 
   const [requests, setRequests] = useState<FeedbackApprovalRequest[]>(INITIAL_FEEDBACK_REQUESTS);
-  const [title, setTitle] = useState<string>('');
+  const [title, setTitle] = useState<string>(
+    isLinkStudentRequest ? 'Yêu cầu liên kết thêm hồ sơ học sinh' : ''
+  );
   const [description, setDescription] = useState<string>('');
   const [editingItem, setEditingItem] = useState<FeedbackApprovalRequest | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isLinkStudentRequest && !editingItem && !title.trim()) {
+      setTitle('Yêu cầu liên kết thêm hồ sơ học sinh');
+    }
+  }, [isLinkStudentRequest, editingItem]);
 
   useEffect(() => {
     let isMounted = true;

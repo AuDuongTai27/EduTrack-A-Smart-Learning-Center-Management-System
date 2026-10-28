@@ -102,5 +102,45 @@ namespace EduTrack.API.Controllers.Learning
             var data = await _dashboardService.GetParentNotificationsAsync(parentId, studentId);
             return Ok(new { success = true, data });
         }
+
+        /// <summary>
+        /// Lấy thông tin Hồ sơ cá nhân của Phụ huynh
+        /// </summary>
+        [HttpGet("{parentId:int}/profile")]
+        public async Task<IActionResult> GetParentProfile(int parentId)
+        {
+            var data = await _dashboardService.GetLearnerProfileAsync(parentId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ phụ huynh ID = {parentId}" });
+            }
+
+            return Ok(new { success = true, data });
+        }
+
+        /// <summary>
+        /// Phụ huynh cập nhật thông tin Hồ sơ cá nhân (Lưu xuống bảng users trong CSDL)
+        /// </summary>
+        [HttpPut("{parentId:int}/profile")]
+        public async Task<IActionResult> UpdateParentProfile(int parentId, [FromBody] UpdateLearnerProfileRequestDto request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.FullName))
+            {
+                return BadRequest(new { success = false, message = "Họ và tên phụ huynh không được để trống." });
+            }
+
+            var updated = await _dashboardService.UpdateLearnerProfileAsync(parentId, request);
+            if (updated == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ phụ huynh ID = {parentId}" });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Đã cập nhật hồ sơ phụ huynh thành công!",
+                data = updated
+            });
+        }
     }
 }

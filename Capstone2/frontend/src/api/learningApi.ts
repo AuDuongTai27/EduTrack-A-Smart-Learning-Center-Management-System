@@ -293,6 +293,31 @@ export interface LearnerNotificationItemApiDto {
   createdAt: string;
 }
 
+export interface LearnerProfileApiDto {
+  userId: number;
+  userCode: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: string;
+  enrolledSince: string;
+  avatarUrl: string;
+  address: string;
+  identityCard: string;
+  relationship: string;
+}
+
+export interface UpdateLearnerProfilePayload {
+  fullName: string;
+  email: string;
+  phone: string;
+  dateOfBirth?: string;
+  gender?: string;
+  avatarUrl?: string;
+  address?: string;
+}
+
 /**
  * [Bounded Context: Learning]
  * Tầng Network API dành riêng cho Thành viên 3 (Student & Parent)
@@ -593,6 +618,74 @@ export const learningApi = {
     }
     const json = await response.json();
     return json?.updatedCount ?? 0;
+  },
+
+  /**
+   * Lấy thông tin Hồ sơ cá nhân của Học sinh (GET /api/learning/student/{studentId}/profile)
+   */
+  async getStudentProfile(studentId: number): Promise<LearnerProfileApiDto | null> {
+    const response = await fetch(`${API_BASE_URL}/learning/student/${studentId}/profile`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải hồ sơ học sinh`);
+    }
+    const json = await response.json();
+    return json?.data ?? json ?? null;
+  },
+
+  /**
+   * Cập nhật thông tin Hồ sơ cá nhân của Học sinh (PUT /api/learning/student/{studentId}/profile)
+   */
+  async updateStudentProfile(
+    studentId: number,
+    payload: UpdateLearnerProfilePayload
+  ): Promise<LearnerProfileApiDto> {
+    const response = await fetch(`${API_BASE_URL}/learning/student/${studentId}/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi cập nhật hồ sơ học sinh`);
+    }
+    const json = await response.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * Lấy thông tin Hồ sơ cá nhân của Phụ huynh (GET /api/learning/parent/{parentId}/profile)
+   */
+  async getParentProfile(parentId: number): Promise<LearnerProfileApiDto | null> {
+    const response = await fetch(`${API_BASE_URL}/learning/parent/${parentId}/profile`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải hồ sơ phụ huynh`);
+    }
+    const json = await response.json();
+    return json?.data ?? json ?? null;
+  },
+
+  /**
+   * Cập nhật thông tin Hồ sơ cá nhân của Phụ huynh (PUT /api/learning/parent/{parentId}/profile)
+   */
+  async updateParentProfile(
+    parentId: number,
+    payload: UpdateLearnerProfilePayload
+  ): Promise<LearnerProfileApiDto> {
+    const response = await fetch(`${API_BASE_URL}/learning/parent/${parentId}/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi cập nhật hồ sơ phụ huynh`);
+    }
+    const json = await response.json();
+    return json?.data ?? json;
   },
 };
 

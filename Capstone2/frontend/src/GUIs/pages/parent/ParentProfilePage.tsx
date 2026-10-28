@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
-import { LinkStudentModal } from '../../components/parent/LinkStudentModal';
-import { userDAL } from '../../../DAL/userDAL';
+import { learningDAL } from '../../../DAL/learningDAL';
+import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
 
 export function ParentProfilePage() {
+  const navigate = useNavigate();
   const { childrenList, resetDemoChildren, setDemoEmptyState } = useParent();
-  const [modalOpen, setModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   // Thông tin phụ huynh
@@ -22,18 +23,20 @@ export function ParentProfilePage() {
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
+    document.title = 'Hồ sơ phụ huynh – EduTrack';
     let isMounted = true;
+
     async function loadParentProfile() {
       try {
-        const u = await userDAL.getUserById(9);
-        if (isMounted && u) {
+        const dto = await learningDAL.getParentProfile(DEFAULT_PARENT_ID);
+        if (isMounted && dto) {
           const info = {
-            fullName: u.fullName || 'Lê Văn Nam',
-            phone: u.phone || '0981 112 233',
-            email: u.email || 'nam.le@example.com',
-            address: 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
-            identityCard: '001085012345',
-            relationship: 'Phụ huynh',
+            fullName: dto.fullName || 'Lê Văn Nam',
+            phone: dto.phone || '0981 112 233',
+            email: dto.email || 'nam.le@example.com',
+            address: dto.address || 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
+            identityCard: dto.identityCard || '001085012345',
+            relationship: dto.relationship || 'Phụ huynh',
           };
           setParentInfo(info);
           setFormData(info);
@@ -42,17 +45,45 @@ export function ParentProfilePage() {
         console.warn('Lỗi khi tải hồ sơ phụ huynh:', err);
       }
     }
+
     loadParentProfile();
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const handleSave = () => {
-    setParentInfo(formData);
+  const handleSave = async () => {
+    try {
+      const updated = await learningDAL.updateParentProfile(
+        {
+          fullName: formData.fullName,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+        },
+        DEFAULT_PARENT_ID
+      );
+      const nextInfo = {
+        fullName: updated.fullName || formData.fullName,
+        phone: updated.phone || formData.phone,
+        email: updated.email || formData.email,
+        address: updated.address || formData.address,
+        identityCard: formData.identityCard,
+        relationship: formData.relationship,
+      };
+      setParentInfo(nextInfo);
+      setFormData(nextInfo);
+    } catch (err) {
+      console.warn('Không kết nối được Backend khi lưu hồ sơ phụ huynh, cập nhật tạm trên UI:', err);
+      setParentInfo(formData);
+    }
     setIsEditing(false);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleGoToFeedbackForLinking = () => {
+    navigate('/parent/feedback?type=link_student');
   };
 
   return (
@@ -122,7 +153,7 @@ export function ParentProfilePage() {
                     background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
                   }}
                 >
-                  VB
+                  VN
                 </div>
                 <div>
                   <h3 className="h5 fw-bold text-dark mb-1">{parentInfo.fullName}</h3>
@@ -209,7 +240,8 @@ export function ParentProfilePage() {
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-primary rounded-pill px-3"
-                  onClick={() => setModalOpen(true)}
+                  onClick={handleGoToFeedbackForLinking}
+                  title="Chuyển đến trang Phản hồi để gửi yêu cầu liên kết con tới Admin Staff"
                 >
                   <i className="bi bi-plus-lg me-1"></i> Thêm con
                 </button>
@@ -221,7 +253,7 @@ export function ParentProfilePage() {
                   <button
                     type="button"
                     className="btn btn-primary btn-sm rounded-pill px-3"
-                    onClick={() => setModalOpen(true)}
+                    onClick={handleGoToFeedbackForLinking}
                   >
                     Liên kết học sinh ngay
                   </button>
@@ -285,10 +317,8 @@ export function ParentProfilePage() {
           </div>
         </div>
       </div>
-
-      <LinkStudentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </main>
   );
-};
+}
 
 export default ParentProfilePage;

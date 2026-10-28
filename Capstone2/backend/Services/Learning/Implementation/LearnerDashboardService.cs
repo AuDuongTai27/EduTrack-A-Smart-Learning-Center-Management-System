@@ -1204,6 +1204,120 @@ namespace EduTrack.API.Services.Learning.Implementation
             return unreadList.Count;
         }
 
+        public async Task<LearnerProfileDto?> GetLearnerProfileAsync(int userId)
+        {
+            var user = await _context.Users
+                .AsNoTracking()
+                .Include(u => u.ParentLinks)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            return MapUserToLearnerProfileDto(user);
+        }
+
+        public async Task<LearnerProfileDto?> UpdateLearnerProfileAsync(int userId, UpdateLearnerProfileRequestDto request)
+        {
+            var user = await _context.Users
+                .Include(u => u.ParentLinks)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.FullName))
+            {
+                user.FullName = request.FullName.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                user.Email = request.Email.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Phone))
+            {
+                user.Phone = request.Phone.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.DateOfBirth) &&
+                DateTime.TryParse(request.DateOfBirth, out var parsedDob))
+            {
+                user.DateOfBirth = parsedDob;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Gender))
+            {
+                var g = request.Gender.Trim().ToLowerInvariant();
+                if (g == "nữ" || g == "female") user.Gender = "female";
+                else if (g == "khác" || g == "other") user.Gender = "other";
+                else user.Gender = "male";
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.AvatarUrl) && request.AvatarUrl.Length <= 500)
+            {
+                user.AvatarUrl = request.AvatarUrl.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Address))
+            {
+                string trimmedAddr = request.Address.Trim();
+                user.Specialty = trimmedAddr.Length > 100 ? trimmedAddr.Substring(0, 100) : trimmedAddr;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return MapUserToLearnerProfileDto(user);
+        }
+
+        private static LearnerProfileDto MapUserToLearnerProfileDto(User user)
+        {
+            bool isParent = (user.UserCode ?? string.Empty).StartsWith("PAR", StringComparison.OrdinalIgnoreCase) || user.UserId == 9;
+            string genderVi = (user.Gender ?? "male").Trim().ToLowerInvariant() switch
+            {
+                "female" or "nữ" => "Nữ",
+                "other" or "khác" => "Khác",
+                _ => "Nam"
+            };
+
+            string defaultAddress = isParent
+                ? "Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội"
+                : "45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh";
+
+            string address = !string.IsNullOrWhiteSpace(user.Specialty)
+                ? user.Specialty!
+                : defaultAddress;
+
+            string dobStr = user.DateOfBirth.HasValue
+                ? user.DateOfBirth.Value.ToString("yyyy-MM-dd")
+                : "2010-02-14";
+
+            string enrollStr = user.EnrolledSince.HasValue
+                ? user.EnrolledSince.Value.ToString("yyyy-MM-dd")
+                : "2025-01-05";
+
+            return new LearnerProfileDto
+            {
+                UserId = user.UserId,
+                UserCode = user.UserCode,
+                FullName = user.FullName,
+                Email = user.Email ?? (isParent ? "nam.le@example.com" : "an.le@student.edutrack.vn"),
+                Phone = user.Phone ?? (isParent ? "0981 112 233" : "0956 789 012"),
+                DateOfBirth = dobStr,
+                Gender = genderVi,
+                EnrolledSince = enrollStr,
+                AvatarUrl = user.AvatarUrl ?? string.Empty,
+                Address = address,
+                IdentityCard = "001085012345",
+                Relationship = "Phụ huynh"
+            };
+        }
+
         private async Task EnsureSampleLearnerFeedbacksAsync(int userId, int? studentId)
         {
             // Chuyển các đơn mẫu nếu trước đó lỡ tạo với requestType != 'feedback' của user 6 hoặc 9 về chuẩn 'feedback'

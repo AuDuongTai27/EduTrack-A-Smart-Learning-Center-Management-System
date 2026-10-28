@@ -133,8 +133,44 @@ namespace EduTrack.API.Controllers.Learning
             });
         }
 
-        // TODO [Thành viên 3 - Student & Parent]:
-        // Viết API cập nhật hồ sơ học sinh tại đây:
-        // - PUT /api/learning/student/{studentId}/profile (Học sinh tự cập nhật hồ sơ cá nhân)
+        /// <summary>
+        /// Lấy thông tin Hồ sơ cá nhân của Học sinh
+        /// </summary>
+        [HttpGet("{studentId:int}/profile")]
+        public async Task<IActionResult> GetStudentProfile(int studentId)
+        {
+            var data = await _dashboardService.GetLearnerProfileAsync(studentId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ học sinh ID = {studentId}" });
+            }
+
+            return Ok(new { success = true, data });
+        }
+
+        /// <summary>
+        /// Học sinh tự cập nhật thông tin Hồ sơ cá nhân (Lưu xuống bảng users trong CSDL)
+        /// </summary>
+        [HttpPut("{studentId:int}/profile")]
+        public async Task<IActionResult> UpdateStudentProfile(int studentId, [FromBody] EduTrack.API.Models.DTOs.Learning.UpdateLearnerProfileRequestDto request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.FullName))
+            {
+                return BadRequest(new { success = false, message = "Họ và tên không được để trống." });
+            }
+
+            var updated = await _dashboardService.UpdateLearnerProfileAsync(studentId, request);
+            if (updated == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ học sinh ID = {studentId}" });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Đã cập nhật hồ sơ cá nhân học sinh thành công!",
+                data = updated
+            });
+        }
     }
 }
