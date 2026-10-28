@@ -53,6 +53,21 @@ namespace EduTrack.API.Controllers.Learning
             return Ok(new { success = true, data });
         }
 
+        /// <summary>
+        /// Lấy chi tiết Lớp học cho Học sinh & Phụ huynh (Thông tin giáo viên, lịch học, tài liệu ContentUnits, bài tập kèm trạng thái nộp & nhật ký điểm danh)
+        /// </summary>
+        [HttpGet("{studentId:int}/classes/{classId:int}")]
+        public async Task<IActionResult> GetStudentClassDetail(int studentId, int classId)
+        {
+            var data = await _dashboardService.GetStudentClassDetailAsync(studentId, classId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy lớp học có ID = {classId}" });
+            }
+
+            return Ok(new { success = true, data });
+        }
+
         // TODO [Thành viên 3 - Student & Parent]:
         // Viết các API tra cứu tiến độ cá nhân và cập nhật hồ sơ học sinh tại đây:
         // - GET /api/learning/student/{studentId}/progress (Lấy điểm danh & nhận xét của học sinh)

@@ -1,11 +1,27 @@
 import {
   learningApi,
   type StudentEnrolledClassApiDto,
+  type ClassSessionAttendanceItemApiDto,
+  type StudentSubmissionDetailApiDto,
 } from '../api/learningApi';
 import {
   MOCK_ENROLLED_CLASSES,
   type EnrolledClassItem,
 } from '../GUIs/components/student/classes/classesData';
+import {
+  CLASSES_DATA,
+  MATERIALS_DATA,
+  ASSIGNMENTS_DATA,
+  type ClassDetailItem,
+  type MaterialItem,
+  type AssignmentItem,
+} from '../GUIs/components/student/classDetail/classDetailData';
+import {
+  ASSIGNMENTS_DB,
+  DEFAULT_ASG,
+  type AssignmentDetailItem,
+  type SubmissionStatus,
+} from '../GUIs/components/student/assignmentDetail/assignmentDetailData';
 import {
   parentDAL,
   DEFAULT_PARENT_ID,
@@ -23,6 +39,26 @@ export interface StudentDashboardViewModel {
   enrolledClassesCount: number;
   pendingAssignmentsCount: number;
   classes: EnrolledClassItem[];
+  source: 'api' | 'mock';
+}
+
+export interface StudentClassDetailViewModel {
+  cls: ClassDetailItem;
+  materials: MaterialItem[];
+  assignments: AssignmentItem[];
+  sessions: ClassSessionAttendanceItemApiDto[];
+  attendedLessons: number;
+  totalLessons: number;
+  latestTeacherNote: string;
+  source: 'api' | 'mock';
+}
+
+export interface StudentAssignmentDetailViewModel {
+  asg: AssignmentDetailItem;
+  status: SubmissionStatus;
+  submittedFileName: string;
+  submittedMeta: string;
+  submission?: StudentSubmissionDetailApiDto | null;
   source: 'api' | 'mock';
 }
 
@@ -47,6 +83,54 @@ function mapSubjectTheme(subjectCode?: string, subjectName?: string): {
     return { subjectThemeClass: 'theme-biology', badge: subjectName || 'Sinh học' };
   }
   return { subjectThemeClass: 'theme-math', badge: subjectName || 'Toán học' };
+}
+
+function mapSubjectBannerTheme(subjectCode?: string, subjectName?: string): {
+  subjectClass: string;
+  accent: string;
+  grad: string;
+} {
+  const combined = `${subjectCode || ''} ${subjectName || ''}`.toUpperCase();
+  if (combined.includes('PHYS') || combined.includes('VAT') || combined.includes('LY') || combined.includes('LÝ')) {
+    return {
+      subjectClass: 'subject-vat-ly',
+      accent: '#7C3AED',
+      grad: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 60%, #8B5CF6 100%)',
+    };
+  }
+  if (combined.includes('CHEM') || combined.includes('HOA') || combined.includes('HÓA')) {
+    return {
+      subjectClass: 'subject-hoa-hoc',
+      accent: '#DC2626',
+      grad: 'linear-gradient(135deg, #991B1B 0%, #DC2626 60%, #EF4444 100%)',
+    };
+  }
+  if (combined.includes('ENG') || combined.includes('ANH') || combined.includes('IELTS')) {
+    return {
+      subjectClass: 'subject-tieng-anh',
+      accent: '#059669',
+      grad: 'linear-gradient(135deg, #065F46 0%, #059669 60%, #10B981 100%)',
+    };
+  }
+  if (combined.includes('LIT') || combined.includes('VAN') || combined.includes('VĂN')) {
+    return {
+      subjectClass: 'subject-ngu-van',
+      accent: '#D97706',
+      grad: 'linear-gradient(135deg, #92400E 0%, #D97706 60%, #F59E0B 100%)',
+    };
+  }
+  if (combined.includes('BIO') || combined.includes('SINH')) {
+    return {
+      subjectClass: 'subject-sinh-hoc',
+      accent: '#0891B2',
+      grad: 'linear-gradient(135deg, #164E63 0%, #0891B2 60%, #06B6D4 100%)',
+    };
+  }
+  return {
+    subjectClass: 'subject-toan',
+    accent: '#2563EB',
+    grad: 'linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)',
+  };
 }
 
 function mapApiClassToEnrolledItem(dto: StudentEnrolledClassApiDto): EnrolledClassItem {
@@ -144,6 +228,177 @@ export const learningDAL = {
     }
 
     return parentDAL.getLinkedChildrenSync(parentId);
+  },
+
+  /**
+   * Lấy chi tiết lớp học (kèm tài liệu ContentUnits, bài tập Assignments + trạng thái nộp & lịch sử buổi học)
+   */
+  async getStudentClassDetail(
+    classId: number,
+    studentId = DEFAULT_STUDENT_ID
+  ): Promise<StudentClassDetailViewModel> {
+    const fallbackCls = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
+    const fallbackMaterials = MATERIALS_DATA.filter((m) => m.classId === classId);
+    const fallbackAssignments = ASSIGNMENTS_DATA.filter((a) => a.classId === classId);
+
+    try {
+      const apiData = await learningApi.getStudentClassDetail(studentId, classId);
+      if (apiData) {
+        const theme = mapSubjectBannerTheme(apiData.subjectCode, apiData.subjectName);
+        const cls: ClassDetailItem = {
+          id: apiData.classId,
+          name: apiData.className,
+          subject: apiData.subjectName,
+          subjectClass: theme.subjectClass,
+          grad: theme.grad,
+          accent: theme.accent,
+          teacher: apiData.teacherName || fallbackCls.teacher,
+          teacherInitials: apiData.teacherInitials || fallbackCls.teacherInitials,
+          schedule: apiData.schedule || fallbackCls.schedule,
+          room: apiData.room || fallbackCls.room,
+          email: apiData.teacherEmail || fallbackCls.email,
+          phone: apiData.teacherPhone || fallbackCls.phone,
+          description: apiData.description || fallbackCls.description,
+          studentCount: apiData.studentCount || fallbackCls.studentCount,
+        };
+
+        const materials: MaterialItem[] =
+          apiData.materials && apiData.materials.length > 0
+            ? apiData.materials.map((m) => ({
+                id: m.id,
+                classId: m.classId,
+                type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
+                fileName: m.fileName,
+                description: m.description,
+                uploadDate: m.uploadDate,
+                uploadedBy: m.uploadedBy,
+                sizeMb: m.sizeMb,
+              }))
+            : fallbackMaterials;
+
+        const assignments: AssignmentItem[] =
+          apiData.assignments && apiData.assignments.length > 0
+            ? apiData.assignments.map((a) => ({
+                id: a.id,
+                classId: a.classId,
+                title: a.title,
+                dueDate: a.dueDate,
+                status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
+              }))
+            : fallbackAssignments;
+
+        return {
+          cls,
+          materials,
+          assignments,
+          sessions: apiData.sessions || [],
+          attendedLessons: apiData.attendedLessons,
+          totalLessons: apiData.totalLessons,
+          latestTeacherNote: apiData.latestTeacherNote,
+          source: 'api',
+        };
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Class Detail, dùng mock fallback:', error);
+    }
+
+    return {
+      cls: fallbackCls,
+      materials: fallbackMaterials,
+      assignments: fallbackAssignments,
+      sessions: [],
+      attendedLessons: 5,
+      totalLessons: 6,
+      latestTeacherNote: 'Điểm danh đầy đủ, tương tác tích cực trên lớp.',
+      source: 'mock',
+    };
+  },
+
+  /**
+   * Lấy chi tiết Bài tập kèm bài đã nộp, điểm Giáo viên và điểm AI chấm sơ bộ
+   */
+  async getStudentAssignmentDetail(
+    assignmentId: number,
+    studentId = DEFAULT_STUDENT_ID
+  ): Promise<StudentAssignmentDetailViewModel> {
+    const fallbackAsg = ASSIGNMENTS_DB[assignmentId] || DEFAULT_ASG;
+
+    try {
+      const apiData = await learningApi.getStudentAssignmentDetail(studentId, assignmentId);
+      if (apiData) {
+        const sub = apiData.submission;
+        const hasSubmitted = Boolean(sub);
+        const status: SubmissionStatus = hasSubmitted ? 'submitted' : 'not-submitted';
+
+        let scoreText: string | undefined;
+        if (sub?.score !== null && sub?.score !== undefined) {
+          scoreText = `${sub.score} / ${apiData.maxScore} (GV đã chấm)`;
+        } else if (sub?.aiScore !== null && sub?.aiScore !== undefined) {
+          scoreText = `${sub.aiScore} / ${apiData.maxScore} (AI chấm sơ bộ)`;
+        } else {
+          scoreText = `Chờ chấm (Tối đa ${apiData.maxScore} đ)`;
+        }
+
+        const asg: AssignmentDetailItem = {
+          id: apiData.assignmentId,
+          title: apiData.title,
+          class: apiData.className || fallbackAsg.class,
+          dueDate: apiData.dueDate,
+          defaultStatus: status,
+          classId: apiData.classId,
+          score: scoreText,
+          description: apiData.description ?? fallbackAsg.description,
+        };
+
+        return {
+          asg,
+          status,
+          submittedFileName: sub?.fileName || 'Bai_lam_hoc_sinh.pdf',
+          submittedMeta: sub ? `Đã nộp lúc ${sub.submittedAt} • Đã lưu trên hệ thống` : '',
+          submission: sub,
+          source: 'api',
+        };
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Assignment Detail, dùng mock fallback:', error);
+    }
+
+    return {
+      asg: fallbackAsg,
+      status: fallbackAsg.defaultStatus || 'not-submitted',
+      submittedFileName: 'Bai_lam_PT_bac2_LeVanAn.pdf',
+      submittedMeta: 'Đã nộp lúc 18:42, 13/09/2026 • 2.4 MB',
+      submission: null,
+      source: 'mock',
+    };
+  },
+
+  /**
+   * Nộp bài tập mới hoặc cập nhật bài nộp của học sinh lên Backend
+   */
+  async submitHomework(
+    assignmentId: number,
+    fileName: string,
+    fileSizeMb: string,
+    studentId = DEFAULT_STUDENT_ID
+  ): Promise<StudentSubmissionDetailApiDto> {
+    return await learningApi.submitHomework({
+      assignmentId,
+      studentId,
+      fileName,
+      fileUrl: `https://storage.edutrack.edu.vn/submissions/${encodeURIComponent(fileName)}`,
+      fileSizeText: `${fileSizeMb} MB`,
+    });
+  },
+
+  /**
+   * Xóa / Rút lại bài nộp trên Backend
+   */
+  async deleteSubmission(
+    assignmentId: number,
+    studentId = DEFAULT_STUDENT_ID
+  ): Promise<boolean> {
+    return await learningApi.deleteSubmission(studentId, assignmentId);
   },
 };
 

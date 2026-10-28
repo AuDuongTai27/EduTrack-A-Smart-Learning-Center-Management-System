@@ -8,5 +8,9 @@ namespace EduTrack.API.Services.Learning.Interfaces
     {
         Task<StudentDashboardDto?> GetStudentDashboardAsync(int studentId);
         Task<List<ParentChildOverviewDto>> GetParentChildrenOverviewAsync(int parentId);
+        Task<StudentClassDetailDto?> GetStudentClassDetailAsync(int studentId, int classId);
+        Task<StudentAssignmentDetailDto?> GetStudentAssignmentDetailAsync(int studentId, int assignmentId);
+        Task<StudentSubmissionDetailDto> SubmitHomeworkAsync(SubmitHomeworkRequestDto request);
+        Task<bool> DeleteSubmissionAsync(int assignmentId, int studentId);
     }
 }

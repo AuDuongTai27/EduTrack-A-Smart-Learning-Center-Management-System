@@ -58,6 +58,96 @@ export interface ParentChildOverviewApiDto {
   classes: ParentChildClassApiDto[];
 }
 
+export interface ClassMaterialItemApiDto {
+  id: number;
+  classId: number;
+  type: 'PDF' | 'DOC' | 'PPT' | 'IMG';
+  fileName: string;
+  description: string;
+  uploadDate: string;
+  uploadedBy: string;
+  sizeMb: number;
+}
+
+export interface ClassAssignmentItemApiDto {
+  id: number;
+  classId: number;
+  title: string;
+  dueDate: string;
+  status: 'Chưa nộp' | 'Đã nộp' | 'Quá hạn';
+  score?: number | null;
+  aiScore?: number | null;
+  maxScore: number;
+}
+
+export interface ClassSessionAttendanceItemApiDto {
+  sessionId: number;
+  sessionNo: number;
+  date: string;
+  topic: string;
+  status: string;
+  statusLabel: string;
+  notes: string;
+}
+
+export interface StudentClassDetailApiDto {
+  classId: number;
+  className: string;
+  subjectName: string;
+  subjectCode: string;
+  room: string;
+  schedule: string;
+  description: string;
+  studentCount: number;
+  attendedLessons: number;
+  totalLessons: number;
+  latestTeacherNote: string;
+  teacherName: string;
+  teacherInitials: string;
+  teacherEmail: string;
+  teacherPhone: string;
+  materials: ClassMaterialItemApiDto[];
+  assignments: ClassAssignmentItemApiDto[];
+  sessions: ClassSessionAttendanceItemApiDto[];
+}
+
+export interface StudentSubmissionDetailApiDto {
+  submissionId: number;
+  assignmentId: number;
+  studentId: number;
+  fileUrl: string;
+  fileName: string;
+  submittedAt: string;
+  score?: number | null;
+  feedback?: string | null;
+  aiScore?: number | null;
+  aiFeedbackJson?: string | null;
+  aiSummary?: string | null;
+  status: string;
+}
+
+export interface StudentAssignmentDetailApiDto {
+  assignmentId: number;
+  classId: number;
+  className: string;
+  title: string;
+  description?: string | null;
+  fileUrl?: string | null;
+  dueDate: string;
+  maxScore: number;
+  isAiGradingEnabled: boolean;
+  rubricJson?: string | null;
+  submission?: StudentSubmissionDetailApiDto | null;
+}
+
+export interface SubmitHomeworkPayload {
+  assignmentId: number;
+  studentId: number;
+  fileName?: string;
+  fileUrl?: string;
+  fileSizeText?: string;
+}
+
 /**
  * [Bounded Context: Learning]
  * Tầng Network API dành riêng cho Thành viên 3 (Student & Parent)
@@ -93,6 +183,75 @@ export const learningApi = {
     if (Array.isArray(json)) return json;
     if (json && Array.isArray(json.data)) return json.data;
     return [];
+  },
+
+  /**
+   * Lấy chi tiết lớp học (tài liệu ContentUnits, danh sách bài tập kèm trạng thái nộp, điểm danh các buổi học)
+   */
+  async getStudentClassDetail(studentId: number, classId: number): Promise<StudentClassDetailApiDto | null> {
+    const response = await fetch(`${API_BASE_URL}/learning/student/${studentId}/classes/${classId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải Student Class Detail`);
+    }
+    const json = await response.json();
+    return json?.data ?? json ?? null;
+  },
+
+  /**
+   * Lấy chi tiết bài tập kèm bài đã nộp, điểm Giáo viên & kết quả AI chấm
+   */
+  async getStudentAssignmentDetail(
+    studentId: number,
+    assignmentId: number
+  ): Promise<StudentAssignmentDetailApiDto | null> {
+    const response = await fetch(
+      `${API_BASE_URL}/learning/submissions/student/${studentId}/assignment/${assignmentId}`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải Student Assignment Detail`);
+    }
+    const json = await response.json();
+    return json?.data ?? json ?? null;
+  },
+
+  /**
+   * Nộp bài tập mới hoặc nộp lại bài tập (POST /api/learning/submissions)
+   */
+  async submitHomework(payload: SubmitHomeworkPayload): Promise<StudentSubmissionDetailApiDto> {
+    const response = await fetch(`${API_BASE_URL}/learning/submissions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi nộp bài tập`);
+    }
+    const json = await response.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * Xóa / Rút lại bài nộp của học sinh
+   */
+  async deleteSubmission(studentId: number, assignmentId: number): Promise<boolean> {
+    const response = await fetch(
+      `${API_BASE_URL}/learning/submissions/student/${studentId}/assignment/${assignmentId}`,
+      {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi xóa bài nộp`);
+    }
+    return true;
   },
 };
 

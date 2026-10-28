@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SubmissionStatus } from './assignmentDetailData';
+import type { StudentSubmissionDetailApiDto } from '../../../api/learningApi';
 import { AssignmentDropzone } from './components/AssignmentDropzone';
 import { SubmittedFileCard } from './components/SubmittedFileCard';
 import { OverdueAlertBox } from './components/OverdueAlertBox';
@@ -9,6 +10,7 @@ interface AssignmentSubmissionSectionProps {
   submittedFileName: string;
   submittedMeta: string;
   dueDate: string;
+  submission?: StudentSubmissionDetailApiDto | null;
   onSubmit: (file: File | null) => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -19,13 +21,14 @@ export function AssignmentSubmissionSection({
   submittedFileName,
   submittedMeta,
   dueDate,
+  submission,
   onSubmit,
   onEdit,
   onDelete,
 }: AssignmentSubmissionSectionProps) {
   return (
     <section>
-      <h2 className="asg-section-heading">Nộp bài</h2>
+      <h2 className="asg-section-heading">Nộp bài & Kết quả chấm</h2>
 
       {status === 'not-submitted' && <AssignmentDropzone onSubmit={onSubmit} />}
 
@@ -33,6 +36,7 @@ export function AssignmentSubmissionSection({
         <SubmittedFileCard
           fileName={submittedFileName}
           meta={submittedMeta}
+          submission={submission}
           onEdit={onEdit}
           onDelete={onDelete}
         />
@@ -41,6 +45,6 @@ export function AssignmentSubmissionSection({
       {status === 'overdue' && <OverdueAlertBox dueDate={dueDate} />}
     </section>
   );
-};
+}
 
 export default AssignmentSubmissionSection;
