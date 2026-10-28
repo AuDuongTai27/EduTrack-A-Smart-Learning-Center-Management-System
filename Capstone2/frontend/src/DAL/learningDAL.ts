@@ -4,7 +4,19 @@ import {
   type ClassSessionAttendanceItemApiDto,
   type StudentSubmissionDetailApiDto,
   type StudentTuitionOverviewApiDto,
+  type LearnerFeedbackItemApiDto,
+  type CreateLearnerFeedbackPayload,
+  type UpdateLearnerFeedbackPayload,
+  type LearnerNotificationItemApiDto,
 } from '../api/learningApi';
+import {
+  INITIAL_FEEDBACK_REQUESTS,
+  type FeedbackApprovalRequest,
+} from '../GUIs/components/student/feedback/feedbackData';
+import {
+  INITIAL_NOTIFICATIONS,
+  type NotificationItem,
+} from '../GUIs/components/student/notifications/notificationsData';
 import {
   MOCK_ENROLLED_CLASSES,
   type EnrolledClassItem,
@@ -248,6 +260,100 @@ function mapApiClassToEnrolledItem(dto: StudentEnrolledClassApiDto): EnrolledCla
     teacherInitials: dto.teacherInitials || 'GV',
     scheduleText: dto.scheduleText || 'Đang cập nhật lịch',
     room: dto.room || 'Phòng học chính',
+  };
+}
+
+function formatDateTimeVi(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+    }
+  } catch {
+    // ignore
+  }
+  return dateStr;
+}
+
+export function mapApiFeedbackToViewModel(
+  dto: LearnerFeedbackItemApiDto,
+  fallbackRole: 'parent' | 'student' = 'student',
+  fallbackName = 'Lê Văn An'
+): FeedbackApprovalRequest {
+  const statusLower = (dto.status || 'pending').toLowerCase();
+  const canEdit =
+    dto.canEdit !== undefined
+      ? dto.canEdit
+      : statusLower === 'pending' && (dto.reviewedBy === null || dto.reviewedBy === undefined);
+
+  let statusLabel = dto.statusLabel || '';
+  if (!statusLabel) {
+    if (statusLower === 'approved') statusLabel = 'Đã giải quyết';
+    else if (statusLower === 'rejected') statusLabel = 'Đã từ chối';
+    else if (dto.reviewedBy) statusLabel = 'Chờ duyệt';
+    else statusLabel = 'Chưa xem xét giải quyết';
+  }
+
+  const role: 'parent' | 'student' =
+    dto.requesterRole === 'parent'
+      ? 'parent'
+      : dto.requesterRole === 'student'
+      ? 'student'
+      : fallbackRole;
+
+  return {
+    id: dto.requestId,
+    requestCode: dto.requestCode,
+    requestType: 'feedback',
+    title: dto.title || `Phản hồi #${dto.requestCode}`,
+    description: dto.description || '',
+    senderName: dto.requesterName || fallbackName,
+    senderRole: role,
+    className: dto.className || undefined,
+    createdAt: formatDateTimeVi(dto.createdAt) || 'Vừa xong',
+    status: (statusLower === 'approved' || statusLower === 'rejected' ? statusLower : 'pending') as
+      | 'pending'
+      | 'approved'
+      | 'rejected',
+    statusLabel,
+    canEdit,
+    reviewedBy: dto.reviewerName || (dto.reviewedBy ? 'Admin Staff (Giáo vụ)' : undefined),
+    reviewedAt: formatDateTimeVi(dto.reviewedAt) || undefined,
+    reviewNotes: dto.reviewNotes || undefined,
+  };
+}
+
+export function mapApiLearnerNotifToStudentItem(dto: LearnerNotificationItemApiDto): NotificationItem {
+  let category: NotificationItem['category'] = 'system';
+  const typeLower = (dto.type || '').toLowerCase();
+  if (
+    typeLower.includes('class') ||
+    typeLower.includes('homework') ||
+    typeLower.includes('assignment') ||
+    typeLower.includes('schedule')
+  ) {
+    category = 'class';
+  } else if (typeLower.includes('tuition') || typeLower.includes('payment') || typeLower.includes('fee')) {
+    category = 'payment';
+  } else if (typeLower.includes('message')) {
+    category = 'message';
+  } else if (typeLower.includes('achievement')) {
+    category = 'achievement';
+  }
+
+  return {
+    id: dto.notificationId,
+    category,
+    title: dto.title,
+    summary: dto.content,
+    timestamp: formatDateTimeVi(dto.createdAt) || 'Vừa xong',
+    unread: !dto.isRead,
   };
 }
 
@@ -648,6 +754,106 @@ export const learningDAL = {
     studentId = DEFAULT_STUDENT_ID
   ): Promise<boolean> {
     return await learningApi.deleteSubmission(studentId, assignmentId);
+  },
+
+  /**
+   * Lấy danh sách Phản hồi & Đơn xin phép của Học sinh hoặc Phụ huynh
+   */
+  async getLearnerFeedbacks(
+    userId: number,
+    userRole: 'parent' | 'student',
+    userName: string,
+    studentId?: number
+  ): Promise<FeedbackApprovalRequest[]> {
+    try {
+      const apiList = await learningApi.getLearnerFeedbacks(userId, studentId);
+      if (apiList && apiList.length > 0) {
+        return apiList.map((item) => mapApiFeedbackToViewModel(item, userRole, userName));
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Learner Feedbacks, dùng mock fallback:', error);
+    }
+
+    return INITIAL_FEEDBACK_REQUESTS.map((r) => ({
+      ...r,
+      senderName: userName,
+      senderRole: userRole,
+    }));
+  },
+
+  /**
+   * Gửi Phản hồi mới lên Admin Staff (mặc định request_type = 'feedback')
+   */
+  async createLearnerFeedback(
+    payload: CreateLearnerFeedbackPayload,
+    userRole: 'parent' | 'student',
+    userName: string
+  ): Promise<FeedbackApprovalRequest> {
+    const createdDto = await learningApi.createLearnerFeedback(payload);
+    return mapApiFeedbackToViewModel(createdDto, userRole, userName);
+  },
+
+  /**
+   * Chỉnh sửa Phản hồi khi đơn còn ở trạng thái 'Chưa xem xét giải quyết'
+   */
+  async updateLearnerFeedback(
+    requestId: number,
+    payload: UpdateLearnerFeedbackPayload,
+    userRole: 'parent' | 'student',
+    userName: string
+  ): Promise<FeedbackApprovalRequest> {
+    const updatedDto = await learningApi.updateLearnerFeedback(requestId, payload);
+    return mapApiFeedbackToViewModel(updatedDto, userRole, userName);
+  },
+
+  /**
+   * Lấy danh sách Thông báo của Học sinh từ Backend
+   */
+  async getStudentNotifications(studentId = DEFAULT_STUDENT_ID): Promise<NotificationItem[]> {
+    try {
+      const apiList = await learningApi.getStudentNotifications(studentId);
+      if (apiList && apiList.length > 0) {
+        return apiList.map(mapApiLearnerNotifToStudentItem);
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Student Notifications, dùng mock fallback:', error);
+    }
+
+    return INITIAL_NOTIFICATIONS;
+  },
+
+  /**
+   * Lấy danh sách Thông báo của Phụ huynh từ Backend (lọc theo con đang chọn)
+   */
+  async getParentNotifications(
+    parentId = DEFAULT_PARENT_ID,
+    studentId?: number
+  ): Promise<LearnerNotificationItemApiDto[]> {
+    return await learningApi.getParentNotifications(parentId, studentId);
+  },
+
+  /**
+   * Đánh dấu 1 thông báo đã đọc trên CSDL
+   */
+  async markNotificationRead(notificationId: number): Promise<boolean> {
+    try {
+      return await learningApi.markNotificationRead(notificationId);
+    } catch (error) {
+      console.warn('[learningDAL] Không thể lưu trạng thái đã đọc lên Backend:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Đánh dấu tất cả thông báo đã đọc trên CSDL
+   */
+  async markAllNotificationsRead(userId: number, studentId?: number): Promise<number> {
+    try {
+      return await learningApi.markAllNotificationsRead(userId, studentId);
+    } catch (error) {
+      console.warn('[learningDAL] Không thể lưu trạng thái đã đọc tất cả lên Backend:', error);
+      return 0;
+    }
   },
 };
 

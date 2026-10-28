@@ -92,5 +92,15 @@ namespace EduTrack.API.Controllers.Learning
                 data = updated
             });
         }
+
+        /// <summary>
+        /// Lấy danh sách Thông báo dành cho Phụ huynh (Bao gồm học phí, điểm danh, tiến độ của con và thông báo trung tâm)
+        /// </summary>
+        [HttpGet("{parentId:int}/notifications")]
+        public async Task<IActionResult> GetParentNotifications(int parentId, [FromQuery] int? studentId = null)
+        {
+            var data = await _dashboardService.GetParentNotificationsAsync(parentId, studentId);
+            return Ok(new { success = true, data });
+        }
     }
 }

@@ -241,6 +241,58 @@ export interface PayStudentTuitionPayload {
   invoiceIds?: number[];
 }
 
+export interface LearnerFeedbackItemApiDto {
+  requestId: number;
+  requestCode: string;
+  requestType: string;
+  title: string;
+  description: string;
+  studentId?: number | null;
+  studentName?: string | null;
+  classId?: number | null;
+  className?: string | null;
+  requestedBy: number;
+  requesterName: string;
+  requesterRole: 'student' | 'parent' | string;
+  reviewedBy?: number | null;
+  reviewerName?: string | null;
+  priority: string;
+  status: 'pending' | 'approved' | 'rejected' | string;
+  statusLabel?: string;
+  canEdit?: boolean;
+  createdAt: string;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
+}
+
+export interface CreateLearnerFeedbackPayload {
+  userId: number;
+  studentId?: number | null;
+  classId?: number | null;
+  title: string;
+  description: string;
+  priority?: string;
+}
+
+export interface UpdateLearnerFeedbackPayload {
+  userId: number;
+  title: string;
+  description: string;
+}
+
+export interface LearnerNotificationItemApiDto {
+  notificationId: number;
+  userId?: number | null;
+  userName?: string | null;
+  classId?: number | null;
+  className?: string | null;
+  title: string;
+  content: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 /**
  * [Bounded Context: Learning]
  * Tầng Network API dành riêng cho Thành viên 3 (Student & Parent)
@@ -423,6 +475,124 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} khi xóa bài nộp`);
     }
     return true;
+  },
+
+  /**
+   * Lấy lịch sử Phản hồi & Đơn xin phép của Học sinh hoặc Phụ huynh (GET /api/learning/feedback/user/{userId})
+   */
+  async getLearnerFeedbacks(userId: number, studentId?: number): Promise<LearnerFeedbackItemApiDto[]> {
+    const query = studentId ? `?studentId=${studentId}` : '';
+    const response = await fetch(`${API_BASE_URL}/learning/feedback/user/${userId}${query}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải danh sách phản hồi`);
+    }
+    const json = await response.json();
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
+  },
+
+  /**
+   * Gửi Phản hồi mới lên Admin Staff (POST /api/learning/feedback - mặc định request_type = 'feedback')
+   */
+  async createLearnerFeedback(payload: CreateLearnerFeedbackPayload): Promise<LearnerFeedbackItemApiDto> {
+    const response = await fetch(`${API_BASE_URL}/learning/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi gửi phản hồi mới`);
+    }
+    const json = await response.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * Chỉnh sửa Phản hồi khi đơn còn ở trạng thái 'Chưa xem xét giải quyết' (PUT /api/learning/feedback/{requestId})
+   */
+  async updateLearnerFeedback(
+    requestId: number,
+    payload: UpdateLearnerFeedbackPayload
+  ): Promise<LearnerFeedbackItemApiDto> {
+    const response = await fetch(`${API_BASE_URL}/learning/feedback/${requestId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi cập nhật phản hồi`);
+    }
+    const json = await response.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * Lấy danh sách Thông báo của Học sinh (GET /api/learning/student/{studentId}/notifications)
+   */
+  async getStudentNotifications(studentId: number): Promise<LearnerNotificationItemApiDto[]> {
+    const response = await fetch(`${API_BASE_URL}/learning/student/${studentId}/notifications`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải thông báo học sinh`);
+    }
+    const json = await response.json();
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
+  },
+
+  /**
+   * Lấy danh sách Thông báo của Phụ huynh (GET /api/learning/parent/{parentId}/notifications)
+   */
+  async getParentNotifications(parentId: number, studentId?: number): Promise<LearnerNotificationItemApiDto[]> {
+    const query = studentId ? `?studentId=${studentId}` : '';
+    const response = await fetch(`${API_BASE_URL}/learning/parent/${parentId}/notifications${query}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải thông báo phụ huynh`);
+    }
+    const json = await response.json();
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
+  },
+
+  /**
+   * Đánh dấu một thông báo là đã đọc (PUT /api/learning/student/notifications/{notificationId}/read)
+   */
+  async markNotificationRead(notificationId: number): Promise<boolean> {
+    const response = await fetch(`${API_BASE_URL}/learning/student/notifications/${notificationId}/read`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi đánh dấu đã đọc thông báo`);
+    }
+    return true;
+  },
+
+  /**
+   * Đánh dấu tất cả thông báo là đã đọc (PUT /api/learning/student/{userId}/notifications/read-all)
+   */
+  async markAllNotificationsRead(userId: number, studentId?: number): Promise<number> {
+    const query = studentId ? `?studentId=${studentId}` : '';
+    const response = await fetch(`${API_BASE_URL}/learning/student/${userId}/notifications/read-all${query}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi đánh dấu đã đọc tất cả thông báo`);
+    }
+    const json = await response.json();
+    return json?.updatedCount ?? 0;
   },
 };
 

@@ -93,6 +93,46 @@ namespace EduTrack.API.Controllers.Learning
             return Ok(new { success = true, data });
         }
 
+        /// <summary>
+        /// Lấy danh sách Thông báo của Học sinh (Thông báo cá nhân, thông báo các lớp đang học & thông báo chung toàn hệ thống)
+        /// </summary>
+        [HttpGet("{studentId:int}/notifications")]
+        public async Task<IActionResult> GetStudentNotifications(int studentId)
+        {
+            var data = await _dashboardService.GetStudentNotificationsAsync(studentId);
+            return Ok(new { success = true, data });
+        }
+
+        /// <summary>
+        /// Đánh dấu một thông báo là đã đọc (Lưu trạng thái is_read = true vào CSDL)
+        /// </summary>
+        [HttpPut("notifications/{notificationId:int}/read")]
+        public async Task<IActionResult> MarkNotificationAsRead(int notificationId)
+        {
+            var ok = await _dashboardService.MarkNotificationAsReadAsync(notificationId);
+            if (!ok)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy thông báo #{notificationId}" });
+            }
+
+            return Ok(new { success = true, message = "Đã đánh dấu thông báo là đã đọc." });
+        }
+
+        /// <summary>
+        /// Đánh dấu tất cả thông báo của Học sinh / Phụ huynh là đã đọc
+        /// </summary>
+        [HttpPut("{userId:int}/notifications/read-all")]
+        public async Task<IActionResult> MarkAllNotificationsAsRead(int userId, [FromQuery] int? studentId = null)
+        {
+            var updatedCount = await _dashboardService.MarkAllNotificationsAsReadAsync(userId, studentId);
+            return Ok(new
+            {
+                success = true,
+                message = $"Đã đánh dấu đã đọc {updatedCount} thông báo.",
+                updatedCount
+            });
+        }
+
         // TODO [Thành viên 3 - Student & Parent]:
         // Viết API cập nhật hồ sơ học sinh tại đây:
         // - PUT /api/learning/student/{studentId}/profile (Học sinh tự cập nhật hồ sơ cá nhân)

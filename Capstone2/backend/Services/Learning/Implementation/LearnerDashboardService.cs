@@ -947,6 +947,529 @@ namespace EduTrack.API.Services.Learning.Implementation
             return await GetStudentTuitionOverviewAsync(studentId);
         }
 
+        public async Task<List<LearnerFeedbackItemDto>> GetLearnerFeedbacksAsync(int userId, int? studentId = null)
+        {
+            await EnsureSampleLearnerFeedbacksAsync(userId, studentId);
+
+            var query = _context.ApprovalRequests
+                .AsNoTracking()
+                .Include(r => r.Requester)
+                .Include(r => r.Reviewer)
+                .Include(r => r.Student)
+                .Include(r => r.Class)
+                .Where(r => r.RequestedBy == userId && r.RequestType == "feedback");
+
+            var list = await query
+                .OrderByDescending(r => r.CreatedAt)
+                .ThenByDescending(r => r.RequestId)
+                .ToListAsync();
+
+            return list.Select(r => MapApprovalRequestToFeedbackDto(r, userId)).ToList();
+        }
+
+        public async Task<LearnerFeedbackItemDto> CreateLearnerFeedbackAsync(CreateLearnerFeedbackRequestDto request)
+        {
+            int userId = request.UserId > 0 ? request.UserId : 6;
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            bool isParent = (user?.UserCode ?? string.Empty).StartsWith("PAR", StringComparison.OrdinalIgnoreCase) || userId == 9;
+
+            int? targetStudentId = request.StudentId;
+            if (!targetStudentId.HasValue || targetStudentId.Value <= 0)
+            {
+                if (!isParent && user != null)
+                {
+                    targetStudentId = user.UserId;
+                }
+                else
+                {
+                    var linkedChild = await _context.ParentStudents
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(ps => ps.ParentId == userId);
+                    targetStudentId = linkedChild?.StudentId ?? 6;
+                }
+            }
+
+            int totalCount = await _context.ApprovalRequests.CountAsync();
+            string code = $"FB{(totalCount + 1):D4}";
+            if (await _context.ApprovalRequests.AnyAsync(r => r.RequestCode == code))
+            {
+                code = $"FB{DateTime.UtcNow:MMddHHmmss}";
+            }
+
+            // Quy ước nhóm: Mặc định gửi từ Student, Parent, Teacher, TA về Admin Staff đều là 'feedback'
+            // Ban đầu ReviewedBy = null và Status = 'pending' => "Chưa xem xét giải quyết" (Cho phép Edit)
+            var entity = new ApprovalRequest
+            {
+                RequestCode = code,
+                RequestType = "feedback",
+                Title = request.Title.Trim(),
+                Description = request.Description.Trim(),
+                Reason = request.Description.Trim(),
+                StudentId = targetStudentId,
+                ClassId = request.ClassId,
+                RequestedBy = userId,
+                ReviewedBy = null,
+                Priority = string.IsNullOrWhiteSpace(request.Priority) ? "medium" : request.Priority.Trim().ToLowerInvariant(),
+                Status = "pending",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ApprovalRequests.Add(entity);
+            await _context.SaveChangesAsync();
+
+            var created = await _context.ApprovalRequests
+                .AsNoTracking()
+                .Include(r => r.Requester)
+                .Include(r => r.Reviewer)
+                .Include(r => r.Student)
+                .Include(r => r.Class)
+                .FirstOrDefaultAsync(r => r.RequestId == entity.RequestId);
+
+            return created != null
+                ? MapApprovalRequestToFeedbackDto(created, userId)
+                : new LearnerFeedbackItemDto
+                {
+                    RequestId = entity.RequestId,
+                    RequestCode = entity.RequestCode,
+                    RequestType = "feedback",
+                    Title = entity.Title ?? string.Empty,
+                    Description = entity.Description ?? string.Empty,
+                    StudentId = entity.StudentId,
+                    RequestedBy = entity.RequestedBy,
+                    RequesterName = user?.FullName ?? "Người dùng",
+                    RequesterRole = isParent ? "parent" : "student",
+                    Priority = entity.Priority,
+                    Status = "pending",
+                    StatusLabel = "Chưa xem xét giải quyết",
+                    CanEdit = true,
+                    CreatedAt = entity.CreatedAt
+                };
+        }
+
+        public async Task<LearnerFeedbackItemDto?> UpdateLearnerFeedbackAsync(int requestId, UpdateLearnerFeedbackRequestDto request)
+        {
+            var entity = await _context.ApprovalRequests
+                .Include(r => r.Requester)
+                .Include(r => r.Reviewer)
+                .Include(r => r.Student)
+                .Include(r => r.Class)
+                .FirstOrDefaultAsync(r => r.RequestId == requestId);
+
+            if (entity == null)
+            {
+                return null;
+            }
+
+            // Chỉ cho phép chỉnh sửa khi đơn đang ở trạng thái "Chưa xem xét giải quyết" (Status == 'pending' && ReviewedBy == null)
+            bool isEditable = string.Equals(entity.Status, "pending", StringComparison.OrdinalIgnoreCase) && entity.ReviewedBy == null;
+            if (!isEditable)
+            {
+                throw new InvalidOperationException("Đơn phản hồi này đã được Giáo vụ (Admin Staff) tiếp nhận xem xét nên không thể chỉnh sửa nữa.");
+            }
+
+            entity.Title = request.Title.Trim();
+            entity.Description = request.Description.Trim();
+            entity.Reason = request.Description.Trim();
+
+            await _context.SaveChangesAsync();
+
+            return MapApprovalRequestToFeedbackDto(entity, request.UserId);
+        }
+
+        public async Task<List<LearnerNotificationItemDto>> GetStudentNotificationsAsync(int studentId)
+        {
+            await EnsureLearnerNotificationsAsync(studentId, studentId);
+
+            var enrolledClassIds = await _context.StudentClasses
+                .AsNoTracking()
+                .Where(sc => sc.StudentId == studentId && sc.Status != "dropped")
+                .Select(sc => sc.ClassId)
+                .ToListAsync();
+
+            var notifications = await _context.Notifications
+                .AsNoTracking()
+                .Include(n => n.Class)
+                .Include(n => n.User)
+                .Where(n =>
+                    n.UserId == studentId ||
+                    (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
+                    (n.UserId == null && n.ClassId == null))
+                .OrderByDescending(n => n.CreatedAt)
+                .ThenByDescending(n => n.NotificationId)
+                .ToListAsync();
+
+            return notifications.Select(MapNotificationToLearnerDto).ToList();
+        }
+
+        public async Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
+        {
+            List<int> childIds;
+            if (studentId.HasValue && studentId.Value > 0)
+            {
+                childIds = new List<int> { studentId.Value };
+            }
+            else
+            {
+                childIds = await _context.ParentStudents
+                    .AsNoTracking()
+                    .Where(ps => ps.ParentId == parentId)
+                    .Select(ps => ps.StudentId)
+                    .ToListAsync();
+
+                if (childIds.Count == 0)
+                {
+                    childIds.Add(6);
+                }
+            }
+
+            int primaryStudentId = childIds.First();
+            await EnsureLearnerNotificationsAsync(parentId, primaryStudentId);
+
+            var enrolledClassIds = await _context.StudentClasses
+                .AsNoTracking()
+                .Where(sc => childIds.Contains(sc.StudentId) && sc.Status != "dropped")
+                .Select(sc => sc.ClassId)
+                .Distinct()
+                .ToListAsync();
+
+            var notifications = await _context.Notifications
+                .AsNoTracking()
+                .Include(n => n.Class)
+                .Include(n => n.User)
+                .Where(n =>
+                    n.UserId == parentId ||
+                    (n.UserId.HasValue && childIds.Contains(n.UserId.Value)) ||
+                    (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
+                    (n.UserId == null && n.ClassId == null))
+                .OrderByDescending(n => n.CreatedAt)
+                .ThenByDescending(n => n.NotificationId)
+                .ToListAsync();
+
+            return notifications.Select(MapNotificationToLearnerDto).ToList();
+        }
+
+        public async Task<bool> MarkNotificationAsReadAsync(int notificationId)
+        {
+            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == notificationId);
+            if (notif == null)
+            {
+                return false;
+            }
+
+            if (!notif.IsRead)
+            {
+                notif.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+
+            return true;
+        }
+
+        public async Task<int> MarkAllNotificationsAsReadAsync(int userId, int? studentId = null)
+        {
+            List<int> targetUserIds = new List<int> { userId };
+            if (studentId.HasValue && studentId.Value > 0 && !targetUserIds.Contains(studentId.Value))
+            {
+                targetUserIds.Add(studentId.Value);
+            }
+
+            var enrolledClassIds = await _context.StudentClasses
+                .AsNoTracking()
+                .Where(sc => targetUserIds.Contains(sc.StudentId) && sc.Status != "dropped")
+                .Select(sc => sc.ClassId)
+                .Distinct()
+                .ToListAsync();
+
+            var unreadList = await _context.Notifications
+                .Where(n =>
+                    !n.IsRead &&
+                    ((n.UserId.HasValue && targetUserIds.Contains(n.UserId.Value)) ||
+                     (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
+                     (n.UserId == null && n.ClassId == null)))
+                .ToListAsync();
+
+            foreach (var n in unreadList)
+            {
+                n.IsRead = true;
+            }
+
+            if (unreadList.Count > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return unreadList.Count;
+        }
+
+        private async Task EnsureSampleLearnerFeedbacksAsync(int userId, int? studentId)
+        {
+            // Chuyển các đơn mẫu nếu trước đó lỡ tạo với requestType != 'feedback' của user 6 hoặc 9 về chuẩn 'feedback'
+            var nonStandard = await _context.ApprovalRequests
+                .Where(r => (r.RequestedBy == 6 || r.RequestedBy == 9) && r.RequestType != "feedback")
+                .ToListAsync();
+            if (nonStandard.Count > 0)
+            {
+                foreach (var item in nonStandard)
+                {
+                    item.RequestType = "feedback";
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            // Đảm bảo Học sinh #6 có cả đơn "Chưa xem xét giải quyết" (ReviewedBy == null, cho phép Edit)
+            // và đơn "Chờ duyệt / Đang xử lý" (ReviewedBy == 2, đã khóa Edit)
+            var pendingStudentReqs = await _context.ApprovalRequests
+                .Where(r => r.RequestedBy == 6 && r.RequestType == "feedback" && r.Status == "pending")
+                .ToListAsync();
+
+            if (!pendingStudentReqs.Any(r => r.ReviewedBy == null))
+            {
+                int count = await _context.ApprovalRequests.CountAsync();
+                string code = $"FB{(count + 1):D4}";
+                if (await _context.ApprovalRequests.AnyAsync(r => r.RequestCode == code))
+                {
+                    code = $"FB{DateTime.UtcNow:HHmmss}S1";
+                }
+                _context.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    RequestCode = code,
+                    RequestType = "feedback",
+                    Title = "Đề xuất bổ sung bài tập ôn thi giữa kỳ môn Toán 9",
+                    Description = "Thầy/Cô cho em xin thêm bộ đề trắc nghiệm chương Hệ thức lượng trong tam giác vuông để luyện tập trước kỳ thi giữa kỳ ạ.",
+                    Reason = "Thầy/Cô cho em xin thêm bộ đề trắc nghiệm chương Hệ thức lượng trong tam giác vuông để luyện tập trước kỳ thi giữa kỳ ạ.",
+                    StudentId = 6,
+                    ClassId = 1,
+                    RequestedBy = 6,
+                    ReviewedBy = null,
+                    Priority = "medium",
+                    Status = "pending",
+                    CreatedAt = new DateTime(2026, 10, 15, 14, 20, 0, DateTimeKind.Utc)
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            if (!pendingStudentReqs.Any(r => r.ReviewedBy != null))
+            {
+                int count = await _context.ApprovalRequests.CountAsync();
+                string code = $"FB{(count + 1):D4}";
+                if (await _context.ApprovalRequests.AnyAsync(r => r.RequestCode == code))
+                {
+                    code = $"FB{DateTime.UtcNow:HHmmss}S2";
+                }
+                _context.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    RequestCode = code,
+                    RequestType = "feedback",
+                    Title = "Góp ý tài liệu nghe Tiếng Anh và loa phòng học P.202",
+                    Description = "Loa tại phòng P.202 hơi nhỏ ở dãy bàn cuối, mong trung tâm kiểm tra giúp lớp em trước buổi học tuần tới ạ.",
+                    Reason = "Loa tại phòng P.202 hơi nhỏ ở dãy bàn cuối, mong trung tâm kiểm tra giúp lớp em trước buổi học tuần tới ạ.",
+                    StudentId = 6,
+                    ClassId = 2,
+                    RequestedBy = 6,
+                    ReviewedBy = 2, // Giáo vụ đã ấn xem / tiếp nhận -> Chờ duyệt (Khóa Edit)
+                    Priority = "medium",
+                    Status = "pending",
+                    CreatedAt = new DateTime(2026, 10, 12, 09, 15, 0, DateTimeKind.Utc)
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            // Đảm bảo Phụ huynh #9 cũng có đơn "Chưa xem xét giải quyết" (ReviewedBy == null, cho phép Edit)
+            // và đơn "Chờ duyệt / Đang xử lý" (ReviewedBy == 2, đã khóa Edit)
+            var pendingParentReqs = await _context.ApprovalRequests
+                .Where(r => r.RequestedBy == 9 && r.RequestType == "feedback" && r.Status == "pending")
+                .ToListAsync();
+
+            if (!pendingParentReqs.Any(r => r.ReviewedBy == null))
+            {
+                int count = await _context.ApprovalRequests.CountAsync();
+                string code = $"FB{(count + 1):D4}";
+                if (await _context.ApprovalRequests.AnyAsync(r => r.RequestCode == code))
+                {
+                    code = $"FB{DateTime.UtcNow:HHmmss}P1";
+                }
+                _context.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    RequestCode = code,
+                    RequestType = "feedback",
+                    Title = "Góp ý gửi báo cáo học tập cuối tuần qua email phụ huynh",
+                    Description = "Gia đình mong trung tâm gửi thêm bản tóm tắt điểm danh và nhận xét cuối tuần của cháu Lê Văn An (STU001) qua email để phụ huynh tiện theo dõi.",
+                    Reason = "Gia đình mong trung tâm gửi thêm bản tóm tắt điểm danh và nhận xét cuối tuần của cháu Lê Văn An (STU001) qua email.",
+                    StudentId = studentId ?? 6,
+                    ClassId = 1,
+                    RequestedBy = 9,
+                    ReviewedBy = null,
+                    Priority = "medium",
+                    Status = "pending",
+                    CreatedAt = new DateTime(2026, 10, 15, 10, 30, 0, DateTimeKind.Utc)
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            if (!pendingParentReqs.Any(r => r.ReviewedBy != null))
+            {
+                int count = await _context.ApprovalRequests.CountAsync();
+                string code = $"FB{(count + 1):D4}";
+                if (await _context.ApprovalRequests.AnyAsync(r => r.RequestCode == code))
+                {
+                    code = $"FB{DateTime.UtcNow:HHmmss}P2";
+                }
+                _context.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    RequestCode = code,
+                    RequestType = "feedback",
+                    Title = "Xin hỗ trợ gửi tài liệu tự ôn buổi Thứ 5 môn Vật Lý cho cháu Lê Văn An",
+                    Description = "Tuần này gia đình có việc đột xuất nên nhờ Giáo vụ nhắn giáo viên bộ môn gửi phiếu bài tập buổi Thứ 5 cho cháu Lê Văn An tự ôn ở nhà.",
+                    Reason = "Nhờ Giáo vụ nhắn giáo viên bộ môn gửi phiếu bài tập buổi Thứ 5 cho cháu Lê Văn An tự ôn ở nhà.",
+                    StudentId = studentId ?? 6,
+                    ClassId = 2,
+                    RequestedBy = 9,
+                    ReviewedBy = 2, // Giáo vụ đã ấn xem / tiếp nhận -> Chờ duyệt (Khóa Edit)
+                    Priority = "medium",
+                    Status = "pending",
+                    CreatedAt = new DateTime(2026, 10, 13, 16, 00, 0, DateTimeKind.Utc)
+                });
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private async Task EnsureLearnerNotificationsAsync(int userId, int? studentId)
+        {
+            int targetStudent = studentId ?? 6;
+            bool hasRichVietnameseNotifs = await _context.Notifications
+                .AnyAsync(n => n.UserId == targetStudent && n.Title.Contains("Bài tập"));
+
+            if (hasRichVietnameseNotifs)
+            {
+                return;
+            }
+
+            var seedNotifs = new List<Notification>
+            {
+                new Notification
+                {
+                    UserId = targetStudent,
+                    ClassId = 1,
+                    Title = "Bài tập mới: Phương trình bậc hai & Định lý Vi-ét",
+                    Content = "Giáo viên vừa giao bài tập về nhà mới cho lớp Toán Nâng Cao 9 (Class 9A - Advanced Mathematics). Vui lòng hoàn thành trước hạn nộp.",
+                    Type = "homework",
+                    IsRead = false,
+                    CreatedAt = new DateTime(2026, 10, 15, 8, 30, 0, DateTimeKind.Utc)
+                },
+                new Notification
+                {
+                    UserId = targetStudent,
+                    ClassId = 2,
+                    Title = "Tài liệu học tập mới môn Vật Lý 9",
+                    Content = "Giáo viên đã đăng tải chuyên đề Định luật Ôm và Công suất điện lên mục Tài liệu lớp học (Class 9B - Fundamental Physics).",
+                    Type = "class",
+                    IsRead = false,
+                    CreatedAt = new DateTime(2026, 10, 14, 15, 15, 0, DateTimeKind.Utc)
+                },
+                new Notification
+                {
+                    UserId = 9,
+                    ClassId = 1,
+                    Title = "Thông báo học phí kỳ Tháng 10/2026",
+                    Content = "Hóa đơn học phí kỳ Tháng 10/2026 của học sinh Lê Văn An đã được phát hành. Quý phụ huynh có thể kiểm tra và thanh toán trực tuyến tại mục Học phí.",
+                    Type = "tuition",
+                    IsRead = false,
+                    CreatedAt = new DateTime(2026, 10, 14, 9, 0, 0, DateTimeKind.Utc)
+                },
+                new Notification
+                {
+                    UserId = 9,
+                    ClassId = 1,
+                    Title = "Cập nhật nhận xét định kỳ từ Giáo viên",
+                    Content = "Giáo viên phụ trách lớp Toán Nâng Cao 9 đã cập nhật phiếu đánh giá tiến độ và chuyên cần tháng 10 cho học sinh Lê Văn An.",
+                    Type = "class",
+                    IsRead = false,
+                    CreatedAt = new DateTime(2026, 10, 13, 17, 45, 0, DateTimeKind.Utc)
+                }
+            };
+
+            _context.Notifications.AddRange(seedNotifs);
+            await _context.SaveChangesAsync();
+        }
+
+        private static LearnerFeedbackItemDto MapApprovalRequestToFeedbackDto(ApprovalRequest r, int currentUserId)
+        {
+            string requesterRole = "student";
+            var userCode = r.Requester?.UserCode ?? string.Empty;
+            if (userCode.StartsWith("PAR", StringComparison.OrdinalIgnoreCase) || r.RequestedBy == 9)
+            {
+                requesterRole = "parent";
+            }
+
+            string statusLower = (r.Status ?? "pending").Trim().ToLowerInvariant();
+            bool canEdit = statusLower == "pending" && r.ReviewedBy == null;
+
+            string statusLabel;
+            if (statusLower == "approved")
+            {
+                statusLabel = "Đã giải quyết";
+            }
+            else if (statusLower == "rejected")
+            {
+                statusLabel = "Đã từ chối";
+            }
+            else if (r.ReviewedBy != null)
+            {
+                // Admin Staff đã ấn xem / tiếp nhận -> Chờ duyệt / Đang xử lý (Khóa Edit)
+                statusLabel = "Chờ duyệt";
+            }
+            else
+            {
+                // Mới gửi, Admin Staff chưa xem -> Cho phép Edit
+                statusLabel = "Chưa xem xét giải quyết";
+            }
+
+            return new LearnerFeedbackItemDto
+            {
+                RequestId = r.RequestId,
+                RequestCode = r.RequestCode,
+                RequestType = "feedback",
+                Title = !string.IsNullOrWhiteSpace(r.Title) ? r.Title : $"Phản hồi #{r.RequestCode}",
+                Description = !string.IsNullOrWhiteSpace(r.Description) ? r.Description : (r.Reason ?? string.Empty),
+                StudentId = r.StudentId,
+                StudentName = r.Student?.FullName,
+                ClassId = r.ClassId,
+                ClassName = r.Class?.ClassName,
+                RequestedBy = r.RequestedBy,
+                RequesterName = r.Requester?.FullName ?? (r.RequestedBy == 9 ? "Lê Văn Nam" : "Lê Văn An"),
+                RequesterRole = requesterRole,
+                ReviewedBy = r.ReviewedBy,
+                ReviewerName = r.Reviewer?.FullName,
+                Priority = r.Priority,
+                Status = r.Status,
+                StatusLabel = statusLabel,
+                CanEdit = canEdit,
+                CreatedAt = r.CreatedAt,
+                ReviewedAt = r.ReviewedAt,
+                ReviewNotes = r.ReviewNotes
+            };
+        }
+
+        private static LearnerNotificationItemDto MapNotificationToLearnerDto(Notification n)
+        {
+            return new LearnerNotificationItemDto
+            {
+                NotificationId = n.NotificationId,
+                UserId = n.UserId,
+                UserName = n.User?.FullName,
+                ClassId = n.ClassId,
+                ClassName = n.Class?.ClassName,
+                Title = n.Title,
+                Content = n.Content,
+                Type = n.Type,
+                IsRead = n.IsRead,
+                CreatedAt = n.CreatedAt
+            };
+        }
+
         /// <summary>
         /// Đảm bảo học sinh có hóa đơn học phí kỳ hiện tại (Tháng 10/2026) để đồng bộ 100% giữa Dashboard và trang Học phí
         /// </summary>
