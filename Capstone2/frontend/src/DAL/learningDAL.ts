@@ -3,6 +3,7 @@ import {
   type StudentEnrolledClassApiDto,
   type ClassSessionAttendanceItemApiDto,
   type StudentSubmissionDetailApiDto,
+  type StudentTuitionOverviewApiDto,
 } from '../api/learningApi';
 import {
   MOCK_ENROLLED_CLASSES,
@@ -30,6 +31,12 @@ import {
   CURRENT_PROGRESS_CLASSES,
   type ProgressClassItem,
 } from '../GUIs/components/student/progress/progressData';
+import {
+  CURRENT_TUITION_BILL,
+  TUITION_HISTORY,
+  type TuitionBill,
+  type TuitionHistoryItem,
+} from '../GUIs/components/student/tuition/tuitionData';
 import {
   parentDAL,
   DEFAULT_PARENT_ID,
@@ -82,6 +89,63 @@ export interface StudentProgressViewModel {
   enrolledClassesCount: number;
   currentClasses: ProgressClassItem[];
   source: 'api' | 'mock';
+}
+
+export interface StudentTuitionViewModel {
+  studentId: number;
+  studentName: string;
+  totalUnpaidAmount: number;
+  bill: TuitionBill;
+  history: TuitionHistoryItem[];
+  source: 'api' | 'mock';
+}
+
+function fmtVnd(amount: number): string {
+  return `${new Intl.NumberFormat('vi-VN').format(amount)} đ`;
+}
+
+function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): StudentTuitionViewModel {
+  const totalUnpaid = apiData.totalUnpaidAmount || 0;
+  const unpaidItems = (apiData.unpaidInvoices || []).map((inv) => ({
+    name: `${inv.className} (Tháng ${inv.periodMonth}/${inv.periodYear})`,
+    amount: fmtVnd(inv.amountDue),
+  }));
+
+  const bill: TuitionBill = {
+    period: apiData.period || 'Kỳ tháng 10 / 2026',
+    totalAmount: fmtVnd(totalUnpaid),
+    dueDate: apiData.dueDate || '10/11/2026',
+    remainingDaysText:
+      apiData.remainingDaysText ||
+      (totalUnpaid > 0 ? 'Còn hạn thanh toán học phí' : 'Đã hoàn thành toàn bộ học phí kỳ này'),
+    items:
+      unpaidItems.length > 0
+        ? unpaidItems
+        : [
+            {
+              name: 'Đã hoàn thành học phí tất cả các môn học trong kỳ',
+              amount: '0 đ',
+            },
+          ],
+    subTotal: fmtVnd(totalUnpaid),
+  };
+
+  const history: TuitionHistoryItem[] = (apiData.paymentHistory || []).map((p) => ({
+    id: p.paymentId,
+    period: p.period,
+    amount: fmtVnd(p.amount),
+    date: p.paidAt,
+    status: p.status || 'Đã nộp',
+  }));
+
+  return {
+    studentId: apiData.studentId,
+    studentName: apiData.studentName,
+    totalUnpaidAmount: totalUnpaid,
+    bill,
+    history: history.length > 0 ? history : TUITION_HISTORY,
+    source: 'api',
+  };
 }
 
 function mapSubjectTheme(subjectCode?: string, subjectName?: string): {
@@ -450,6 +514,53 @@ export const learningDAL = {
       currentClasses: CURRENT_PROGRESS_CLASSES,
       source: 'mock',
     };
+  },
+
+  /**
+   * Lấy thông tin Hóa đơn học phí & Lịch sử giao dịch của đúng Học sinh đó
+   */
+  async getStudentTuition(studentId = DEFAULT_STUDENT_ID): Promise<StudentTuitionViewModel> {
+    try {
+      const apiData = await learningApi.getStudentTuition(studentId);
+      if (apiData) {
+        return mapApiTuitionToViewModel(apiData);
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Student Tuition, dùng mock fallback:', error);
+    }
+
+    return {
+      studentId,
+      studentName: 'Lê Văn An',
+      totalUnpaidAmount: 7500000,
+      bill: CURRENT_TUITION_BILL,
+      history: TUITION_HISTORY,
+      source: 'mock',
+    };
+  },
+
+  /**
+   * Phụ huynh thực hiện thanh toán toàn bộ học phí còn nợ cho con
+   */
+  async payStudentTuition(
+    studentId = DEFAULT_STUDENT_ID,
+    paymentMethod = 'bank_transfer',
+    parentId = DEFAULT_PARENT_ID
+  ): Promise<StudentTuitionViewModel> {
+    const apiData = await learningApi.payStudentTuition({
+      studentId,
+      parentId,
+      paymentMethod,
+    });
+    return mapApiTuitionToViewModel(apiData);
+  },
+
+  /**
+   * Khôi phục hóa đơn kỳ hiện tại về trạng thái chờ thanh toán (Phục vụ Demo)
+   */
+  async resetDemoTuition(studentId = DEFAULT_STUDENT_ID): Promise<StudentTuitionViewModel> {
+    const apiData = await learningApi.resetDemoTuition(studentId);
+    return mapApiTuitionToViewModel(apiData);
   },
 
   /**

@@ -200,6 +200,47 @@ export interface StudentProgressOverviewApiDto {
   currentClasses: StudentProgressClassApiDto[];
 }
 
+export interface TuitionInvoiceItemApiDto {
+  invoiceId: number;
+  classId: number;
+  className: string;
+  periodMonth: number;
+  periodYear: number;
+  amountDue: number;
+  dueDate: string;
+  status: string;
+}
+
+export interface TuitionPaymentHistoryApiDto {
+  paymentId: number;
+  invoiceId: number;
+  className: string;
+  period: string;
+  amount: number;
+  paidAt: string;
+  paymentMethod: string;
+  transactionCode: string;
+  status: string;
+}
+
+export interface StudentTuitionOverviewApiDto {
+  studentId: number;
+  studentName: string;
+  period: string;
+  dueDate: string;
+  remainingDaysText: string;
+  totalUnpaidAmount: number;
+  unpaidInvoices: TuitionInvoiceItemApiDto[];
+  paymentHistory: TuitionPaymentHistoryApiDto[];
+}
+
+export interface PayStudentTuitionPayload {
+  studentId: number;
+  parentId: number;
+  paymentMethod: string;
+  invoiceIds?: number[];
+}
+
 /**
  * [Bounded Context: Learning]
  * Tầng Network API dành riêng cho Thành viên 3 (Student & Parent)
@@ -282,6 +323,52 @@ export const learningApi = {
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
+  },
+
+  /**
+   * Lấy thông tin Hóa đơn học phí & Lịch sử giao dịch của Học sinh (GET /api/learning/parent/tuition/{studentId})
+   */
+  async getStudentTuition(studentId: number): Promise<StudentTuitionOverviewApiDto | null> {
+    const response = await fetch(`${API_BASE_URL}/learning/parent/tuition/${studentId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải Student Tuition`);
+    }
+    const json = await response.json();
+    return json?.data ?? json ?? null;
+  },
+
+  /**
+   * Phụ huynh thanh toán học phí trực tuyến cho con (POST /api/learning/parent/payments)
+   */
+  async payStudentTuition(payload: PayStudentTuitionPayload): Promise<StudentTuitionOverviewApiDto> {
+    const response = await fetch(`${API_BASE_URL}/learning/parent/payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi thanh toán học phí`);
+    }
+    const json = await response.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * Tạo lại hóa đơn chờ thanh toán cho kỳ hiện tại để Demo (POST /api/learning/parent/tuition/{studentId}/reset-demo)
+   */
+  async resetDemoTuition(studentId: number): Promise<StudentTuitionOverviewApiDto> {
+    const response = await fetch(`${API_BASE_URL}/learning/parent/tuition/${studentId}/reset-demo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi khôi phục hóa đơn demo`);
+    }
+    const json = await response.json();
+    return json?.data ?? json;
   },
 
   /**

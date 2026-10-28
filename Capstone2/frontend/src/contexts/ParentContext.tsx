@@ -30,7 +30,8 @@ export type ParentAction =
   | { type: 'ADD_CHILD'; payload: ChildStudent }
   | { type: 'ADD_PENDING_REQUEST'; payload: PendingLinkRequest }
   | { type: 'SET_EMPTY_STATE' }
-  | { type: 'RESET_CHILDREN'; payload: ChildStudent[] };
+  | { type: 'RESET_CHILDREN'; payload: ChildStudent[] }
+  | { type: 'UPDATE_CHILD_UNPAID'; payload: { studentId: number; unpaidAmount: number } };
 
 function reducer(state: ParentState, action: ParentAction): ParentState {
   switch (action.type) {
@@ -67,6 +68,15 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
               ? action.payload[0].id
               : null,
       };
+    case 'UPDATE_CHILD_UNPAID':
+      return {
+        ...state,
+        childrenList: state.childrenList.map((child) =>
+          child.id === action.payload.studentId
+            ? { ...child, unpaidAmount: action.payload.unpaidAmount }
+            : child
+        ),
+      };
     default:
       return state;
   }
@@ -79,6 +89,7 @@ export type ParentContextType = ParentState & {
   selectedChild: ChildStudent | null;
   dispatch: React.Dispatch<ParentAction>;
   setSelectedChildId: (id: number | null) => void;
+  updateChildUnpaidAmount: (studentId: number, unpaidAmount: number) => void;
   linkStudentByCode: (
     code: string,
     dob: string,
@@ -100,6 +111,7 @@ export const ParentContext = createContext<ParentContextType>({
   selectedChild: null,
   dispatch: () => {},
   setSelectedChildId: () => {},
+  updateChildUnpaidAmount: () => {},
   linkStudentByCode: () => ({ success: false, message: '' }),
   requestLinkStudent: () => ({ success: false, ticketId: '', message: '' }),
   setDemoEmptyState: () => {},
@@ -139,6 +151,13 @@ export function ParentProvider({ children }: ParentProviderProps) {
 
   const setSelectedChildId = (id: number | null) => {
     dispatch({ type: 'SET_SELECTED_CHILD', payload: id });
+  };
+
+  const updateChildUnpaidAmount = (studentId: number, unpaidAmount: number) => {
+    dispatch({
+      type: 'UPDATE_CHILD_UNPAID',
+      payload: { studentId, unpaidAmount },
+    });
   };
 
   const linkStudentByCode = (
@@ -257,6 +276,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
         selectedChild,
         dispatch,
         setSelectedChildId,
+        updateChildUnpaidAmount,
         linkStudentByCode,
         requestLinkStudent,
         setDemoEmptyState,
