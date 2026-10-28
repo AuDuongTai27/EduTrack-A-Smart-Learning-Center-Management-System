@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer, type ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { ChildStudent, PendingLinkRequest } from '../DAL/parentDAL';
-import { parentDAL } from '../DAL/parentDAL';
+import { parentDAL, DEFAULT_PARENT_ID } from '../DAL/parentDAL';
+import { learningDAL } from '../DAL/learningDAL';
 
 export type { ChildStudent, PendingLinkRequest };
 
@@ -59,7 +60,12 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
       return {
         ...state,
         childrenList: action.payload,
-        selectedChildId: action.payload.length > 0 ? action.payload[0].id : null,
+        selectedChildId:
+          action.payload.some((c) => c.id === state.selectedChildId)
+            ? state.selectedChildId
+            : action.payload.length > 0
+              ? action.payload[0].id
+              : null,
       };
     default:
       return state;
@@ -106,6 +112,27 @@ export type ParentProviderProps = {
 
 export function ParentProvider({ children }: ParentProviderProps) {
   const [state, dispatch] = useReducer(reducer, iniState);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadLiveChildrenOverview() {
+      try {
+        const liveChildren = await learningDAL.getParentChildrenOverview(DEFAULT_PARENT_ID);
+        if (isMounted && liveChildren && liveChildren.length > 0) {
+          dispatch({ type: 'RESET_CHILDREN', payload: liveChildren });
+        }
+      } catch (err) {
+        console.warn('[ParentContext] Không thể tải dữ liệu con từ Backend, giữ mock mặc định:', err);
+      }
+    }
+
+    loadLiveChildrenOverview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const selectedChild =
     state.childrenList.find((c) => c.id === state.selectedChildId) || null;

@@ -1,10 +1,32 @@
-﻿import React from 'react';
-import { DASHBOARD_STATS } from './dashboardData';
+import React from 'react';
+import { DASHBOARD_STATS, type StatCardItem } from './dashboardData';
 
-export function DashboardStatsGrid() {
+export interface DashboardStatsGridProps {
+  enrolledClassesCount?: number;
+  pendingAssignmentsCount?: number;
+}
+
+export function DashboardStatsGrid({
+  enrolledClassesCount,
+  pendingAssignmentsCount,
+}: DashboardStatsGridProps) {
+  const stats: StatCardItem[] = DASHBOARD_STATS.map((stat) => {
+    if (stat.id === 'classes' && typeof enrolledClassesCount === 'number') {
+      return { ...stat, value: enrolledClassesCount };
+    }
+    if (stat.id === 'assignments' && typeof pendingAssignmentsCount === 'number') {
+      return {
+        ...stat,
+        value: pendingAssignmentsCount,
+        badge: pendingAssignmentsCount > 0 ? 'Sắp hết hạn' : 'Đã hoàn thành',
+      };
+    }
+    return stat;
+  });
+
   return (
     <div className="stats-grid">
-      {DASHBOARD_STATS.map((stat) => (
+      {stats.map((stat) => (
         <div key={stat.id} className="stat-card">
           <div
             className="stat-icon-wrapper"
@@ -27,6 +49,6 @@ export function DashboardStatsGrid() {
       ))}
     </div>
   );
-};
+}
 
 export default DashboardStatsGrid;
