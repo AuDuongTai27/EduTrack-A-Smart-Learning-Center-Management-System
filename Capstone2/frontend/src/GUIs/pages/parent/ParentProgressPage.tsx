@@ -4,31 +4,41 @@ import { ProgressPageHeader } from '../../components/student/progress/ProgressPa
 import { ProgressStatsGrid } from '../../components/student/progress/ProgressStatsGrid';
 import { ProgressCurrentSection } from '../../components/student/progress/ProgressCurrentSection';
 import { ProgressPastHistorySection } from '../../components/student/progress/ProgressPastHistorySection';
-import { progressDAL } from '../../../DAL/progressDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import {
   CURRENT_PROGRESS_CLASSES,
-  mapNotesAndAttendancesToClasses,
   type ProgressClassItem,
 } from '../../components/student/progress/progressData';
 
 export function ParentProgressPage() {
   const { selectedChild } = useParent();
   const [classes, setClasses] = useState<ProgressClassItem[]>(CURRENT_PROGRESS_CLASSES);
+  const [overallAttendanceRate, setOverallAttendanceRate] = useState<number>(80);
+  const [attendedSessionsCount, setAttendedSessionsCount] = useState<number>(35);
+  const [presentCount, setPresentCount] = useState<number>(35);
+  const [absentCount, setAbsentCount] = useState<number>(4);
+  const [lateCount, setLateCount] = useState<number>(5);
+  const [totalSessionsCount, setTotalSessionsCount] = useState<number>(44);
+  const [enrolledClassesCount, setEnrolledClassesCount] = useState<number>(
+    CURRENT_PROGRESS_CLASSES.length
+  );
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadProgress() {
+      const studentId = selectedChild?.id || DEFAULT_STUDENT_ID;
       try {
-        const [attRes, notesRes] = await Promise.all([
-          progressDAL.getAllAttendances(),
-          progressDAL.getAllProgressNotes(),
-        ]);
-
-        if (isMounted) {
-          if ((attRes.data && attRes.data.length > 0) || (notesRes.data && notesRes.data.length > 0)) {
-            setClasses(mapNotesAndAttendancesToClasses(notesRes.data, attRes.data));
-          }
+        const vm = await learningDAL.getStudentProgress(studentId);
+        if (isMounted && vm) {
+          setOverallAttendanceRate(vm.overallAttendanceRate);
+          setAttendedSessionsCount(vm.attendedSessionsCount);
+          setPresentCount(vm.presentCount);
+          setAbsentCount(vm.absentCount);
+          setLateCount(vm.lateCount);
+          setTotalSessionsCount(vm.totalSessionsCount);
+          setEnrolledClassesCount(vm.enrolledClassesCount);
+          setClasses(vm.currentClasses);
         }
       } catch (err) {
         console.warn('Lỗi khi tải tiến độ con cho phụ huynh:', err);
@@ -40,7 +50,7 @@ export function ParentProgressPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [selectedChild?.id]);
 
   if (!selectedChild) {
     return null;
@@ -60,10 +70,20 @@ export function ParentProgressPage() {
         </div>
 
         {/* 1. Page Header with Overall Attendance */}
-        <ProgressPageHeader />
+        <ProgressPageHeader
+          overallAttendanceRate={overallAttendanceRate}
+          attendedSessionsCount={attendedSessionsCount}
+          totalSessionsCount={totalSessionsCount}
+        />
 
         {/* 2. 4-Stats Cards Grid */}
-        <ProgressStatsGrid />
+        <ProgressStatsGrid
+          presentCount={presentCount}
+          absentCount={absentCount}
+          lateCount={lateCount}
+          totalSessionsCount={totalSessionsCount}
+          enrolledClassesCount={enrolledClassesCount}
+        />
 
         {/* 3. Current Classes Section */}
         <ProgressCurrentSection classes={classes} />
@@ -73,6 +93,6 @@ export function ParentProgressPage() {
       </div>
     </main>
   );
-};
+}
 
 export default ParentProgressPage;

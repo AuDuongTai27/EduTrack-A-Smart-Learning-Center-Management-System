@@ -532,6 +532,286 @@ namespace EduTrack.API.Services.Learning.Implementation
             return true;
         }
 
+        public async Task<List<StudentScheduleSlotDto>> GetStudentScheduleAsync(int studentId)
+        {
+            var studentClasses = await _context.StudentClasses
+                .AsNoTracking()
+                .Where(sc => sc.StudentId == studentId && sc.Status != "dropped")
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.Subject)
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.TeacherClasses)
+                        .ThenInclude(tc => tc.Teacher)
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.ClassSchedules)
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.ClassSessions)
+                .ToListAsync();
+
+            var slots = new List<StudentScheduleSlotDto>();
+
+            foreach (var sc in studentClasses)
+            {
+                var cls = sc.Class;
+                if (cls == null) continue;
+
+                var mainTeacher = cls.TeacherClasses
+                    .OrderByDescending(tc => tc.Status == "active")
+                    .FirstOrDefault()?.Teacher;
+
+                string teacherName = mainTeacher?.FullName ?? "Giáo viên phụ trách";
+                string teacherInitials = GetInitials(teacherName);
+
+                foreach (var sched in cls.ClassSchedules)
+                {
+                    int dayIndex = MapDayIndex(sched.DayOfWeek);
+                    var matchingSession = cls.ClassSessions
+                        .OrderByDescending(s => s.SessionDate)
+                        .FirstOrDefault(s => s.ScheduleId == sched.ScheduleId);
+
+                    string status = "upcoming";
+                    if (matchingSession != null)
+                    {
+                        status = matchingSession.Status == "completed"
+                            ? "completed"
+                            : matchingSession.Status == "cancelled"
+                                ? "cancelled"
+                                : "upcoming";
+                    }
+
+                    slots.Add(new StudentScheduleSlotDto
+                    {
+                        Id = $"sched_{sched.ScheduleId}",
+                        ClassId = cls.ClassId,
+                        ClassName = cls.ClassName,
+                        Subject = cls.Subject?.SubjectName ?? "Môn học",
+                        SubjectCode = cls.Subject?.SubjectCode ?? string.Empty,
+                        StartH = sched.StartTime.Hours,
+                        StartM = sched.StartTime.Minutes,
+                        EndH = sched.EndTime.Hours,
+                        EndM = sched.EndTime.Minutes,
+                        Teacher = teacherName,
+                        Initials = teacherInitials,
+                        Room = sched.Room ?? cls.Room ?? "P.201",
+                        Day = dayIndex,
+                        Status = status
+                    });
+                }
+            }
+
+            return slots
+                .OrderBy(s => s.Day)
+                .ThenBy(s => s.StartH)
+                .ThenBy(s => s.StartM)
+                .ToList();
+        }
+
+        public async Task<StudentProgressOverviewDto?> GetStudentProgressAsync(int studentId)
+        {
+            var student = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == studentId);
+
+            if (student == null)
+            {
+                return null;
+            }
+
+            var studentClasses = await _context.StudentClasses
+                .AsNoTracking()
+                .Where(sc => sc.StudentId == studentId && sc.Status != "dropped")
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.Subject)
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.TeacherClasses)
+                        .ThenInclude(tc => tc.Teacher)
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.ClassSessions)
+                        .ThenInclude(cs => cs.Attendances)
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.ProgressNotes)
+                        .ThenInclude(pn => pn.Author)
+                .Include(sc => sc.Class)
+                    .ThenInclude(c => c.Assignments)
+                        .ThenInclude(a => a.Submissions)
+                .ToListAsync();
+
+            int totalPresent = 0;
+            int totalAbsent = 0;
+            int totalLate = 0;
+            int totalSessions = 0;
+
+            var progressClasses = new List<StudentProgressClassDto>();
+
+            foreach (var sc in studentClasses)
+            {
+                var cls = sc.Class;
+                if (cls == null) continue;
+
+                var mainTeacher = cls.TeacherClasses
+                    .OrderByDescending(tc => tc.Status == "active")
+                    .FirstOrDefault()?.Teacher;
+
+                string teacherName = mainTeacher?.FullName ?? "Giáo viên phụ trách";
+
+                var classAttendances = cls.ClassSessions
+                    .SelectMany(s => s.Attendances)
+                    .Where(a => a.StudentId == studentId)
+                    .ToList();
+
+                int clsPresent = classAttendances.Count(a => a.Status == "present");
+                int clsLate = classAttendances.Count(a => a.Status == "late");
+                int clsAbsent = classAttendances.Count(a => a.Status == "absent" || a.Status == "excused");
+                int clsAttended = clsPresent + clsLate;
+                int clsTotal = cls.ClassSessions.Count > 0 ? cls.ClassSessions.Count : Math.Max(clsAttended, 10);
+
+                totalPresent += clsPresent;
+                totalLate += clsLate;
+                totalAbsent += clsAbsent;
+                totalSessions += clsTotal;
+
+                int percentage = clsTotal > 0
+                    ? (int)Math.Round(clsAttended * 100.0 / clsTotal)
+                    : 100;
+
+                var feedbacks = new List<StudentProgressFeedbackDto>();
+
+                // 1. Lấy nhận xét từ bảng ProgressNotes của học sinh trong lớp này
+                var notes = cls.ProgressNotes
+                    .Where(pn => pn.StudentId == studentId)
+                    .OrderByDescending(pn => pn.CreatedAt)
+                    .ToList();
+
+                foreach (var note in notes)
+                {
+                    var (statusType, statusIcon, statusLabel) = MapProgressNoteStatus(note.NoteType);
+                    feedbacks.Add(new StudentProgressFeedbackDto
+                    {
+                        AssignmentTitle = $"Nhận xét định kỳ ({note.CreatedAt:dd/MM/yyyy})",
+                        Quote = note.Content,
+                        TeacherName = note.Author?.FullName ?? teacherName,
+                        StatusType = statusType,
+                        StatusIcon = statusIcon,
+                        StatusLabel = statusLabel
+                    });
+                }
+
+                // 2. Lấy kết quả & nhận xét từ các bài tập (Assignments + Submissions) trong lớp này
+                foreach (var asg in cls.Assignments.OrderByDescending(a => a.DueDate))
+                {
+                    var sub = asg.Submissions.FirstOrDefault(s => s.StudentId == studentId);
+                    if (sub != null)
+                    {
+                        decimal? displayScore = sub.Score ?? sub.AiScore;
+                        string statusType = "dat";
+                        string statusIcon = "bi-check2-all";
+                        string statusLabel = displayScore.HasValue ? $"Đạt ({displayScore:0.#}/10)" : "Đã nộp";
+
+                        if (displayScore.HasValue && displayScore.Value < 5.0m)
+                        {
+                            statusType = "chuadat";
+                            statusIcon = "bi-x-circle-fill";
+                            statusLabel = $"Chưa đạt ({displayScore:0.#}/10)";
+                        }
+                        else if (displayScore.HasValue && displayScore.Value < 7.5m)
+                        {
+                            statusType = "canluuy";
+                            statusIcon = "bi-exclamation-triangle-fill";
+                            statusLabel = $"Cần lưu ý ({displayScore:0.#}/10)";
+                        }
+
+                        string quote = !string.IsNullOrWhiteSpace(sub.Feedback)
+                            ? sub.Feedback
+                            : sub.AiScore.HasValue
+                                ? $"Trợ lý AI đánh giá bài nộp đạt {sub.AiScore:0.#}/{asg.MaxScore:0.#} điểm. Các bước giải rõ ràng và đúng trọng tâm."
+                                : "Đã nộp bài đúng hạn, đang chờ giáo viên chấm điểm.";
+
+                        feedbacks.Add(new StudentProgressFeedbackDto
+                        {
+                            AssignmentTitle = asg.Title,
+                            Quote = quote,
+                            TeacherName = teacherName,
+                            StatusType = statusType,
+                            StatusIcon = statusIcon,
+                            StatusLabel = statusLabel
+                        });
+                    }
+                    else
+                    {
+                        feedbacks.Add(new StudentProgressFeedbackDto
+                        {
+                            AssignmentTitle = asg.Title,
+                            Quote = $"Hạn nộp: {asg.DueDate:dd/MM/yyyy}. Học sinh cần hoàn thành và nộp bài tập đúng thời hạn.",
+                            TeacherName = teacherName,
+                            StatusType = "chuacham",
+                            StatusIcon = "bi-hourglass-split",
+                            StatusLabel = "Chưa nộp"
+                        });
+                    }
+                }
+
+                progressClasses.Add(new StudentProgressClassDto
+                {
+                    Id = $"cls-prog-{cls.ClassId}",
+                    ClassId = cls.ClassId,
+                    ClassName = cls.ClassName,
+                    SubjectName = cls.Subject?.SubjectName ?? "Môn học",
+                    SubjectCode = cls.Subject?.SubjectCode ?? string.Empty,
+                    Attended = clsAttended,
+                    Total = clsTotal,
+                    Percentage = percentage,
+                    IsCompleted = cls.Status == "completed",
+                    Feedbacks = feedbacks
+                });
+            }
+
+            int totalAttended = totalPresent + totalLate;
+            int overallRate = totalSessions > 0
+                ? (int)Math.Round(totalAttended * 100.0 / totalSessions)
+                : 100;
+
+            return new StudentProgressOverviewDto
+            {
+                StudentId = student.UserId,
+                StudentName = student.FullName,
+                OverallAttendanceRate = overallRate,
+                AttendedSessionsCount = totalAttended,
+                PresentCount = totalPresent,
+                AbsentCount = totalAbsent,
+                LateCount = totalLate,
+                TotalSessionsCount = totalSessions,
+                EnrolledClassesCount = progressClasses.Count,
+                CurrentClasses = progressClasses
+            };
+        }
+
+        private static (string statusType, string statusIcon, string statusLabel) MapProgressNoteStatus(string? noteType)
+        {
+            var normalized = (noteType ?? string.Empty).Trim().ToLowerInvariant();
+            return normalized switch
+            {
+                "warning" => ("canluuy", "bi-exclamation-triangle-fill", "Cần lưu ý"),
+                "praise" => ("dat", "bi-check2-all", "Khen ngợi"),
+                _ => ("dat", "bi-check2-all", "Đạt")
+            };
+        }
+
+        private static int MapDayIndex(string? dayOfWeek)
+        {
+            var normalized = (dayOfWeek ?? string.Empty).Trim().ToLowerInvariant();
+            return normalized switch
+            {
+                "monday" or "mon" => 0,
+                "tuesday" or "tue" => 1,
+                "wednesday" or "wed" => 2,
+                "thursday" or "thu" => 3,
+                "friday" or "fri" => 4,
+                "saturday" or "sat" => 5,
+                "sunday" or "sun" => 6,
+                _ => 0
+            };
+        }
+
         private static StudentSubmissionDetailDto MapSubmissionToDto(Submission sub, string? aiSummaryFallback)
         {
             string fileUrl = sub.FileUrl ?? string.Empty;

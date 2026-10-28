@@ -23,6 +23,14 @@ import {
   type SubmissionStatus,
 } from '../GUIs/components/student/assignmentDetail/assignmentDetailData';
 import {
+  SESSIONS,
+  type SessionItem,
+} from '../GUIs/components/student/schedule/scheduleData';
+import {
+  CURRENT_PROGRESS_CLASSES,
+  type ProgressClassItem,
+} from '../GUIs/components/student/progress/progressData';
+import {
   parentDAL,
   DEFAULT_PARENT_ID,
   type ChildStudent,
@@ -59,6 +67,20 @@ export interface StudentAssignmentDetailViewModel {
   submittedFileName: string;
   submittedMeta: string;
   submission?: StudentSubmissionDetailApiDto | null;
+  source: 'api' | 'mock';
+}
+
+export interface StudentProgressViewModel {
+  studentId: number;
+  studentName: string;
+  overallAttendanceRate: number;
+  attendedSessionsCount: number;
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
+  totalSessionsCount: number;
+  enrolledClassesCount: number;
+  currentClasses: ProgressClassItem[];
   source: 'api' | 'mock';
 }
 
@@ -131,6 +153,24 @@ function mapSubjectBannerTheme(subjectCode?: string, subjectName?: string): {
     accent: '#2563EB',
     grad: 'linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)',
   };
+}
+
+function mapProgressTheme(subjectCode?: string, subjectName?: string, index = 0): {
+  colorTheme: string;
+  icon: string;
+} {
+  const combined = `${subjectCode || ''} ${subjectName || ''}`.toUpperCase();
+  if (combined.includes('PHYS') || combined.includes('VAT') || combined.includes('LY') || combined.includes('LÝ')) {
+    return { colorTheme: 'prog-purple', icon: 'bi-lightning-charge' };
+  }
+  if (combined.includes('CHEM') || combined.includes('HOA') || combined.includes('HÓA')) {
+    return { colorTheme: 'prog-orange', icon: 'bi-droplet' };
+  }
+  if (combined.includes('ENG') || combined.includes('ANH') || combined.includes('IELTS')) {
+    return { colorTheme: 'prog-green', icon: 'bi-translate' };
+  }
+  const colorThemes = ['prog-blue', 'prog-purple', 'prog-orange', 'prog-green'];
+  return { colorTheme: colorThemes[index % colorThemes.length], icon: 'bi-calculator' };
 }
 
 function mapApiClassToEnrolledItem(dto: StudentEnrolledClassApiDto): EnrolledClassItem {
@@ -310,6 +350,104 @@ export const learningDAL = {
       attendedLessons: 5,
       totalLessons: 6,
       latestTeacherNote: 'Điểm danh đầy đủ, tương tác tích cực trên lớp.',
+      source: 'mock',
+    };
+  },
+
+  /**
+   * Lấy thời khóa biểu tuần của Học sinh (hoặc Con của Phụ huynh)
+   */
+  async getStudentSchedule(studentId = DEFAULT_STUDENT_ID): Promise<SessionItem[]> {
+    try {
+      const apiSlots = await learningApi.getStudentSchedule(studentId);
+      if (apiSlots && apiSlots.length > 0) {
+        return apiSlots.map((slot) => {
+          const theme = mapSubjectBannerTheme(slot.subjectCode, slot.subject);
+          return {
+            id: slot.id,
+            className: slot.className,
+            subject: slot.subject,
+            startH: slot.startH,
+            startM: slot.startM,
+            endH: slot.endH,
+            endM: slot.endM,
+            teacher: slot.teacher,
+            initials: slot.initials,
+            avatarBg: theme.accent,
+            room: slot.room,
+            day: slot.day,
+            status: slot.status || 'upcoming',
+          };
+        });
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Student Schedule, dùng mock fallback:', error);
+    }
+
+    return SESSIONS;
+  },
+
+  /**
+   * Lấy báo cáo Tiến độ học tập & Điểm danh của Học sinh (hoặc Con của Phụ huynh)
+   */
+  async getStudentProgress(studentId = DEFAULT_STUDENT_ID): Promise<StudentProgressViewModel> {
+    try {
+      const apiData = await learningApi.getStudentProgress(studentId);
+      if (apiData) {
+        const mappedClasses: ProgressClassItem[] = (apiData.currentClasses || []).map(
+          (cls, idx) => {
+            const progTheme = mapProgressTheme(cls.subjectCode, cls.subjectName, idx);
+            return {
+              id: cls.id,
+              className: cls.className,
+              subjectName: cls.subjectName,
+              colorTheme: progTheme.colorTheme,
+              icon: progTheme.icon,
+              attended: cls.attended,
+              total: cls.total,
+              percentage: cls.percentage,
+              isCompleted: cls.isCompleted,
+              feedbacks: (cls.feedbacks || []).map((fb) => ({
+                assignmentTitle: fb.assignmentTitle,
+                quote: fb.quote,
+                teacherName: fb.teacherName,
+                statusType: fb.statusType,
+                statusIcon: fb.statusIcon,
+                statusLabel: fb.statusLabel,
+              })),
+            };
+          }
+        );
+
+        return {
+          studentId: apiData.studentId,
+          studentName: apiData.studentName,
+          overallAttendanceRate: apiData.overallAttendanceRate,
+          attendedSessionsCount: apiData.attendedSessionsCount,
+          presentCount: apiData.presentCount,
+          absentCount: apiData.absentCount,
+          lateCount: apiData.lateCount,
+          totalSessionsCount: apiData.totalSessionsCount,
+          enrolledClassesCount: apiData.enrolledClassesCount,
+          currentClasses: mappedClasses.length > 0 ? mappedClasses : CURRENT_PROGRESS_CLASSES,
+          source: 'api',
+        };
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Student Progress, dùng mock fallback:', error);
+    }
+
+    return {
+      studentId,
+      studentName: 'Lê Văn An',
+      overallAttendanceRate: 80,
+      attendedSessionsCount: 35,
+      presentCount: 35,
+      absentCount: 4,
+      lateCount: 5,
+      totalSessionsCount: 44,
+      enrolledClassesCount: CURRENT_PROGRESS_CLASSES.length,
+      currentClasses: CURRENT_PROGRESS_CLASSES,
       source: 'mock',
     };
   },

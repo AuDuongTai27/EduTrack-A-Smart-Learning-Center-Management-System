@@ -148,6 +148,58 @@ export interface SubmitHomeworkPayload {
   fileSizeText?: string;
 }
 
+export interface StudentScheduleSlotApiDto {
+  id: string;
+  classId: number;
+  className: string;
+  subject: string;
+  subjectCode: string;
+  startH: number;
+  startM: number;
+  endH: number;
+  endM: number;
+  teacher: string;
+  initials: string;
+  room: string;
+  day: number;
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+}
+
+export interface StudentProgressFeedbackApiDto {
+  assignmentTitle: string;
+  quote: string;
+  teacherName: string;
+  statusType: 'dat' | 'chuadat' | 'canluuy' | 'chuacham';
+  statusIcon: string;
+  statusLabel: string;
+}
+
+export interface StudentProgressClassApiDto {
+  id: string;
+  classId: number;
+  className: string;
+  subjectName: string;
+  subjectCode: string;
+  attended: number;
+  total: number;
+  percentage: number;
+  isCompleted: boolean;
+  feedbacks: StudentProgressFeedbackApiDto[];
+}
+
+export interface StudentProgressOverviewApiDto {
+  studentId: number;
+  studentName: string;
+  overallAttendanceRate: number;
+  attendedSessionsCount: number;
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
+  totalSessionsCount: number;
+  enrolledClassesCount: number;
+  currentClasses: StudentProgressClassApiDto[];
+}
+
 /**
  * [Bounded Context: Learning]
  * Tầng Network API dành riêng cho Thành viên 3 (Student & Parent)
@@ -195,6 +247,38 @@ export const learningApi = {
     });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status} khi tải Student Class Detail`);
+    }
+    const json = await response.json();
+    return json?.data ?? json ?? null;
+  },
+
+  /**
+   * Lấy thời khóa biểu tuần của Học sinh (GET /api/learning/student/{studentId}/schedule)
+   */
+  async getStudentSchedule(studentId: number): Promise<StudentScheduleSlotApiDto[]> {
+    const response = await fetch(`${API_BASE_URL}/learning/student/${studentId}/schedule`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải Student Schedule`);
+    }
+    const json = await response.json();
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
+  },
+
+  /**
+   * Lấy báo cáo Tiến độ học tập & Điểm danh của Học sinh (GET /api/learning/student/{studentId}/progress)
+   */
+  async getStudentProgress(studentId: number): Promise<StudentProgressOverviewApiDto | null> {
+    const response = await fetch(`${API_BASE_URL}/learning/student/${studentId}/progress`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải Student Progress`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;

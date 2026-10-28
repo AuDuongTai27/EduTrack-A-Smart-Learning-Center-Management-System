@@ -68,9 +68,33 @@ namespace EduTrack.API.Controllers.Learning
             return Ok(new { success = true, data });
         }
 
+        /// <summary>
+        /// Lấy thời khóa biểu tuần của Học sinh (Chỉ các lớp học sinh đang theo học, kèm tên Giáo viên & Phòng học thực tế)
+        /// </summary>
+        [HttpGet("{studentId:int}/schedule")]
+        public async Task<IActionResult> GetStudentSchedule(int studentId)
+        {
+            var data = await _dashboardService.GetStudentScheduleAsync(studentId);
+            return Ok(new { success = true, data });
+        }
+
+        /// <summary>
+        /// Lấy báo cáo Tiến độ học tập & Điểm danh tổng hợp của Học sinh (Số buổi có mặt/vắng/đi trễ, tỷ lệ chuyên cần & nhận xét từng lớp)
+        /// </summary>
+        [HttpGet("{studentId:int}/progress")]
+        public async Task<IActionResult> GetStudentProgress(int studentId)
+        {
+            var data = await _dashboardService.GetStudentProgressAsync(studentId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy học sinh có ID = {studentId}" });
+            }
+
+            return Ok(new { success = true, data });
+        }
+
         // TODO [Thành viên 3 - Student & Parent]:
-        // Viết các API tra cứu tiến độ cá nhân và cập nhật hồ sơ học sinh tại đây:
-        // - GET /api/learning/student/{studentId}/progress (Lấy điểm danh & nhận xét của học sinh)
-        // - PUT /api/learning/student/{studentId}/profile  (Học sinh tự cập nhật hồ sơ cá nhân)
+        // Viết API cập nhật hồ sơ học sinh tại đây:
+        // - PUT /api/learning/student/{studentId}/profile (Học sinh tự cập nhật hồ sơ cá nhân)
     }
 }
