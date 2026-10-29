@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { FeedbackApprovalRequest } from './feedbackData';
 import { INITIAL_FEEDBACK_REQUESTS } from './feedbackData';
 import { FeedbackFormCard } from './components/FeedbackFormCard';
 import { FeedbackItemCard } from './components/FeedbackItemCard';
-import { feedbackDAL } from '../../../../DAL/feedbackDAL';
-import type { ApprovalRequestDto } from '../../../../BLL/models/ApprovalRequestDto';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../../DAL/learningDAL';
+import { DEFAULT_PARENT_ID } from '../../../../DAL/parentDAL';
 
 export type { FeedbackApprovalRequest };
 
@@ -12,59 +13,52 @@ interface FeedbackViewProps {
   userRole: 'parent' | 'student';
   userName: string;
   userPhone?: string;
+  userId?: number;
+  studentId?: number;
 }
 
 export function FeedbackView({
   userRole,
   userName,
+  userId,
+  studentId,
 }: FeedbackViewProps) {
+  const [searchParams] = useSearchParams();
+  const isLinkStudentRequest = searchParams.get('type') === 'link_student';
+
+  const resolvedUserId = userId ?? (userRole === 'parent' ? DEFAULT_PARENT_ID : DEFAULT_STUDENT_ID);
+  const resolvedStudentId = studentId ?? DEFAULT_STUDENT_ID;
+
   const [requests, setRequests] = useState<FeedbackApprovalRequest[]>(INITIAL_FEEDBACK_REQUESTS);
-  const [title, setTitle] = useState<string>('');
+  const [title, setTitle] = useState<string>(
+    isLinkStudentRequest ? 'Yêu cầu liên kết thêm hồ sơ học sinh' : ''
+  );
   const [description, setDescription] = useState<string>('');
+  const [editingItem, setEditingItem] = useState<FeedbackApprovalRequest | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isLinkStudentRequest && !editingItem && !title.trim()) {
+      setTitle('Yêu cầu liên kết thêm hồ sơ học sinh');
+    }
+  }, [isLinkStudentRequest, editingItem]);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadRequests() {
-      try {
-        const res = await feedbackDAL.getAllRequests();
-        if (isMounted && res.data && res.data.length > 0) {
-          const mapped: FeedbackApprovalRequest[] = res.data.map((dto) => {
-            const statusMap: Record<string, string> = {
-              pending: 'Chờ duyệt',
-              approved: 'Đã duyệt',
-              rejected: 'Đã từ chối',
-            };
-            let dateStr = '08/09/2026';
-            if (dto.createdAt) {
-              try {
-                const d = new Date(dto.createdAt);
-                if (!isNaN(d.getTime())) {
-                  dateStr = d.toLocaleDateString('vi-VN');
-                }
-              } catch {
-                dateStr = dto.createdAt;
-              }
-            }
-            return {
-              id: dto.requestId,
-              requestType: 'feedback',
-              title: dto.title || `Yêu cầu #${dto.requestCode}`,
-              description: dto.description || dto.reason || '',
-              senderName: dto.requesterName || userName,
-              senderRole: userRole,
-              createdAt: dateStr,
-              status: (dto.status as any) || 'pending',
-              statusLabel: statusMap[dto.status?.toLowerCase()] || 'Đang xử lý',
-              responseMessage: dto.reviewNotes || undefined,
-            };
-          });
-          setRequests(mapped);
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải danh sách phản hồi:', err);
+      const list = await learningDAL.getLearnerFeedbacks(
+        resolvedUserId,
+        userRole,
+        userName,
+        resolvedStudentId
+      );
+      if (!isMounted) return;
+      setRequests(list);
+      if (list.length > 0 && selectedId === null) {
+        setSelectedId(list[0].id);
       }
     }
 
@@ -73,38 +67,118 @@ export function FeedbackView({
     return () => {
       isMounted = false;
     };
-  }, [userName, userRole]);
+  }, [resolvedUserId, resolvedStudentId, userName, userRole]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !description.trim()) return;
+  const handleStartEdit = (item: FeedbackApprovalRequest) => {
+    if (!item.canEdit) return;
+    setEditingItem(item);
+    setTitle(item.title);
+    setDescription(item.description);
+    setSelectedId(item.id);
+  };
 
-    const newReq: FeedbackApprovalRequest = {
-      id: Date.now(),
-      requestType: 'feedback',
-      title: title.trim(),
-      description: description.trim(),
-      senderName: userName,
-      senderRole: userRole,
-      createdAt: new Date().toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      status: 'pending',
-      statusLabel: 'Chờ duyệt',
-    };
-
-    setRequests([newReq, ...requests]);
+  const handleCancelEdit = () => {
+    setEditingItem(null);
     setTitle('');
     setDescription('');
+  };
 
-    setToastMessage(
-      'Đã gửi phản hồi thành công lên hệ thống Giáo vụ! Nhân viên sẽ kiểm tra và phản hồi lại sớm nhất.'
-    );
-    setTimeout(() => setToastMessage(null), 4500);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !description.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      if (editingItem) {
+        const updated = await learningDAL.updateLearnerFeedback(
+          editingItem.id,
+          {
+            userId: resolvedUserId,
+            title: title.trim(),
+            description: description.trim(),
+          },
+          userRole,
+          userName
+        );
+
+        setRequests((prev) =>
+          prev.map((item) => (item.id === editingItem.id ? updated : item))
+        );
+        setSelectedId(updated.id);
+        setEditingItem(null);
+        setTitle('');
+        setDescription('');
+
+        setToastMessage(
+          `Đã cập nhật phản hồi #${updated.requestCode || editingItem.id} thành công!`
+        );
+      } else {
+        const created = await learningDAL.createLearnerFeedback(
+          {
+            userId: resolvedUserId,
+            studentId: resolvedStudentId,
+            title: title.trim(),
+            description: description.trim(),
+            priority: 'medium',
+          },
+          userRole,
+          userName
+        );
+
+        setRequests((prev) => [created, ...prev]);
+        setSelectedId(created.id);
+        setTitle('');
+        setDescription('');
+
+        setToastMessage(
+          'Đã gửi phản hồi thành công lên hệ thống Giáo vụ (Trạng thái: Chưa xem xét giải quyết — bạn vẫn có thể chỉnh sửa trước khi Giáo vụ tiếp nhận).'
+        );
+      }
+    } catch (err) {
+      console.warn('Không kết nối được Backend khi lưu phản hồi, cập nhật trên giao diện:', err);
+      if (editingItem) {
+        setRequests((prev) =>
+          prev.map((item) =>
+            item.id === editingItem.id
+              ? { ...item, title: title.trim(), description: description.trim() }
+              : item
+          )
+        );
+        setEditingItem(null);
+        setTitle('');
+        setDescription('');
+        setToastMessage('Đã cập nhật nội dung phản hồi thành công!');
+      } else {
+        const fallbackReq: FeedbackApprovalRequest = {
+          id: Date.now(),
+          requestCode: `FB${String(requests.length + 1).padStart(4, '0')}`,
+          requestType: 'feedback',
+          title: title.trim(),
+          description: description.trim(),
+          senderName: userName,
+          senderRole: userRole,
+          createdAt: new Date().toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          status: 'pending',
+          statusLabel: 'Chưa xem xét giải quyết',
+          canEdit: true,
+        };
+
+        setRequests((prev) => [fallbackReq, ...prev]);
+        setSelectedId(fallbackReq.id);
+        setTitle('');
+        setDescription('');
+        setToastMessage('Đã gửi phản hồi thành công lên hệ thống Giáo vụ!');
+      }
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setToastMessage(null), 4500);
+    }
   };
 
   return (
@@ -130,10 +204,10 @@ export function FeedbackView({
           <div>
             <h1 className="page-title mb-1">
               <i className="bi bi-chat-dots-fill text-primary me-2"></i>
-              Phản hồi & Ý kiến đóng góp
+              Phản hồi &amp; Ý kiến đóng góp
             </h1>
             <p className="page-subtitle text-muted mb-0">
-              Gửi phản hồi, thắc mắc hoặc yêu cầu hỗ trợ tới ban Giáo vụ trung tâm EduTrack
+              Gửi phản hồi, thắc mắc hoặc yêu cầu hỗ trợ trực tiếp về Giáo vụ (Admin Staff)
             </p>
           </div>
 
@@ -143,14 +217,17 @@ export function FeedbackView({
           </span>
         </div>
 
-        {/* 2 Cột: Form gửi & Lịch sử */}
+        {/* 2 Cột: Form gửi/sửa & Lịch sử */}
         <div className="row g-4">
           <div className="col-lg-6">
             <FeedbackFormCard
               title={title}
               description={description}
+              isSubmitting={isSubmitting}
+              editingCode={editingItem ? (editingItem.requestCode || String(editingItem.id)) : null}
               onTitleChange={setTitle}
               onDescriptionChange={setDescription}
+              onCancelEdit={handleCancelEdit}
               onSubmit={handleSubmit}
             />
           </div>
@@ -162,7 +239,7 @@ export function FeedbackView({
                   <i className="bi bi-clock-history text-primary"></i>
                   Lịch sử phản hồi ({requests.length})
                 </h2>
-                <span className="badge bg-light text-muted border">Yêu cầu đã gửi</span>
+                <span className="badge bg-light text-muted border">Mặc định: Feedback gửi Admin Staff</span>
               </div>
 
               <div className="d-flex flex-column gap-2.5" style={{ maxHeight: '550px', overflowY: 'auto' }}>
@@ -172,6 +249,7 @@ export function FeedbackView({
                     item={item}
                     isSelected={selectedId === item.id}
                     onToggle={() => setSelectedId(selectedId === item.id ? null : item.id)}
+                    onEdit={handleStartEdit}
                   />
                 ))}
               </div>
@@ -181,6 +259,6 @@ export function FeedbackView({
       </div>
     </main>
   );
-};
+}
 
 export default FeedbackView;

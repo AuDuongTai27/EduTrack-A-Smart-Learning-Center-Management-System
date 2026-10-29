@@ -1,6 +1,14 @@
 import React from 'react';
 
-export function DashboardWelcomeBanner() {
+export interface DashboardWelcomeBannerProps {
+  studentName?: string;
+  avatarInitials?: string;
+}
+
+export function DashboardWelcomeBanner({
+  studentName = 'Lê Văn An',
+  avatarInitials = 'VA',
+}: DashboardWelcomeBannerProps) {
   const getFormattedDate = (): string => {
     try {
       const now = new Date();
@@ -18,9 +26,9 @@ export function DashboardWelcomeBanner() {
 
   return (
     <div className="welcome-banner">
-      <div className="banner-avatar">VA</div>
+      <div className="banner-avatar">{avatarInitials}</div>
       <div className="banner-content">
-        <h2 className="banner-title">Chào mừng trở lại, Lê Văn An!</h2>
+        <h2 className="banner-title">Chào mừng trở lại, {studentName}!</h2>
         <p className="banner-date" id="currentDateText">{getFormattedDate()}</p>
       </div>
       <div className="banner-watermark">
@@ -28,6 +36,6 @@ export function DashboardWelcomeBanner() {
       </div>
     </div>
   );
-};
+}
 
 export default DashboardWelcomeBanner;

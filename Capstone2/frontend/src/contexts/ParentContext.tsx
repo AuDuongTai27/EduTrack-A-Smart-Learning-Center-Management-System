@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer, type ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { ChildStudent, PendingLinkRequest } from '../DAL/parentDAL';
-import { parentDAL } from '../DAL/parentDAL';
+import { parentDAL, DEFAULT_PARENT_ID } from '../DAL/parentDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../DAL/learningDAL';
 
 export type { ChildStudent, PendingLinkRequest };
 
@@ -29,7 +30,8 @@ export type ParentAction =
   | { type: 'ADD_CHILD'; payload: ChildStudent }
   | { type: 'ADD_PENDING_REQUEST'; payload: PendingLinkRequest }
   | { type: 'SET_EMPTY_STATE' }
-  | { type: 'RESET_CHILDREN'; payload: ChildStudent[] };
+  | { type: 'RESET_CHILDREN'; payload: ChildStudent[] }
+  | { type: 'UPDATE_CHILD_UNPAID'; payload: { studentId: number; unpaidAmount: number } };
 
 function reducer(state: ParentState, action: ParentAction): ParentState {
   switch (action.type) {
@@ -59,34 +61,46 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
       return {
         ...state,
         childrenList: action.payload,
-        selectedChildId: action.payload.length > 0 ? action.payload[0].id : null,
+        selectedChildId:
+          action.payload.some((c) => c.id === state.selectedChildId)
+            ? state.selectedChildId
+            : action.payload.length > 0
+              ? action.payload[0].id
+              : null,
+      };
+    case 'UPDATE_CHILD_UNPAID':
+      return {
+        ...state,
+        childrenList: state.childrenList.map((child) =>
+          child.id === action.payload.studentId
+            ? { ...child, unpaidAmount: action.payload.unpaidAmount }
+            : child
+        ),
       };
     default:
       return state;
   }
 }
 
-/**
- * Context Type ke thua State & dispatch, dong thoi cung cap cac action helper thuan tien
- */
 export type ParentContextType = ParentState & {
   selectedChild: ChildStudent | null;
   dispatch: React.Dispatch<ParentAction>;
   setSelectedChildId: (id: number | null) => void;
+  updateChildUnpaidAmount: (studentId: number, unpaidAmount: number) => void;
   linkStudentByCode: (
     code: string,
     dob: string,
     phone?: string
-  ) => { success: boolean; message: string; student?: ChildStudent };
+  ) => Promise<{ success: boolean; message: string; student?: ChildStudent }>;
   requestLinkStudent: (
     studentName: string,
     dob: string,
     school: string,
     parentPhone: string,
     note?: string
-  ) => { success: boolean; ticketId: string; message: string };
+  ) => Promise<{ success: boolean; ticketId: string; message: string }>;
   setDemoEmptyState: () => void;
-  resetDemoChildren: () => void;
+  resetDemoChildren: () => Promise<void>;
 };
 
 export const ParentContext = createContext<ParentContextType>({
@@ -94,10 +108,11 @@ export const ParentContext = createContext<ParentContextType>({
   selectedChild: null,
   dispatch: () => {},
   setSelectedChildId: () => {},
-  linkStudentByCode: () => ({ success: false, message: '' }),
-  requestLinkStudent: () => ({ success: false, ticketId: '', message: '' }),
+  updateChildUnpaidAmount: () => {},
+  linkStudentByCode: async () => ({ success: false, message: '' }),
+  requestLinkStudent: async () => ({ success: false, ticketId: '', message: '' }),
   setDemoEmptyState: () => {},
-  resetDemoChildren: () => {},
+  resetDemoChildren: async () => {},
 });
 
 export type ParentProviderProps = {
@@ -107,6 +122,27 @@ export type ParentProviderProps = {
 export function ParentProvider({ children }: ParentProviderProps) {
   const [state, dispatch] = useReducer(reducer, iniState);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadLiveChildrenOverview() {
+      try {
+        const liveChildren = await learningDAL.getParentChildrenOverview(DEFAULT_PARENT_ID);
+        if (isMounted && liveChildren && liveChildren.length > 0) {
+          dispatch({ type: 'RESET_CHILDREN', payload: liveChildren });
+        }
+      } catch (err) {
+        console.warn('[ParentContext] Không thể tải dữ liệu con từ Backend, giữ mock mặc định:', err);
+      }
+    }
+
+    loadLiveChildrenOverview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const selectedChild =
     state.childrenList.find((c) => c.id === state.selectedChildId) || null;
 
@@ -114,112 +150,103 @@ export function ParentProvider({ children }: ParentProviderProps) {
     dispatch({ type: 'SET_SELECTED_CHILD', payload: id });
   };
 
-  const linkStudentByCode = (
-    code: string,
-    dob: string,
-    phone?: string
-  ): { success: boolean; message: string; student?: ChildStudent } => {
-    const trimmedCode = code.trim().toUpperCase();
+  const updateChildUnpaidAmount = (studentId: number, unpaidAmount: number) => {
+    dispatch({
+      type: 'UPDATE_CHILD_UNPAID',
+      payload: { studentId, unpaidAmount },
+    });
+  };
 
-    const existing = state.childrenList.find(
-      (c) => c.code.toUpperCase() === trimmedCode
-    );
-    if (existing) {
-      return {
-        success: false,
-        message: `Học sinh với mã ${trimmedCode} đã có trong danh sách theo dõi của bạn.`,
-      };
-    }
-
-    const newStudent: ChildStudent = {
-      id: Date.now(),
-      code: trimmedCode,
-      name: 'Nguyễn Đăng Khoa',
-      avatar: 'ĐK',
-      grade: 'Lớp 10',
-      school: 'THPT Kim Liên',
-      dob: dob || '10/10/2010',
-      phone: phone || '',
-      classesCount: 2,
-      attendanceRate: 100,
-      averageScore: 8.5,
-      unpaidAmount: 1800000,
-      classes: [
-        {
-          id: 201,
-          name: 'Toán 10 Chuyên Đề Đại Số',
-          subject: 'Toán Học',
-          subjectClass: 'subject-toan',
-          badge: 'Toán',
-          teacher: 'Nguyễn Văn An',
-          teacherInitials: 'NA',
-          schedule: 'Thứ 2 - 5, 18:00 — 19:30',
-          room: 'Phòng P.201',
-          attendedLessons: 8,
-          totalLessons: 8,
-          notes: 'Mới nhập học, hòa nhập lớp nhanh chóng.',
-        },
-        {
-          id: 202,
-          name: 'Tiếng Anh IELTS Foundation',
-          subject: 'Tiếng Anh',
-          subjectClass: 'subject-tieng-anh',
-          badge: 'Tiếng Anh',
-          teacher: 'Lê Hoàng Nam',
-          teacherInitials: 'LN',
-          schedule: 'Thứ 4 - 6, 18:00 — 19:30',
-          room: 'Phòng P.302',
-          attendedLessons: 7,
-          totalLessons: 8,
-          notes: 'Kỹ năng Listening và Reading tiến bộ rõ rệt.',
-        },
-      ],
-    };
-
-    dispatch({ type: 'ADD_CHILD', payload: newStudent });
-
+  const linkStudentByCode = async (
+    _code: string,
+    _dob: string,
+    _phone?: string
+  ): Promise<{ success: boolean; message: string; student?: ChildStudent }> => {
     return {
-      success: true,
-      message: `Liên kết thành công học sinh ${newStudent.name} (${newStudent.code})!`,
-      student: newStudent,
+      success: false,
+      message: 'Phụ huynh không tự liên kết học sinh trực tiếp. Vui lòng gửi phản hồi tới Admin Staff để được hỗ trợ liên kết.',
     };
   };
 
-  const requestLinkStudent = (
+  const requestLinkStudent = async (
     studentName: string,
     dob: string,
     school: string,
     parentPhone: string,
     note?: string
-  ): { success: boolean; ticketId: string; message: string } => {
-    const randomTicketNumber = Math.floor(1000 + Math.random() * 9000);
-    const ticketId = `REQ-${randomTicketNumber}`;
+  ): Promise<{ success: boolean; ticketId: string; message: string }> => {
+    try {
+      const createdFeedback = await learningDAL.createLearnerFeedback(
+        {
+          userId: DEFAULT_PARENT_ID,
+          studentId: selectedChild?.id || DEFAULT_STUDENT_ID,
+          title: `Yêu cầu liên kết thêm hồ sơ học sinh: ${studentName.trim()}`,
+          description: `Phụ huynh đề nghị Giáo vụ đối soát và liên kết hồ sơ học sinh: Họ tên: ${studentName.trim()} | Ngày sinh: ${dob.trim()} | Trường: ${school.trim() || 'Chưa rõ'} | SĐT Phụ huynh: ${parentPhone.trim()}.${note ? ` Ghi chú: ${note.trim()}` : ''}`,
+          priority: 'medium',
+        },
+        'parent',
+        'Lê Văn Nam'
+      );
 
-    const newRequest: PendingLinkRequest = {
-      id: ticketId,
-      studentName: studentName.trim(),
-      dob: dob.trim(),
-      school: school.trim(),
-      parentPhone: parentPhone.trim(),
-      note: note?.trim(),
-      createdAt: new Date().toLocaleDateString('vi-VN'),
-      status: 'pending',
-    };
+      const ticketId = createdFeedback.requestCode || `FB${createdFeedback.id}`;
+      const newRequest: PendingLinkRequest = {
+        id: ticketId,
+        studentName: studentName.trim(),
+        dob: dob.trim(),
+        school: school.trim(),
+        parentPhone: parentPhone.trim(),
+        note: note?.trim(),
+        createdAt: new Date().toLocaleDateString('vi-VN'),
+        status: 'pending',
+      };
 
-    dispatch({ type: 'ADD_PENDING_REQUEST', payload: newRequest });
+      dispatch({ type: 'ADD_PENDING_REQUEST', payload: newRequest });
 
-    return {
-      success: true,
-      ticketId,
-      message: `Đã gửi yêu cầu liên kết hồ sơ cho học sinh ${studentName}. Mã phiếu: #${ticketId}.`,
-    };
+      return {
+        success: true,
+        ticketId,
+        message: `Đã gửi phiếu phản hồi liên kết hồ sơ cho học sinh ${studentName} tới Admin Staff. Mã phiếu: #${ticketId}.`,
+      };
+    } catch (err) {
+      console.warn('[ParentContext] Không kết nối được Backend khi gửi yêu cầu liên kết con:', err);
+      const randomTicketNumber = Math.floor(1000 + Math.random() * 9000);
+      const ticketId = `FB${randomTicketNumber}`;
+
+      const newRequest: PendingLinkRequest = {
+        id: ticketId,
+        studentName: studentName.trim(),
+        dob: dob.trim(),
+        school: school.trim(),
+        parentPhone: parentPhone.trim(),
+        note: note?.trim(),
+        createdAt: new Date().toLocaleDateString('vi-VN'),
+        status: 'pending',
+      };
+
+      dispatch({ type: 'ADD_PENDING_REQUEST', payload: newRequest });
+
+      return {
+        success: true,
+        ticketId,
+        message: `Đã gửi yêu cầu liên kết hồ sơ cho học sinh ${studentName}. Mã phiếu: #${ticketId}.`,
+      };
+    }
   };
 
   const setDemoEmptyState = () => {
     dispatch({ type: 'SET_EMPTY_STATE' });
   };
 
-  const resetDemoChildren = () => {
+  const resetDemoChildren = async () => {
+    try {
+      const liveChildren = await learningDAL.getParentChildrenOverview(DEFAULT_PARENT_ID);
+      if (liveChildren && liveChildren.length > 0) {
+        dispatch({ type: 'RESET_CHILDREN', payload: liveChildren });
+        return;
+      }
+    } catch (err) {
+      console.warn('[ParentContext] Không kết nối được Backend khi tải lại danh sách con, dùng mock:', err);
+    }
     dispatch({ type: 'RESET_CHILDREN', payload: INITIAL_CHILDREN });
   };
 
@@ -230,6 +257,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
         selectedChild,
         dispatch,
         setSelectedChildId,
+        updateChildUnpaidAmount,
         linkStudentByCode,
         requestLinkStudent,
         setDemoEmptyState,

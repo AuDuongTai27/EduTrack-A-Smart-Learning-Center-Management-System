@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   INITIAL_NOTIFICATIONS,
-  mapNotificationDtoToItem,
   type NotificationItem,
 } from '../../components/student/notifications/notificationsData';
 import type { NotifTabType } from '../../components/student/notifications/NotificationsFilterTabs';
@@ -9,7 +8,7 @@ import { NotificationsHeader } from '../../components/student/notifications/Noti
 import { NotificationsFilterTabs } from '../../components/student/notifications/NotificationsFilterTabs';
 import { NotificationsList } from '../../components/student/notifications/NotificationsList';
 import { NotificationsPreferencesModal } from '../../components/student/notifications/NotificationsPreferencesModal';
-import { notificationDAL } from '../../../DAL/notificationDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function StudentNotificationsPage() {
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
@@ -18,17 +17,13 @@ export function StudentNotificationsPage() {
   const [prefsOpen, setPrefsOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    document.title = 'Thông báo học tập – EduTrack';
     let isMounted = true;
 
     async function loadNotifications() {
-      try {
-        const result = await notificationDAL.getAllNotifications();
-        if (isMounted && result.data && result.data.length > 0) {
-          const mapped = result.data.map(mapNotificationDtoToItem);
-          setNotifications(mapped);
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải thông báo học sinh:', err);
+      const items = await learningDAL.getStudentNotifications(DEFAULT_STUDENT_ID);
+      if (isMounted && items.length > 0) {
+        setNotifications(items);
       }
     }
 
@@ -43,16 +38,22 @@ export function StudentNotificationsPage() {
     return notifications.filter((n) => n.unread && !readIds.has(n.id)).length;
   };
 
-  const handleMarkRead = (id: number) => {
+  const handleMarkRead = async (id: number) => {
     setReadIds((prev) => {
       const next = new Set(prev);
       next.add(id);
       return next;
     });
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
+    );
+    await learningDAL.markNotificationRead(id);
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     setReadIds(new Set(notifications.map((n) => n.id)));
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    await learningDAL.markAllNotificationsRead(DEFAULT_STUDENT_ID, DEFAULT_STUDENT_ID);
   };
 
   const filteredNotifications = notifications.filter((n) => {
@@ -97,6 +98,6 @@ export function StudentNotificationsPage() {
       />
     </main>
   );
-};
+}
 
 export default StudentNotificationsPage;

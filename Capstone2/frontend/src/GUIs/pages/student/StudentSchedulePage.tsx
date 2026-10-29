@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { ScheduleHeader } from '../../components/student/schedule/ScheduleHeader';
 import { ScheduleTimetableCard } from '../../components/student/schedule/ScheduleTimetableCard';
 import { ScheduleLegendStrip } from '../../components/student/schedule/ScheduleLegendStrip';
-import { scheduleDAL } from '../../../DAL/scheduleDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import {
   getMonday,
   addDays,
   fmtDayMon,
   SESSIONS,
-  mapClassScheduleDtoToSessionItem,
   type SessionItem,
 } from '../../components/student/schedule/scheduleData';
 
@@ -21,10 +20,9 @@ export function StudentSchedulePage() {
 
     async function loadSchedules() {
       try {
-        const result = await scheduleDAL.getAllClassSchedules();
-        if (isMounted && result.data && result.data.length > 0) {
-          const mapped = result.data.map(mapClassScheduleDtoToSessionItem);
-          setSessions(mapped);
+        const liveSessions = await learningDAL.getStudentSchedule(DEFAULT_STUDENT_ID);
+        if (isMounted && liveSessions && liveSessions.length > 0) {
+          setSessions(liveSessions);
         }
       } catch (err) {
         console.warn('Lỗi khi tải thời khóa biểu học sinh:', err);
@@ -77,6 +75,6 @@ export function StudentSchedulePage() {
       </main>
     </>
   );
-};
+}
 
 export default StudentSchedulePage;

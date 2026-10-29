@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ClassesGridSection } from '../../components/student/classes/ClassesGridSection';
-import { classDAL } from '../../../DAL/classDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import {
   MOCK_ENROLLED_CLASSES,
-  mapClassDtoToEnrolledItem,
   type EnrolledClassItem,
 } from '../../components/student/classes/classesData';
 
@@ -17,13 +16,12 @@ export function StudentClassesPage() {
     async function loadClasses() {
       try {
         setLoading(true);
-        const result = await classDAL.getAllClasses();
-        if (isMounted && result.data && result.data.length > 0) {
-          const mappedItems = result.data.map(mapClassDtoToEnrolledItem);
-          setClasses(mappedItems);
+        const dashboardData = await learningDAL.getStudentDashboard(DEFAULT_STUDENT_ID);
+        if (isMounted && dashboardData && dashboardData.classes) {
+          setClasses(dashboardData.classes);
         }
       } catch (err) {
-        console.warn('Lỗi khi tải danh sách lớp học:', err);
+        console.warn('Lỗi khi tải danh sách lớp học của học sinh:', err);
         if (isMounted) {
           setClasses(MOCK_ENROLLED_CLASSES);
         }
@@ -55,7 +53,6 @@ export function StudentClassesPage() {
       </div>
     </main>
   );
-};
+}
 
 export default StudentClassesPage;
-

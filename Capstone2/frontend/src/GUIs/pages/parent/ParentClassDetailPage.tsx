@@ -2,6 +2,38 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
+import { learningDAL } from '../../../DAL/learningDAL';
+import type { ClassSessionAttendanceItemApiDto } from '../../../api/learningApi';
+
+const DEFAULT_SESSIONS: ClassSessionAttendanceItemApiDto[] = [
+  {
+    sessionId: 1,
+    sessionNo: 1,
+    date: 'Thứ 2, 01/09/2026',
+    topic: 'Buổi 1: Giới thiệu đề cương & Ôn tập kiến thức nền tảng',
+    status: 'present',
+    statusLabel: 'Có mặt',
+    notes: 'Đúng giờ, hăng hái xây dựng bài.',
+  },
+  {
+    sessionId: 2,
+    sessionNo: 2,
+    date: 'Thứ 4, 03/09/2026',
+    topic: 'Buổi 2: Chuyên đề nâng cao phần 1 & Bài tập ứng dụng',
+    status: 'present',
+    statusLabel: 'Có mặt',
+    notes: 'Làm bài nhanh, hiểu sâu phương pháp.',
+  },
+  {
+    sessionId: 3,
+    sessionNo: 3,
+    date: 'Thứ 6, 05/09/2026',
+    topic: 'Buổi 3: Luyện tập kỹ năng giải nhanh dạng đề trọng tâm',
+    status: 'present',
+    statusLabel: 'Có mặt',
+    notes: 'Tham gia thảo luận nhóm tích cực.',
+  },
+];
 
 export function ParentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
@@ -13,18 +45,42 @@ export function ParentClassDetailPage() {
     selectedChild?.classes[0];
 
   const [cls, setCls] = useState<ChildClassItem | undefined>(fallbackCls);
+  const [sessions, setSessions] = useState<ClassSessionAttendanceItemApiDto[]>(DEFAULT_SESSIONS);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadDetail() {
+      const studentId = selectedChild?.id || 6;
       try {
+        const detailVm = await learningDAL.getStudentClassDetail(classId, studentId);
+        if (isMounted && detailVm) {
+          setCls({
+            id: detailVm.cls.id,
+            name: detailVm.cls.name,
+            subject: detailVm.cls.subject,
+            subjectClass: detailVm.cls.subjectClass,
+            badge: detailVm.cls.subject,
+            teacher: detailVm.cls.teacher,
+            teacherInitials: detailVm.cls.teacherInitials,
+            schedule: detailVm.cls.schedule,
+            room: detailVm.cls.room,
+            attendedLessons: detailVm.attendedLessons,
+            totalLessons: detailVm.totalLessons,
+            notes: detailVm.latestTeacherNote,
+          });
+          if (detailVm.sessions && detailVm.sessions.length > 0) {
+            setSessions(detailVm.sessions);
+          }
+          return;
+        }
+
         const item = await parentDAL.getChildClassById(classId);
         if (isMounted && item) {
           setCls(item);
         }
       } catch (err) {
-        console.warn('Lỗi khi tải chi tiết lớp học:', err);
+        console.warn('Lỗi khi tải chi tiết lớp học của con:', err);
       }
     }
 
@@ -33,7 +89,7 @@ export function ParentClassDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [classId]);
+  }, [classId, selectedChild?.id]);
 
   useEffect(() => {
     if (cls) {
@@ -53,58 +109,6 @@ export function ParentClassDetailPage() {
       </main>
     );
   }
-
-  // Danh sách các buổi học mô phỏng theo dõi điểm danh của con
-  const sessions = [
-    {
-      sessionNo: 1,
-      date: 'Thứ 2, 01/09/2026',
-      topic: 'Buổi 1: Giới thiệu đề cương & Ôn tập kiến thức nền tảng',
-      status: 'present',
-      statusLabel: 'Có mặt',
-      notes: 'Đúng giờ, hăng hái xây dựng bài.',
-    },
-    {
-      sessionNo: 2,
-      date: 'Thứ 4, 03/09/2026',
-      topic: 'Buổi 2: Chuyên đề nâng cao phần 1 & Bài tập ứng dụng',
-      status: 'present',
-      statusLabel: 'Có mặt',
-      notes: 'Làm bài nhanh, hiểu sâu phương pháp.',
-    },
-    {
-      sessionNo: 3,
-      date: 'Thứ 6, 05/09/2026',
-      topic: 'Buổi 3: Luyện tập kỹ năng giải nhanh dạng đề trọng tâm',
-      status: 'present',
-      statusLabel: 'Có mặt',
-      notes: 'Tham gia thảo luận nhóm tích cực.',
-    },
-    {
-      sessionNo: 4,
-      date: 'Thứ 2, 08/09/2026',
-      topic: 'Buổi 4: Kiểm tra định kỳ 15 phút & Phân tích lỗi sai',
-      status: 'present',
-      statusLabel: 'Có mặt',
-      notes: 'Đạt điểm 9.0 bài kiểm tra ngắn.',
-    },
-    {
-      sessionNo: 5,
-      date: 'Thứ 4, 10/09/2026',
-      topic: 'Buổi 5: Chuyên đề nâng cao phần 2 & Bài toán thực tế',
-      status: 'excused',
-      statusLabel: 'Nghỉ có phép',
-      notes: 'Phụ huynh đã xin phép nghỉ gia đình có việc.',
-    },
-    {
-      sessionNo: 6,
-      date: 'Thứ 6, 12/09/2026',
-      topic: 'Buổi 6: Thực hành tổng hợp kiến thức chương',
-      status: 'present',
-      statusLabel: 'Có mặt',
-      notes: 'Đã hoàn thành bài bù buổi trước.',
-    },
-  ];
 
   return (
     <main className="main-content">
@@ -166,7 +170,7 @@ export function ParentClassDetailPage() {
               <div className="vr bg-white opacity-50"></div>
               <div className="text-center">
                 <div className="h4 fw-bold text-warning mb-0">
-                  {Math.round((cls.attendedLessons / cls.totalLessons) * 100)}%
+                  {Math.round((cls.attendedLessons / Math.max(1, cls.totalLessons)) * 100)}%
                 </div>
                 <div className="small opacity-80">Chuyên cần</div>
               </div>
@@ -283,6 +287,10 @@ export function ParentClassDetailPage() {
                         <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
                           <i className="bi bi-check-circle-fill me-1"></i> {ses.statusLabel}
                         </span>
+                      ) : ses.status === 'scheduled' ? (
+                        <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1">
+                          <i className="bi bi-clock-history me-1"></i> {ses.statusLabel}
+                        </span>
                       ) : (
                         <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
                           <i className="bi bi-exclamation-circle-fill me-1"></i> {ses.statusLabel}
@@ -307,6 +315,6 @@ export function ParentClassDetailPage() {
       </div>
     </main>
   );
-};
+}
 
 export default ParentClassDetailPage;
