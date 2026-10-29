@@ -42,7 +42,7 @@ export function LinkStudentModal({
   if (!isOpen) return null;
 
   // Xử lý gửi Solution 1
-  const handleCodeSubmit = (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentCode.trim()) {
       setAlert({
@@ -52,7 +52,7 @@ export function LinkStudentModal({
       return;
     }
 
-    const result = linkStudentByCode(studentCode, studentDob, parentPhone);
+    const result = await linkStudentByCode(studentCode, studentDob, parentPhone);
     if (result.success) {
       setAlert({
         type: 'success',
@@ -73,7 +73,7 @@ export function LinkStudentModal({
   };
 
   // Xử lý gửi Solution 2
-  const handleRequestSubmit = (e: React.FormEvent) => {
+  const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reqFullName.trim() || !reqDob.trim()) {
       setAlert({
@@ -83,7 +83,7 @@ export function LinkStudentModal({
       return;
     }
 
-    const result = requestLinkStudent(
+    const result = await requestLinkStudent(
       reqFullName,
       reqDob,
       reqSchool,

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { StudentSubmissionDetailApiDto } from '../../../../api/learningApi';
+import type { StudentSubmissionDetailApiDto } from '../../../../../api/learningApi';
 
 export interface SubmittedFileCardProps {
   fileName: string;

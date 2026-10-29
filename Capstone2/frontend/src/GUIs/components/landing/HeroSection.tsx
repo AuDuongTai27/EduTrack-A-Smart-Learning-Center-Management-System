@@ -32,6 +32,12 @@ export function HeroSection({
       <img src="/assets/img/hero-bg.jpg" alt={centerName} data-aos="fade-in" className="aos-init aos-animate" />
 
       <div className="container">
+        <div data-aos="fade-up" className="aos-init aos-animate mb-3">
+          <span className="badge bg-success bg-opacity-25 text-white border border-success border-opacity-50 px-3 py-2 rounded-pill fw-medium">
+            <i className="bi bi-stars me-1 text-warning"></i> Chuyển đổi số giáo dục &amp; Ứng dụng AI thông minh
+          </span>
+        </div>
+
         <h2 data-aos="fade-up" data-aos-delay="100" className="aos-init aos-animate">
           {centerName}<br />
           <span className="fs-3 fw-normal opacity-75">{slogan}</span>

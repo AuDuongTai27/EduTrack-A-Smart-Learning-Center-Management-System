@@ -13,7 +13,7 @@ const DEFAULT_TRAINERS: UserDto[] = [
     email: 'viet.hoang@edutrack.edu.vn',
     phone: '0923456789',
     avatarUrl: '/assets/img/trainer-1.jpg',
-    specialty: 'Chuyên gia Toán Học & Luyện thi',
+    specialty: 'Chuyên gia Toán Học & Luyện thi THPT',
     status: 'active',
     createdAt: '2023-06-01T00:00:00Z',
     roles: ['teacher'],
@@ -59,14 +59,19 @@ export function TrainersSection({ trainers }: TrainersSectionProps) {
   const displayTrainers = (teacherList.length > 0 ? teacherList : DEFAULT_TRAINERS).slice(0, 3);
 
   return (
-    <section id="trainers-index" className="section trainers-index">
-      <div className="container section-title aos-init aos-animate" data-aos="fade-up">
-        <h2>Đội ngũ Giảng viên</h2>
-        <p>Các thầy cô giàu kinh nghiệm tại EduTrack</p>
+    <section id="trainers-index" className="section trainers-index light-background py-5">
+      <div className="container section-title aos-init aos-animate text-center mb-5" data-aos="fade-up">
+        <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fw-medium mb-2">
+          Đội ngũ giảng viên
+        </span>
+        <h2 className="fw-bold fs-2 text-dark">Thầy cô tâm huyết & giàu kinh nghiệm</h2>
+        <p className="text-muted mx-auto" style={{ maxWidth: '600px' }}>
+          Đội ngũ giáo viên và trợ giảng chuyên môn cao, đồng hành cùng sự tiến bộ của từng học viên.
+        </p>
       </div>
 
       <div className="container">
-        <div className="row gy-4">
+        <div className="row g-4">
           {displayTrainers.map((trainer, idx) => (
             <div
               key={trainer.userId || idx}
@@ -74,28 +79,38 @@ export function TrainersSection({ trainers }: TrainersSectionProps) {
               data-aos="fade-up"
               data-aos-delay={(idx + 1) * 100}
             >
-              <div className="member shadow-sm rounded-4 overflow-hidden w-100 bg-white">
-                <img
-                  src={trainer.avatarUrl || fallbackImages[idx % fallbackImages.length]}
-                  className="img-fluid w-100"
-                  style={{ height: '260px', objectFit: 'cover' }}
-                  alt={trainer.fullName}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = fallbackImages[idx % fallbackImages.length];
-                  }}
-                />
-                <div className="member-content p-4">
-                  <h4 className="fw-bold mb-1">{trainer.fullName}</h4>
-                  <span className="text-primary fw-medium small d-block mb-2">
-                    {trainer.specialty || 'Giảng viên EduTrack'}
-                  </span>
-                  <p className="text-muted small mb-3">
-                    {trainer.email ? `Liên hệ: ${trainer.email}` : 'Giảng viên giàu kinh nghiệm sư phạm và truyền cảm hứng.'}
+              <div className="member shadow-sm rounded-4 overflow-hidden w-100 bg-white border border-light d-flex flex-column">
+                <div className="position-relative overflow-hidden" style={{ height: '280px' }}>
+                  <img
+                    src={trainer.avatarUrl || fallbackImages[idx % fallbackImages.length]}
+                    className="img-fluid w-100 h-100"
+                    style={{ objectFit: 'cover' }}
+                    alt={trainer.fullName}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = fallbackImages[idx % fallbackImages.length];
+                    }}
+                  />
+                </div>
+                <div className="member-content p-4 d-flex flex-column flex-grow-1">
+                  <h4 className="fw-bold mb-1 text-dark fs-5">{trainer.fullName}</h4>
+                  <div className="mb-2">
+                    <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 rounded-pill small fw-medium">
+                      {trainer.specialty || 'Giảng viên chuyên trách'}
+                    </span>
+                  </div>
+                  <p className="text-muted small mb-4 flex-grow-1">
+                    {trainer.email ? `Email: ${trainer.email}` : 'Giảng viên giàu kinh nghiệm sư phạm và truyền cảm hứng.'}
                   </p>
-                  <div className="social d-flex gap-2">
-                    <a href="#trainers" className="btn btn-sm btn-outline-light text-muted border rounded-circle"><i className="bi bi-envelope"></i></a>
-                    <a href="#trainers" className="btn btn-sm btn-outline-light text-muted border rounded-circle"><i className="bi bi-facebook"></i></a>
-                    <a href="#trainers" className="btn btn-sm btn-outline-light text-muted border rounded-circle"><i className="bi bi-linkedin"></i></a>
+                  <div className="social d-flex gap-2 pt-3 border-top mt-auto">
+                    <a href={`mailto:${trainer.email || 'info@edutrack.edu.vn'}`} className="btn btn-sm btn-outline-secondary rounded-circle" title="Gửi email">
+                      <i className="bi bi-envelope"></i>
+                    </a>
+                    <a href="#trainers-index" className="btn btn-sm btn-outline-secondary rounded-circle" title="Facebook">
+                      <i className="bi bi-facebook"></i>
+                    </a>
+                    <a href="#trainers-index" className="btn btn-sm btn-outline-secondary rounded-circle" title="LinkedIn">
+                      <i className="bi bi-linkedin"></i>
+                    </a>
                   </div>
                 </div>
               </div>

@@ -114,7 +114,7 @@ function mapLearnerDtoToParentItem(dto: LearnerNotificationItemApiDto): ParentNo
 
 export function ParentNotificationsPage() {
   const { selectedChild } = useParent();
-  const targetStudentId = selectedChild?.studentId || DEFAULT_STUDENT_ID;
+  const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
 
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
   const [notifications, setNotifications] = useState<ParentNotificationItem[]>(INITIAL_PARENT_NOTIFS);

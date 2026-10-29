@@ -1,5 +1,5 @@
 import React from 'react';
-import { DASHBOARD_STATS, type StatCardItem } from './dashboardData';
+import { DASHBOARD_STATS, type DashboardStatItem } from './dashboardData';
 
 export interface DashboardStatsGridProps {
   enrolledClassesCount?: number;
@@ -10,7 +10,7 @@ export function DashboardStatsGrid({
   enrolledClassesCount,
   pendingAssignmentsCount,
 }: DashboardStatsGridProps) {
-  const stats: StatCardItem[] = DASHBOARD_STATS.map((stat) => {
+  const stats: DashboardStatItem[] = DASHBOARD_STATS.map((stat) => {
     if (stat.id === 'classes' && typeof enrolledClassesCount === 'number') {
       return { ...stat, value: enrolledClassesCount };
     }

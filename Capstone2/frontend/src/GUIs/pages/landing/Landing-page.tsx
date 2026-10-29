@@ -95,16 +95,16 @@ export function LandingPage() {
         onOpenLogin={handleOpenLogin}
       />
 
-      {/* 2. About Section */}
-      <AboutSection settings={settings} />
-
-      {/* 3. Counts Section */}
+      {/* 2. Counts Section (Chỉ số quy mô trung tâm nổi bật) */}
       <CountsSection
         studentCount={totalStudents}
         courseCount={totalCourses}
         eventCount={scheduleCount}
         trainerCount={totalTrainers}
       />
+
+      {/* 3. About Section */}
+      <AboutSection settings={settings} />
 
       {/* 4. Features Section (Môn học) */}
       <FeaturesSection subjects={subjects} />
