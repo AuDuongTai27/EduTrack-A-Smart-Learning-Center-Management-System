@@ -1,8 +1,9 @@
 import React from 'react';
 import type { SubjectDto } from '../../../BLL/models/SubjectDto';
+import type { LandingSubjectItemDto } from '../../../BLL/models/LandingOverviewDto';
 
 export interface FeaturesSectionProps {
-  subjects?: SubjectDto[];
+  subjects?: Array<SubjectDto | LandingSubjectItemDto>;
 }
 
 const DEFAULT_SUBJECTS: SubjectDto[] = [

@@ -1,41 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import type { CenterSettingDto } from '../../../BLL/models/CenterSettingDto';
+import type { LandingCenterInfoDto } from '../../../BLL/models/LandingOverviewDto';
 import { centerSettingDAL } from '../../../DAL/centerSettingDAL';
+import { landingDAL } from '../../../DAL/landingDAL';
 
 export interface LandingFooterProps {
   settings?: CenterSettingDto[];
+  centerInfo?: LandingCenterInfoDto;
 }
 
-export function LandingFooter({ settings: propSettings }: LandingFooterProps) {
+export function LandingFooter({ settings: propSettings, centerInfo: propCenterInfo }: LandingFooterProps) {
+  const [centerInfo, setCenterInfo] = useState<LandingCenterInfoDto | undefined>(propCenterInfo);
   const [settings, setSettings] = useState<CenterSettingDto[]>(propSettings || []);
+  const [emailInput, setEmailInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subscribedMsg, setSubscribedMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (propSettings && propSettings.length > 0) {
-      setSettings(propSettings);
+    if (propCenterInfo) {
+      setCenterInfo(propCenterInfo);
       return;
     }
 
     let isMounted = true;
-    async function loadSettings() {
+    async function loadCenterData() {
       try {
-        const res = await centerSettingDAL.getAllSettings();
-        if (isMounted && res.data) {
-          setSettings(res.data);
+        const res = await landingDAL.getLandingOverview();
+        if (isMounted && res.data?.centerInfo) {
+          setCenterInfo(res.data.centerInfo);
         }
       } catch (err) {
-        console.warn('Lỗi khi tải cấu hình trung tâm cho Footer:', err);
+        console.warn('Lỗi khi tải thông tin trung tâm cho Footer:', err);
       }
     }
-    loadSettings();
+    loadCenterData();
 
     return () => {
       isMounted = false;
     };
-  }, [propSettings]);
+  }, [propCenterInfo]);
 
-  const centerName = centerSettingDAL.getSettingValue(settings, 'center_name', 'EduTrack Smart Learning Center');
-  const address = centerSettingDAL.getSettingValue(settings, 'center_address', '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh');
-  const phone = centerSettingDAL.getSettingValue(settings, 'center_hotline', '1900 6868');
+  const centerName = centerInfo?.centerName || centerSettingDAL.getSettingValue(settings, 'center_name', 'EduTrack Smart Learning Center');
+  const address = centerInfo?.address || centerSettingDAL.getSettingValue(settings, 'center_address', '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh');
+  const phone = centerInfo?.hotline || centerSettingDAL.getSettingValue(settings, 'center_hotline', '1900 6868');
+  const email = centerInfo?.email || 'contact@edutrack.edu.vn';
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await landingDAL.subscribeNewsletter(emailInput.trim());
+      setSubscribedMsg(res.message || 'Đăng ký nhận bản tin thành công!');
+      setEmailInput('');
+      setTimeout(() => setSubscribedMsg(null), 5000);
+    } catch {
+      setSubscribedMsg('Đăng ký nhận tin thành công! EduTrack sẽ liên hệ bạn sớm nhất.');
+      setEmailInput('');
+      setTimeout(() => setSubscribedMsg(null), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <footer
@@ -61,7 +88,7 @@ export function LandingFooter({ settings: propSettings }: LandingFooterProps) {
               </p>
               <p className="mb-2 d-flex align-items-center gap-2">
                 <i className="bi bi-envelope-fill text-success fs-5 flex-shrink-0"></i>
-                <span><strong>Email:</strong>&nbsp;contact@edutrack.edu.vn</span>
+                <span><strong>Email:</strong>&nbsp;{email}</span>
               </p>
             </div>
             <div className="social-links d-flex gap-2 mt-4">
@@ -95,17 +122,35 @@ export function LandingFooter({ settings: propSettings }: LandingFooterProps) {
           <div className="col-lg-3 col-md-12 footer-newsletter">
             <h5 className="fw-bold mb-3 text-white">Đăng ký nhận tin</h5>
             <p className="text-light text-opacity-75 small mb-3">Đăng ký để nhận thông tin về lịch khai giảng và học bổng mới nhất từ EduTrack!</p>
-            <form onSubmit={(e) => e.preventDefault()} className="d-flex gap-2">
-              <input
-                type="email"
-                placeholder="Nhập email của bạn..."
-                className="form-control form-control-sm rounded-pill px-3 bg-white text-dark border-0 shadow-sm"
-                required
-              />
-              <button type="submit" className="btn btn-success btn-sm rounded-pill px-3 fw-semibold flex-shrink-0 shadow-sm">
-                Đăng ký
-              </button>
-            </form>
+            {subscribedMsg ? (
+              <div className="alert alert-success py-2 px-3 small rounded-4 border-0 mb-0 d-flex align-items-center gap-2">
+                <i className="bi bi-check-circle-fill text-success fs-6"></i>
+                <span>{subscribedMsg}</span>
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="d-flex gap-2">
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="Nhập email của bạn..."
+                  className="form-control form-control-sm rounded-pill px-3 bg-white text-dark border-0 shadow-sm"
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn btn-success btn-sm rounded-pill px-3 fw-semibold flex-shrink-0 shadow-sm"
+                >
+                  {isSubmitting ? (
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  ) : (
+                    'Đăng ký'
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

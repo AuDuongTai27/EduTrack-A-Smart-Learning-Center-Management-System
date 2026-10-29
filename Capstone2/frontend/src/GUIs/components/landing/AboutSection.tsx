@@ -1,16 +1,18 @@
 import React from 'react';
 import type { CenterSettingDto } from '../../../BLL/models/CenterSettingDto';
+import type { LandingCenterInfoDto } from '../../../BLL/models/LandingOverviewDto';
 import { centerSettingDAL } from '../../../DAL/centerSettingDAL';
 
 export interface AboutSectionProps {
   settings?: CenterSettingDto[];
+  centerInfo?: LandingCenterInfoDto;
 }
 
-export function AboutSection({ settings = [] }: AboutSectionProps) {
-  const centerName = centerSettingDAL.getSettingValue(settings, 'center_name', 'EduTrack Smart Learning Center');
-  const centerAddress = centerSettingDAL.getSettingValue(settings, 'center_address', '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh');
-  const hotline = centerSettingDAL.getSettingValue(settings, 'center_hotline', '1900 6868');
-  const academicYear = centerSettingDAL.getSettingValue(settings, 'academic_year', '2026 - 2027');
+export function AboutSection({ settings = [], centerInfo }: AboutSectionProps) {
+  const centerName = centerInfo?.centerName || centerSettingDAL.getSettingValue(settings, 'center_name', 'EduTrack Smart Learning Center');
+  const centerAddress = centerInfo?.address || centerSettingDAL.getSettingValue(settings, 'center_address', '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh');
+  const hotline = centerInfo?.hotline || centerSettingDAL.getSettingValue(settings, 'center_hotline', '1900 6868');
+  const academicYear = centerInfo?.academicYear || centerSettingDAL.getSettingValue(settings, 'academic_year', '2026 - 2027');
 
   const handleScrollToCourses = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();

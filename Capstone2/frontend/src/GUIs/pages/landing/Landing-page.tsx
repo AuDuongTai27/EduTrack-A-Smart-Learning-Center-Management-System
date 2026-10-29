@@ -8,17 +8,8 @@ import { CoursesSection } from '../../components/landing/CoursesSection';
 import { TrainersSection } from '../../components/landing/TrainersSection';
 
 // Tầng DAL điều phối dữ liệu
-import { userDAL } from '../../../DAL/userDAL';
-import { classDAL } from '../../../DAL/classDAL';
-import { scheduleDAL } from '../../../DAL/scheduleDAL';
-import { subjectDAL } from '../../../DAL/subjectDAL';
-import { centerSettingDAL } from '../../../DAL/centerSettingDAL';
-
-// DTOs
-import type { UserDto } from '../../../BLL/models/UserDto';
-import type { ClassDto } from '../../../BLL/models/ClassDto';
-import type { SubjectDto } from '../../../BLL/models/SubjectDto';
-import type { CenterSettingDto } from '../../../BLL/models/CenterSettingDto';
+import { landingDAL } from '../../../DAL/landingDAL';
+import type { LandingOverviewDto } from '../../../BLL/models/LandingOverviewDto';
 
 interface LandingOutletContext {
   onOpenLogin?: () => void;
@@ -28,31 +19,16 @@ export function LandingPage() {
   const context = useOutletContext<LandingOutletContext>();
   const handleOpenLogin = context?.onOpenLogin;
 
-  // Trạng thái dữ liệu động cho toàn trang Landing
-  const [users, setUsers] = useState<UserDto[]>([]);
-  const [classes, setClasses] = useState<ClassDto[]>([]);
-  const [subjects, setSubjects] = useState<SubjectDto[]>([]);
-  const [settings, setSettings] = useState<CenterSettingDto[]>([]);
-  const [scheduleCount, setScheduleCount] = useState<number>(42);
+  const [overview, setOverview] = useState<LandingOverviewDto | null>(null);
+
   useEffect(() => {
     let isMounted = true;
 
     async function loadLandingData() {
       try {
-        const [usersRes, classesRes, schedulesRes, subjectsRes, settingsRes] = await Promise.all([
-          userDAL.getAllUsers(),
-          classDAL.getAllClasses(),
-          scheduleDAL.getAllClassSchedules(),
-          subjectDAL.getAllSubjects(),
-          centerSettingDAL.getAllSettings(),
-        ]);
-
-        if (isMounted) {
-          if (usersRes.data) setUsers(usersRes.data);
-          if (classesRes.data) setClasses(classesRes.data);
-          if (subjectsRes.data) setSubjects(subjectsRes.data);
-          if (settingsRes.data) setSettings(settingsRes.data);
-          if (schedulesRes.data) setScheduleCount(schedulesRes.data.length || 42);
+        const res = await landingDAL.getLandingOverview();
+        if (isMounted && res.data) {
+          setOverview(res.data);
         }
       } catch (err) {
         console.warn('Lỗi khi tải dữ liệu trang Landing:', err);
@@ -66,54 +42,40 @@ export function LandingPage() {
     };
   }, []);
 
-  // Tính toán số liệu thống kê (Counts)
-  const studentUsers = users.filter((u) =>
-    u.roles?.some((r) => r.toLowerCase().includes('student'))
-  );
-  // Nếu số học sinh ít (dữ liệu mẫu), cộng base 1200 để hiển thị số lượng quy mô trung tâm đẹp mắt
-  const totalStudents = studentUsers.length > 0 ? (1230 + studentUsers.length) : 1232;
-
-  const trainerUsers = users.filter((u) =>
-    u.roles?.some((r) => r.toLowerCase().includes('teacher') || r.toLowerCase().includes('assistant')) ||
-    Boolean(u.specialty)
-  );
-  const totalTrainers = trainerUsers.length > 0 ? (20 + trainerUsers.length) : 24;
-  const totalCourses = classes.length > 0 ? (60 + classes.length) : 64;
-
-  const centerName = centerSettingDAL.getSettingValue(
-    settings,
-    'center_name',
-    'EduTrack Smart Learning Center'
-  );
+  const centerInfo = overview?.centerInfo;
+  const stats = overview?.stats;
+  const subjects = overview?.subjects || [];
+  const courses = overview?.courses || [];
+  const trainers = overview?.trainers || [];
 
   return (
     <main className="main">
       {/* 1. Hero Section */}
       <HeroSection
-        centerName={centerName}
-        slogan="Hệ Thống Quản Lý Trung Tâm Đào Tạo Thông Minh"
+        centerName={centerInfo?.centerName}
+        slogan={centerInfo?.slogan}
         onOpenLogin={handleOpenLogin}
       />
 
-      {/* 2. Counts Section (Chỉ số quy mô trung tâm nổi bật) */}
+      {/* 2. Counts Section (Chỉ số quy mô trung tâm thực tế từ Database) */}
       <CountsSection
-        studentCount={totalStudents}
-        courseCount={totalCourses}
-        eventCount={scheduleCount}
-        trainerCount={totalTrainers}
+        studentCount={stats?.totalStudents}
+        courseCount={stats?.totalCourses}
+        eventCount={stats?.totalSchedules}
+        trainerCount={stats?.totalTrainers}
       />
 
       {/* 3. About Section */}
-      <AboutSection settings={settings} />
+      <AboutSection centerInfo={centerInfo} />
 
       {/* 4. Features Section (Môn học) */}
       <FeaturesSection subjects={subjects} />
 
       {/* 5. Courses Section (Khóa học/Lớp học) */}
-      <CoursesSection courses={classes} />
+      <CoursesSection courses={courses} />
 
       {/* 6. Trainers Section (Giảng viên) */}
-      <TrainersSection trainers={trainerUsers.length > 0 ? trainerUsers : users} />
+      <TrainersSection trainers={trainers} />
     </main>
   );
 }

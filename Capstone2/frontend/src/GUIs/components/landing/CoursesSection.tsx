@@ -1,42 +1,43 @@
 import React from 'react';
 import type { ClassDto } from '../../../BLL/models/ClassDto';
+import type { LandingCourseItemDto } from '../../../BLL/models/LandingOverviewDto';
 
 export interface CoursesSectionProps {
-  courses?: ClassDto[];
+  courses?: Array<ClassDto | LandingCourseItemDto>;
 }
 
 const DEFAULT_COURSES = [
   {
     classId: 1,
-    className: 'Website Design & Development',
-    subjectName: 'Tin học & Lập trình',
-    tuitionFee: 2500000,
-    room: 'Lab 201',
+    className: 'Class 9 - Advanced Mathematics',
+    subjectName: 'Toán học nâng cao',
+    tuitionFee: 1500000,
+    room: 'Room 201',
     trainerName: 'ThS. Hoàng Quốc Việt',
-    students: 25,
+    students: 28,
     likes: 65,
     image: '/assets/img/course-1.webp',
   },
   {
     classId: 2,
-    className: 'Toán Học 12 Chuyên Sâu',
-    subjectName: 'Toán học',
-    tuitionFee: 3200000,
-    room: 'Phòng 302',
-    trainerName: 'Cô Lê Thị Hương',
-    students: 30,
-    likes: 80,
+    className: 'Class 9 - Intensive Physics',
+    subjectName: 'Vật lý ứng dụng & Luyện thi',
+    tuitionFee: 1400000,
+    room: 'Room 202',
+    trainerName: 'ThS. Huỳnh Khánh Duy',
+    students: 24,
+    likes: 58,
     image: '/assets/img/course-2.webp',
   },
   {
     classId: 3,
-    className: 'Vật Lý Luyện Thi THPT',
-    subjectName: 'Vật lý',
-    tuitionFee: 2800000,
-    room: 'Phòng 104',
-    trainerName: 'Thầy Trần Văn Nam',
-    students: 22,
-    likes: 54,
+    className: 'Class 8 - English Foundation',
+    subjectName: 'Tiếng Anh IELTS Foundation',
+    tuitionFee: 1800000,
+    room: 'Lab 101',
+    trainerName: 'Thầy Phạm Đức Minh',
+    students: 20,
+    likes: 72,
     image: '/assets/img/course-3.webp',
   },
 ];
@@ -54,16 +55,16 @@ export function CoursesSection({ courses }: CoursesSectionProps) {
   };
 
   const displayList = (courses && courses.length > 0)
-    ? courses.slice(0, 6).map((cls, idx) => ({
+    ? courses.slice(0, 6).map((cls: any, idx) => ({
         classId: cls.classId,
         className: cls.className,
         subjectName: cls.subjectName || 'Khóa học chất lượng cao',
         tuitionFee: cls.tuitionFee,
         room: cls.room || 'Phòng học chuẩn quốc tế',
-        trainerName: idx % 2 === 0 ? 'ThS. Hoàng Quốc Việt' : 'Cô Lê Thị Hương',
-        students: 20 + ((cls.classId * 7) % 15),
-        likes: 40 + ((cls.classId * 11) % 50),
-        image: courseImages[idx % courseImages.length],
+        trainerName: cls.teacherName || cls.trainerName || (idx % 2 === 0 ? 'ThS. Hoàng Quốc Việt' : 'ThS. Huỳnh Khánh Duy'),
+        students: cls.studentsCount || cls.students || 20,
+        likes: cls.likesCount || cls.likes || (45 + ((cls.classId * 7) % 30)),
+        image: cls.imageUrl || courseImages[idx % courseImages.length],
       }))
     : DEFAULT_COURSES;
 
