@@ -3,7 +3,6 @@ import { useOutletContext } from 'react-router-dom';
 import { HeroSection } from '../../components/landing/HeroSection';
 import { AboutSection } from '../../components/landing/AboutSection';
 import { CountsSection } from '../../components/landing/CountsSection';
-import { WhyUsSection } from '../../components/landing/WhyUsSection';
 import { FeaturesSection } from '../../components/landing/FeaturesSection';
 import { CoursesSection } from '../../components/landing/CoursesSection';
 import { TrainersSection } from '../../components/landing/TrainersSection';
@@ -107,16 +106,13 @@ export function LandingPage() {
         trainerCount={totalTrainers}
       />
 
-      {/* 4. Why Us Section */}
-      <WhyUsSection />
-
-      {/* 5. Features Section (Môn học) */}
+      {/* 4. Features Section (Môn học) */}
       <FeaturesSection subjects={subjects} />
 
-      {/* 6. Courses Section (Khóa học/Lớp học) */}
+      {/* 5. Courses Section (Khóa học/Lớp học) */}
       <CoursesSection courses={classes} />
 
-      {/* 7. Trainers Section (Giảng viên) */}
+      {/* 6. Trainers Section (Giảng viên) */}
       <TrainersSection trainers={trainerUsers.length > 0 ? trainerUsers : users} />
     </main>
   );
