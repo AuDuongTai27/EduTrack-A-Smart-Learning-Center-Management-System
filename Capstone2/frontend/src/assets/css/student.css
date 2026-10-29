@@ -3925,3 +3925,26 @@
 }
 
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   UNIFIED STUDENT PAGE HEADER
+═══════════════════════════════════════════════════════════════ */
+.student-page-header-unified {
+  margin-bottom: 24px;
+}
+
+.student-page-header-unified .student-unified-page-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--et-dark);
+  letter-spacing: -0.02em;
+}
+
+.student-page-header-unified .hover-primary-link:hover {
+  color: var(--et-primary) !important;
+}
+
+.student-header-breadcrumbs ol li {
+  line-height: 1.2;
+}

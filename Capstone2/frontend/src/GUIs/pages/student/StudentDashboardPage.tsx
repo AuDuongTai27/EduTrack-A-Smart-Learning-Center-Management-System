@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
 import { DashboardWelcomeBanner } from '../../components/student/dashboard/DashboardWelcomeBanner';
 import { DashboardStatsGrid } from '../../components/student/dashboard/DashboardStatsGrid';
 import { DashboardClassesSection } from '../../components/student/dashboard/DashboardClassesSection';
@@ -58,10 +59,14 @@ export function StudentDashboardPage() {
     <main className="main-content">
       <div className="content-container">
         {/* 1. Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Tổng quan học tập của bạn</p>
-        </div>
+        <StudentPageHeader
+          title="Dashboard"
+          subtitle="Tổng quan học tập của bạn"
+          breadcrumbs={[
+            { label: 'Cổng học sinh' },
+            { label: 'Dashboard' },
+          ]}
+        />
 
         {/* 2. Welcome Banner */}
         <DashboardWelcomeBanner

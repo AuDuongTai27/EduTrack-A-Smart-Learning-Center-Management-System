@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
 import { ClassesGridSection } from '../../components/student/classes/ClassesGridSection';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import {
@@ -43,10 +44,14 @@ export function StudentClassesPage() {
     <main className="main-content">
       <div className="content-container">
         {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">Lớp học</h1>
-          <p className="page-subtitle">Tất cả lớp học bạn đang tham gia trong kỳ này</p>
-        </div>
+        <StudentPageHeader
+          title="Lớp học của tôi"
+          subtitle="Tất cả lớp học bạn đang tham gia trong kỳ học này"
+          breadcrumbs={[
+            { label: 'Trang chủ', href: '/student/dashboard' },
+            { label: 'Lớp học của tôi' },
+          ]}
+        />
 
         {/* Section Header & Classes Grid */}
         <ClassesGridSection classes={classes} loading={loading} />
