@@ -1,6 +1,6 @@
 import React from 'react';
 import type { SubmissionStatus } from './assignmentDetailData';
-import type { StudentSubmissionDetailApiDto } from '../../../api/learningApi';
+import type { StudentSubmissionDetailApiDto } from '../../../../api/learningApi';
 import { AssignmentDropzone } from './components/AssignmentDropzone';
 import { SubmittedFileCard } from './components/SubmittedFileCard';
 import { OverdueAlertBox } from './components/OverdueAlertBox';

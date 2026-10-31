@@ -1,8 +1,9 @@
 import React from 'react';
 import type { SubjectDto } from '../../../BLL/models/SubjectDto';
+import type { LandingSubjectItemDto } from '../../../BLL/models/LandingOverviewDto';
 
 export interface FeaturesSectionProps {
-  subjects?: SubjectDto[];
+  subjects?: Array<SubjectDto | LandingSubjectItemDto>;
 }
 
 const DEFAULT_SUBJECTS: SubjectDto[] = [
@@ -18,41 +19,55 @@ const DEFAULT_SUBJECTS: SubjectDto[] = [
 
 export function FeaturesSection({ subjects }: FeaturesSectionProps) {
   const iconPalette = [
-    { icon: 'bi-calculator', color: '#5578ff' },
-    { icon: 'bi-lightning-charge', color: '#ffbb2c' },
-    { icon: 'bi-droplet-half', color: '#e80368' },
-    { icon: 'bi-translate', color: '#11dbcf' },
-    { icon: 'bi-flower1', color: '#ffa76e' },
-    { icon: 'bi-cpu', color: '#e361ff' },
-    { icon: 'bi-book', color: '#47aeff' },
-    { icon: 'bi-globe', color: '#20c997' },
+    { icon: 'bi-calculator', color: '#2563eb' },
+    { icon: 'bi-lightning-charge', color: '#d97706' },
+    { icon: 'bi-droplet-half', color: '#dc2626' },
+    { icon: 'bi-translate', color: '#0d9488' },
+    { icon: 'bi-flower1', color: '#ea580c' },
+    { icon: 'bi-cpu', color: '#7c3aed' },
+    { icon: 'bi-book', color: '#0284c7' },
+    { icon: 'bi-globe', color: '#16a34a' },
   ];
 
   const displaySubjects = (subjects && subjects.length > 0) ? subjects : DEFAULT_SUBJECTS;
 
   return (
-    <section id="features" className="features section">
-      <div className="container section-title aos-init aos-animate" data-aos="fade-up">
-        <h2>Chương trình đào tạo</h2>
-        <p>Các môn học trọng điểm tại EduTrack</p>
+    <section id="features" className="features section light-background py-5">
+      <div className="container section-title aos-init aos-animate text-center mb-5" data-aos="fade-up">
+        <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fw-medium mb-2">
+          Chương trình đào tạo
+        </span>
+        <h2 className="fw-bold fs-2 text-dark">Các môn học trọng điểm tại EduTrack</h2>
+        <p className="text-muted mx-auto" style={{ maxWidth: '600px' }}>
+          Được thiết kế bám sát chuẩn kiến thức của Bộ GD&ĐT kết hợp phương pháp tư duy số và ứng dụng thực tiễn.
+        </p>
       </div>
 
       <div className="container">
-        <div className="row gy-4">
+        <div className="row g-4">
           {displaySubjects.map((sub, idx) => {
             const styleItem = iconPalette[idx % iconPalette.length];
             return (
               <div
                 key={sub.subjectId || idx}
-                className="col-lg-3 col-md-4 aos-init aos-animate"
+                className="col-lg-3 col-md-4 col-sm-6 aos-init aos-animate"
                 data-aos="fade-up"
-                data-aos-delay={(idx + 1) * 100}
+                data-aos-delay={(idx + 1) * 80}
               >
-                <div className="features-item d-flex align-items-center gap-3 p-3 shadow-sm rounded-3 bg-white h-100 border">
-                  <i className={`bi ${styleItem.icon} fs-3 flex-shrink-0`} style={{ color: styleItem.color }}></i>
+                <div className="features-item d-flex align-items-center gap-3 p-3.5 shadow-sm rounded-4 bg-white h-100 border border-light">
+                  <div
+                    className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      backgroundColor: `${styleItem.color}15`,
+                    }}
+                  >
+                    <i className={`bi ${styleItem.icon} fs-4`} style={{ color: styleItem.color }}></i>
+                  </div>
                   <div>
                     <h3 className="fs-6 fw-bold mb-1">
-                      <a href="#courses" className="stretched-link text-decoration-none text-dark">
+                      <a href="#courses" className="stretched-link text-decoration-none text-dark hover-success">
                         {sub.subjectName}
                       </a>
                     </h3>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { StudentPageHeader } from '../common/StudentPageHeader';
 import type { FeedbackApprovalRequest } from './feedbackData';
 import { INITIAL_FEEDBACK_REQUESTS } from './feedbackData';
 import { FeedbackFormCard } from './components/FeedbackFormCard';
@@ -183,7 +184,7 @@ export function FeedbackView({
 
   return (
     <main className="main-content">
-      <div className="content-container py-3">
+      <div className="content-container">
         {/* Toast Alert */}
         {toastMessage && (
           <div className="alert alert-success border-0 rounded-4 shadow-sm d-flex align-items-center gap-3 mb-4 p-3.5">
@@ -200,22 +201,20 @@ export function FeedbackView({
         )}
 
         {/* Page Header */}
-        <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-          <div>
-            <h1 className="page-title mb-1">
-              <i className="bi bi-chat-dots-fill text-primary me-2"></i>
-              Phản hồi &amp; Ý kiến đóng góp
-            </h1>
-            <p className="page-subtitle text-muted mb-0">
-              Gửi phản hồi, thắc mắc hoặc yêu cầu hỗ trợ trực tiếp về Giáo vụ (Admin Staff)
-            </p>
-          </div>
-
-          <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-            <i className="bi bi-person-circle me-1"></i>
-            {userName} ({userRole === 'parent' ? 'Phụ huynh' : 'Học sinh'})
-          </span>
-        </div>
+        <StudentPageHeader
+          title="Phản hồi & Ý kiến đóng góp"
+          subtitle="Gửi phản hồi, thắc mắc hoặc yêu cầu hỗ trợ trực tiếp về Giáo vụ (Admin Staff)"
+          breadcrumbs={[
+            { label: 'Trang chủ', href: userRole === 'parent' ? '/parent/dashboard' : '/student/dashboard' },
+            { label: 'Phản hồi & Ý kiến' },
+          ]}
+          actions={
+            <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
+              <i className="bi bi-person-circle me-1"></i>
+              {userName} ({userRole === 'parent' ? 'Phụ huynh' : 'Học sinh'})
+            </span>
+          }
+        />
 
         {/* 2 Cột: Form gửi/sửa & Lịch sử */}
         <div className="row g-4">

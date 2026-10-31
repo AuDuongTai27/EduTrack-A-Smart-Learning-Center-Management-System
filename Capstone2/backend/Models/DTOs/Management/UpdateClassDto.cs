@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace EduTrack.API.Models.DTOs.Management
 {
     public class UpdateClassDto
     {
-        [Required(ErrorMessage = "TÃªn lá»›p há»c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng")]
-        [StringLength(150, ErrorMessage = "TÃªn lá»›p há»c khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 150 kÃ½ tá»±")]
+        [Required(ErrorMessage = "Tên lớp học không được để trống")]
+        [StringLength(150, ErrorMessage = "Tên lớp học không được vượt quá 150 ký tự")]
         public string ClassName { get; set; } = null!;
 
-        [Required(ErrorMessage = "MÃ´n há»c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng")]
+        [Required(ErrorMessage = "Môn học không được để trống")]
         public int SubjectId { get; set; }
 
         [StringLength(50)]
@@ -17,14 +17,13 @@ namespace EduTrack.API.Models.DTOs.Management
 
         public decimal TuitionFee { get; set; } = 0.00m;
 
-        [Required(ErrorMessage = "NgÃ y báº¯t Ä‘áº§u khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng")]
+        [Required(ErrorMessage = "Ngày bắt đầu không được để trống")]
         public DateTime StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
 
-        [Required(ErrorMessage = "Tráº¡ng thÃ¡i khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng")]
+        [Required(ErrorMessage = "Trạng thái không được để trống")]
         [StringLength(20)]
         public string Status { get; set; } = "active";
     }
 }
-

@@ -6,7 +6,7 @@ import { DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function ParentFeedbackPage() {
   const { selectedChild } = useParent();
-  const targetStudentId = selectedChild?.studentId || DEFAULT_STUDENT_ID;
+  const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
 
   useEffect(() => {
     document.title = 'Phản hồi & Yêu cầu hỗ trợ (Phụ huynh) – EduTrack';
