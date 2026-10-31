@@ -1,14 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduTrack.API.Models.DTOs.Management
 {
     public class UpdateUserDto
     {
-        [Required(ErrorMessage = "FullName lÃ  báº¯t buá»™c")]
-        [StringLength(150, ErrorMessage = "FullName khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 150 kÃ½ tá»±")]
+        [Required(ErrorMessage = "FullName là bắt buộc")]
+        [StringLength(150, ErrorMessage = "FullName không được vượt quá 150 ký tự")]
         public string FullName { get; set; } = null!;
 
-        [EmailAddress(ErrorMessage = "Email khÃ´ng Ä‘Ãºng Ä‘á»‹nh dáº¡ng")]
+        [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         [StringLength(150)]
         public string? Email { get; set; }
 
@@ -29,9 +29,8 @@ namespace EduTrack.API.Models.DTOs.Management
 
     public class UpdateUserStatusDto
     {
-        [Required(ErrorMessage = "Status lÃ  báº¯t buá»™c")]
+        [Required(ErrorMessage = "Status là bắt buộc")]
         [StringLength(20)]
         public string Status { get; set; } = "active";
     }
 }
-
