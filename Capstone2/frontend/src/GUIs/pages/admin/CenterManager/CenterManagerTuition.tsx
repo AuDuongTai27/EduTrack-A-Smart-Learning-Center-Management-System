@@ -7,11 +7,37 @@ import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
 import KpiCard from "../../../components/Common/KpiCard";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
-import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
+import managementDAL from "../../../../DAL/managementDAL";
+import userDAL from "../../../../DAL/userDAL";
+import classDAL from "../../../../DAL/classDAL";
+
+import type { UserDto } from "../../../../BLL/models/UserDto";
+import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import type { TuitionDto, PaymentDto } from "../../../../BLL/models/TuitionDto";
+
+// TuitionInvoiceDto không có paidAmount: tính từ lịch sử thanh toán thực tế.
+function attachPaidAmounts(
+  invoices: TuitionDto[],
+  payments: PaymentDto[],
+): TuitionDto[] {
+  const paidByInvoice = new Map<number, number>();
+  for (const payment of payments) {
+    paidByInvoice.set(
+      payment.invoiceId,
+      (paidByInvoice.get(payment.invoiceId) ?? 0) + payment.amount,
+    );
+  }
+  return invoices.map((invoice) => ({
+    ...invoice,
+    paidAmount: paidByInvoice.get(invoice.invoiceId) ?? 0,
+  }));
+}
 
 export default function CenterManagerTuitionPage() {
   const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [students, setStudents] = useState<UserDto[]>([]);
+  const [classes, setClasses] = useState<ClassDto[]>([]);
 
   // Filters state
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -24,39 +50,275 @@ export default function CenterManagerTuitionPage() {
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
 
   // Detail Modal state (GetById)
-  const [selectedTuition, setSelectedTuition] = useState<TuitionDto | null>(null);
+  const [selectedTuition, setSelectedTuition] = useState<TuitionDto | null>(
+    null,
+  );
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
 
   // Generate Tuition Modal state
   const [showGenerateModal, setShowGenerateModal] = useState<boolean>(false);
   const [generateForm, setGenerateForm] = useState({
-    studentName: "",
-    className: "Class 7",
+    studentId: 0,
+    classId: 0,
     amount: 3000000,
     dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0],
   });
+
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+  const [paymentDataWarning, setPaymentDataWarning] = useState<string | null>(
+    null,
+  );
+  const [payingTuition, setPayingTuition] = useState<TuitionDto | null>(null);
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentForm, setPaymentForm] = useState({
+    amount: 0,
+    paymentMethod: "cash",
+    transactionCode: "",
+    note: "",
+    additionalChargeNote: "",
+  });
+  const [editingTuition, setEditingTuition] = useState<TuitionDto | null>(null);
+
+  const [editForm, setEditForm] = useState({
+    periodMonth: new Date().getMonth() + 1,
+    periodYear: new Date().getFullYear(),
+    amountDue: 0,
+    dueDate: "",
+    status: "unpaid",
+  });
 
   useEffect(() => {
     let isMounted = true;
-    async function fetchTuitions() {
+
+    async function fetchData() {
       try {
         setLoading(true);
-        const res = await tuitionDAL.getAllTuitions();
-        if (isMounted && res.data) {
-          setTuitions(res.data);
+
+        const [tuitionRes, userRes, classRes, paymentRes] = await Promise.all([
+          tuitionDAL.getAllTuitions(),
+          userDAL.getAllUsers(),
+          classDAL.getAllClasses(),
+          tuitionDAL.getAllPayments(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (tuitionRes.isLiveApi && paymentRes.isLiveApi) {
+          setTuitions(
+            attachPaidAmounts(tuitionRes.data || [], paymentRes.data || []),
+          );
+          setPaymentDataWarning(null);
+        } else {
+          setTuitions(tuitionRes.data || []);
+          setPaymentDataWarning(
+            "Chưa tải được dữ liệu thật của hóa đơn hoặc lịch sử thanh toán. Số tiền đã đóng/còn nợ có thể không chính xác.",
+          );
         }
+
+        const studentUsers = userRes.data.filter((u) =>
+          u.roles?.some((role) => role.toLowerCase() === "student"),
+        );
+
+        setStudents(studentUsers);
+        setClasses(classRes.data || []);
       } catch (err) {
-        console.warn("Lỗi tải danh sách học phí center manager:", err);
+        console.warn("Lỗi tải dữ liệu học phí:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     }
-    fetchTuitions();
+
+    fetchData();
+
     return () => {
       isMounted = false;
     };
   }, []);
+
+  const handleUpdateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingTuition) return;
+
+    try {
+      const res = await managementDAL.updateTuitionInvoice(
+        editingTuition.invoiceId,
+        {
+          periodMonth: editForm.periodMonth,
+          periodYear: editForm.periodYear,
+          amountDue: editForm.amountDue,
+          dueDate: editForm.dueDate,
+          status: editForm.status,
+        },
+      );
+
+      setTuitions((prev) =>
+        prev.map((t) =>
+          t.invoiceId === editingTuition.invoiceId
+            ? {
+                ...t,
+                ...res.data,
+
+                amount: res.data.amountDue,
+              }
+            : t,
+        ),
+      );
+
+      setEditingTuition(null);
+
+      setActionSuccessMsg(
+        `Đã cập nhật hóa đơn #${res.data.invoiceId} thành công!`,
+      );
+
+      setTimeout(() => setActionSuccessMsg(null), 3500);
+    } catch (err) {
+      console.error("Lỗi cập nhật hóa đơn học phí:", err);
+    }
+  };
+
+  const handleOpenEdit = (tuition: TuitionDto) => {
+    const rawStatus = (tuition.status || "unpaid").toLowerCase();
+
+    const validStatus = [
+      "unpaid",
+      "paid",
+      "overdue",
+      "pending_adjustment",
+    ].includes(rawStatus)
+      ? rawStatus
+      : "unpaid";
+
+    setEditingTuition(tuition);
+
+    setEditForm({
+      periodMonth: tuition.periodMonth ?? new Date().getMonth() + 1,
+      periodYear: tuition.periodYear ?? new Date().getFullYear(),
+      amountDue: tuition.amountDue || tuition.amount || 0,
+      dueDate: tuition.dueDate ? tuition.dueDate.split("T")[0] : "",
+      status: validStatus,
+    });
+  };
+
+  // Record Payment: không tự tạo payment giả nếu API thất bại.
+  const handleOpenPayment = (tuition: TuitionDto) => {
+    const amountDue = tuition.amountDue ?? tuition.amount ?? 0;
+    const remaining = Math.max(0, amountDue - (tuition.paidAmount ?? 0));
+    // Không mở phiếu thu với dữ liệu giả hoặc chưa tải được công nợ thực.
+    if (paymentDataWarning || !tuition.invoiceId) return;
+
+    setPayingTuition(tuition);
+    setPaymentForm({
+      amount: remaining,
+      paymentMethod: "cash",
+      transactionCode: "",
+      note: "",
+      additionalChargeNote: "",
+    });
+    setPaymentError(null);
+  };
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!payingTuition || paymentSubmitting) return;
+
+    const amountDue = payingTuition.amountDue ?? payingTuition.amount ?? 0;
+    const remaining = Math.max(0, amountDue - (payingTuition.paidAmount ?? 0));
+    const amount = Number(paymentForm.amount);
+
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+      setPaymentError("Số tiền thanh toán phải là số nguyên VND lớn hơn 0.");
+      return;
+    }
+
+    // Phần vượt công nợ được ghi riêng thành phí bổ sung (không phải trả dư học phí).
+    const additionalChargeAmount = Math.max(0, amount - remaining);
+    if (
+      additionalChargeAmount > 0 &&
+      !paymentForm.additionalChargeNote.trim()
+    ) {
+      setPaymentError(
+        "Vui lòng ghi rõ lý do thu thêm (ví dụ: phí tài liệu) trước khi xác nhận.",
+      );
+      return;
+    }
+
+    setPaymentSubmitting(true);
+    setPaymentError(null);
+    try {
+      await managementDAL.recordTuitionPayment(payingTuition.invoiceId, {
+        amount,
+        paymentMethod: paymentForm.paymentMethod,
+        transactionCode: paymentForm.transactionCode.trim() || undefined,
+        note: paymentForm.note.trim() || undefined,
+        additionalChargeAmount,
+        additionalChargeNote:
+          paymentForm.additionalChargeNote.trim() || undefined,
+        // PaidByUserId và RecordedBy có thể bỏ trống theo DTO backend.
+        // Khi tích hợp đăng nhập, lấy recordedBy từ user đã xác thực.
+      });
+
+      const invoiceId = payingTuition.invoiceId;
+      setPayingTuition(null);
+      setActionSuccessMsg(
+        `Đã ghi nhận thanh toán ${amount.toLocaleString("vi-VN")} VND cho hóa đơn #${invoiceId}.`,
+      );
+
+      // Cập nhật tạm thời từ response POST, không dựa vào mock.
+      setTuitions((prev) =>
+        prev.map((tuition) => {
+          if (tuition.invoiceId !== invoiceId) return tuition;
+          const newPaid = (tuition.paidAmount ?? 0) + amount;
+          const due =
+            (tuition.amountDue ?? tuition.amount ?? 0) + additionalChargeAmount;
+          const newStatus =
+            newPaid >= due
+              ? "paid"
+              : tuition.dueDate && new Date(tuition.dueDate) < new Date()
+                ? "overdue"
+                : "unpaid";
+          return {
+            ...tuition,
+            amountDue: due,
+            amount: due,
+            paidAmount: newPaid,
+            status: newStatus,
+          };
+        }),
+      );
+
+      // Đọc lại MySQL để cả thanh toán một phần và KPI được hiển thị chính xác.
+      try {
+        const [invoiceRes, paymentRes] = await Promise.all([
+          tuitionDAL.getAllTuitions(),
+          tuitionDAL.getAllPayments(),
+        ]);
+        if (!invoiceRes.isLiveApi || !paymentRes.isLiveApi) {
+          throw new Error("API GET đã fallback sang mock.");
+        }
+        setTuitions(attachPaidAmounts(invoiceRes.data, paymentRes.data));
+        setPaymentDataWarning(null);
+      } catch (refreshError) {
+        console.warn(
+          "Đã ghi nhận thanh toán nhưng không đọc lại được dữ liệu:",
+          refreshError,
+        );
+        setPaymentDataWarning(
+          "Thanh toán đã được API xác nhận, nhưng chưa đọc lại được lịch sử thanh toán. Hãy kiểm tra kết nối backend trước khi đối chiếu số liệu.",
+        );
+      }
+    } catch (error) {
+      console.error("Lỗi ghi nhận thanh toán:", error);
+      setPaymentError(
+        error instanceof Error
+          ? error.message
+          : "Không ghi nhận được thanh toán.",
+      );
+    } finally {
+      setPaymentSubmitting(false);
+    }
+  };
 
   // Summary Metrics calculations
   const metrics = useMemo(() => {
@@ -68,20 +330,25 @@ export default function CenterManagerTuitionPage() {
 
     tuitions.forEach((t) => {
       const amount = t.amount || t.amountDue || 0;
-      const paid = t.paidAmount || (t.status === "Paid" ? amount : 0);
+      const paid =
+        t.paidAmount ?? (t.status.toLowerCase() === "paid" ? amount : 0);
       totalDue += amount;
       collected += paid;
 
       const remaining = Math.max(0, amount - paid);
       outstanding += remaining;
 
-      if (t.status === "Overdue" || (remaining > 0 && t.dueDate && new Date(t.dueDate) < new Date())) {
+      if (
+        t.status.toLowerCase() === "overdue" ||
+        (remaining > 0 && t.dueDate && new Date(t.dueDate) < new Date())
+      ) {
         overdueCount++;
         overdueAmount += remaining;
       }
     });
 
-    const collectedPercent = totalDue > 0 ? Math.round((collected / totalDue) * 100) : 0;
+    const collectedPercent =
+      totalDue > 0 ? Math.round((collected / totalDue) * 100) : 0;
     const remainingPercent = 100 - collectedPercent;
 
     return {
@@ -101,13 +368,17 @@ export default function CenterManagerTuitionPage() {
       .filter((t) => {
         const matchSearch =
           searchTerm === "" ||
-          (t.studentName && t.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (t.className && t.className.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (t.invoiceCode && t.invoiceCode.toLowerCase().includes(searchTerm.toLowerCase()));
+          (t.studentName &&
+            t.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (t.className &&
+            t.className.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (t.invoiceCode &&
+            t.invoiceCode.toLowerCase().includes(searchTerm.toLowerCase()));
 
         const matchClass =
           selectedClass === "All" ||
-          (t.className && t.className.toLowerCase().includes(selectedClass.toLowerCase()));
+          (t.className &&
+            t.className.toLowerCase().includes(selectedClass.toLowerCase()));
 
         const matchStatus =
           selectedStatus === "All" ||
@@ -117,10 +388,16 @@ export default function CenterManagerTuitionPage() {
       })
       .sort((a, b) => {
         if (selectedSort === "newest") {
-          return new Date(b.dueDate || 0).getTime() - new Date(a.dueDate || 0).getTime();
+          return (
+            new Date(b.dueDate || 0).getTime() -
+            new Date(a.dueDate || 0).getTime()
+          );
         }
         if (selectedSort === "oldest") {
-          return new Date(a.dueDate || 0).getTime() - new Date(b.dueDate || 0).getTime();
+          return (
+            new Date(a.dueDate || 0).getTime() -
+            new Date(b.dueDate || 0).getTime()
+          );
         }
         if (selectedSort === "az") {
           return a.studentName.localeCompare(b.studentName);
@@ -145,7 +422,7 @@ export default function CenterManagerTuitionPage() {
     if (!targetId) return;
     try {
       const detail = await tuitionDAL.getTuitionById(targetId);
-      setSelectedTuition(detail || t);
+      setSelectedTuition(detail ? { ...detail, paidAmount: t.paidAmount } : t);
     } catch {
       setSelectedTuition(t);
     } finally {
@@ -154,40 +431,46 @@ export default function CenterManagerTuitionPage() {
   };
 
   // Handle Generate Submit
-  const handleGenerateSubmit = (e: React.FormEvent) => {
+  const handleGenerateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!generateForm.studentName.trim()) return;
 
-    const validIds = tuitions.map((t) => t.tuitionId || t.invoiceId || 0);
-    const newId = validIds.length > 0 ? Math.max(...validIds) + 1 : 301;
+    if (generateForm.studentId <= 0 || generateForm.classId <= 0) {
+      return;
+    }
 
-    const newInvoice: TuitionDto = {
-      invoiceId: newId,
-      tuitionId: newId,
-      studentId: 7,
-      studentCode: "STU007",
-      studentName: generateForm.studentName.trim(),
-      classId: 1,
-      className: generateForm.className,
-      amountDue: Number(generateForm.amount) || 3000000,
-      amount: Number(generateForm.amount) || 3000000,
-      dueDate: generateForm.dueDate,
-      status: "Unpaid",
-      invoiceCode: `INV${String(newId).padStart(4, "0")}`,
-      period: "August 2026",
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const now = new Date();
 
-    setTuitions([newInvoice, ...tuitions]);
-    setShowGenerateModal(false);
-    setGenerateForm({
-      studentName: "",
-      className: "Class 7",
-      amount: 3000000,
-      dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0],
-    });
-    setActionSuccessMsg(`Đã tạo phiếu thu học phí #${newInvoice.invoiceCode} cho học viên "${newInvoice.studentName}" thành công!`);
-    setTimeout(() => setActionSuccessMsg(null), 3500);
+      const res = await managementDAL.createTuitionInvoice({
+        studentId: generateForm.studentId,
+        classId: generateForm.classId,
+        periodMonth: now.getMonth() + 1,
+        periodYear: now.getFullYear(),
+        amountDue: Number(generateForm.amount),
+        dueDate: generateForm.dueDate,
+      });
+
+      setTuitions((prev) => [res.data, ...prev]);
+
+      setShowGenerateModal(false);
+
+      setGenerateForm({
+        studentId: 0,
+        classId: 0,
+        amount: 3000000,
+        dueDate: new Date(Date.now() + 15 * 86400000)
+          .toISOString()
+          .split("T")[0],
+      });
+
+      setActionSuccessMsg(
+        `Đã tạo hóa đơn học phí #${res.data.invoiceId} cho "${res.data.studentName}" thành công!`,
+      );
+
+      setTimeout(() => setActionSuccessMsg(null), 3500);
+    } catch (err) {
+      console.error("Lỗi tạo hóa đơn học phí:", err);
+    }
   };
 
   return (
@@ -213,10 +496,25 @@ export default function CenterManagerTuitionPage() {
 
       {/* Success Notification Alert */}
       {actionSuccessMsg && (
-        <div className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+        <div
+          className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm"
+          role="alert"
+        >
           <i className="bi bi-check-circle-fill fs-5 me-2" />
           <div>{actionSuccessMsg}</div>
-          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setActionSuccessMsg(null)}
+            aria-label="Close"
+          />
+        </div>
+      )}
+
+      {paymentDataWarning && (
+        <div className="alert alert-warning" role="alert">
+          <i className="bi bi-exclamation-triangle me-2" />
+          {paymentDataWarning}
         </div>
       )}
 
@@ -367,7 +665,10 @@ export default function CenterManagerTuitionPage() {
               {loading ? (
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
-                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    <div
+                      className="spinner-border spinner-border-sm text-primary me-2"
+                      role="status"
+                    />
                     Đang nạp danh sách học phí...
                   </td>
                 </tr>
@@ -380,7 +681,8 @@ export default function CenterManagerTuitionPage() {
                 </tr>
               ) : (
                 paginatedTuitions.map((t, idx) => {
-                  const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
+                  const itemIndex =
+                    (currentPage - 1) * entriesPerPage + idx + 1;
                   const dueDateStr = t.dueDate
                     ? new Date(t.dueDate).toLocaleDateString("vi-VN", {
                         day: "2-digit",
@@ -401,8 +703,12 @@ export default function CenterManagerTuitionPage() {
                         <div className="d-flex align-items-center gap-2">
                           <UserAvatar name={t.studentName || "Học viên"} />
                           <div>
-                            <h6 className="mb-0 fw-bold text-dark">{t.studentName}</h6>
-                            <small className="text-muted">{t.studentCode || `STU${t.studentId}`}</small>
+                            <h6 className="mb-0 fw-bold text-dark">
+                              {t.studentName}
+                            </h6>
+                            <small className="text-muted">
+                              {t.studentCode || `STU${t.studentId}`}
+                            </small>
                           </div>
                         </div>
                       </td>
@@ -411,7 +717,10 @@ export default function CenterManagerTuitionPage() {
                       </td>
                       <td>
                         <strong className="text-dark">
-                          {(t.amount || t.amountDue || 0).toLocaleString("vi-VN")} VND
+                          {(t.amount || t.amountDue || 0).toLocaleString(
+                            "vi-VN",
+                          )}{" "}
+                          VND
                         </strong>
                       </td>
                       <td>{dueDateStr}</td>
@@ -419,15 +728,42 @@ export default function CenterManagerTuitionPage() {
                         <DotStatusBadge status={t.status || "Unpaid"} />
                       </td>
                       <td className="text-center">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => handleViewDetails(t)}
-                          title="View Receipt"
-                        >
-                          <i className="bi bi-receipt me-1" />
-                          Biên lai
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-warning"
+                            onClick={() => handleOpenEdit(t)}
+                            title="Chỉnh sửa hóa đơn"
+                          >
+                            <i className="bi bi-pencil-square me-1" />
+                            Sửa
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-success"
+                            onClick={() => handleOpenPayment(t)}
+                            disabled={!!paymentDataWarning || !t.invoiceId}
+                            title={
+                              paymentDataWarning
+                                ? "Chưa tải được dữ liệu thật: kiểm tra kết nối backend"
+                                : "Ghi nhận thanh toán"
+                            }
+                          >
+                            <i className="bi bi-cash-coin me-1" />
+                            Thanh toán
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleViewDetails(t)}
+                            title="View Receipt"
+                          >
+                            <i className="bi bi-receipt me-1" />
+                            Biên lai
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -451,7 +787,11 @@ export default function CenterManagerTuitionPage() {
 
       {/* GENERATE TUITION MODAL */}
       {showGenerateModal && (
-        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
@@ -469,46 +809,111 @@ export default function CenterManagerTuitionPage() {
                 <div className="modal-body p-4">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Tên học viên <span className="text-danger">*</span></label>
-                      <input
+                      <label className="form-label fw-bold">
+                        Tên học viên <span className="text-danger">*</span>
+                      </label>
+                      {/* <input
                         type="text"
                         className="form-control"
                         placeholder="Nhập tên học viên..."
                         value={generateForm.studentName}
-                        onChange={(e) => setGenerateForm({ ...generateForm, studentName: e.target.value })}
+                        onChange={(e) =>
+                          setGenerateForm({
+                            ...generateForm,
+                            studentName: e.target.value,
+                          })
+                        }
                         required
-                      />
+                      /> */}
+                      <select
+                        className="form-select"
+                        value={generateForm.studentId}
+                        onChange={(e) =>
+                          setGenerateForm({
+                            ...generateForm,
+                            studentId: Number(e.target.value),
+                          })
+                        }
+                        required
+                      >
+                        <option value={0}>-- Chọn học viên --</option>
+
+                        {students.map((student) => (
+                          <option key={student.userId} value={student.userId}>
+                            {student.fullName} - {student.userCode}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="col-md-6">
                       <label className="form-label fw-bold">Khối lớp</label>
-                      <select
+                      {/* <select
                         className="form-select"
                         value={generateForm.className}
-                        onChange={(e) => setGenerateForm({ ...generateForm, className: e.target.value })}
+                        onChange={(e) =>
+                          setGenerateForm({
+                            ...generateForm,
+                            className: e.target.value,
+                          })
+                        }
                       >
                         <option value="Class 7">Class 7</option>
                         <option value="Class 8">Class 8</option>
                         <option value="Class 9">Class 9</option>
                         <option value="Class 12">Class 12</option>
+                      </select> */}
+                      <select
+                        className="form-select"
+                        value={generateForm.classId}
+                        onChange={(e) =>
+                          setGenerateForm({
+                            ...generateForm,
+                            classId: Number(e.target.value),
+                          })
+                        }
+                        required
+                      >
+                        <option value={0}>-- Chọn lớp học --</option>
+
+                        {classes.map((cls) => (
+                          <option key={cls.classId} value={cls.classId}>
+                            {cls.className}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Số tiền học phí (VND) <span className="text-danger">*</span></label>
+                      <label className="form-label fw-bold">
+                        Số tiền học phí (VND){" "}
+                        <span className="text-danger">*</span>
+                      </label>
                       <input
                         type="number"
                         className="form-control"
                         value={generateForm.amount}
-                        onChange={(e) => setGenerateForm({ ...generateForm, amount: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setGenerateForm({
+                            ...generateForm,
+                            amount: Number(e.target.value),
+                          })
+                        }
                         required
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Hạn chót thanh toán</label>
+                      <label className="form-label fw-bold">
+                        Hạn chót thanh toán
+                      </label>
                       <input
                         type="date"
                         className="form-control"
                         value={generateForm.dueDate}
-                        onChange={(e) => setGenerateForm({ ...generateForm, dueDate: e.target.value })}
+                        onChange={(e) =>
+                          setGenerateForm({
+                            ...generateForm,
+                            dueDate: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -531,15 +936,432 @@ export default function CenterManagerTuitionPage() {
         </div>
       )}
 
+      {/* EDIT TUITION MODAL */}
+      {editingTuition && (
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          style={{
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-warning">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-pencil-square me-2" />
+                  Chỉnh sửa hóa đơn #{editingTuition.invoiceId}
+                </h5>
+
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setEditingTuition(null)}
+                />
+              </div>
+
+              <form onSubmit={handleUpdateSubmit}>
+                <div className="modal-body p-4">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Học viên</label>
+
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editingTuition.studentName}
+                        disabled
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Lớp</label>
+
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editingTuition.className}
+                        disabled
+                      />
+                    </div>
+
+                    <div className="col-md-3">
+                      <label className="form-label fw-bold">Tháng</label>
+
+                      <input
+                        type="number"
+                        min={1}
+                        max={12}
+                        className="form-control"
+                        value={editForm.periodMonth}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            periodMonth: Number(e.target.value),
+                          })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-3">
+                      <label className="form-label fw-bold">Năm</label>
+
+                      <input
+                        type="number"
+                        min={2000}
+                        max={2100}
+                        className="form-control"
+                        value={editForm.periodYear}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            periodYear: Number(e.target.value),
+                          })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">
+                        Số tiền học phí
+                      </label>
+
+                      <div className="input-group">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          className="form-control"
+                          value={
+                            editForm.amountDue
+                              ? editForm.amountDue.toLocaleString("vi-VN")
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "");
+                            const amount = digits ? Number(digits) : 0;
+
+                            if (!Number.isSafeInteger(amount)) return;
+
+                            setEditForm({
+                              ...editForm,
+                              amountDue: amount,
+                            });
+                          }}
+                          placeholder="Nhập số tiền học phí"
+                          required
+                        />
+                        <span className="input-group-text">VND</span>
+                      </div>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">
+                        Hạn thanh toán
+                      </label>
+
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={editForm.dueDate}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            dueDate: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">Trạng thái</label>
+
+                      <select
+                        className="form-select"
+                        value={editForm.status}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            status: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="unpaid">Unpaid</option>
+
+                        <option value="paid">Paid</option>
+
+                        <option value="overdue">Overdue</option>
+
+                        <option value="pending_adjustment">
+                          Pending Adjustment
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setEditingTuition(null)}
+                  >
+                    Hủy
+                  </button>
+
+                  <button type="submit" className="btn btn-warning px-4">
+                    <i className="bi bi-save me-2" />
+                    Lưu thay đổi
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* RECORD PAYMENT MODAL */}
+      {payingTuition && (
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-cash-coin me-2" />
+                  Ghi nhận thanh toán – Hóa đơn #{payingTuition.invoiceId}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  disabled={paymentSubmitting}
+                  onClick={() => setPayingTuition(null)}
+                />
+              </div>
+
+              <form onSubmit={handlePaymentSubmit}>
+                <div className="modal-body p-4">
+                  <p className="mb-2">
+                    <strong>Học viên:</strong> {payingTuition.studentName}
+                    {" · "}
+                    <strong>Lớp:</strong> {payingTuition.className}
+                  </p>
+                  <div className="row g-2 mb-3">
+                    <div className="col-md-4">
+                      <small className="text-muted d-block">Tổng học phí</small>
+                      <strong>
+                        {(
+                          payingTuition.amountDue ??
+                          payingTuition.amount ??
+                          0
+                        ).toLocaleString("vi-VN")}{" "}
+                        VND
+                      </strong>
+                    </div>
+                    <div className="col-md-4">
+                      <small className="text-muted d-block">Đã đóng</small>
+                      <strong className="text-success">
+                        {(payingTuition.paidAmount ?? 0).toLocaleString(
+                          "vi-VN",
+                        )}{" "}
+                        VND
+                      </strong>
+                    </div>
+                    <div className="col-md-4">
+                      <small className="text-muted d-block">Còn nợ</small>
+                      <strong className="text-danger">
+                        {Math.max(
+                          0,
+                          (payingTuition.amountDue ??
+                            payingTuition.amount ??
+                            0) - (payingTuition.paidAmount ?? 0),
+                        ).toLocaleString("vi-VN")}{" "}
+                        VND
+                      </strong>
+                    </div>
+                  </div>
+
+                  {paymentError && (
+                    <div className="alert alert-danger" role="alert">
+                      {paymentError}
+                    </div>
+                  )}
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">
+                        Số tiền thanh toán (VND) *
+                      </label>
+                      <div className="input-group">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9. ]*"
+                          className="form-control"
+                          value={
+                            paymentForm.amount
+                              ? paymentForm.amount.toLocaleString("vi-VN")
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "");
+                            const amount = digits ? Number(digits) : 0;
+                            setPaymentForm({
+                              ...paymentForm,
+                              amount: Number.isSafeInteger(amount) ? amount : 0,
+                            });
+                          }}
+                          placeholder="Nhập số tiền thanh toán"
+                          required
+                        />
+                        <span className="input-group-text">VND</span>
+                      </div>
+                      <small className="text-muted">
+                        Mặc định là công nợ còn lại. Bạn có thể sửa số tiền, kể
+                        cả trường hợp thu thêm phí tài liệu.
+                      </small>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold">
+                        Phương thức thanh toán *
+                      </label>
+                      <select
+                        className="form-select"
+                        value={paymentForm.paymentMethod}
+                        onChange={(e) =>
+                          setPaymentForm({
+                            ...paymentForm,
+                            paymentMethod: e.target.value,
+                          })
+                        }
+                        required
+                      >
+                        <option value="cash">Tiền mặt (Cash)</option>
+                        <option value="bank_transfer">
+                          Chuyển khoản ngân hàng
+                        </option>
+                        <option value="momo">MoMo</option>
+                        <option value="vnpay">VNPay</option>
+                      </select>
+                    </div>
+                    {paymentForm.amount >
+                      Math.max(
+                        0,
+                        (payingTuition.amountDue ?? payingTuition.amount ?? 0) -
+                          (payingTuition.paidAmount ?? 0),
+                      ) && (
+                      <div className="col-12">
+                        <div className="alert alert-info py-2 mb-2">
+                          <strong>Phí bổ sung: </strong>
+                          {(
+                            paymentForm.amount -
+                            Math.max(
+                              0,
+                              (payingTuition.amountDue ??
+                                payingTuition.amount ??
+                                0) - (payingTuition.paidAmount ?? 0),
+                            )
+                          ).toLocaleString("vi-VN")}{" "}
+                          VND. Khoản này sẽ được cộng vào tổng phải thu của hóa
+                          đơn và lưu kèm lý do thu thêm.
+                        </div>
+                        <label className="form-label fw-bold">
+                          Lý do thu thêm *
+                        </label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          maxLength={255}
+                          placeholder="Ví dụ: Phí tài liệu ôn tập tháng 10"
+                          value={paymentForm.additionalChargeNote}
+                          onChange={(e) =>
+                            setPaymentForm({
+                              ...paymentForm,
+                              additionalChargeNote: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                    )}
+                    <div className="col-12">
+                      <label className="form-label fw-bold">Mã giao dịch</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        maxLength={100}
+                        value={paymentForm.transactionCode}
+                        onChange={(e) =>
+                          setPaymentForm({
+                            ...paymentForm,
+                            transactionCode: e.target.value,
+                          })
+                        }
+                        placeholder={
+                          paymentForm.paymentMethod === "cash"
+                            ? "Không bắt buộc với tiền mặt"
+                            : "Mã tham chiếu từ ngân hàng / VNPay / MoMo (nếu có)"
+                        }
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label fw-bold">Ghi chú</label>
+                      <textarea
+                        className="form-control"
+                        rows={3}
+                        value={paymentForm.note}
+                        onChange={(e) =>
+                          setPaymentForm({
+                            ...paymentForm,
+                            note: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    disabled={paymentSubmitting}
+                    onClick={() => setPayingTuition(null)}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-success px-4"
+                    disabled={paymentSubmitting || paymentForm.amount <= 0}
+                  >
+                    {paymentSubmitting
+                      ? "Đang ghi nhận..."
+                      : "Xác nhận thanh toán"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* DETAIL MODAL (GetById) */}
       {selectedTuition && (
-        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-light border-bottom">
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-primary fs-6 font-monospace">
-                    {selectedTuition.invoiceCode || `INV-${selectedTuition.tuitionId}`}
+                    {selectedTuition.invoiceCode ||
+                      `INV-${selectedTuition.tuitionId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0 text-dark">
                     Biên lai chi tiết học phí
@@ -555,44 +1377,86 @@ export default function CenterManagerTuitionPage() {
               <div className="modal-body p-4">
                 {loadingDetail ? (
                   <div className="text-center py-4 text-muted">
-                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    <div
+                      className="spinner-border spinner-border-sm text-primary me-2"
+                      role="status"
+                    />
                     Đang nạp chi tiết hóa đơn...
                   </div>
                 ) : (
                   <>
                     <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
                       <div>
-                        <h4 className="fw-bold mb-1 text-dark">{selectedTuition.studentName}</h4>
+                        <h4 className="fw-bold mb-1 text-dark">
+                          {selectedTuition.studentName}
+                        </h4>
                         <div className="d-flex align-items-center gap-3 text-muted small">
-                          <span>Lớp: <strong>{selectedTuition.className}</strong></span>
-                          <span>Kỳ: <strong>{selectedTuition.period || "August 2026"}</strong></span>
+                          <span>
+                            Lớp: <strong>{selectedTuition.className}</strong>
+                          </span>
+                          <span>
+                            Kỳ:{" "}
+                            <strong>
+                              {selectedTuition.period || "August 2026"}
+                            </strong>
+                          </span>
                         </div>
                       </div>
-                      <DotStatusBadge status={selectedTuition.status || "Unpaid"} />
+                      <DotStatusBadge
+                        status={selectedTuition.status || "Unpaid"}
+                      />
                     </div>
 
                     <div className="row g-3 mb-4">
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
-                          <small className="text-muted d-block mb-1">Tổng học phí</small>
+                          <small className="text-muted d-block mb-1">
+                            Tổng học phí
+                          </small>
                           <h6 className="fw-bold text-dark mb-0">
-                            {(selectedTuition.amount || selectedTuition.amountDue || 0).toLocaleString("vi-VN")} VND
+                            {(
+                              selectedTuition.amount ||
+                              selectedTuition.amountDue ||
+                              0
+                            ).toLocaleString("vi-VN")}{" "}
+                            VND
                           </h6>
                         </div>
                       </div>
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
-                          <small className="text-muted d-block mb-1">Đã đóng</small>
+                          <small className="text-muted d-block mb-1">
+                            Đã đóng
+                          </small>
                           <h6 className="fw-bold text-success mb-0">
-                            {(selectedTuition.paidAmount || (selectedTuition.status === "Paid" ? selectedTuition.amountDue : 0) || 0).toLocaleString("vi-VN")} VND
+                            {(
+                              selectedTuition.paidAmount ??
+                              (selectedTuition.status.toLowerCase() === "paid"
+                                ? selectedTuition.amountDue
+                                : 0)
+                            ).toLocaleString("vi-VN")}{" "}
+                            VND
                           </h6>
                         </div>
                       </div>
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
-                          <small className="text-muted d-block mb-1">Còn nợ</small>
+                          <small className="text-muted d-block mb-1">
+                            Còn nợ
+                          </small>
                           <h6 className="fw-bold text-danger mb-0">
-                            {Math.max(0, (selectedTuition.amount || selectedTuition.amountDue || 0) - (selectedTuition.paidAmount || (selectedTuition.status === "Paid" ? selectedTuition.amountDue : 0) || 0)).toLocaleString("vi-VN")} VND
+                            {Math.max(
+                              0,
+                              (selectedTuition.amount ||
+                                selectedTuition.amountDue ||
+                                0) -
+                                (selectedTuition.paidAmount ??
+                                  (selectedTuition.status.toLowerCase() ===
+                                  "paid"
+                                    ? selectedTuition.amountDue
+                                    : 0)),
+                            ).toLocaleString("vi-VN")}{" "}
+                            VND
                           </h6>
                         </div>
                       </div>
