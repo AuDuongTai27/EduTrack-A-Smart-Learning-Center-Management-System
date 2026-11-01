@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using EduTrack.API.Services.Interfaces;
+using EduTrack.API.Models.DTOs;
+using EduTrack.API.Models.DTOs.Teaching;
+using EduTrack.API.Services.Teaching.Interfaces;
 
 namespace EduTrack.API.Controllers.Teaching
 {
@@ -13,15 +15,24 @@ namespace EduTrack.API.Controllers.Teaching
     [Tags("Teaching - Teacher & TA Requests")]
     public class TeachingRequestsController : ControllerBase
     {
-        private readonly IApprovalRequestService _requestService;
+        private readonly ITeachingRequestService _requestService;
 
-        public TeachingRequestsController(IApprovalRequestService requestService)
+        public TeachingRequestsController(ITeachingRequestService requestService)
         {
             _requestService = requestService;
         }
 
-        // TODO [Thành viên 2 - Teacher & TA]:
-        // Viết các API tạo đơn xin nghỉ dạy, đổi lịch hoặc đề xuất của GV/TA tại đây:
-        // - POST /api/teaching/requests (Tạo đơn từ của Giáo viên / Trợ giảng)
+        // POST /api/teaching/requests
+        [HttpPost]
+        public async Task<ActionResult<ApprovalRequestDto>> CreateRequest([FromBody] CreateTeachingRequestDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _requestService.CreateTeachingRequestAsync(dto);
+            return Ok(result);
+        }
     }
 }

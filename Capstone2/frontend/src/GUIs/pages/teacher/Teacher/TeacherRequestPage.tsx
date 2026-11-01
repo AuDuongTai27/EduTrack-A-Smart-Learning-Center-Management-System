@@ -34,6 +34,10 @@ export default function TeacherRequestPage() {
     };
   }, []);
 
+  const handleRequestCreated = (newRequest: ApprovalRequestDto) => {
+    setRequests((prev) => [newRequest, ...prev]);
+  };
+
   return (
     <>
       {/* Page Header Title & Breadcrumb */}
@@ -48,7 +52,7 @@ export default function TeacherRequestPage() {
       {/* Sent Requests List */}
       <div className="card class-list-card border-0 mb-4">
         {/* Card Header */}
-        <RequestListHeader />
+        <RequestListHeader onRequestCreated={handleRequestCreated} />
 
         {loading ? (
           <div className="p-5 text-center">

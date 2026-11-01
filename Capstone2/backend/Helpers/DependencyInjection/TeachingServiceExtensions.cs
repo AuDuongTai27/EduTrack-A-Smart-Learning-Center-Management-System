@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using EduTrack.API.Services.Teaching.Interfaces;
+using EduTrack.API.Services.Teaching.Implementation;
 
 namespace EduTrack.API.Helpers.DependencyInjection
 {
@@ -10,7 +12,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
     {
         public static IServiceCollection AddTeachingServices(this IServiceCollection services)
         {
-            // Thành viên 2 đăng ký thêm các Service mới của nhánh Teaching tại đây (tránh conflict Program.cs)
+            services.AddScoped<ITeachingRequestService, TeachingRequestService>();
             return services;
         }
     }

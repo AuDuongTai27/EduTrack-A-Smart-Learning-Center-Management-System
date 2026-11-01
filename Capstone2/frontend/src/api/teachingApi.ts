@@ -1,22 +1,52 @@
+import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+export interface CreateTeachingRequestPayload {
+  title: string;
+  description: string;
+  requestType?: string;
+  priority?: string;
+  requestedBy?: number;
+  classId?: number;
+  studentId?: number;
+  reason?: string;
+}
 
 /**
  * [Bounded Context: Teaching]
  * Tầng Network API dành riêng cho Thành viên 2 (Teacher & Teaching Assistant)
- *
- * HƯỚNG DẪN:
- * - Thành viên phụ trách Teacher & TA tự định nghĩa các hàm gọi API
- *   (POST / PUT / PATCH / DELETE hoặc GET nâng cao) tại đây.
- * - Giúp tách biệt hoàn toàn với nhóm Management và Student/Parent (0% Git Conflict).
  */
 export const teachingApi = {
-  // TODO [Thành viên 2 - Teacher & Teaching Assistant]:
-  // Tự viết các hàm fetch gọi tới Controllers/Teaching/ của bạn tại đây.
-  // Ví dụ:
-  // async myCustomEndpoint(payload: any) {
-  //   const res = await fetch(`${API_BASE_URL}/...`, { ... });
-  //   return await res.json();
-  // }
+  /**
+   * POST /api/teaching/requests
+   * Tạo đơn yêu cầu/kiến nghị từ phía Giáo viên hoặc Trợ giảng
+   */
+  async createRequest(payload: CreateTeachingRequestPayload): Promise<ApprovalRequestDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: payload.title,
+        description: payload.description,
+        requestType: payload.requestType || 'leave_request',
+        priority: payload.priority || 'medium',
+        requestedBy: payload.requestedBy || 2, // Default Teacher ID (Ms. Mai)
+        classId: payload.classId,
+        studentId: payload.studentId,
+        reason: payload.reason || payload.description,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP error ${res.status}`);
+    }
+
+    return await res.json();
+  },
 };
 
 export default teachingApi;
