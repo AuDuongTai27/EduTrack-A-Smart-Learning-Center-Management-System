@@ -96,8 +96,6 @@ namespace EduTrack.API.Controllers.Management
             }
         }
 
-        // TODO 3/3:
-        // POST /api/tuitioninvoices/{id}/payments
         // POST: /api/tuitioninvoices/{id}/payments
         [HttpPost("{id:int}/payments")]
         public async Task<ActionResult<PaymentDto>> RecordPayment(

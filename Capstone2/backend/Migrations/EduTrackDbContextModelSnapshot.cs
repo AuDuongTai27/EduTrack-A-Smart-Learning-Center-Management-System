@@ -593,6 +593,15 @@ namespace EduTrack.API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("PaymentId"));
 
+                    b.Property<decimal>("AdditionalChargeAmount")
+                        .HasColumnType("decimal(12,2)")
+                        .HasColumnName("additional_charge_amount");
+
+                    b.Property<string>("AdditionalChargeNote")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("additional_charge_note");
+
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(12,2)")
                         .HasColumnName("amount");

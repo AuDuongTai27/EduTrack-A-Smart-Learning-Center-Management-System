@@ -6,6 +6,9 @@ using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Models.Entities;
 using EduTrack.API.Repositories.Interfaces;
 using EduTrack.API.Services.Management.Interfaces;
+using System.Data;
+using EduTrack.API.Models.EF;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduTrack.API.Services.Management.Implementation
 {
@@ -15,17 +18,20 @@ namespace EduTrack.API.Services.Management.Implementation
         private readonly IUserRepository _userRepository;
         private readonly IClassRepository _classRepository;
         private readonly IPaymentRepository _paymentRepository;
+        private readonly EduTrackDbContext _context;
 
         public ManagementTuitionService(
     ITuitionInvoiceRepository tuitionRepository,
     IUserRepository userRepository,
     IClassRepository classRepository,
-    IPaymentRepository paymentRepository)
+    IPaymentRepository paymentRepository,
+    EduTrackDbContext context)
         {
             _tuitionRepository = tuitionRepository;
             _userRepository = userRepository;
             _classRepository = classRepository;
             _paymentRepository = paymentRepository;
+            _context = context;
         }
 
         public async Task<TuitionInvoiceDto> CreateTuitionInvoiceAsync(
@@ -108,6 +114,32 @@ namespace EduTrack.API.Services.Management.Implementation
                 );
             }
 
+            var payments = await _paymentRepository.GetAllAsync();
+
+            var totalPaid = payments
+                .Where(p => p.InvoiceId == id)
+                .Sum(p => p.Amount);
+
+            if (dto.AmountDue < totalPaid)
+            {
+                throw new InvalidOperationException(
+                    "Số tiền phải thu không thể nhỏ hơn tổng đã thanh toán."
+                );
+            }
+
+            if (status == "paid" && totalPaid < dto.AmountDue)
+            {
+                throw new InvalidOperationException(
+                    "Không thể đánh dấu Paid khi chưa thanh toán đủ."
+                );
+            }
+
+            if (totalPaid == dto.AmountDue &&
+                status != "pending_adjustment")
+            {
+                status = "paid";
+            }
+
             var updatedInvoice = new TuitionInvoice
             {
                 InvoiceId = existing.InvoiceId,
@@ -133,6 +165,10 @@ namespace EduTrack.API.Services.Management.Implementation
             int invoiceId,
             CreatePaymentDto dto)
         {
+            await using var transaction =
+            await _context.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable
+            );
             var invoice =
                 await _tuitionRepository.GetByIdAsync(invoiceId);
 
@@ -148,10 +184,11 @@ namespace EduTrack.API.Services.Management.Implementation
 
             var validMethods = new[]
             {
-        "bank_transfer",
-        "vnpay",
-        "momo"
-    };
+                "cash",
+                "bank_transfer",
+                "vnpay",
+                "momo"
+            };
 
             if (!validMethods.Contains(paymentMethod))
             {
@@ -199,25 +236,47 @@ namespace EduTrack.API.Services.Management.Implementation
                 .Sum(p => p.Amount);
 
             var remaining = invoice.AmountDue - alreadyPaid;
+            var extra = dto.AdditionalChargeAmount;
 
-            if (remaining <= 0)
-            {
+            if (dto.Amount <= 0)
                 throw new InvalidOperationException(
-                    "Hóa đơn này đã được thanh toán đầy đủ."
-                );
-            }
+                    "Số tiền thanh toán phải lớn hơn 0.");
 
-            if (dto.Amount > remaining)
-            {
+            if (extra < 0)
                 throw new InvalidOperationException(
-                    $"Số tiền thanh toán vượt quá công nợ còn lại ({remaining:N0} VND)."
-                );
-            }
+                    "Phí bổ sung không được âm.");
+
+            if (extra > 0 &&
+                string.IsNullOrWhiteSpace(dto.AdditionalChargeNote))
+                throw new InvalidOperationException(
+                    "Phải nhập lý do thu thêm phí.");
+
+            if (remaining < 0)
+                throw new InvalidOperationException(
+                    "Công nợ không hợp lệ, cần kiểm tra lại.");
+
+            if (remaining == 0 && extra == 0)
+                throw new InvalidOperationException(
+                    "Hóa đơn đã thanh toán đầy đủ.");
+
+            if (extra > dto.Amount)
+                throw new InvalidOperationException(
+                    "Phí bổ sung không thể lớn hơn tiền thanh toán.");
+
+            if (dto.Amount > remaining + extra)
+                throw new InvalidOperationException(
+                    "Số tiền vượt quá công nợ và phí bổ sung.");
+
+            var newAmountDue = invoice.AmountDue + extra;
 
             var payment = new Payment
             {
                 InvoiceId = invoiceId,
                 Amount = dto.Amount,
+                AdditionalChargeAmount = extra,
+                AdditionalChargeNote = extra > 0
+    ? dto.AdditionalChargeNote!.Trim()
+    : null,
                 PaymentMethod = paymentMethod,
                 TransactionCode =
                     string.IsNullOrWhiteSpace(dto.TransactionCode)
@@ -238,7 +297,7 @@ namespace EduTrack.API.Services.Management.Implementation
             var totalPaid = alreadyPaid + dto.Amount;
 
             var newStatus =
-                totalPaid >= invoice.AmountDue
+                totalPaid >= newAmountDue
                     ? "paid"
                     : invoice.DueDate.Date < DateTime.UtcNow.Date
                         ? "overdue"
@@ -251,7 +310,7 @@ namespace EduTrack.API.Services.Management.Implementation
                 ClassId = invoice.ClassId,
                 PeriodMonth = invoice.PeriodMonth,
                 PeriodYear = invoice.PeriodYear,
-                AmountDue = invoice.AmountDue,
+                AmountDue = newAmountDue,
                 DueDate = invoice.DueDate,
                 Status = newStatus
             };
@@ -263,9 +322,11 @@ namespace EduTrack.API.Services.Management.Implementation
                     added.PaymentId
                 );
 
-            return MapPaymentToDto(
-                loadedPayment ?? added
-            );
+            var paymentDto = MapPaymentToDto(loadedPayment ?? added);
+
+            await transaction.CommitAsync();
+
+            return paymentDto;
         }
 
         private static TuitionInvoiceDto MapToDto(
@@ -279,6 +340,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 StudentCode = invoice.Student?.UserCode ?? string.Empty,
                 ClassId = invoice.ClassId,
                 ClassName = invoice.Class?.ClassName ?? string.Empty,
+                PeriodMonth = invoice.PeriodMonth,
+                PeriodYear = invoice.PeriodYear,
                 AmountDue = invoice.AmountDue,
                 DueDate = invoice.DueDate,
                 Status = invoice.Status
@@ -292,6 +355,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 PaymentId = payment.PaymentId,
                 InvoiceId = payment.InvoiceId,
                 Amount = payment.Amount,
+                AdditionalChargeAmount = payment.AdditionalChargeAmount,
+                AdditionalChargeNote = payment.AdditionalChargeNote,
                 PaymentMethod = payment.PaymentMethod,
                 TransactionCode = payment.TransactionCode,
                 PaidAt = payment.PaidAt,
