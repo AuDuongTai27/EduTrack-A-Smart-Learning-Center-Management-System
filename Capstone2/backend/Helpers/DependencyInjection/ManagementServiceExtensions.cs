@@ -16,6 +16,9 @@ namespace EduTrack.API.Helpers.DependencyInjection
             services.AddScoped<IManagementClassService, ManagementClassService>();
             services.AddScoped<IManagementSubjectService, ManagementSubjectService>();
             services.AddScoped<IManagementTuitionService, ManagementTuitionService>();
+            services.AddScoped<IManagementApprovalRequestService, ManagementApprovalRequestService>();
+
+
 
             return services;
         }
