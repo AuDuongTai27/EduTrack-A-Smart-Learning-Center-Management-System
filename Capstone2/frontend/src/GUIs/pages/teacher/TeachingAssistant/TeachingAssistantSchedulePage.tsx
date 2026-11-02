@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
   ScheduleListHeader,
@@ -6,11 +6,13 @@ import {
   ScheduleListToolbar,
   ScheduleTable,
 } from "../../../components/teacher/TeachingAssistant/schedule";
-import scheduleDAL from "../../../../DAL/scheduleDAL";
-import type { ClassScheduleDto } from "../../../../BLL/models/ClassScheduleDto";
+import teachingDAL from "../../../../DAL/teachingDAL";
+import type { TeachingScheduleItemDto } from "../../../../BLL/models/TeachingScheduleDto";
+
+const DEFAULT_TA_ID = 5; // Âu Dương Tài
 
 export default function TeachingAssistantSchedulePage() {
-  const [schedules, setSchedules] = useState<ClassScheduleDto[]>([]);
+  const [schedules, setSchedules] = useState<TeachingScheduleItemDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -18,7 +20,7 @@ export default function TeachingAssistantSchedulePage() {
     async function loadSchedules() {
       try {
         setLoading(true);
-        const res = await scheduleDAL.getAllClassSchedules();
+        const res = await teachingDAL.getMySchedule(DEFAULT_TA_ID);
         if (isMounted && res.data) {
           setSchedules(res.data);
         }
@@ -38,7 +40,7 @@ export default function TeachingAssistantSchedulePage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Lịch Trợ Giảng &amp; Thời Khóa Biểu"
+        title="Lịch Trợ Giảng & Thời Khóa Biểu"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "Thời khóa biểu trợ giảng" },

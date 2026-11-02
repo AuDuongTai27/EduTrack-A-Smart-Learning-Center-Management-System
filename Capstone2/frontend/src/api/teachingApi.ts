@@ -1,5 +1,6 @@
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/TeachingDashboardDto';
+import type { TeachingScheduleItemDto } from '../BLL/models/TeachingScheduleDto';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -37,6 +38,26 @@ export const teachingApi = {
 
     const json = await response.json();
     return json?.data ?? json ?? null;
+  },
+
+  /**
+   * GET /api/teaching/classes/my-schedule?userId={userId}
+   * Lấy thời khóa biểu giảng dạy hoặc lịch trực cá nhân của GV/TA
+   */
+  async getMySchedule(userId: number): Promise<TeachingScheduleItemDto[]> {
+    const response = await fetch(`${API_BASE_URL}/teaching/classes/my-schedule?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải thời khóa biểu cá nhân`);
+    }
+
+    const json = await response.json();
+    return json?.data ?? json ?? [];
   },
 
   /**

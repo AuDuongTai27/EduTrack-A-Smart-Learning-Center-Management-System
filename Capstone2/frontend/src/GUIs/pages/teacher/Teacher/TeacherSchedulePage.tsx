@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import { ScheduleListHeader, ScheduleListToolbar, ScheduleTable, ScheduleListPagination } from "../../../components/teacher/Teacher/schedule";
-import scheduleDAL from "../../../../DAL/scheduleDAL";
-import type { ClassScheduleDto } from "../../../../BLL/models/ClassScheduleDto";
+import teachingDAL from "../../../../DAL/teachingDAL";
+import type { TeachingScheduleItemDto } from "../../../../BLL/models/TeachingScheduleDto";
+
+const DEFAULT_TEACHER_ID = 3; // ThS. Hoàng Quốc Việt
 
 export default function TeacherSchedulePage() {
-  const [schedules, setSchedules] = useState<ClassScheduleDto[]>([]);
+  const [schedules, setSchedules] = useState<TeachingScheduleItemDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -13,13 +15,12 @@ export default function TeacherSchedulePage() {
     async function fetchSchedules() {
       try {
         setLoading(true);
-        // GetAll: Fetch all class schedules
-        const res = await scheduleDAL.getAllClassSchedules();
-        if (isMounted) {
+        const res = await teachingDAL.getMySchedule(DEFAULT_TEACHER_ID);
+        if (isMounted && res.data) {
           setSchedules(res.data);
         }
       } catch (err) {
-        console.error("Failed to load schedules:", err);
+        console.error("Failed to load teacher schedules:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -52,7 +53,7 @@ export default function TeacherSchedulePage() {
         {loading ? (
           <div className="p-5 text-center">
             <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-            <p className="text-muted mb-0">Loading schedule...</p>
+            <p className="text-muted mb-0">Đang tải thời khóa biểu giảng dạy...</p>
           </div>
         ) : (
           <>

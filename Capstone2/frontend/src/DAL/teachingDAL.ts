@@ -1,6 +1,7 @@
 import { teachingApi, type CreateTeachingRequestPayload } from '../api/teachingApi';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/TeachingDashboardDto';
+import type { TeachingScheduleItemDto } from '../BLL/models/TeachingScheduleDto';
 
 export interface TeachingDashboardViewModel extends TeachingDashboardDto {
   source: 'api' | 'mock';
@@ -118,6 +119,123 @@ export const teachingDAL = {
         },
       ],
     };
+  },
+
+  /**
+   * Lấy thời khóa biểu cá nhân của Giáo viên hoặc Trợ giảng
+   */
+  async getMySchedule(userId: number): Promise<{
+    success: boolean;
+    data: TeachingScheduleItemDto[];
+    isLiveApi: boolean;
+  }> {
+    try {
+      const data = await teachingApi.getMySchedule(userId);
+      if (data && data.length > 0) {
+        return { success: true, data, isLiveApi: true };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API my-schedule (userId=${userId}), dùng fallback mock:`, err?.message);
+    }
+
+    const isTa = userId === 5;
+    const fallbackList: TeachingScheduleItemDto[] = isTa
+      ? [
+          {
+            scheduleId: 101,
+            classId: 1,
+            className: 'Class 9 - Advanced Mathematics',
+            subjectName: 'Mathematics',
+            room: 'Room 201',
+            dayOfWeek: 'Monday',
+            startTime: '18:00',
+            endTime: '20:00',
+            studentCount: 30,
+            teacherName: 'ThS. Hoàng Quốc Việt',
+            taName: 'Âu Dương Tài',
+            partnerName: 'ThS. Hoàng Quốc Việt',
+            status: 'active',
+          },
+          {
+            scheduleId: 102,
+            classId: 1,
+            className: 'Class 9 - Advanced Mathematics',
+            subjectName: 'Mathematics',
+            room: 'Room 201',
+            dayOfWeek: 'Wednesday',
+            startTime: '18:00',
+            endTime: '20:00',
+            studentCount: 30,
+            teacherName: 'ThS. Hoàng Quốc Việt',
+            taName: 'Âu Dương Tài',
+            partnerName: 'ThS. Hoàng Quốc Việt',
+            status: 'active',
+          },
+          {
+            scheduleId: 103,
+            classId: 2,
+            className: 'Class 10 - Physics Fundamentals',
+            subjectName: 'Physics',
+            room: 'Room 202',
+            dayOfWeek: 'Tuesday',
+            startTime: '18:00',
+            endTime: '20:00',
+            studentCount: 25,
+            teacherName: 'Huỳnh Bá Duy',
+            taName: 'Âu Dương Tài',
+            partnerName: 'Huỳnh Bá Duy',
+            status: 'active',
+          },
+          {
+            scheduleId: 104,
+            classId: 2,
+            className: 'Class 10 - Physics Fundamentals',
+            subjectName: 'Physics',
+            room: 'Room 202',
+            dayOfWeek: 'Thursday',
+            startTime: '18:00',
+            endTime: '20:00',
+            studentCount: 25,
+            teacherName: 'Huỳnh Bá Duy',
+            taName: 'Âu Dương Tài',
+            partnerName: 'Huỳnh Bá Duy',
+            status: 'active',
+          },
+        ]
+      : [
+          {
+            scheduleId: 201,
+            classId: 1,
+            className: 'Class 9 - Advanced Mathematics',
+            subjectName: 'Mathematics',
+            room: 'Room 201',
+            dayOfWeek: 'Monday',
+            startTime: '18:00',
+            endTime: '20:00',
+            studentCount: 30,
+            teacherName: 'ThS. Hoàng Quốc Việt',
+            taName: 'Âu Dương Tài',
+            partnerName: 'Âu Dương Tài',
+            status: 'active',
+          },
+          {
+            scheduleId: 202,
+            classId: 1,
+            className: 'Class 9 - Advanced Mathematics',
+            subjectName: 'Mathematics',
+            room: 'Room 201',
+            dayOfWeek: 'Wednesday',
+            startTime: '18:00',
+            endTime: '20:00',
+            studentCount: 30,
+            teacherName: 'ThS. Hoàng Quốc Việt',
+            taName: 'Âu Dương Tài',
+            partnerName: 'Âu Dương Tài',
+            status: 'active',
+          },
+        ];
+
+    return { success: true, data: fallbackList, isLiveApi: false };
   },
 
   /**

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import type { ClassScheduleDto } from "../../../../../BLL/models/ClassScheduleDto";
+import type { TeachingScheduleItemDto } from "../../../../../BLL/models/TeachingScheduleDto";
 
 export interface ScheduleTableProps {
-  schedules?: ClassScheduleDto[];
+  schedules?: (ClassScheduleDto | TeachingScheduleItemDto)[];
 }
 
 export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
@@ -35,12 +36,21 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
         <tbody>
           {schedules.length > 0 ? (
             schedules.map((s, idx) => {
-              const subject = s.className?.toLowerCase().includes("physics")
+              const item = s as any;
+              const subject = item.subjectName || (s.className?.toLowerCase().includes("physics")
                 ? "Physics"
                 : s.className?.toLowerCase().includes("math")
                 ? "Mathematics"
-                : "Môn học";
-              const teacherName = "ThS. Hoàng Quốc Việt";
+                : "Môn học");
+              const teacherName = item.teacherName || item.partnerName || "ThS. Hoàng Quốc Việt";
+              const studentCount = item.studentCount ?? 25;
+              const statusText = item.status || "Active";
+              const teacherInitials = teacherName
+                .split(" ")
+                .map((w: string) => w[0])
+                .join("")
+                .toUpperCase()
+                .slice(-2) || "GV";
 
               return (
                 <tr key={s.scheduleId || idx}>
@@ -59,20 +69,20 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                   <td>{s.dayOfWeek ? `Every ${s.dayOfWeek}` : "16 Aug 2026"}</td>
                   <td>{s.startTime ? s.startTime.substring(0, 5) : "08:00 AM"}</td>
                   <td>{s.endTime ? s.endTime.substring(0, 5) : "09:45 AM"}</td>
-                  <td>25</td>
+                  <td>{studentCount}</td>
                   <td>
                     <div className="d-flex align-items-center gap-2">
                       <div
                         className="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
                         style={{ width: "28px", height: "28px", fontSize: "11px" }}
                       >
-                        TC
+                        {teacherInitials}
                       </div>
                       <span>{teacherName}</span>
                     </div>
                   </td>
                   <td>
-                    <span className="badge-status badge-status-active">Active</span>
+                    <span className="badge-status badge-status-active">{statusText}</span>
                   </td>
                   <td>
                     <Link
@@ -96,52 +106,14 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                 </td>
                 <td>
                   <Link to="/teaching-assistant/classes/1" className="class-id-link fw-bold">
-                    [FE-Mock] Class I-A
+                    Class 9 - Advanced Mathematics
                   </Link>
                 </td>
-                <td>Physics</td>
-                <td>Room 101</td>
-                <td>16 Aug 2026</td>
-                <td>09:00 AM</td>
-                <td>09:45 AM</td>
-                <td>25</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <div
-                      className="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
-                      style={{ width: "28px", height: "28px", fontSize: "11px" }}
-                    >
-                      TC
-                    </div>
-                    <span>ThS. Hoàng Quốc Việt</span>
-                  </div>
-                </td>
-                <td>
-                  <span className="badge-status badge-status-active">Active</span>
-                </td>
-                <td>
-                  <Link to="/teaching-assistant/classes/1" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                    <i className="bi bi-eye" /> View
-                  </Link>
-                </td>
-              </tr>
-              {/* Fallback Schedule 2 */}
-              <tr>
-                <td>
-                  <div className="form-check m-0">
-                    <input className="form-check-input row-checkbox" type="checkbox" />
-                  </div>
-                </td>
-                <td>
-                  <Link to="/teaching-assistant/classes/2" className="class-id-link fw-bold">
-                    [FE-Mock] Class II-B
-                  </Link>
-                </td>
-                <td>Chemistry</td>
-                <td>Lab 2</td>
-                <td>17 Aug 2026</td>
-                <td>10:00 AM</td>
-                <td>10:45 AM</td>
+                <td>Mathematics</td>
+                <td>Room 201</td>
+                <td>Every Monday</td>
+                <td>18:00</td>
+                <td>20:00</td>
                 <td>30</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
@@ -158,7 +130,10 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                   <span className="badge-status badge-status-active">Active</span>
                 </td>
                 <td>
-                  <Link to="/teaching-assistant/classes/2" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                  <Link
+                    to="/teaching-assistant/classes/1"
+                    className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                  >
                     <i className="bi bi-eye" /> View
                   </Link>
                 </td>
