@@ -36,6 +36,23 @@ function AssignmentOverviewCard({
   const [editDueDate, setEditDueDate] = useState<string>("");
   const [editFileUrl, setEditFileUrl] = useState<string>("");
   const [editMaxScore, setEditMaxScore] = useState<number>(10);
+  const [uploadingEditFile, setUploadingEditFile] = useState<boolean>(false);
+
+  const handleEditFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      try {
+        setUploadingEditFile(true);
+        setErrorMsg(null);
+        const res = await teachingDAL.uploadFile(file);
+        setEditFileUrl(res.fileUrl);
+      } catch (err: any) {
+        setErrorMsg(err?.message || "Lỗi khi tải tệp tin lên máy chủ.");
+      } finally {
+        setUploadingEditFile(false);
+      }
+    }
+  };
 
   useEffect(() => {
     if (assignment) {
@@ -249,14 +266,36 @@ function AssignmentOverviewCard({
                     </div>
                     <div className="col-md-6">
                       <label className="form-label fw-semibold text-dark">File / Document URL</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={editFileUrl}
-                        onChange={(e) => setEditFileUrl(e.target.value)}
-                        placeholder="e.g. /assets/docs/assignment.pdf"
-                        disabled={saving}
-                      />
+                      <div className="input-group">
+                        <label
+                          className={`input-group-text btn btn-outline-secondary ${
+                            saving || uploadingEditFile ? "disabled" : ""
+                          }`}
+                          htmlFor="editAssignmentFileInput"
+                          title="Tải tệp tin đính kèm mới"
+                        >
+                          {uploadingEditFile ? (
+                            <span className="spinner-border spinner-border-sm" role="status" />
+                          ) : (
+                            <i className="bi bi-paperclip" />
+                          )}
+                        </label>
+                        <input
+                          type="file"
+                          id="editAssignmentFileInput"
+                          className="d-none"
+                          disabled={saving || uploadingEditFile}
+                          onChange={handleEditFileUpload}
+                        />
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={editFileUrl}
+                          onChange={(e) => setEditFileUrl(e.target.value)}
+                          placeholder="e.g. /uploads/teaching/sample.pdf"
+                          disabled={saving || uploadingEditFile}
+                        />
+                      </div>
                     </div>
                     <div className="col-12">
                       <label className="form-label fw-semibold text-dark">Description &amp; Instructions</label>

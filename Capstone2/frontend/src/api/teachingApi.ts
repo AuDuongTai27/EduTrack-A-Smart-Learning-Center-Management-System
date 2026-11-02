@@ -584,6 +584,34 @@ export const teachingApi = {
     const json = await res.json();
     return json?.data ?? json;
   },
+
+  /**
+   * POST /api/teaching/upload
+   * Tải tệp tin tài liệu bài tập hoặc học liệu lên máy chủ
+   */
+  async uploadFile(file: File): Promise<{
+    success: boolean;
+    message: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    uploadedAt: string;
+  }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`${API_BASE_URL}/teaching/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi tải tệp tin lên máy chủ`);
+    }
+
+    return await res.json();
+  },
 };
 
 export default teachingApi;
