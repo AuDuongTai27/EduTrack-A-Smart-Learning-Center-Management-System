@@ -10,6 +10,7 @@ import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
 import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
+import managementDAL from "../../../../DAL/managementDAL";
 
 export default function CenterManagerDashboardPage() {
   const [manager, setManager] = useState<UserDto | null>(null);
@@ -20,7 +21,8 @@ export default function CenterManagerDashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   // Quick Action Modal states
-  const [showQuickStudentModal, setShowQuickStudentModal] = useState<boolean>(false);
+  const [showQuickStudentModal, setShowQuickStudentModal] =
+    useState<boolean>(false);
   const [quickStudentName, setQuickStudentName] = useState<string>("");
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
@@ -29,13 +31,15 @@ export default function CenterManagerDashboardPage() {
     async function fetchDashboardData() {
       try {
         setLoading(true);
-        const [mgrRes, userRes, classRes, tuiRes, notifRes] = await Promise.all([
-          userDAL.getUserById(1), // Nguyễn Văn Quản Lý
-          userDAL.getAllUsers(),
-          classDAL.getAllClasses(),
-          tuitionDAL.getAllTuitions(),
-          notificationDAL.getAllNotifications(),
-        ]);
+        const [mgrRes, userRes, classRes, tuiRes, notifRes] = await Promise.all(
+          [
+            userDAL.getUserById(1), // Nguyễn Văn Quản Lý
+            userDAL.getAllUsers(),
+            classDAL.getAllClasses(),
+            tuitionDAL.getAllTuitions(),
+            notificationDAL.getAllNotifications(),
+          ],
+        );
 
         if (isMounted) {
           setManager(mgrRes);
@@ -58,9 +62,18 @@ export default function CenterManagerDashboardPage() {
 
   // Calculate Metrics
   const metrics = useMemo(() => {
-    const studentCount = users.filter((u) => u.roles?.includes("student")).length || 128;
-    const staffCount = users.filter((u) => u.roles?.some((r) => ["teacher", "teaching_assistant", "admin_staff"].includes(r))).length || 42;
-    const activeClassesCount = classes.filter((c) => c.status === "active").length || classes.length || 24;
+    const studentCount =
+      users.filter((u) => u.roles?.includes("student")).length || 128;
+    const staffCount =
+      users.filter((u) =>
+        u.roles?.some((r) =>
+          ["teacher", "teaching_assistant", "admin_staff"].includes(r),
+        ),
+      ).length || 42;
+    const activeClassesCount =
+      classes.filter((c) => c.status === "active").length ||
+      classes.length ||
+      24;
 
     let totalCollected = 0;
     let totalOutstanding = 0;
@@ -79,19 +92,44 @@ export default function CenterManagerDashboardPage() {
       studentCount,
       staffCount,
       activeClassesCount,
-      collectedStr: totalCollected > 0 ? `${Math.round(totalCollected / 1000000)}M` : "485M",
-      outstandingStr: totalOutstanding > 0 ? `${Math.round(totalOutstanding / 1000000)}M` : "72M",
-      overdueStr: totalOverdue > 0 ? `${Math.round(totalOverdue / 1000000)}M` : "18M",
+      collectedStr:
+        totalCollected > 0
+          ? `${Math.round(totalCollected / 1000000)}M`
+          : "485M",
+      outstandingStr:
+        totalOutstanding > 0
+          ? `${Math.round(totalOutstanding / 1000000)}M`
+          : "72M",
+      overdueStr:
+        totalOverdue > 0 ? `${Math.round(totalOverdue / 1000000)}M` : "18M",
     };
   }, [users, classes, tuitions]);
 
-  const handleQuickAddStudent = (e: React.FormEvent) => {
+  const handleQuickAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!quickStudentName.trim()) return;
-    setShowQuickStudentModal(false);
-    setActionSuccessMsg(`Đã tạo hồ sơ học viên nhanh: "${quickStudentName.trim()}"!`);
-    setQuickStudentName("");
-    setTimeout(() => setActionSuccessMsg(null), 3500);
+
+    try {
+      const res = await managementDAL.createUser({
+        fullName: quickStudentName.trim(),
+        role: "student",
+      });
+
+      setUsers((prev) => [res.data, ...prev]);
+
+      setShowQuickStudentModal(false);
+
+      setActionSuccessMsg(
+        `Đã tạo hồ sơ học viên "${res.data.fullName}" thành công!`,
+      );
+
+      setQuickStudentName("");
+
+      setTimeout(() => setActionSuccessMsg(null), 3500);
+    } catch (err) {
+      console.error("Lỗi tạo học viên nhanh:", err);
+    }
   };
 
   return (
@@ -130,10 +168,18 @@ export default function CenterManagerDashboardPage() {
 
       {/* Success Notification Alert */}
       {actionSuccessMsg && (
-        <div className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+        <div
+          className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm"
+          role="alert"
+        >
           <i className="bi bi-check-circle-fill fs-5 me-2" />
           <div>{actionSuccessMsg}</div>
-          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setActionSuccessMsg(null)}
+            aria-label="Close"
+          />
         </div>
       )}
 
@@ -151,7 +197,8 @@ export default function CenterManagerDashboardPage() {
                 </span>
                 <p className="mb-0">
                   Hệ thống quản lý trung tâm EduTrack đang hoạt động ổn định.
-                  <strong className="mx-1">Kỳ học Tháng 08/2026</strong> đã đồng bộ hóa 100% dữ liệu.
+                  <strong className="mx-1">Kỳ học Tháng 08/2026</strong> đã đồng
+                  bộ hóa 100% dữ liệu.
                 </p>
               </div>
               <button
@@ -225,11 +272,18 @@ export default function CenterManagerDashboardPage() {
             <h4 className="mb-1 text-white fw-bold">
               Welcome back, {manager ? manager.fullName : "Nguyễn Văn Quản Lý"}
             </h4>
-            <p className="mb-0 text-white-50">Trung tâm EduTrack - Báo cáo tổng hợp hoạt động ngày hôm nay.</p>
+            <p className="mb-0 text-white-50">
+              Trung tâm EduTrack - Báo cáo tổng hợp hoạt động ngày hôm nay.
+            </p>
           </div>
           <div className="welcome-date text-white bg-white bg-opacity-25 px-3 py-2 rounded-pill">
             <i className="bi bi-calendar3 me-2" />
-            {new Date().toLocaleDateString("vi-VN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            {new Date().toLocaleDateString("vi-VN", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </div>
         </div>
       </div>
@@ -246,7 +300,10 @@ export default function CenterManagerDashboardPage() {
                   Collected and outstanding tuition
                 </small>
               </div>
-              <Link to="/center-manager/tuition" className="btn btn-sm btn-outline-primary">
+              <Link
+                to="/center-manager/tuition"
+                className="btn btn-sm btn-outline-primary"
+              >
                 Xem chi tiết
               </Link>
             </div>
@@ -255,19 +312,26 @@ export default function CenterManagerDashboardPage() {
                 <div className="col-6">
                   <div className="p-3 bg-light rounded-3 border-start border-4 border-success">
                     <small className="text-muted d-block">Đã thu thực tế</small>
-                    <h4 className="fw-bold text-success mb-0">{metrics.collectedStr} VND</h4>
+                    <h4 className="fw-bold text-success mb-0">
+                      {metrics.collectedStr} VND
+                    </h4>
                   </div>
                 </div>
                 <div className="col-6">
                   <div className="p-3 bg-light rounded-3 border-start border-4 border-danger">
-                    <small className="text-muted d-block">Còn lại cần thu</small>
-                    <h4 className="fw-bold text-danger mb-0">{metrics.outstandingStr} VND</h4>
+                    <small className="text-muted d-block">
+                      Còn lại cần thu
+                    </small>
+                    <h4 className="fw-bold text-danger mb-0">
+                      {metrics.outstandingStr} VND
+                    </h4>
                   </div>
                 </div>
               </div>
               <div className="p-3 bg-light rounded-3 border text-secondary small">
                 <i className="bi bi-info-circle me-2 text-primary" />
-                Số lượng giao dịch đóng phí trực tuyến tháng này tăng <strong>15.4%</strong> so với tháng trước.
+                Số lượng giao dịch đóng phí trực tuyến tháng này tăng{" "}
+                <strong>15.4%</strong> so với tháng trước.
               </div>
             </div>
           </div>
@@ -294,20 +358,31 @@ export default function CenterManagerDashboardPage() {
               <div className="notice-list">
                 {loading ? (
                   <div className="text-center py-4 text-muted">
-                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    <div
+                      className="spinner-border spinner-border-sm text-primary me-2"
+                      role="status"
+                    />
                     Đang nạp thông báo...
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="text-center py-4 text-muted">Không có thông báo mới.</div>
+                  <div className="text-center py-4 text-muted">
+                    Không có thông báo mới.
+                  </div>
                 ) : (
                   notifications.slice(0, 4).map((n) => (
-                    <div key={n.notificationId} className="notice-item d-flex align-items-center p-3 mb-2 rounded bg-light border">
+                    <div
+                      key={n.notificationId}
+                      className="notice-item d-flex align-items-center p-3 mb-2 rounded bg-light border"
+                    >
                       <div className="notice-icon bg-primary-subtle text-primary p-2 rounded-circle me-3">
                         <i className="bi bi-megaphone-fill" />
                       </div>
                       <div className="notice-content flex-grow-1">
                         <h6 className="mb-1 fw-bold text-dark">{n.title}</h6>
-                        <p className="mb-0 text-muted small text-truncate" style={{ maxWidth: "280px" }}>
+                        <p
+                          className="mb-0 text-muted small text-truncate"
+                          style={{ maxWidth: "280px" }}
+                        >
                           {n.content}
                         </p>
                       </div>
@@ -325,7 +400,11 @@ export default function CenterManagerDashboardPage() {
 
       {/* QUICK ADD STUDENT MODAL */}
       {showQuickStudentModal && (
-        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
@@ -342,7 +421,9 @@ export default function CenterManagerDashboardPage() {
               <form onSubmit={handleQuickAddStudent}>
                 <div className="modal-body p-4">
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Họ và tên học viên <span className="text-danger">*</span></label>
+                    <label className="form-label fw-bold">
+                      Họ và tên học viên <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="text"
                       className="form-control"
@@ -353,7 +434,9 @@ export default function CenterManagerDashboardPage() {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Khối lớp dự kiến</label>
+                    <label className="form-label fw-bold">
+                      Khối lớp dự kiến
+                    </label>
                     <select className="form-select">
                       <option>Class 7 - Toán & Tiếng Anh</option>
                       <option>Class 8 - Toán & Hóa học</option>
@@ -362,8 +445,14 @@ export default function CenterManagerDashboardPage() {
                     </select>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Số điện thoại liên hệ</label>
-                    <input type="tel" className="form-control" placeholder="09xx xxx xxx" />
+                    <label className="form-label fw-bold">
+                      Số điện thoại liên hệ
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      placeholder="09xx xxx xxx"
+                    />
                   </div>
                 </div>
                 <div className="modal-footer bg-light">
