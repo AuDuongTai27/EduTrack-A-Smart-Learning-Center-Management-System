@@ -20,6 +20,16 @@ export interface CreateTeachingRequestPayload {
   reason?: string;
 }
 
+export interface UpdateTeachingRequestPayload {
+  title: string;
+  description: string;
+  requestType?: string;
+  priority?: string;
+  classId?: number;
+  studentId?: number;
+  reason?: string;
+}
+
 /**
  * [Bounded Context: Teaching]
  * Tầng Network API dành riêng cho Thành viên 2 (Teacher & Teaching Assistant)
@@ -174,6 +184,31 @@ export const teachingApi = {
   },
 
   /**
+   * GET /api/teaching/requests?userId={userId}&status={status}
+   * Lấy danh sách đơn từ và yêu cầu đã gửi của Giáo viên hoặc Trợ giảng
+   */
+  async getRequests(userId: number, status?: string): Promise<ApprovalRequestDto[]> {
+    const params = new URLSearchParams({ userId: String(userId) });
+    if (status && status !== 'all') {
+      params.append('status', status);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/teaching/requests?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải danh sách đơn từ và yêu cầu`);
+    }
+
+    const json = await response.json();
+    return json?.data ?? json ?? [];
+  },
+
+  /**
    * POST /api/teaching/requests
    * Tạo đơn yêu cầu/kiến nghị từ phía Giáo viên hoặc Trợ giảng
    */
@@ -188,7 +223,7 @@ export const teachingApi = {
         description: payload.description,
         requestType: payload.requestType || 'leave_request',
         priority: payload.priority || 'medium',
-        requestedBy: payload.requestedBy || 2, // Default Teacher ID (Ms. Mai)
+        requestedBy: payload.requestedBy || 3, // ThS. Hoàng Quốc Việt
         classId: payload.classId,
         studentId: payload.studentId,
         reason: payload.reason || payload.description,
@@ -200,7 +235,38 @@ export const teachingApi = {
       throw new Error(err.message || `HTTP error ${res.status}`);
     }
 
-    return await res.json();
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * PUT /api/teaching/requests/{requestId}
+   * Chỉnh sửa đơn yêu cầu (khi chưa được xem xét giải quyết)
+   */
+  async updateRequest(requestId: number, payload: UpdateTeachingRequestPayload): Promise<ApprovalRequestDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/requests/${requestId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: payload.title,
+        description: payload.description,
+        requestType: payload.requestType,
+        priority: payload.priority,
+        classId: payload.classId,
+        studentId: payload.studentId,
+        reason: payload.reason || payload.description,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP error ${res.status}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
   },
 };
 

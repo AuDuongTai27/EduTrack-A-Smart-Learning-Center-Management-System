@@ -1,4 +1,8 @@
-import { teachingApi, type CreateTeachingRequestPayload } from '../api/teachingApi';
+import {
+  teachingApi,
+  type CreateTeachingRequestPayload,
+  type UpdateTeachingRequestPayload,
+} from '../api/teachingApi';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
 import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
@@ -613,6 +617,97 @@ export const teachingDAL = {
       console.warn(`🟡 [teachingDAL] Đánh dấu đọc tất cả thông báo local fallback:`, err?.message);
       return 2;
     }
+  },
+
+
+  /**
+   * Lấy danh sách đơn từ và yêu cầu của Giáo viên hoặc Trợ giảng
+   */
+  async getRequests(userId: number, status?: string): Promise<{
+    success: boolean;
+    data: ApprovalRequestDto[];
+    isLiveApi: boolean;
+  }> {
+    try {
+      const data = await teachingApi.getRequests(userId, status);
+      if (data && data.length > 0) {
+        return { success: true, data, isLiveApi: true };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API requests (userId=${userId}), dùng fallback mock:`, err?.message);
+    }
+
+    const isTa = userId === 5;
+    const fallbackRequests: ApprovalRequestDto[] = [
+      {
+        requestId: 101,
+        requestCode: 'AR0101',
+        requestType: 'leave_request',
+        title: isTa ? 'Đơn xin nghỉ phép trực buổi tối 25/08' : 'Đơn xin nghỉ phép giảng dạy ngày 20/08',
+        description: isTa
+          ? 'Em có lịch thi tốt nghiệp chứng chỉ chuyên môn vào tối 25/08 nên xin phép vắng buổi trực lớp 9A1.'
+          : 'Tôi có lịch công tác đột xuất vào ngày 20/08/2026 nên xin phép chuyển buổi học sang Chủ nhật tuần sau.',
+        requestedBy: userId,
+        requesterName: isTa ? 'Âu Dương Tài' : 'ThS. Hoàng Quốc Việt',
+        reviewedBy: 1,
+        reviewerName: 'Admin EduTrack',
+        priority: 'medium',
+        status: 'approved',
+        statusLabel: 'Đã duyệt',
+        canEdit: false,
+        createdAt: '2026-08-16T15:45:00Z',
+        reviewedAt: '2026-08-17T09:00:00Z',
+        reviewNotes: 'Đồng ý cho đổi lịch sang Chủ Nhật.',
+      },
+      {
+        requestId: 102,
+        requestCode: 'AR0102',
+        requestType: 'facility_request',
+        title: 'Đề xuất nâng cấp micro và máy chiếu Phòng 201',
+        description: 'Micro giảng dạy tại phòng 201 bị rè, kính đề xuất bộ phận IT kiểm tra thay pin hoặc nâng cấp.',
+        requestedBy: userId,
+        requesterName: isTa ? 'Âu Dương Tài' : 'ThS. Hoàng Quốc Việt',
+        priority: 'high',
+        status: 'pending',
+        statusLabel: 'Chưa xem xét giải quyết',
+        canEdit: true,
+        createdAt: '2026-08-18T10:30:00Z',
+      },
+      {
+        requestId: 103,
+        requestCode: 'AR0103',
+        requestType: 'schedule_change',
+        title: 'Yêu cầu mở thêm lớp phụ đạo cho học sinh yếu',
+        description: 'Kính đề xuất trung tâm cho mở thêm 2 buổi phụ đạo ôn tập chương Phương trình bậc hai cho học sinh lớp 9A1.',
+        requestedBy: userId,
+        requesterName: isTa ? 'Âu Dương Tài' : 'ThS. Hoàng Quốc Việt',
+        priority: 'medium',
+        status: 'pending',
+        statusLabel: 'Chờ duyệt',
+        canEdit: false,
+        reviewedBy: 1,
+        reviewerName: 'Admin EduTrack',
+        createdAt: '2026-08-19T14:15:00Z',
+      },
+    ];
+
+    let filtered = fallbackRequests;
+    if (status && status !== 'all') {
+      filtered = fallbackRequests.filter((r) => r.status.toLowerCase() === status.toLowerCase());
+    }
+
+    return { success: true, data: filtered, isLiveApi: false };
+  },
+
+  /**
+   * Cập nhật đơn từ/yêu cầu (chỉ khi đơn chưa được xem xét giải quyết)
+   */
+  async updateRequest(
+    requestId: number,
+    payload: UpdateTeachingRequestPayload
+  ): Promise<{ success: boolean; data: ApprovalRequestDto }> {
+    const data = await teachingApi.updateRequest(requestId, payload);
+    return { success: true, data };
   },
 
 };

@@ -1,73 +1,162 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import NewRequestModal from "./NewRequestModal";
 import type { ApprovalRequestDto } from "../../../../../BLL/models/ApprovalRequestDto";
 
-interface RequestListHeaderProps {
+export interface RequestListHeaderProps {
+  filterStatus?: "all" | "pending" | "approved" | "rejected";
+  onFilterStatusChange?: (status: "all" | "pending" | "approved" | "rejected") => void;
+  sortOrder?: "desc" | "asc";
+  onSortOrderChange?: (order: "desc" | "asc") => void;
   onRequestCreated?: (newRequest: ApprovalRequestDto) => void;
+  defaultRequestedBy?: number;
+  userRoleName?: string;
 }
 
-export default function RequestListHeader({ onRequestCreated }: RequestListHeaderProps) {
+export default function RequestListHeader({
+  filterStatus = "all",
+  onFilterStatusChange,
+  sortOrder = "desc",
+  onSortOrderChange,
+  onRequestCreated,
+  defaultRequestedBy = 3,
+  userRoleName = "Giáo viên",
+}: RequestListHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
 
   return (
     <>
-      <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <h4 className="class-list-title">Sent Requests List</h4>
-        <div className="d-flex align-items-center gap-2 flex-wrap">
+      <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
+        <div>
+          <h4 className="class-list-title mb-1">Danh Sách Đơn Từ &amp; Yêu Cầu</h4>
+          <small className="text-muted">Theo dõi tình trạng phê duyệt đơn xin nghỉ, đổi lịch, đề xuất thiết bị</small>
+        </div>
+
+        <div className="d-flex align-items-center gap-2 flex-wrap position-relative">
           {/* Status Filter */}
-          <div className="dropdown">
+          <div className="dropdown position-relative">
             <button
               type="button"
-              className="btn-header-action"
+              className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
               id="filterDropdownBtn"
-              data-bs-toggle="dropdown"
-              data-bs-auto-close="outside"
-              aria-expanded="false"
+              onClick={() => {
+                setFilterOpen(!filterOpen);
+                setSortOpen(false);
+              }}
             >
               <i className="bi bi-funnel" />
-              <span id="filterLabel">Filter</span>
+              <span>
+                {filterStatus === "all"
+                  ? "Tất cả trạng thái"
+                  : filterStatus === "pending"
+                  ? "Chờ duyệt"
+                  : filterStatus === "approved"
+                  ? "Đã duyệt"
+                  : "Từ chối"}
+              </span>
               <i className="bi bi-chevron-down ms-1" />
             </button>
-            <div className="dropdown-menu dropdown-menu-end p-3 filter-dropdown-menu">
-              <form id="filterForm">
-                <div className="mb-2">
-                  <label className="form-label small fw-bold">Status</label>
-                  <select className="form-select form-select-sm" id="filterStatusSelect">
-                    <option value="all">All Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                  </select>
+
+            {filterOpen && (
+              <div
+                className="dropdown-menu dropdown-menu-end show p-3 shadow border-0"
+                style={{ minWidth: 200, zIndex: 1050, position: "absolute", right: 0 }}
+              >
+                <label className="form-label small fw-bold mb-2">Lọc trạng thái:</label>
+                <div className="d-flex flex-column gap-1">
+                  <button
+                    type="button"
+                    className={`btn btn-sm text-start ${filterStatus === "all" ? "btn-primary" : "btn-light"}`}
+                    onClick={() => {
+                      onFilterStatusChange?.("all");
+                      setFilterOpen(false);
+                    }}
+                  >
+                    Tất cả đơn
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm text-start ${filterStatus === "pending" ? "btn-primary" : "btn-light"}`}
+                    onClick={() => {
+                      onFilterStatusChange?.("pending");
+                      setFilterOpen(false);
+                    }}
+                  >
+                    Chờ duyệt (Pending)
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm text-start ${filterStatus === "approved" ? "btn-primary" : "btn-light"}`}
+                    onClick={() => {
+                      onFilterStatusChange?.("approved");
+                      setFilterOpen(false);
+                    }}
+                  >
+                    Đã duyệt (Approved)
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm text-start ${filterStatus === "rejected" ? "btn-primary" : "btn-light"}`}
+                    onClick={() => {
+                      onFilterStatusChange?.("rejected");
+                      setFilterOpen(false);
+                    }}
+                  >
+                    Đã từ chối (Rejected)
+                  </button>
                 </div>
-                <div className="d-flex justify-content-end gap-2 mt-3">
-                  <button type="button" className="btn btn-sm btn-light" id="resetFilterBtn">Reset</button>
-                  <button type="submit" className="btn btn-sm btn-primary" id="applyFilterBtn">Apply</button>
-                </div>
-              </form>
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Sort Dropdown */}
-          <div className="dropdown">
+          <div className="dropdown position-relative">
             <button
               type="button"
-              className="btn-header-action"
+              className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
               id="sortDropdownBtn"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
+              onClick={() => {
+                setSortOpen(!sortOpen);
+                setFilterOpen(false);
+              }}
             >
               <i className="bi bi-arrow-down-up" />
-              <span id="sortLabel">Sort by Newest</span>
+              <span>{sortOrder === "desc" ? "Mới nhất" : "Cũ nhất"}</span>
               <i className="bi bi-chevron-down ms-1" />
             </button>
-            <ul className="dropdown-menu dropdown-menu-end" id="sortOptions">
-              <li>
-                <a className="dropdown-item active" href="#" data-sort="desc">Newest First</a>
-              </li>
-              <li>
-                <a className="dropdown-item" href="#" data-sort="asc">Oldest First</a>
-              </li>
-            </ul>
+
+            {sortOpen && (
+              <ul
+                className="dropdown-menu dropdown-menu-end show shadow border-0"
+                style={{ zIndex: 1050, position: "absolute", right: 0 }}
+              >
+                <li>
+                  <button
+                    type="button"
+                    className={`dropdown-item ${sortOrder === "desc" ? "active" : ""}`}
+                    onClick={() => {
+                      onSortOrderChange?.("desc");
+                      setSortOpen(false);
+                    }}
+                  >
+                    <i className="bi bi-arrow-down me-1" /> Mới nhất trước
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    className={`dropdown-item ${sortOrder === "asc" ? "active" : ""}`}
+                    onClick={() => {
+                      onSortOrderChange?.("asc");
+                      setSortOpen(false);
+                    }}
+                  >
+                    <i className="bi bi-arrow-up me-1" /> Cũ nhất trước
+                  </button>
+                </li>
+              </ul>
+            )}
           </div>
 
           {/* New Request Button */}
@@ -77,7 +166,7 @@ export default function RequestListHeader({ onRequestCreated }: RequestListHeade
             onClick={() => setIsModalOpen(true)}
           >
             <i className="bi bi-plus-lg" />
-            <span>New Request</span>
+            <span>Tạo đơn mới</span>
           </button>
         </div>
       </div>
@@ -87,6 +176,8 @@ export default function RequestListHeader({ onRequestCreated }: RequestListHeade
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onRequestCreated={onRequestCreated}
+        defaultRequestedBy={defaultRequestedBy}
+        userRoleName={userRoleName}
       />
     </>
   );

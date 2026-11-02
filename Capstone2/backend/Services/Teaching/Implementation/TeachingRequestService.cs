@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Teaching;
+using EduTrack.API.Models.EF;
 using EduTrack.API.Models.Entities;
 using EduTrack.API.Repositories.Interfaces;
 using EduTrack.API.Services.Teaching.Interfaces;
@@ -11,10 +15,38 @@ namespace EduTrack.API.Services.Teaching.Implementation
     public class TeachingRequestService : ITeachingRequestService
     {
         private readonly IApprovalRequestRepository _approvalRequestRepository;
+        private readonly EduTrackDbContext _context;
 
-        public TeachingRequestService(IApprovalRequestRepository approvalRequestRepository)
+        public TeachingRequestService(
+            IApprovalRequestRepository approvalRequestRepository,
+            EduTrackDbContext context)
         {
             _approvalRequestRepository = approvalRequestRepository;
+            _context = context;
+        }
+
+        public async Task<List<ApprovalRequestDto>> GetTeachingRequestsAsync(int userId, string? status = null)
+        {
+            var query = _context.ApprovalRequests
+                .AsNoTracking()
+                .Include(ar => ar.Student)
+                .Include(ar => ar.Class)
+                .Include(ar => ar.Requester)
+                .Include(ar => ar.Reviewer)
+                .AsQueryable();
+
+            if (userId > 0)
+            {
+                query = query.Where(ar => ar.RequestedBy == userId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(status) && !string.Equals(status, "all", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(ar => ar.Status.ToLower() == status.ToLower());
+            }
+
+            var list = await query.OrderByDescending(ar => ar.CreatedAt).ToListAsync();
+            return list.Select(MapToDto).ToList();
         }
 
         public async Task<ApprovalRequestDto> CreateTeachingRequestAsync(CreateTeachingRequestDto dto)
@@ -45,8 +77,76 @@ namespace EduTrack.API.Services.Teaching.Implementation
             return MapToDto(loaded ?? added);
         }
 
+        public async Task<ApprovalRequestDto?> UpdateTeachingRequestAsync(int requestId, UpdateTeachingRequestDto dto)
+        {
+            var entity = await _context.ApprovalRequests
+                .Include(ar => ar.Student)
+                .Include(ar => ar.Class)
+                .Include(ar => ar.Requester)
+                .Include(ar => ar.Reviewer)
+                .FirstOrDefaultAsync(ar => ar.RequestId == requestId);
+
+            if (entity == null)
+            {
+                return null;
+            }
+
+            bool isEditable = string.Equals(entity.Status, "pending", StringComparison.OrdinalIgnoreCase) && entity.ReviewedBy == null;
+            if (!isEditable)
+            {
+                throw new InvalidOperationException("Đơn này đã được Ban Giám Đốc/Giáo vụ tiếp nhận xem xét nên không thể chỉnh sửa.");
+            }
+
+            entity.Title = dto.Title.Trim();
+            entity.Description = dto.Description.Trim();
+            if (!string.IsNullOrWhiteSpace(dto.RequestType))
+            {
+                entity.RequestType = dto.RequestType.Trim().ToLowerInvariant();
+            }
+            if (dto.ClassId.HasValue)
+            {
+                entity.ClassId = dto.ClassId.Value > 0 ? dto.ClassId.Value : null;
+            }
+            if (dto.StudentId.HasValue)
+            {
+                entity.StudentId = dto.StudentId.Value > 0 ? dto.StudentId.Value : null;
+            }
+            if (!string.IsNullOrWhiteSpace(dto.Priority))
+            {
+                entity.Priority = dto.Priority.Trim().ToLowerInvariant();
+            }
+            if (!string.IsNullOrWhiteSpace(dto.Reason))
+            {
+                entity.Reason = dto.Reason.Trim();
+            }
+
+            await _context.SaveChangesAsync();
+            return MapToDto(entity);
+        }
+
         private static ApprovalRequestDto MapToDto(ApprovalRequest x)
         {
+            var statusLower = (x.Status ?? "pending").Trim().ToLowerInvariant();
+            bool canEdit = statusLower == "pending" && x.ReviewedBy == null;
+
+            string statusLabel;
+            if (statusLower == "approved")
+            {
+                statusLabel = "Đã duyệt";
+            }
+            else if (statusLower == "rejected")
+            {
+                statusLabel = "Từ chối";
+            }
+            else if (x.ReviewedBy != null)
+            {
+                statusLabel = "Chờ duyệt";
+            }
+            else
+            {
+                statusLabel = "Chưa xem xét giải quyết";
+            }
+
             return new ApprovalRequestDto
             {
                 RequestId = x.RequestId,
@@ -65,6 +165,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 ReviewerName = x.Reviewer?.FullName,
                 Priority = x.Priority,
                 Status = x.Status,
+                StatusLabel = statusLabel,
+                CanEdit = canEdit,
                 Reason = x.Reason,
                 CreatedAt = x.CreatedAt,
                 ReviewedAt = x.ReviewedAt,

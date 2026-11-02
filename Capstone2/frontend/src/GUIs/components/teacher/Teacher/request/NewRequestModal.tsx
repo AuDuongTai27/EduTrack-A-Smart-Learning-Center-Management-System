@@ -2,17 +2,23 @@ import React, { useState } from 'react';
 import { teachingDAL } from '../../../../../DAL/teachingDAL';
 import type { ApprovalRequestDto } from '../../../../../BLL/models/ApprovalRequestDto';
 
-interface NewRequestModalProps {
+export interface NewRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRequestCreated?: (newRequest: ApprovalRequestDto) => void;
+  defaultRequestedBy?: number;
+  userRoleName?: string;
 }
 
 export default function NewRequestModal({
   isOpen,
   onClose,
   onRequestCreated,
+  defaultRequestedBy = 3,
+  userRoleName = "Giáo viên",
 }: NewRequestModalProps) {
+  const [requestType, setRequestType] = useState('leave_request');
+  const [priority, setPriority] = useState('medium');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,6 +32,8 @@ export default function NewRequestModal({
     if (isSubmitting) return;
     setTitle('');
     setDescription('');
+    setRequestType('leave_request');
+    setPriority('medium');
     setErrorMsg(null);
     onClose();
   };
@@ -41,9 +49,9 @@ export default function NewRequestModal({
       const res = await teachingDAL.createRequest({
         title: title.trim(),
         description: description.trim(),
-        requestType: 'teaching_support',
-        priority: 'medium',
-        requestedBy: 2, // Default ID của giáo viên
+        requestType,
+        priority,
+        requestedBy: defaultRequestedBy,
       });
 
       if (res && res.data) {
@@ -82,7 +90,7 @@ export default function NewRequestModal({
             <div className="modal-header border-bottom py-3 px-4">
               <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="newRequestModalTitle">
                 <i className="bi bi-file-earmark-plus text-primary fs-5" />
-                <span>Create New Request</span>
+                <span>Tạo Đơn &amp; Yêu Cầu Mới ({userRoleName})</span>
               </h5>
               <button
                 type="button"
@@ -102,15 +110,53 @@ export default function NewRequestModal({
                   </div>
                 )}
 
+                <div className="row g-2 mb-3">
+                  <div className="col-md-7">
+                    <label htmlFor="requestType" className="form-label fw-semibold text-secondary small">
+                      Loại đơn <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      id="requestType"
+                      className="form-select form-select-sm"
+                      value={requestType}
+                      onChange={(e) => setRequestType(e.target.value)}
+                      disabled={isSubmitting}
+                    >
+                      <option value="leave_request">Xin nghỉ phép / Vắng buổi</option>
+                      <option value="schedule_change">Đề xuất đổi lịch học / Dạy bù</option>
+                      <option value="facility_request">Đề xuất phòng học / Thiết bị</option>
+                      <option value="teaching_support">Yêu cầu trợ giảng / Phụ đạo</option>
+                      <option value="other">Yêu cầu khác</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-5">
+                    <label htmlFor="requestPriority" className="form-label fw-semibold text-secondary small">
+                      Mức độ ưu tiên
+                    </label>
+                    <select
+                      id="requestPriority"
+                      className="form-select form-select-sm"
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                      disabled={isSubmitting}
+                    >
+                      <option value="low">Thấp</option>
+                      <option value="medium">Trung bình</option>
+                      <option value="high">Khẩn cấp</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="mb-3">
                   <label htmlFor="requestTitle" className="form-label fw-semibold text-secondary small">
-                    Title <span className="text-danger">*</span>
+                    Tiêu đề yêu cầu <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     id="requestTitle"
-                    className="form-control"
-                    placeholder="Enter request title..."
+                    className="form-control form-control-sm"
+                    placeholder="Ví dụ: Xin phép nghỉ dạy ngày 20/08 do việc gia đình..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     disabled={isSubmitting}
@@ -120,13 +166,13 @@ export default function NewRequestModal({
 
                 <div className="mb-3">
                   <label htmlFor="requestDescription" className="form-label fw-semibold text-secondary small">
-                    Description <span className="text-danger">*</span>
+                    Nội dung chi tiết &amp; Lý do <span className="text-danger">*</span>
                   </label>
                   <textarea
                     id="requestDescription"
-                    className="form-control"
+                    className="form-control form-control-sm"
                     rows={4}
-                    placeholder="Describe your request in detail..."
+                    placeholder="Mô tả cụ thể nguyện vọng, phương án dạy bù hoặc hỗ trợ..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={isSubmitting}
@@ -142,7 +188,7 @@ export default function NewRequestModal({
                   onClick={handleClose}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
@@ -152,12 +198,12 @@ export default function NewRequestModal({
                   {isSubmitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" />
-                      <span>Submitting...</span>
+                      <span>Đang gửi...</span>
                     </>
                   ) : (
                     <>
                       <i className="bi bi-send-fill" />
-                      <span>Submit</span>
+                      <span>Gửi yêu cầu</span>
                     </>
                   )}
                 </button>
@@ -169,4 +215,3 @@ export default function NewRequestModal({
     </>
   );
 }
-
