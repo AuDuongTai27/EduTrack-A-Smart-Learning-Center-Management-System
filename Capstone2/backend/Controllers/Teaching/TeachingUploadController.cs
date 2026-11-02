@@ -9,6 +9,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace EduTrack.API.Controllers.Teaching
 {
     /// <summary>
+    /// DTO nhận tệp tin tải lên
+    /// </summary>
+    public class TeachingFileUploadDto
+    {
+        public IFormFile? File { get; set; }
+    }
+
+    /// <summary>
     /// [Bounded Context: Teaching] Tải lên tệp tin tài liệu, bài tập và học liệu
     /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
     /// </summary>
@@ -36,8 +44,10 @@ namespace EduTrack.API.Controllers.Teaching
         /// POST /api/teaching/upload
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> UploadFile([FromForm] IFormFile? file)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadFile([FromForm] TeachingFileUploadDto dto)
         {
+            var file = dto?.File;
             if (file == null || file.Length == 0)
             {
                 return BadRequest(new { success = false, message = "Vui lòng chọn một tệp tin hợp lệ để tải lên." });
@@ -106,3 +116,4 @@ namespace EduTrack.API.Controllers.Teaching
         }
     }
 }
+
