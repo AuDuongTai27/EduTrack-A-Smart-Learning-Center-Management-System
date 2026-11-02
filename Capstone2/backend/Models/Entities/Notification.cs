@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace EduTrack.API.Models.Entities
 {
@@ -43,5 +44,22 @@ namespace EduTrack.API.Models.Entities
 
         [ForeignKey("ClassId")]
         public virtual Class? Class { get; set; }
+
+        [Column("sender_id")]
+        public int? SenderId { get; set; }
+
+        [StringLength(20)]
+        [Column("target_scope")]
+        public string? TargetScope { get; set; }
+
+        [StringLength(50)]
+        [Column("target_role")]
+        public string? TargetRole { get; set; }
+
+        [ForeignKey(nameof(SenderId))]
+        public virtual User? Sender { get; set; }
+
+        public virtual ICollection<NotificationRecipient> Recipients
+        { get; set; } = new List<NotificationRecipient>();
     }
 }
