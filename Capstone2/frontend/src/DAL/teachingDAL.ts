@@ -4,6 +4,7 @@ import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashbo
 import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
 import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
 import type { TeachingClassProgressDto, TeachingStudentProgressItemDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
+import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNotificationDto';
 
 export interface TeachingDashboardViewModel extends TeachingDashboardDto {
   source: 'api' | 'mock';
@@ -492,6 +493,126 @@ export const teachingDAL = {
     };
 
     return { success: true, data: fallbackProgress, isLiveApi: false };
+  },
+
+
+  /**
+   * Lấy danh sách thông báo dành cho Giáo viên hoặc Trợ giảng
+   */
+  async getNotifications(userId: number, status?: string): Promise<{
+    success: boolean;
+    data: TeachingNotificationDto[];
+    isLiveApi: boolean;
+  }> {
+    try {
+      const data = await teachingApi.getNotifications(userId, status);
+      if (data && data.length > 0) {
+        return { success: true, data, isLiveApi: true };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API notifications (userId=${userId}), dùng fallback mock:`, err?.message);
+    }
+
+    const isTa = userId === 5;
+    const fallbackList: TeachingNotificationDto[] = [
+      {
+        notificationId: 1,
+        userId: userId,
+        title: isTa ? 'Phân công Lịch trực & Hỗ trợ Lớp Toán 9A1' : 'Cập nhật Lịch giảng dạy Học kỳ mới 2026/2027',
+        content: isTa
+          ? 'Bạn đã được phân công trợ giảng cho Lớp Toán 9A1 (ThS. Hoàng Quốc Việt phụ trách). Vui lòng kiểm tra lịch trực chi tiết.'
+          : 'Vui lòng kiểm tra lại phòng học và khung giờ giảng dạy được phân bổ mới nhất cho các lớp bắt đầu từ tuần tới.',
+        sender: 'Ban Quản Lý EduTrack',
+        initials: 'ET',
+        initialsBgClass: 'bg-primary-subtle',
+        initialsColorClass: 'text-primary',
+        type: 'schedule',
+        isNew: true,
+        isRead: false,
+        timeAgo: '10 phút trước',
+        createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+      },
+      {
+        notificationId: 2,
+        userId: userId,
+        title: isTa ? 'Thông báo kiểm tra bài tập tuần 1 của Lớp 9A1' : 'Đã phân công Trợ giảng mới cho Lớp Toán 9A1',
+        content: isTa
+          ? 'Vui lòng kiểm tra và hỗ trợ chấm điểm sơ bộ bài tập Homework 01 cho các em học sinh nộp trễ trước Thứ Sáu.'
+          : 'Trợ giảng Âu Dương Tài đã được phân công phối hợp hỗ trợ các buổi học và điểm danh lớp của bạn.',
+        sender: 'Phòng Đào Tạo',
+        initials: 'ĐT',
+        initialsBgClass: 'bg-info-subtle',
+        initialsColorClass: 'text-info',
+        type: 'system',
+        isNew: true,
+        isRead: false,
+        timeAgo: '2 giờ trước',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        notificationId: 3,
+        userId: userId,
+        title: 'Đơn kiến nghị giảng dạy đã được phê duyệt',
+        content: 'Yêu cầu hỗ trợ thiết bị trình chiếu tại Phòng 201 của bạn đã được đội ngũ kỹ thuật tiếp nhận và hoàn tất.',
+        sender: 'Phòng Hành Chính & Kỹ Thuật',
+        initials: 'HC',
+        initialsBgClass: 'bg-warning-subtle',
+        initialsColorClass: 'text-warning',
+        type: 'leave',
+        isNew: false,
+        isRead: true,
+        timeAgo: '1 ngày trước',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        notificationId: 4,
+        userId: userId,
+        title: 'Nhắc nhở hoàn tất nhập điểm kiểm tra định kỳ',
+        content: 'Hạn chót cập nhật kết quả bài tập Homework 01 cho các lớp 9A1 và 9B1 là 17:00 ngày Thứ Sáu tuần này.',
+        sender: 'EduTrack Staff',
+        initials: 'ES',
+        initialsBgClass: 'bg-success-subtle',
+        initialsColorClass: 'text-success',
+        type: 'system',
+        isNew: false,
+        isRead: true,
+        timeAgo: '2 ngày trước',
+        createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+
+    let filtered = fallbackList;
+    if (status === 'unread') {
+      filtered = fallbackList.filter((n) => !n.isRead);
+    } else if (status === 'read') {
+      filtered = fallbackList.filter((n) => n.isRead);
+    }
+
+    return { success: true, data: filtered, isLiveApi: false };
+  },
+
+  /**
+   * Đánh dấu một thông báo là đã đọc
+   */
+  async markNotificationAsRead(notificationId: number): Promise<boolean> {
+    try {
+      return await teachingApi.markNotificationAsRead(notificationId);
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Đánh dấu đọc thông báo #${notificationId} local fallback:`, err?.message);
+      return true;
+    }
+  },
+
+  /**
+   * Đánh dấu toàn bộ thông báo là đã đọc
+   */
+  async markAllNotificationsAsRead(userId: number): Promise<number> {
+    try {
+      return await teachingApi.markAllNotificationsAsRead(userId);
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Đánh dấu đọc tất cả thông báo local fallback:`, err?.message);
+      return 2;
+    }
   },
 
 };

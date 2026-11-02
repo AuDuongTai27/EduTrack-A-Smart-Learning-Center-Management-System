@@ -3,6 +3,7 @@ import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashbo
 import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
 import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
 import type { TeachingClassProgressDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
+import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNotificationDto';
 
 export * from '../BLL/models/teaching';
 
@@ -105,6 +106,71 @@ export const teachingApi = {
 
     const json = await response.json();
     return json?.data ?? json ?? null;
+  },
+
+  /**
+   * GET /api/teaching/notifications?userId={userId}&status={status}
+   * Lấy danh sách thông báo dành cho Giáo viên hoặc Trợ giảng
+   */
+  async getNotifications(userId: number, status?: string): Promise<TeachingNotificationDto[]> {
+    const params = new URLSearchParams({ userId: String(userId) });
+    if (status && status !== 'all') {
+      params.append('status', status);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/teaching/notifications?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải danh sách thông báo`);
+    }
+
+    const json = await response.json();
+    return json?.data ?? json ?? [];
+  },
+
+  /**
+   * PUT /api/teaching/notifications/{notificationId}/read
+   * Đánh dấu một thông báo là đã đọc
+   */
+  async markNotificationAsRead(notificationId: number): Promise<boolean> {
+    const response = await fetch(`${API_BASE_URL}/teaching/notifications/${notificationId}/read`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi đánh dấu đã đọc thông báo #${notificationId}`);
+    }
+
+    const json = await response.json();
+    return json?.success ?? true;
+  },
+
+  /**
+   * PUT /api/teaching/notifications/read-all?userId={userId}
+   * Đánh dấu toàn bộ thông báo của user là đã đọc
+   */
+  async markAllNotificationsAsRead(userId: number): Promise<number> {
+    const response = await fetch(`${API_BASE_URL}/teaching/notifications/read-all?userId=${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi đánh dấu tất cả thông báo là đã đọc`);
+    }
+
+    const json = await response.json();
+    return json?.updatedCount ?? 0;
   },
 
   /**

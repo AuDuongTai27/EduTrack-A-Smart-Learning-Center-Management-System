@@ -1,95 +1,160 @@
-export default function NotificationsHeader() {
+import React, { useState } from "react";
+
+export interface NotificationsHeaderProps {
+  filterStatus?: "all" | "unread" | "read";
+  onFilterStatusChange?: (status: "all" | "unread" | "read") => void;
+  sortOrder?: "desc" | "asc";
+  onSortOrderChange?: (order: "desc" | "asc") => void;
+  onMarkAllAsRead?: () => void;
+  unreadCount?: number;
+}
+
+export default function NotificationsHeader({
+  filterStatus = "all",
+  onFilterStatusChange,
+  sortOrder = "desc",
+  onSortOrderChange,
+  onMarkAllAsRead,
+  unreadCount = 0,
+}: NotificationsHeaderProps) {
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+
   return (
-    <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
-      <h4 className="class-list-title">Notifications</h4>
-      <div className="d-flex align-items-center gap-2 flex-wrap">
+    <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
+      <div>
+        <h4 className="class-list-title mb-1 d-flex align-items-center gap-2">
+          Thông Báo Công Việc
+          {unreadCount > 0 && (
+            <span className="badge bg-danger rounded-pill fs-6">{unreadCount} mới</span>
+          )}
+        </h4>
+        <small className="text-muted">Cập nhật lịch trực, phân công và yêu cầu hỗ trợ giảng dạy</small>
+      </div>
+
+      <div className="d-flex align-items-center gap-2 flex-wrap position-relative">
         {/* Filter Dropdown */}
-        <div className="dropdown">
+        <div className="dropdown position-relative">
           <button
             type="button"
-            className="btn-header-action"
+            className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
             id="filterDropdownBtn"
-            data-bs-toggle="dropdown"
-            data-bs-auto-close="outside"
-            aria-expanded="false"
+            onClick={() => {
+              setFilterOpen(!filterOpen);
+              setSortOpen(false);
+            }}
           >
             <i className="bi bi-funnel" />
-            <span id="filterLabel">Filter</span>
+            <span>
+              {filterStatus === "all"
+                ? "Tất cả"
+                : filterStatus === "unread"
+                ? "Chưa đọc"
+                : "Đã đọc"}
+            </span>
             <i className="bi bi-chevron-down ms-1" />
           </button>
-          <div className="dropdown-menu dropdown-menu-end p-3 filter-dropdown-menu">
-            <form id="filterForm">
-              <div className="mb-2">
-                <label className="form-label small fw-bold">Status</label>
-                <select className="form-select form-select-sm" id="filterStatusSelect">
-                  <option value="all">All Notifications</option>
-                  <option value="unread">Unread</option>
-                  <option value="read">Read</option>
-                </select>
-              </div>
-              <div className="mb-2">
-                <label className="form-label small fw-bold">Sender</label>
-                <select className="form-select form-select-sm" id="filterSenderSelect">
-                  <option value="all">All Senders</option>
-                  <option value="staff">EduTrack Staff</option>
-                  <option value="manager">EduTrack Center Manager</option>
-                </select>
-              </div>
-              <div className="d-flex justify-content-end gap-2 mt-3">
+
+          {filterOpen && (
+            <div
+              className="dropdown-menu dropdown-menu-end show p-3 shadow border-0"
+              style={{ minWidth: 200, zIndex: 1050, position: "absolute", right: 0 }}
+            >
+              <label className="form-label small fw-bold mb-2">Trạng thái đọc:</label>
+              <div className="d-flex flex-column gap-1">
                 <button
                   type="button"
-                  className="btn btn-sm btn-light"
-                  id="resetFilterBtn"
+                  className={`btn btn-sm text-start ${filterStatus === "all" ? "btn-primary" : "btn-light"}`}
+                  onClick={() => {
+                    onFilterStatusChange?.("all");
+                    setFilterOpen(false);
+                  }}
                 >
-                  Reset
+                  Tất cả thông báo
                 </button>
                 <button
-                  type="submit"
-                  className="btn btn-sm btn-primary"
-                  id="applyFilterBtn"
+                  type="button"
+                  className={`btn btn-sm text-start ${filterStatus === "unread" ? "btn-primary" : "btn-light"}`}
+                  onClick={() => {
+                    onFilterStatusChange?.("unread");
+                    setFilterOpen(false);
+                  }}
                 >
-                  Apply
+                  Chưa đọc
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm text-start ${filterStatus === "read" ? "btn-primary" : "btn-light"}`}
+                  onClick={() => {
+                    onFilterStatusChange?.("read");
+                    setFilterOpen(false);
+                  }}
+                >
+                  Đã đọc
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Sort Dropdown */}
-        <div className="dropdown">
+        <div className="dropdown position-relative">
           <button
             type="button"
-            className="btn-header-action"
+            className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
             id="sortDropdownBtn"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
+            onClick={() => {
+              setSortOpen(!sortOpen);
+              setFilterOpen(false);
+            }}
           >
             <i className="bi bi-arrow-down-up" />
-            <span id="sortLabel">Sort by Newest</span>
+            <span>{sortOrder === "desc" ? "Mới nhất" : "Cũ nhất"}</span>
             <i className="bi bi-chevron-down ms-1" />
           </button>
-          <ul className="dropdown-menu dropdown-menu-end" id="sortOptions">
-            <li>
-              <a className="dropdown-item active" href="#" data-sort="desc">
-                Newest First
-              </a>
-            </li>
-            <li>
-              <a className="dropdown-item" href="#" data-sort="asc">
-                Oldest First
-              </a>
-            </li>
-          </ul>
+
+          {sortOpen && (
+            <ul
+              className="dropdown-menu dropdown-menu-end show shadow border-0"
+              style={{ zIndex: 1050, position: "absolute", right: 0 }}
+            >
+              <li>
+                <button
+                  type="button"
+                  className={`dropdown-item ${sortOrder === "desc" ? "active" : ""}`}
+                  onClick={() => {
+                    onSortOrderChange?.("desc");
+                    setSortOpen(false);
+                  }}
+                >
+                  <i className="bi bi-arrow-down me-1" /> Mới nhất trước
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`dropdown-item ${sortOrder === "asc" ? "active" : ""}`}
+                  onClick={() => {
+                    onSortOrderChange?.("asc");
+                    setSortOpen(false);
+                  }}
+                >
+                  <i className="bi bi-arrow-up me-1" /> Cũ nhất trước
+                </button>
+              </li>
+            </ul>
+          )}
         </div>
 
         {/* Mark all as read */}
         <button
           type="button"
-          className="btn-header-action"
+          className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
           id="markAllReadBtn"
+          onClick={onMarkAllAsRead}
         >
           <i className="bi bi-check2-all" />
-          <span>Mark all as read</span>
+          <span>Đánh dấu tất cả đã đọc</span>
         </button>
       </div>
     </div>
