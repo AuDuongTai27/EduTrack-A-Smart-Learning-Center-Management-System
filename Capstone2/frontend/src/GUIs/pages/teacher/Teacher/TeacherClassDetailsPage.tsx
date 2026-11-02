@@ -121,6 +121,7 @@ export default function TeacherClassDetailsPage() {
                     <AssignmentsSection
                         classId={targetClassId}
                         assignments={assignments}
+                        onAssignmentDeleted={(delId) => setAssignments((prev) => prev.filter((a: any) => a.assignmentId !== delId))}
                     />
                 </>
             )}

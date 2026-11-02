@@ -10,6 +10,16 @@ export interface CreateTeachingAssignmentRequest {
   isAiGradingEnabled?: boolean;
 }
 
+export interface UpdateTeachingAssignmentRequest {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  assignmentType?: string;
+  fileUrl?: string;
+  maxScore?: number;
+  isAiGradingEnabled?: boolean;
+}
+
 export interface TeachingAssignmentItemDto {
   assignmentId: number;
   classId: number;
@@ -30,3 +40,25 @@ export interface TeachingAssignmentItemDto {
   createdAt: string;
 }
 
+export interface TeachingSubmissionItemDto {
+  submissionId: number;
+  assignmentId: number;
+  studentId: number;
+  studentName: string;
+  studentCode: string;
+  fileUrl?: string;
+  submittedAt: string;
+  submittedAtFormatted: string;
+  score?: number | null;
+  feedback?: string | null;
+  aiScore?: number | null;
+  status: 'submitted' | 'graded' | string;
+  gradedBy?: number | null;
+  graderName?: string | null;
+}
+
+export interface GradeTeachingSubmissionRequest {
+  score: number;
+  feedback?: string;
+  gradedBy?: number;
+}

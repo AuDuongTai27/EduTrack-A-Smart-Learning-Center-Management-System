@@ -11,7 +11,10 @@ import {
   type SaveBulkTeachingAttendancePayload,
   type UpdateSingleAttendancePayload,
   type CreateTeachingAssignmentRequest,
+  type UpdateTeachingAssignmentRequest,
   type TeachingAssignmentItemDto,
+  type TeachingSubmissionItemDto,
+  type GradeTeachingSubmissionRequest,
 } from '../api/teachingApi';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
@@ -30,7 +33,10 @@ export type {
   SaveBulkTeachingAttendancePayload,
   UpdateSingleAttendancePayload,
   CreateTeachingAssignmentRequest,
+  UpdateTeachingAssignmentRequest,
   TeachingAssignmentItemDto,
+  TeachingSubmissionItemDto,
+  GradeTeachingSubmissionRequest,
 };
 export const DEFAULT_TEACHER_ID = 3;
 export const DEFAULT_TA_ID = 5;
@@ -1019,6 +1025,117 @@ export const teachingDAL = {
       console.warn(`🟡 [teachingDAL] Không thể tải chi tiết bài tập #${id}:`, err?.message);
     }
     return null;
+  },
+
+  /**
+   * Cập nhật thông tin bài tập (Lưu DB thật qua PUT /api/teaching/assignments/{id})
+   */
+  async updateAssignment(id: number, payload: UpdateTeachingAssignmentRequest): Promise<TeachingAssignmentItemDto> {
+    try {
+      const res = await teachingApi.updateAssignment(id, payload);
+      console.log(`🟢 [teachingDAL] Đã cập nhật thành công bài tập #${id}:`, res);
+      return res;
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Lỗi khi cập nhật bài tập #${id}:`, err?.message);
+      throw err;
+    }
+  },
+
+  /**
+   * Xóa một bài tập (Xóa DB thật qua DELETE /api/teaching/assignments/{id})
+   */
+  async deleteAssignment(id: number): Promise<boolean> {
+    try {
+      const res = await teachingApi.deleteAssignment(id);
+      console.log(`🟢 [teachingDAL] Đã xóa thành công bài tập #${id}`);
+      return res;
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Lỗi khi xóa bài tập #${id}:`, err?.message);
+      throw err;
+    }
+  },
+
+  /**
+   * Lấy danh sách bài nộp của học sinh (GET /api/teaching/assignments/{id}/submissions)
+   */
+  async getAssignmentSubmissions(id: number): Promise<TeachingSubmissionItemDto[]> {
+    try {
+      const list = await teachingApi.getAssignmentSubmissions(id);
+      if (list && Array.isArray(list) && list.length > 0) {
+        return list;
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không tải được bài nộp của bài tập #${id}:`, err?.message);
+    }
+
+    return [
+      {
+        submissionId: 1,
+        assignmentId: id,
+        studentId: 6,
+        studentName: 'Lê Văn An',
+        studentCode: 'STU001',
+        fileUrl: '/uploads/submissions/an_le_hw01.pdf',
+        submittedAt: '2026-08-10T15:45:00',
+        submittedAtFormatted: '10/08/2026 15:45',
+        score: 9.5,
+        feedback: 'Bài làm rất tốt, cách giải ngắn gọn và chuẩn xác.',
+        aiScore: 9.2,
+        status: 'graded',
+        gradedBy: 3,
+        graderName: 'ThS. Hoàng Quốc Việt',
+      },
+      {
+        submissionId: 2,
+        assignmentId: id,
+        studentId: 7,
+        studentName: 'Phạm Thị Bích',
+        studentCode: 'STU002',
+        fileUrl: '/uploads/submissions/bich_pham_hw01.pdf',
+        submittedAt: '2026-08-11T09:15:00',
+        submittedAtFormatted: '11/08/2026 09:15',
+        score: 8.0,
+        feedback: 'Cần lưu ý thêm phần trình bày biểu đồ.',
+        aiScore: 8.0,
+        status: 'graded',
+        gradedBy: 3,
+        graderName: 'ThS. Hoàng Quốc Việt',
+      },
+      {
+        submissionId: 3,
+        assignmentId: id,
+        studentId: 8,
+        studentName: 'Đặng Minh Cường',
+        studentCode: 'STU003',
+        fileUrl: '/uploads/submissions/cuong_dang_hw01.pdf',
+        submittedAt: '2026-08-11T11:20:00',
+        submittedAtFormatted: '11/08/2026 11:20',
+        score: null,
+        feedback: null,
+        aiScore: null,
+        status: 'submitted',
+        gradedBy: null,
+        graderName: null,
+      },
+    ];
+  },
+
+  /**
+   * Chấm điểm và gửi nhận xét cho học sinh (PUT /api/teaching/assignments/{id}/submissions/{subId}/grade)
+   */
+  async gradeSubmission(
+    id: number,
+    submissionId: number,
+    payload: GradeTeachingSubmissionRequest
+  ): Promise<TeachingSubmissionItemDto> {
+    try {
+      const res = await teachingApi.gradeSubmission(id, submissionId, payload);
+      console.log(`🟢 [teachingDAL] Chấm điểm thành công bài nộp #${submissionId}:`, res);
+      return res;
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Lỗi khi chấm điểm bài nộp #${submissionId}:`, err?.message);
+      throw err;
+    }
   },
 };
 

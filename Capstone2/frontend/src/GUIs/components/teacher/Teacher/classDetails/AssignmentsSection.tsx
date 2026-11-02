@@ -1,13 +1,40 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { AssignmentDto } from "../../../../../BLL/models/AssignmentDto";
 import type { TeachingAssignmentItemDto } from "../../../../../BLL/models/teaching/TeachingAssignmentDto";
+import teachingDAL from "../../../../../DAL/teachingDAL";
 
 export interface AssignmentsSectionProps {
   classId?: string | number;
   assignments?: (AssignmentDto | TeachingAssignmentItemDto | any)[];
+  onAssignmentDeleted?: (deletedId: number) => void;
 }
 
-export default function AssignmentsSection({ classId = "1", assignments = [] }: AssignmentsSectionProps) {
+export default function AssignmentsSection({
+  classId = "1",
+  assignments = [],
+  onAssignmentDeleted,
+}: AssignmentsSectionProps) {
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const handleDelete = async (asgId: number, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete assignment "${title}"? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeletingId(asgId);
+      await teachingDAL.deleteAssignment(asgId);
+      if (onAssignmentDeleted) {
+        onAssignmentDeleted(asgId);
+      }
+    } catch (err: any) {
+      alert(err?.message || "Failed to delete assignment.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <details className="card class-list-card border-0 mb-4" open>
       <summary className="class-list-header d-flex align-items-center justify-content-between cursor-pointer py-3 px-4">
@@ -50,9 +77,10 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                 const isOverdue = asg.dueDate ? new Date(asg.dueDate) < new Date() : false;
                 const submissionCount = asg.submissionCount ?? 0;
                 const gradedCount = asg.gradedCount ?? 0;
+                const asgId = asg.assignmentId || idx;
 
                 return (
-                  <tr key={asg.assignmentId || idx}>
+                  <tr key={asgId}>
                     <td className="fw-semibold text-dark">
                       <Link
                         to={`/teacher/classes/${classId}/assignment/${asg.assignmentId}`}
@@ -92,12 +120,27 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                       <small className="text-muted">pts</small>
                     </td>
                     <td className="text-end">
-                      <Link
-                        to={`/teacher/classes/${classId}/assignment/${asg.assignmentId}`}
-                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                      >
-                        <i className="bi bi-eye" /> View
-                      </Link>
+                      <div className="d-inline-flex align-items-center gap-1">
+                        <Link
+                          to={`/teacher/classes/${classId}/assignment/${asg.assignmentId}`}
+                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                        >
+                          <i className="bi bi-eye" /> View
+                        </Link>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+                          title="Delete assignment"
+                          disabled={deletingId === asg.assignmentId}
+                          onClick={() => handleDelete(asg.assignmentId, asg.title)}
+                        >
+                          {deletingId === asg.assignmentId ? (
+                            <span className="spinner-border spinner-border-sm" role="status" />
+                          ) : (
+                            <i className="bi bi-trash" />
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

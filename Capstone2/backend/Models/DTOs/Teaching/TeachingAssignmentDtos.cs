@@ -20,6 +20,20 @@ namespace EduTrack.API.Models.DTOs.Teaching
     }
 
     /// <summary>
+    /// DTO yêu cầu cập nhật bài tập
+    /// </summary>
+    public class UpdateTeachingAssignmentRequestDto
+    {
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string? AssignmentType { get; set; }
+        public string? FileUrl { get; set; }
+        public decimal? MaxScore { get; set; }
+        public bool? IsAiGradingEnabled { get; set; }
+    }
+
+    /// <summary>
     /// DTO hiển thị thông tin bài tập
     /// </summary>
     public class TeachingAssignmentItemDto
@@ -42,5 +56,35 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public bool IsAiGradingEnabled { get; set; } = true;
         public string CreatedAt { get; set; } = string.Empty;
     }
-}
 
+    /// <summary>
+    /// DTO hiển thị bài nộp của học sinh
+    /// </summary>
+    public class TeachingSubmissionItemDto
+    {
+        public int SubmissionId { get; set; }
+        public int AssignmentId { get; set; }
+        public int StudentId { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public string StudentCode { get; set; } = string.Empty;
+        public string? FileUrl { get; set; }
+        public string SubmittedAt { get; set; } = string.Empty;
+        public string SubmittedAtFormatted { get; set; } = string.Empty;
+        public decimal? Score { get; set; }
+        public string? Feedback { get; set; }
+        public decimal? AiScore { get; set; }
+        public string Status { get; set; } = "submitted";
+        public int? GradedBy { get; set; }
+        public string? GraderName { get; set; }
+    }
+
+    /// <summary>
+    /// DTO yêu cầu chấm điểm bài nộp học sinh
+    /// </summary>
+    public class GradeTeachingSubmissionRequestDto
+    {
+        public decimal Score { get; set; }
+        public string? Feedback { get; set; }
+        public int GradedBy { get; set; } = 3;
+    }
+}

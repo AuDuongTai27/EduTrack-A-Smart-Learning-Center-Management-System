@@ -1,27 +1,26 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   StudentSubmissionsTable,
   AssignmentOverviewCard,
 } from "../../../components/teacher/Teacher/assignment";
-import assignmentDAL from "../../../../DAL/assignmentDAL";
 import classDAL from "../../../../DAL/classDAL";
-import submissionDAL from "../../../../DAL/submissionDAL";
-import type { AssignmentDto } from "../../../../BLL/models/AssignmentDto";
+import teachingDAL from "../../../../DAL/teachingDAL";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { SubmissionDto } from "../../../../BLL/models/SubmissionDto";
+import type { TeachingAssignmentItemDto, TeachingSubmissionItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeacherAssignmentPage() {
+  const navigate = useNavigate();
   const { id, classId, assignmentId } = useParams<{ id?: string; classId?: string; assignmentId?: string }>();
   const numAssignmentId = Number(assignmentId || (classId ? id : undefined) || "1");
   const numClassId = Number(classId || (assignmentId ? id : undefined) || "1");
   const targetClassId = String(numClassId);
   const targetAssignmentId = String(numAssignmentId);
 
-  const [assignment, setAssignment] = useState<AssignmentDto | null>(null);
+  const [assignment, setAssignment] = useState<TeachingAssignmentItemDto | any | null>(null);
   const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
-  const [submissions, setSubmissions] = useState<SubmissionDto[]>([]);
+  const [submissions, setSubmissions] = useState<TeachingSubmissionItemDto[] | any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -30,19 +29,19 @@ export default function TeacherAssignmentPage() {
     async function fetchAssignmentData() {
       try {
         setLoading(true);
-        // 1. GetId: Fetch assignment detail by ID
-        const asg = await assignmentDAL.getById(numAssignmentId);
+        // 1. Fetch real assignment detail by ID
+        const asg = await teachingDAL.getAssignmentById(numAssignmentId);
 
-        // 2. GetId: Fetch class detail by ID
+        // 2. Fetch class detail by ID
         const cls = await classDAL.getClassById(numClassId);
 
-        // 3. GetAll: Fetch submissions for this assignment
-        const subsResult = await submissionDAL.getSubmissionsByAssignmentId(numAssignmentId);
+        // 3. Fetch real submissions for this assignment
+        const subs = await teachingDAL.getAssignmentSubmissions(numAssignmentId);
 
         if (isMounted) {
           setAssignment(asg);
           setClassInfo(cls);
-          setSubmissions(subsResult.data);
+          setSubmissions(subs);
         }
       } catch (err) {
         console.error("Failed to load assignment page data:", err);
@@ -60,6 +59,19 @@ export default function TeacherAssignmentPage() {
 
   const className = classInfo?.className || `Class #${targetClassId}`;
   const assignmentTitle = assignment?.title || `Assignment #${targetAssignmentId}`;
+
+  const handleSubmissionGraded = (updated: TeachingSubmissionItemDto) => {
+    setSubmissions((prev) =>
+      prev.map((s) => (s.submissionId === updated.submissionId ? updated : s))
+    );
+    // Also increment or update graded count
+    if (assignment) {
+      setAssignment((prev: any) => ({
+        ...prev,
+        gradedCount: (prev?.gradedCount ?? 0) + 1,
+      }));
+    }
+  };
 
   return (
     <>
@@ -95,9 +107,16 @@ export default function TeacherAssignmentPage() {
           <AssignmentOverviewCard
             assignment={assignment}
             className={className}
+            onAssignmentUpdated={(updated) => setAssignment(updated)}
+            onAssignmentDeleted={() => navigate(`/teacher/classes/${targetClassId}`)}
           />
+
           {/* Student List Section */}
-          <StudentSubmissionsTable submissions={submissions} />
+          <StudentSubmissionsTable
+            assignmentId={numAssignmentId}
+            submissions={submissions}
+            onSubmissionGraded={handleSubmissionGraded}
+          />
         </>
       )}
     </>

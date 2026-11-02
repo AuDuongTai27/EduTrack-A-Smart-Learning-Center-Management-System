@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ using EduTrack.API.Services.Teaching.Interfaces;
 namespace EduTrack.API.Controllers.Teaching
 {
     /// <summary>
-    /// [Bounded Context: Teaching] Quản lý & Giao Bài tập (Assignments)
+    /// [Bounded Context: Teaching] Quản lý, Giao, Chỉnh sửa, Xóa & Chấm điểm Bài tập (Assignments)
     /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
     /// </summary>
     [ApiController]
@@ -86,6 +87,116 @@ namespace EduTrack.API.Controllers.Teaching
             }
 
             return Ok(new { success = true, data = item });
+        }
+
+        /// <summary>
+        /// Cập nhật thông tin bài tập
+        /// PUT /api/teaching/assignments/{id}
+        /// </summary>
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateAssignment(int id, [FromBody] UpdateTeachingAssignmentRequestDto request)
+        {
+            if (id <= 0 || request == null)
+            {
+                return BadRequest(new { success = false, message = "Dữ liệu cập nhật bài tập không hợp lệ." });
+            }
+
+            try
+            {
+                var updated = await _assignmentService.UpdateAssignmentAsync(id, request);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Cập nhật bài tập thành công!",
+                    data = updated
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Xóa một bài tập theo ID
+        /// DELETE /api/teaching/assignments/{id}
+        /// </summary>
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteAssignment(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã bài tập không hợp lệ." });
+            }
+
+            var deleted = await _assignmentService.DeleteAssignmentAsync(id);
+            if (!deleted)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy bài tập ID = {id} để xóa." });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Đã xóa bài tập thành công!"
+            });
+        }
+
+        /// <summary>
+        /// Lấy danh sách bài nộp của học sinh cho bài tập
+        /// GET /api/teaching/assignments/{id}/submissions
+        /// </summary>
+        [HttpGet("{id:int}/submissions")]
+        public async Task<IActionResult> GetSubmissions(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã bài tập không hợp lệ." });
+            }
+
+            var list = await _assignmentService.GetAssignmentSubmissionsAsync(id);
+            return Ok(new { success = true, data = list });
+        }
+
+        /// <summary>
+        /// Chấm điểm và nhận xét bài nộp học sinh
+        /// PUT /api/teaching/assignments/{id}/submissions/{submissionId}/grade
+        /// </summary>
+        [HttpPut("{id:int}/submissions/{submissionId:int}/grade")]
+        public async Task<IActionResult> GradeSubmission(int id, int submissionId, [FromBody] GradeTeachingSubmissionRequestDto request)
+        {
+            if (id <= 0 || submissionId <= 0 || request == null)
+            {
+                return BadRequest(new { success = false, message = "Thông tin chấm điểm không hợp lệ." });
+            }
+
+            if (request.Score < 0 || request.Score > 10)
+            {
+                return BadRequest(new { success = false, message = "Điểm số phải nằm trong khoảng từ 0 đến 10." });
+            }
+
+            try
+            {
+                var graded = await _assignmentService.GradeSubmissionAsync(id, submissionId, request);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Chấm điểm và gửi nhận xét thành công!",
+                    data = graded
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
     }
 }

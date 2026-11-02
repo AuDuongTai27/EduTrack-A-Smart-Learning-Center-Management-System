@@ -14,7 +14,10 @@ import type {
 } from '../BLL/models/teaching/TeachingAttendanceDto';
 import type {
   CreateTeachingAssignmentRequest,
+  UpdateTeachingAssignmentRequest,
   TeachingAssignmentItemDto,
+  TeachingSubmissionItemDto,
+  GradeTeachingSubmissionRequest,
 } from '../BLL/models/teaching/TeachingAssignmentDto';
 
 export * from '../BLL/models/teaching';
@@ -468,6 +471,94 @@ export const teachingApi = {
 
     if (!res.ok) {
       throw new Error(`HTTP ${res.status} khi tải chi tiết bài tập #${id}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * PUT /api/teaching/assignments/{id}
+   * Cập nhật thông tin bài tập
+   */
+  async updateAssignment(id: number, payload: UpdateTeachingAssignmentRequest): Promise<TeachingAssignmentItemDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi cập nhật bài tập #${id}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * DELETE /api/teaching/assignments/{id}
+   * Xóa một bài tập
+   */
+  async deleteAssignment(id: number): Promise<boolean> {
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi xóa bài tập #${id}`);
+    }
+
+    return true;
+  },
+
+  /**
+   * GET /api/teaching/assignments/{id}/submissions
+   * Lấy danh sách bài nộp của học sinh
+   */
+  async getAssignmentSubmissions(id: number): Promise<TeachingSubmissionItemDto[]> {
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments/${id}/submissions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} khi tải bài nộp của bài tập #${id}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json ?? [];
+  },
+
+  /**
+   * PUT /api/teaching/assignments/{id}/submissions/{submissionId}/grade
+   * Chấm điểm và gửi nhận xét cho học sinh
+   */
+  async gradeSubmission(
+    id: number,
+    submissionId: number,
+    payload: GradeTeachingSubmissionRequest
+  ): Promise<TeachingSubmissionItemDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments/${id}/submissions/${submissionId}/grade`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi chấm điểm bài nộp #${submissionId}`);
     }
 
     const json = await res.json();
