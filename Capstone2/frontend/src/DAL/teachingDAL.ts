@@ -4,6 +4,12 @@ import {
   type UpdateTeachingRequestPayload,
   type TeacherProfileDto,
   type UpdateTeacherProfilePayload,
+  type TeachingClassAttendanceSheetDto,
+  type TeachingSessionItemDto,
+  type TeachingStudentAttendanceItemDto,
+  type TeachingAttendanceStatsDto,
+  type SaveBulkTeachingAttendancePayload,
+  type UpdateSingleAttendancePayload,
 } from '../api/teachingApi';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
@@ -12,7 +18,16 @@ import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassI
 import type { TeachingClassProgressDto, TeachingStudentProgressItemDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
 import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNotificationDto';
 
-export type { TeacherProfileDto, UpdateTeacherProfilePayload };
+export type {
+  TeacherProfileDto,
+  UpdateTeacherProfilePayload,
+  TeachingClassAttendanceSheetDto,
+  TeachingSessionItemDto,
+  TeachingStudentAttendanceItemDto,
+  TeachingAttendanceStatsDto,
+  SaveBulkTeachingAttendancePayload,
+  UpdateSingleAttendancePayload,
+};
 export const DEFAULT_TEACHER_ID = 3;
 export const DEFAULT_TA_ID = 5;
 
@@ -771,6 +786,152 @@ export const teachingDAL = {
       specialty: payload.specialty || current.specialty,
       address: payload.address || current.address,
     };
+  },
+
+  /**
+   * Lấy bảng điểm danh của lớp cho một buổi học (kèm fallback nếu offline)
+   */
+  async getAttendanceSheet(classId: number, sessionId?: number, userId: number = 3): Promise<TeachingClassAttendanceSheetDto> {
+    try {
+      const data = await teachingApi.getAttendanceSheet(classId, sessionId, userId);
+      if (data && data.classId) {
+        return data;
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không tải được API điểm danh (classId=${classId}, sessionId=${sessionId}):`, err?.message);
+    }
+
+    // Fallback data
+    const activeSession: TeachingSessionItemDto = {
+      sessionId: sessionId || 1,
+      classId,
+      sessionDate: '2026-09-08',
+      startTime: '18:00',
+      endTime: '20:00',
+      timePeriod: '18:00 - 20:00',
+      room: 'Phòng 201',
+      status: 'scheduled',
+      title: 'Buổi 1: 08/09/2026 (18:00 - 20:00) - Phòng 201',
+      isRecorded: false,
+      presentCount: 0,
+      absentCount: 0,
+      lateCount: 0,
+      excusedCount: 0,
+      totalRecorded: 0,
+    };
+
+    const fallbackStudents: TeachingStudentAttendanceItemDto[] = [
+      {
+        studentId: 6,
+        studentCode: 'STU001',
+        fullName: 'Nguyễn Văn An',
+        avatarUrl: '/assets/img/profiles/avatar-27.jpg',
+        status: 'present',
+        note: '',
+        isRecorded: false,
+      },
+      {
+        studentId: 7,
+        studentCode: 'STU002',
+        fullName: 'Trần Thị Bình',
+        avatarUrl: '/assets/img/profiles/avatar-27.jpg',
+        status: 'present',
+        note: '',
+        isRecorded: false,
+      },
+      {
+        studentId: 8,
+        studentCode: 'STU003',
+        fullName: 'Lê Hoàng Cường',
+        avatarUrl: '/assets/img/profiles/avatar-27.jpg',
+        status: 'late',
+        note: 'Đến muộn 10 phút',
+        isRecorded: false,
+      },
+    ];
+
+    return {
+      classId,
+      className: `Class #${classId} - Toán nâng cao`,
+      subjectName: 'Toán học',
+      room: 'Phòng 201',
+      currentSession: activeSession,
+      availableSessions: [activeSession],
+      students: fallbackStudents,
+      stats: {
+        totalStudents: 3,
+        presentCount: 2,
+        absentCount: 0,
+        lateCount: 1,
+        excusedCount: 0,
+        attendanceRate: 100,
+      },
+    };
+  },
+
+  /**
+   * Lấy danh sách các buổi học của lớp
+   */
+  async getClassSessions(classId: number): Promise<TeachingSessionItemDto[]> {
+    try {
+      const data = await teachingApi.getClassSessions(classId);
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không tải được danh sách buổi học (classId=${classId}):`, err?.message);
+    }
+
+    return [
+      {
+        sessionId: 1,
+        classId,
+        sessionDate: '2026-09-08',
+        startTime: '18:00',
+        endTime: '20:00',
+        timePeriod: '18:00 - 20:00',
+        room: 'Phòng 201',
+        status: 'completed',
+        title: 'Buổi 1: 08/09/2026 (18:00 - 20:00) - Phòng 201',
+        isRecorded: true,
+        presentCount: 2,
+        absentCount: 0,
+        lateCount: 1,
+        excusedCount: 0,
+        totalRecorded: 3,
+      },
+      {
+        sessionId: 2,
+        classId,
+        sessionDate: '2026-09-10',
+        startTime: '18:00',
+        endTime: '20:00',
+        timePeriod: '18:00 - 20:00',
+        room: 'Phòng 201',
+        status: 'scheduled',
+        title: 'Buổi 2: 10/09/2026 (18:00 - 20:00) - Phòng 201',
+        isRecorded: false,
+        presentCount: 0,
+        absentCount: 0,
+        lateCount: 0,
+        excusedCount: 0,
+        totalRecorded: 0,
+      },
+    ];
+  },
+
+  /**
+   * Lưu điểm danh đồng loạt cả lớp vào DB
+   */
+  async saveBulkAttendance(payload: SaveBulkTeachingAttendancePayload): Promise<TeachingClassAttendanceSheetDto> {
+    return await teachingApi.saveBulkAttendance(payload);
+  },
+
+  /**
+   * Cập nhật điểm danh đơn lẻ
+   */
+  async updateSingleAttendance(attendanceId: number, payload: UpdateSingleAttendancePayload): Promise<TeachingStudentAttendanceItemDto> {
+    return await teachingApi.updateSingleAttendance(attendanceId, payload);
   },
 };
 

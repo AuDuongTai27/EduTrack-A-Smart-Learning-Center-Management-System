@@ -4,3 +4,4 @@ export * from './TeachingClassItemDto';
 export * from './TeachingLearningProgressDto';
 export * from './TeachingNotificationDto';
 export * from './TeachingProfileDto';
+export * from './TeachingAttendanceDto';

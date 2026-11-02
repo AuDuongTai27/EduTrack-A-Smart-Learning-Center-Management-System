@@ -5,6 +5,13 @@ import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassI
 import type { TeachingClassProgressDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
 import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNotificationDto';
 import type { TeacherProfileDto, UpdateTeacherProfilePayload } from '../BLL/models/teaching/TeachingProfileDto';
+import type {
+  TeachingClassAttendanceSheetDto,
+  TeachingSessionItemDto,
+  TeachingStudentAttendanceItemDto,
+  SaveBulkTeachingAttendancePayload,
+  UpdateSingleAttendancePayload,
+} from '../BLL/models/teaching/TeachingAttendanceDto';
 
 export * from '../BLL/models/teaching';
 
@@ -306,6 +313,95 @@ export const teachingApi = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || `HTTP ${res.status} khi cập nhật hồ sơ`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * GET /api/teaching/attendance/sheet?classId={classId}&sessionId={sessionId}&userId={userId}
+   * Lấy bảng điểm danh của lớp theo buổi học
+   */
+  async getAttendanceSheet(classId: number, sessionId?: number, userId: number = 3): Promise<TeachingClassAttendanceSheetDto> {
+    let url = `${API_BASE_URL}/teaching/attendance/sheet?classId=${classId}&userId=${userId}`;
+    if (sessionId) {
+      url += `&sessionId=${sessionId}`;
+    }
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} khi tải bảng điểm danh lớp #${classId}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * GET /api/teaching/attendance/sessions?classId={classId}
+   * Lấy danh sách các buổi học của lớp
+   */
+  async getClassSessions(classId: number): Promise<TeachingSessionItemDto[]> {
+    const res = await fetch(`${API_BASE_URL}/teaching/attendance/sessions?classId=${classId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} khi tải danh sách buổi học của lớp #${classId}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json ?? [];
+  },
+
+  /**
+   * POST /api/teaching/attendance/bulk
+   * Lưu điểm danh đồng loạt cả lớp cho một buổi học
+   */
+  async saveBulkAttendance(payload: SaveBulkTeachingAttendancePayload): Promise<TeachingClassAttendanceSheetDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/attendance/bulk`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi lưu điểm danh`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * PUT /api/teaching/attendance/{id}
+   * Cập nhật điểm danh đơn lẻ 1 học sinh
+   */
+  async updateSingleAttendance(attendanceId: number, payload: UpdateSingleAttendancePayload): Promise<TeachingStudentAttendanceItemDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/attendance/${attendanceId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi cập nhật điểm danh #${attendanceId}`);
     }
 
     const json = await res.json();

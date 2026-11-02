@@ -1,121 +1,260 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
-    AttendanceListHeader,
-    AttendanceListPagination,
-    AttendanceListToolbar,
-    AttendanceSaveBar,
-    AttendanceTable
+  AttendanceListHeader,
+  AttendanceListToolbar,
+  AttendanceSaveBar,
+  AttendanceTable,
 } from "../../../components/teacher/Teacher/attendance";
-import classDAL from "../../../../DAL/classDAL";
-import progressDAL from "../../../../DAL/progressDAL";
-import userDAL from "../../../../DAL/userDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { AttendanceDto } from "../../../../BLL/models/ProgressDto";
-import type { UserDto } from "../../../../BLL/models/UserDto";
+import {
+  teachingDAL,
+  DEFAULT_TEACHER_ID,
+  type TeachingClassAttendanceSheetDto,
+  type TeachingStudentAttendanceItemDto,
+  type TeachingAttendanceStatsDto,
+} from "../../../../DAL/teachingDAL";
 
 export default function TeacherAttendancePage() {
-    const { id, classId } = useParams<{ id?: string; classId?: string }>();
-    const numClassId = Number(classId || id || "1");
-    const targetClassId = String(numClassId);
+  const { id, classId } = useParams<{ id?: string; classId?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const numClassId = Number(classId || id || "1");
+  const targetClassId = String(numClassId);
+  const paramSessionId = searchParams.get("sessionId") ? Number(searchParams.get("sessionId")) : undefined;
 
-    const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
-    const [attendances, setAttendances] = useState<AttendanceDto[]>([]);
-    const [students, setStudents] = useState<UserDto[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+  const [sheet, setSheet] = useState<TeachingClassAttendanceSheetDto | null>(null);
+  const [students, setStudents] = useState<TeachingStudentAttendanceItemDto[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<number | undefined>(paramSessionId);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "danger" } | null>(null);
 
-    useEffect(() => {
-        let isMounted = true;
-
-        async function fetchAttendanceData() {
-            try {
-                setLoading(true);
-                // 1. GetId: Fetch class info by ID
-                const cls = await classDAL.getClassById(numClassId);
-
-                // 2. GetAll: Fetch all attendance records
-                const attRes = await progressDAL.getAllAttendances();
-                const matchedAtts = attRes.data.filter(
-                    (a: AttendanceDto) => a.classId === numClassId || a.sessionId === 1
-                );
-
-                // 3. GetAll: Fetch users (students) for fallback or roster
-                const usersRes = await userDAL.getAllUsers();
-                const studentList = usersRes.data.filter(
-                    (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
-                );
-
-                if (isMounted) {
-                    setClassInfo(cls);
-                    setAttendances(matchedAtts.length > 0 ? matchedAtts : attRes.data.slice(0, 3));
-                    setStudents(studentList);
-                }
-            } catch (err) {
-                console.error("Failed to load attendance data:", err);
-            } finally {
-                if (isMounted) setLoading(false);
-            }
+  // 1. Tải bảng điểm danh theo classId và sessionId
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchSheet() {
+      try {
+        setLoading(true);
+        const data = await teachingDAL.getAttendanceSheet(numClassId, selectedSessionId, DEFAULT_TEACHER_ID);
+        if (isMounted && data) {
+          setSheet(data);
+          setStudents(data.students);
+          if (data.currentSession && !selectedSessionId) {
+            setSelectedSessionId(data.currentSession.sessionId);
+          }
         }
+      } catch (err: any) {
+        console.error("Lỗi khi tải bảng điểm danh:", err);
+        if (isMounted) {
+          setToast({
+            message: err?.message || "Không thể tải dữ liệu điểm danh từ máy chủ.",
+            type: "danger",
+          });
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
 
-        fetchAttendanceData();
+    fetchSheet();
 
-        return () => {
-            isMounted = false;
-        };
-    }, [numClassId]);
+    return () => {
+      isMounted = false;
+    };
+  }, [numClassId, selectedSessionId]);
 
-    const className = classInfo?.className || `Class #${targetClassId}`;
+  // Thống kê động dựa trên trạng thái học sinh hiện tại trên UI
+  const computedStats: TeachingAttendanceStatsDto = useMemo(() => {
+    const total = students.length;
+    const present = students.filter((s) => s.status?.toLowerCase() === "present").length;
+    const absent = students.filter((s) => s.status?.toLowerCase() === "absent").length;
+    const late = students.filter((s) => s.status?.toLowerCase() === "late").length;
+    const excused = students.filter(
+      (s) => s.status?.toLowerCase() === "excused" || s.status?.toLowerCase() === "excuse"
+    ).length;
+    const rate = total > 0 ? Math.round(((present + late) / total) * 1000) / 10 : 0;
 
-    return (
-        <>
-            {/* Breadcrumb & Page Title */}
-            <PageHeader
-                title={`Attendance: ${className}`}
-                breadcrumbItems={[
-                    { label: "Dashboard", path: "/teacher/dashboard" },
-                    { label: "My Classes", path: "/teacher/classes" },
-                    { label: className, path: `/teacher/classes/${targetClassId}` },
-                    { label: "Attendance" },
-                ]}
-                action={
-                    <div className="d-flex align-items-center gap-2">
-                        <Link
-                            to={`/teacher/classes/${targetClassId}`}
-                            className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
-                        >
-                            <i className="bi bi-arrow-left" /> Back to Class Details
-                        </Link>
-                    </div>
-                }
+    return {
+      totalStudents: total,
+      presentCount: present,
+      absentCount: absent,
+      lateCount: late,
+      excusedCount: excused,
+      attendanceRate: rate,
+    };
+  }, [students]);
+
+  // Lọc học sinh theo từ khóa tìm kiếm
+  const filteredStudents = useMemo(() => {
+    if (!searchTerm.trim()) return students;
+    const lower = searchTerm.toLowerCase().trim();
+    return students.filter(
+      (s) =>
+        s.fullName.toLowerCase().includes(lower) ||
+        s.studentCode.toLowerCase().includes(lower) ||
+        (s.note && s.note.toLowerCase().includes(lower))
+    );
+  }, [students, searchTerm]);
+
+  // Đổi buổi học cần điểm danh
+  const handleSessionChange = (newSessionId: number) => {
+    setSelectedSessionId(newSessionId);
+    setSearchParams({ sessionId: String(newSessionId) });
+  };
+
+  // Đổi trạng thái của 1 học sinh
+  const handleStatusChange = (studentId: number, status: string) => {
+    setStudents((prev) =>
+      prev.map((s) => (s.studentId === studentId ? { ...s, status } : s))
+    );
+  };
+
+  // Đổi ghi chú của 1 học sinh
+  const handleNoteChange = (studentId: number, note: string) => {
+    setStudents((prev) =>
+      prev.map((s) => (s.studentId === studentId ? { ...s, note } : s))
+    );
+  };
+
+  // Đánh dấu tất cả có mặt
+  const handleMarkAllPresent = () => {
+    setStudents((prev) => prev.map((s) => ({ ...s, status: "present" })));
+  };
+
+  // Lưu điểm danh vào cơ sở dữ liệu
+  const handleSaveAttendance = async () => {
+    const currentSessionId = selectedSessionId || sheet?.currentSession?.sessionId;
+    if (!currentSessionId) {
+      setToast({ message: "Không tìm thấy thông tin buổi học cần điểm danh.", type: "danger" });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const payload = {
+        classId: numClassId,
+        sessionId: currentSessionId,
+        recordedBy: DEFAULT_TEACHER_ID,
+        items: students.map((s) => ({
+          studentId: s.studentId,
+          status: s.status,
+          note: s.note || "",
+        })),
+      };
+
+      const updatedSheet = await teachingDAL.saveBulkAttendance(payload);
+      setSheet(updatedSheet);
+      setStudents(updatedSheet.students);
+      setToast({
+        message: "Lưu điểm danh buổi học thành công vào hệ thống!",
+        type: "success",
+      });
+      setTimeout(() => setToast(null), 4000);
+    } catch (err: any) {
+      console.error("Lỗi khi lưu điểm danh:", err);
+      setToast({
+        message: err?.message || "Không thể lưu điểm danh. Vui lòng kiểm tra lại kết nối.",
+        type: "danger",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const className = sheet?.className || `Lớp học #${targetClassId}`;
+
+  return (
+    <>
+      {/* Breadcrumb & Page Title */}
+      <PageHeader
+        title={`Điểm danh: ${className}`}
+        breadcrumbItems={[
+          { label: "Dashboard", path: "/teacher/dashboard" },
+          { label: "My Classes", path: "/teacher/classes" },
+          { label: className, path: `/teacher/classes/${targetClassId}` },
+          { label: "Điểm danh buổi học" },
+        ]}
+        action={
+          <div className="d-flex align-items-center gap-2">
+            <Link
+              to={`/teacher/classes/${targetClassId}`}
+              className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 shadow-sm"
+            >
+              <i className="bi bi-arrow-left" /> Chi tiết lớp học
+            </Link>
+          </div>
+        }
+      />
+
+      {/* Alert Toast */}
+      {toast && (
+        <div
+          className={`alert ${
+            toast.type === "success" ? "alert-success border-success" : "alert-danger border-danger"
+          } alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm mb-4`}
+          role="alert"
+        >
+          <i
+            className={`bi ${
+              toast.type === "success"
+                ? "bi-check-circle-fill text-success"
+                : "bi-exclamation-triangle-fill text-danger"
+            } fs-5 flex-shrink-0`}
+          />
+          <div className="flex-grow-1 fw-medium">{toast.message}</div>
+          <button
+            type="button"
+            className="btn-close"
+            aria-label="Close"
+            onClick={() => setToast(null)}
+          />
+        </div>
+      )}
+
+      {/* Main Attendance Card */}
+      <div className="card class-list-card border-0 mb-4 shadow-sm">
+        {/* Header with Class & Session info */}
+        <AttendanceListHeader
+          className={className}
+          session={sheet?.currentSession}
+          totalStudents={students.length}
+        />
+
+        {/* Toolbar with Session Picker, Search, Mark All Present & Stats */}
+        <AttendanceListToolbar
+          sessions={sheet?.availableSessions || []}
+          selectedSessionId={selectedSessionId || sheet?.currentSession?.sessionId}
+          onSessionChange={handleSessionChange}
+          onMarkAllPresent={handleMarkAllPresent}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          stats={computedStats}
+        />
+
+        {loading ? (
+          <div className="p-5 text-center">
+            <div className="spinner-border text-primary mx-auto mb-2" role="status" />
+            <p className="text-muted mb-0">Đang tải danh sách học sinh và dữ liệu điểm danh...</p>
+          </div>
+        ) : (
+          <>
+            {/* Interactive Attendance Table */}
+            <AttendanceTable
+              students={filteredStudents}
+              onStatusChange={handleStatusChange}
+              onNoteChange={handleNoteChange}
             />
 
-            {/* Student Attendance List */}
-            <div className="card class-list-card border-0 mb-4">
-                {/* Card Header */}
-                <AttendanceListHeader />
-                {/* Table toolbar */}
-                <AttendanceListToolbar />
-
-                {loading ? (
-                    <div className="p-5 text-center">
-                        <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-                        <p className="text-muted mb-0">Loading attendance roster...</p>
-                    </div>
-                ) : (
-                    <>
-                        {/* Table Container */}
-                        <AttendanceTable
-                            attendances={attendances}
-                            students={students}
-                        />
-                        {/* Footer Pagination */}
-                        <AttendanceListPagination />
-                        {/* Save Attendance Button */}
-                        <AttendanceSaveBar />
-                    </>
-                )}
-            </div>
-        </>
-    );
+            {/* Bottom Actions Bar */}
+            <AttendanceSaveBar
+              isSaving={isSaving}
+              onSave={handleSaveAttendance}
+              backUrl={`/teacher/classes/${targetClassId}`}
+            />
+          </>
+        )}
+      </div>
+    </>
+  );
 }
