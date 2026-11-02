@@ -16,6 +16,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
             services.AddScoped<ITeachingDashboardService, TeachingDashboardService>();
             services.AddScoped<ITeachingScheduleService, TeachingScheduleService>();
             services.AddScoped<ITeachingMyClassService, TeachingMyClassService>();
+            services.AddScoped<ITeachingLearningProgressService, TeachingLearningProgressService>();
             return services;
         }
     }

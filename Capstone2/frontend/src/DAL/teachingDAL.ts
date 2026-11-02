@@ -3,6 +3,7 @@ import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
 import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
 import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
+import type { TeachingClassProgressDto, TeachingStudentProgressItemDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
 
 export interface TeachingDashboardViewModel extends TeachingDashboardDto {
   source: 'api' | 'mock';
@@ -347,6 +348,152 @@ export const teachingDAL = {
       };
     }
   },
+
+  /**
+   * Lấy tiến độ học tập và điểm danh của toàn bộ học sinh trong lớp phụ trách
+   */
+  async getClassLearningProgress(classId: number, userId?: number): Promise<{
+    success: boolean;
+    data: TeachingClassProgressDto;
+    isLiveApi: boolean;
+  }> {
+    try {
+      const data = await teachingApi.getClassLearningProgress(classId, userId);
+      if (data && data.students && data.students.length > 0) {
+        return { success: true, data, isLiveApi: true };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API learning-progress (classId=${classId}), dùng fallback mock:`, err?.message);
+    }
+
+    const fallbackProgress: TeachingClassProgressDto = {
+      classId: classId || 1,
+      className: classId === 2 ? 'Lớp 9B1 - Vật Lý Chuyên Sâu' : 'Lớp 9A1 - Toán Nâng Cao',
+      subjectName: classId === 2 ? 'Vật lý' : 'Toán học',
+      teacherName: 'ThS. Hoàng Quốc Việt',
+      totalStudents: 6,
+      totalSessions: 20,
+      completedSessions: 12,
+      latestAssignmentTitle: 'Homework 01: Quadratic Equations',
+      students: [
+        {
+          studentId: 101,
+          studentCode: 'STU001',
+          fullName: 'Lê Văn An',
+          avatarInitials: 'LA',
+          email: 'an.le@edutrack.edu.vn',
+          phone: '0901234561',
+          presentDays: 19,
+          absentDays: 1,
+          lateDays: 0,
+          totalDays: 20,
+          attendancePercentage: 95,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: 'Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Submitted',
+          latestAssignmentScore: 9.5,
+          maxScore: 10,
+          latestNote: 'Học sinh tiếp thu tốt, làm bài tập đầy đủ.',
+        },
+        {
+          studentId: 102,
+          studentCode: 'STU002',
+          fullName: 'Trần Minh Đức',
+          avatarInitials: 'TD',
+          email: 'duc.tran@edutrack.edu.vn',
+          phone: '0901234562',
+          presentDays: 18,
+          absentDays: 1,
+          lateDays: 1,
+          totalDays: 20,
+          attendancePercentage: 90,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: 'Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Late',
+          latestAssignmentScore: 8.0,
+          maxScore: 10,
+          latestNote: 'Nộp bài hơi trễ nhưng lời giải chính xác.',
+        },
+        {
+          studentId: 103,
+          studentCode: 'STU003',
+          fullName: 'Nguyễn Thảo Linh',
+          avatarInitials: 'NL',
+          email: 'linh.nguyen@edutrack.edu.vn',
+          phone: '0901234563',
+          presentDays: 20,
+          absentDays: 0,
+          lateDays: 0,
+          totalDays: 20,
+          attendancePercentage: 100,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: 'Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Graded',
+          latestAssignmentScore: 10.0,
+          maxScore: 10,
+          latestNote: 'Xuất sắc, tư duy logic rất tốt.',
+        },
+        {
+          studentId: 104,
+          studentCode: 'STU004',
+          fullName: 'Phạm Hoàng Nam',
+          avatarInitials: 'PN',
+          email: 'nam.pham@edutrack.edu.vn',
+          phone: '0901234564',
+          presentDays: 15,
+          absentDays: 3,
+          lateDays: 2,
+          totalDays: 20,
+          attendancePercentage: 75,
+          attendanceStatus: 'Late',
+          latestAssignmentTitle: 'Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Missing',
+          latestAssignmentScore: null,
+          maxScore: 10,
+          latestNote: 'Cần nhắc nhở phụ huynh về việc vắng học và chưa nộp bài.',
+        },
+        {
+          studentId: 105,
+          studentCode: 'STU005',
+          fullName: 'Vũ Bảo Ngọc',
+          avatarInitials: 'VN',
+          email: 'ngoc.vu@edutrack.edu.vn',
+          phone: '0901234565',
+          presentDays: 18,
+          absentDays: 2,
+          lateDays: 0,
+          totalDays: 20,
+          attendancePercentage: 90,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: 'Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Submitted',
+          latestAssignmentScore: 8.5,
+          maxScore: 10,
+        },
+        {
+          studentId: 106,
+          studentCode: 'STU006',
+          fullName: 'Đặng Tuấn Anh',
+          avatarInitials: 'DA',
+          email: 'anh.dang@edutrack.edu.vn',
+          phone: '0901234566',
+          presentDays: 17,
+          absentDays: 2,
+          lateDays: 1,
+          totalDays: 20,
+          attendancePercentage: 85,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: 'Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Submitted',
+          latestAssignmentScore: 9.0,
+          maxScore: 10,
+        },
+      ],
+    };
+
+    return { success: true, data: fallbackProgress, isLiveApi: false };
+  },
+
 };
 
 export default teachingDAL;

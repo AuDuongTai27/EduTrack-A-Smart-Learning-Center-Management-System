@@ -2,6 +2,9 @@ import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
 import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
 import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
+import type { TeachingClassProgressDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
+
+export * from '../BLL/models/teaching';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -79,6 +82,29 @@ export const teachingApi = {
 
     const json = await response.json();
     return json?.data ?? json ?? [];
+  },
+
+  /**
+   * GET /api/teaching/classes/{classId}/learning-progress?userId={userId}
+   * Lấy báo cáo tiến độ học tập và tình hình làm bài của tất cả học viên trong một lớp
+   */
+  async getClassLearningProgress(classId: number, userId?: number): Promise<TeachingClassProgressDto | null> {
+    const url = userId
+      ? `${API_BASE_URL}/teaching/classes/${classId}/learning-progress?userId=${userId}`
+      : `${API_BASE_URL}/teaching/classes/${classId}/learning-progress`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải tiến độ học tập của lớp ${classId}`);
+    }
+
+    const json = await response.json();
+    return json?.data ?? json ?? null;
   },
 
   /**

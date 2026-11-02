@@ -22,6 +22,7 @@ namespace EduTrack.API.Controllers.Teaching
         private readonly ITeachingDashboardService _dashboardService;
         private readonly ITeachingScheduleService _teachingScheduleService;
         private readonly ITeachingMyClassService _myClassService;
+        private readonly ITeachingLearningProgressService _learningProgressService;
 
         public TeachingClassesController(
             IClassService classService,
@@ -30,7 +31,8 @@ namespace EduTrack.API.Controllers.Teaching
             IContentUnitService contentUnitService,
             ITeachingDashboardService dashboardService,
             ITeachingScheduleService teachingScheduleService,
-            ITeachingMyClassService myClassService)
+            ITeachingMyClassService myClassService,
+            ITeachingLearningProgressService learningProgressService)
         {
             _classService = classService;
             _scheduleService = scheduleService;
@@ -39,6 +41,7 @@ namespace EduTrack.API.Controllers.Teaching
             _dashboardService = dashboardService;
             _teachingScheduleService = teachingScheduleService;
             _myClassService = myClassService;
+            _learningProgressService = learningProgressService;
         }
 
         /// <summary>
@@ -91,8 +94,44 @@ namespace EduTrack.API.Controllers.Teaching
             return Ok(new { success = true, data });
         }
 
-        // TODO [Thành viên 2 - Teacher & TA]:
-        // Viết các API tài liệu buổi học tại đây:
-        // - POST /api/classes/{classId}/content-units (Thêm nội dung bài giảng cho lớp)
+        /// <summary>
+        /// Lấy tiến độ học tập và tình hình làm bài của tất cả học viên trong một lớp
+        /// </summary>
+        [HttpGet("{classId}/learning-progress")]
+        public async Task<IActionResult> GetClassLearningProgress([FromRoute] int classId, [FromQuery] int? userId)
+        {
+            if (classId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã lớp học (classId) không hợp lệ." });
+            }
+
+            var data = await _learningProgressService.GetClassLearningProgressAsync(classId, userId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy thông tin tiến độ học tập cho lớp ID = {classId}" });
+            }
+
+            return Ok(new { success = true, data });
+        }
+
+        /// <summary>
+        /// Lấy tiến độ học tập theo giáo viên/trợ giảng (tự động load lớp mặc định nếu chưa chọn lớp)
+        /// </summary>
+        [HttpGet("learning-progress")]
+        public async Task<IActionResult> GetLearningProgressByTeacher([FromQuery] int userId, [FromQuery] int? classId)
+        {
+            if (userId <= 0 && (!classId.HasValue || classId.Value <= 0))
+            {
+                return BadRequest(new { success = false, message = "Cần cung cấp userId hoặc classId hợp lệ." });
+            }
+
+            var data = await _learningProgressService.GetClassLearningProgressAsync(classId ?? 0, userId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = "Không tìm thấy dữ liệu tiến độ học tập phù hợp." });
+            }
+
+            return Ok(new { success = true, data });
+        }
     }
 }
