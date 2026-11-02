@@ -20,6 +20,8 @@ namespace EduTrack.API.Models.DTOs
         public string? ReviewerName { get; set; }
         public string Priority { get; set; } = null!;
         public string Status { get; set; } = null!;
+        public string? StatusLabel { get; set; }
+        public bool CanEdit { get; set; }
         public string? Reason { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }

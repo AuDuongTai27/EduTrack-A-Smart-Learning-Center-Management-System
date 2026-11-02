@@ -10,9 +10,10 @@ import {
 import classDAL from "../../../../DAL/classDAL";
 import userDAL from "../../../../DAL/userDAL";
 import assignmentDAL from "../../../../DAL/assignmentDAL";
+import teachingDAL from "../../../../DAL/teachingDAL";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import type { UserDto } from "../../../../BLL/models/UserDto";
-import type { AssignmentDto } from "../../../../BLL/models/AssignmentDto";
+import type { TeachingAssignmentItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeachingAssistantClassDetailsPage() {
   const { id, classId } = useParams<{ id?: string; classId?: string }>();
@@ -20,8 +21,8 @@ export default function TeachingAssistantClassDetailsPage() {
   const targetClassId = String(numClassId);
 
   const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
-  const [students, setStudents] = useState<UserDto[]>([]);
-  const [assignments, setAssignments] = useState<AssignmentDto[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<TeachingAssignmentItemDto[] | any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -33,22 +34,36 @@ export default function TeachingAssistantClassDetailsPage() {
         // 1. GetId: Fetch class details by ID
         const cls = await classDAL.getClassById(numClassId);
 
-        // 2. GetAll: Fetch users for participants (filter students)
-        const usersResult = await userDAL.getAllUsers();
-        const studentList = usersResult.data.filter(
-          (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
-        );
+        // 2. Fetch real students for this class via teachingDAL
+        try {
+          const classStudents = await teachingDAL.getClassStudents(numClassId);
+          if (isMounted) setStudents(classStudents);
+        } catch {
+          const usersResult = await userDAL.getAllUsers();
+          const studentList = usersResult.data.filter(
+            (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
+          );
+          if (isMounted) setStudents(studentList);
+        }
 
-        // 3. GetAll: Fetch assignments for this class
-        const assignResult = await assignmentDAL.getAllAssignments();
-        const filteredAssignments = assignResult.data.filter(
-          (a: AssignmentDto) => a.classId === numClassId
-        );
+        // 3. Fetch real assignments for this class via teachingDAL
+        try {
+          const teachingAsgs = await teachingDAL.getClassAssignments(numClassId);
+          if (isMounted) {
+            setAssignments(teachingAsgs);
+          }
+        } catch {
+          const assignResult = await assignmentDAL.getAllAssignments();
+          const filteredAssignments = assignResult.data.filter(
+            (a: any) => a.classId === numClassId
+          );
+          if (isMounted) {
+            setAssignments(filteredAssignments.length > 0 ? filteredAssignments : assignResult.data.slice(0, 2));
+          }
+        }
 
         if (isMounted) {
           setClassInfo(cls);
-          setStudents(studentList);
-          setAssignments(filteredAssignments.length > 0 ? filteredAssignments : assignResult.data.slice(0, 2));
         }
       } catch (err) {
         console.error("Failed to load TA class details:", err);
@@ -86,24 +101,34 @@ export default function TeachingAssistantClassDetailsPage() {
         }
       />
 
-      {loading && (
-        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
-          <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang tải thông tin lớp học và học viên...</span>
+      {loading ? (
+        <div className="card class-list-card border-0 mb-4 p-5 text-center">
+          <div className="spinner-border text-primary mx-auto mb-2" role="status" />
+          <p className="text-muted mb-0">Loading class details...</p>
         </div>
+      ) : (
+        <>
+          {/* Class Header */}
+          <ClassInfoCard
+            classInfo={classInfo}
+            teacherName="ThS. Hoàng Quốc Việt"
+            taName="Âu Dương Tài"
+          />
+          {/* Participant List */}
+          <ParticipantsSection
+            participants={students}
+            teacherName="ThS. Hoàng Quốc Việt"
+            taName="Âu Dương Tài"
+          />
+          {/* Sessions List */}
+          <SessionsSection classId={targetClassId} />
+          {/* Assignment list*/}
+          <AssignmentsSection
+            classId={targetClassId}
+            assignments={assignments}
+          />
+        </>
       )}
-
-      {/* Class Header */}
-      <ClassInfoCard classInfo={classInfo} />
-
-      {/* Participant List */}
-      <ParticipantsSection participants={students} />
-
-      {/* Sessions List */}
-      <SessionsSection classId={targetClassId} />
-
-      {/* Assignment list*/}
-      <AssignmentsSection classId={targetClassId} assignments={assignments} />
     </>
   );
 }

@@ -5,12 +5,10 @@ import {
   StudentSubmissionsTable,
   AssignmentOverviewCard,
 } from "../../../components/teacher/TeachingAssistant/assignment";
-import assignmentDAL from "../../../../DAL/assignmentDAL";
 import classDAL from "../../../../DAL/classDAL";
-import submissionDAL from "../../../../DAL/submissionDAL";
-import type { AssignmentDto } from "../../../../BLL/models/AssignmentDto";
+import teachingDAL from "../../../../DAL/teachingDAL";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { SubmissionDto } from "../../../../BLL/models/SubmissionDto";
+import type { TeachingAssignmentItemDto, TeachingSubmissionItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeachingAssistantAssignmentPage() {
   const { id, classId, assignmentId } = useParams<{ id?: string; classId?: string; assignmentId?: string }>();
@@ -19,9 +17,9 @@ export default function TeachingAssistantAssignmentPage() {
   const targetClassId = String(numClassId);
   const targetAssignmentId = String(numAssignmentId);
 
-  const [assignment, setAssignment] = useState<AssignmentDto | null>(null);
+  const [assignment, setAssignment] = useState<TeachingAssignmentItemDto | any | null>(null);
   const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
-  const [submissions, setSubmissions] = useState<SubmissionDto[]>([]);
+  const [submissions, setSubmissions] = useState<TeachingSubmissionItemDto[] | any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -30,19 +28,19 @@ export default function TeachingAssistantAssignmentPage() {
     async function fetchAssignmentData() {
       try {
         setLoading(true);
-        // 1. GetId: Fetch assignment detail by ID
-        const asg = await assignmentDAL.getById(numAssignmentId);
+        // 1. Fetch real assignment detail by ID
+        const asg = await teachingDAL.getAssignmentById(numAssignmentId);
 
-        // 2. GetId: Fetch class detail by ID
+        // 2. Fetch class detail by ID
         const cls = await classDAL.getClassById(numClassId);
 
-        // 3. GetAll: Fetch submissions for this assignment
-        const subsResult = await submissionDAL.getSubmissionsByAssignmentId(numAssignmentId);
+        // 3. Fetch real submissions for this assignment
+        const subs = await teachingDAL.getAssignmentSubmissions(numAssignmentId);
 
         if (isMounted) {
           setAssignment(asg);
           setClassInfo(cls);
-          setSubmissions(subsResult.data);
+          setSubmissions(subs);
         }
       } catch (err) {
         console.error("Failed to load TA assignment page data:", err);
@@ -58,16 +56,25 @@ export default function TeachingAssistantAssignmentPage() {
     };
   }, [numAssignmentId, numClassId]);
 
+  const className = classInfo?.className || `Class #${targetClassId}`;
+  const assignmentTitle = assignment?.title || `Assignment #${targetAssignmentId}`;
+
+  const handleSubmissionGraded = (updated: TeachingSubmissionItemDto) => {
+    setSubmissions((prev) =>
+      prev.map((s) => (s.submissionId === updated.submissionId ? updated : s))
+    );
+  };
+
   return (
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title={assignment ? `${assignment.title} (Chi Tiết Bài Tập)` : `Assignment #${targetAssignmentId}`}
+        title={`${assignmentTitle} (Chi Tiết Bài Tập)`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },
-          { label: classInfo ? classInfo.className : `Class #${targetClassId}`, path: `/teaching-assistant/classes/${targetClassId}` },
-          { label: assignment ? assignment.title : `Assignment #${targetAssignmentId}` },
+          { label: className, path: `/teaching-assistant/classes/${targetClassId}` },
+          { label: assignmentTitle },
         ]}
         action={
           <div className="d-flex align-items-center gap-2">
@@ -81,18 +88,27 @@ export default function TeachingAssistantAssignmentPage() {
         }
       />
 
-      {loading && (
-        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
-          <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang tải thông tin bài tập và bài nộp sinh viên...</span>
+      {loading ? (
+        <div className="card class-list-card border-0 mb-4 p-5 text-center">
+          <div className="spinner-border text-primary mx-auto mb-2" role="status" />
+          <p className="text-muted mb-0">Loading assignment details & submissions...</p>
         </div>
+      ) : (
+        <>
+          {/* Assignment Overview Header Card */}
+          <AssignmentOverviewCard
+            assignment={assignment}
+            className={className}
+          />
+
+          {/* Student List Section */}
+          <StudentSubmissionsTable
+            assignmentId={numAssignmentId}
+            submissions={submissions}
+            onSubmissionGraded={handleSubmissionGraded}
+          />
+        </>
       )}
-
-      {/* Assignment Overview Header Card */}
-      <AssignmentOverviewCard assignment={assignment} className={classInfo?.className} />
-
-      {/* Student List Section */}
-      <StudentSubmissionsTable submissions={submissions} />
     </>
   );
 }

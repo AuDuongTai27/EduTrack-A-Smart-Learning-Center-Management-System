@@ -10,9 +10,10 @@ import {
 import classDAL from "../../../../DAL/classDAL";
 import userDAL from "../../../../DAL/userDAL";
 import assignmentDAL from "../../../../DAL/assignmentDAL";
+import teachingDAL from "../../../../DAL/teachingDAL";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import type { UserDto } from "../../../../BLL/models/UserDto";
-import type { AssignmentDto } from "../../../../BLL/models/AssignmentDto";
+import type { TeachingAssignmentItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeacherClassDetailsPage() {
     const { id, classId } = useParams<{ id?: string; classId?: string }>();
@@ -20,8 +21,8 @@ export default function TeacherClassDetailsPage() {
     const targetClassId = String(numClassId);
 
     const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
-    const [students, setStudents] = useState<UserDto[]>([]);
-    const [assignments, setAssignments] = useState<AssignmentDto[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+    const [assignments, setAssignments] = useState<TeachingAssignmentItemDto[] | any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
@@ -33,22 +34,36 @@ export default function TeacherClassDetailsPage() {
                 // 1. GetId: Fetch class details by ID
                 const cls = await classDAL.getClassById(numClassId);
 
-                // 2. GetAll: Fetch users for participants (filter students)
-                const usersResult = await userDAL.getAllUsers();
-                const studentList = usersResult.data.filter(
-                    (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
-                );
+                // 2. Fetch real students for this class via teachingDAL
+                try {
+                    const classStudents = await teachingDAL.getClassStudents(numClassId);
+                    if (isMounted) setStudents(classStudents);
+                } catch {
+                    const usersResult = await userDAL.getAllUsers();
+                    const studentList = usersResult.data.filter(
+                        (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
+                    );
+                    if (isMounted) setStudents(studentList);
+                }
 
-                // 3. GetAll: Fetch assignments for this class
-                const assignResult = await assignmentDAL.getAllAssignments();
-                const filteredAssignments = assignResult.data.filter(
-                    (a: AssignmentDto) => a.classId === numClassId
-                );
+                // 3. Fetch real assignments for this class via teachingDAL
+                try {
+                    const teachingAsgs = await teachingDAL.getClassAssignments(numClassId);
+                    if (isMounted) {
+                        setAssignments(teachingAsgs);
+                    }
+                } catch {
+                    const assignResult = await assignmentDAL.getAllAssignments();
+                    const filteredAssignments = assignResult.data.filter(
+                        (a: any) => a.classId === numClassId
+                    );
+                    if (isMounted) {
+                        setAssignments(filteredAssignments.length > 0 ? filteredAssignments : assignResult.data.slice(0, 2));
+                    }
+                }
 
                 if (isMounted) {
                     setClassInfo(cls);
-                    setStudents(studentList);
-                    setAssignments(filteredAssignments.length > 0 ? filteredAssignments : assignResult.data.slice(0, 2));
                 }
             } catch (err) {
                 console.error("Failed to load class details:", err);
@@ -111,6 +126,7 @@ export default function TeacherClassDetailsPage() {
                     <AssignmentsSection
                         classId={targetClassId}
                         assignments={assignments}
+                        onAssignmentDeleted={(delId) => setAssignments((prev) => prev.filter((a: any) => a.assignmentId !== delId))}
                     />
                 </>
             )}
