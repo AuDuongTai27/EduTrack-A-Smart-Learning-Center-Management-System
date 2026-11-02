@@ -3,11 +3,11 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import {
   ASSIGNMENTS_DB,
   DEFAULT_ASG,
-  mapAssignmentDtoToDetailItem,
   type AssignmentDetailItem,
   type SubmissionStatus,
 } from '../../components/student/assignmentDetail/assignmentDetailData';
-import { assignmentDAL } from '../../../DAL/assignmentDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
+import type { StudentSubmissionDetailApiDto } from '../../../api/learningApi';
 import { AssignmentDetailHeader } from '../../components/student/assignmentDetail/AssignmentDetailHeader';
 import { AssignmentMetaCards } from '../../components/student/assignmentDetail/AssignmentMetaCards';
 import { AssignmentInstructions } from '../../components/student/assignmentDetail/AssignmentInstructions';
@@ -24,8 +24,9 @@ export function StudentAssignmentDetailPage() {
 
   const [asg, setAsg] = useState<AssignmentDetailItem>(initialAsg);
   const [status, setStatus] = useState<SubmissionStatus>(initialAsg.defaultStatus || 'not-submitted');
-  const [submittedFileName, setSubmittedFileName] = useState('Bai_lam_PT_bac2_NguyenHai.pdf');
-  const [submittedMeta, setSubmittedMeta] = useState('Đã nộp lúc 18:42, Thứ Tư 19/08/2026 • 3.1 MB');
+  const [submittedFileName, setSubmittedFileName] = useState('Bai_lam_PT_bac2_LeVanAn.pdf');
+  const [submittedMeta, setSubmittedMeta] = useState('Đã nộp lúc 20:30, 13/09/2026 • Đã lưu trên hệ thống');
+  const [submission, setSubmission] = useState<StudentSubmissionDetailApiDto | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,12 +34,13 @@ export function StudentAssignmentDetailPage() {
 
     async function loadAssignmentDetail() {
       try {
-        const dto = await assignmentDAL.getAssignmentById(asgId);
-        if (isMounted && dto) {
-          const fallback = ASSIGNMENTS_DB[asgId] || DEFAULT_ASG;
-          const mapped = mapAssignmentDtoToDetailItem(dto, fallback);
-          setAsg(mapped);
-          setStatus(mapped.defaultStatus || 'not-submitted');
+        const vm = await learningDAL.getStudentAssignmentDetail(asgId, DEFAULT_STUDENT_ID);
+        if (isMounted && vm) {
+          setAsg(vm.asg);
+          setStatus(vm.status);
+          setSubmittedFileName(vm.submittedFileName);
+          setSubmittedMeta(vm.submittedMeta);
+          setSubmission(vm.submission || null);
         }
       } catch (err) {
         console.warn('Lỗi khi tải chi tiết bài tập:', err);
@@ -60,20 +62,44 @@ export function StudentAssignmentDetailPage() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 3500);
   };
 
   const handleDownload = (fileName: string) => {
     showToast(`Đang tải xuống tài liệu: ${fileName}`);
   };
 
-  const handleSubmit = (file: File | null) => {
-    const name = file ? file.name : 'Bai_lam_PT_bac2_NguyenHai.pdf';
-    const sizeMb = file ? (file.size / (1024 * 1024)).toFixed(1) : '3.1';
-    setSubmittedFileName(name);
-    setSubmittedMeta(`Đã nộp lúc vừa xong • ${sizeMb} MB`);
-    setStatus('submitted');
-    showToast('Nộp bài tập thành công!');
+  const handleSubmit = async (file: File | null) => {
+    const name = file ? file.name : 'Bai_lam_LeVanAn.pdf';
+    const sizeMb = file ? (file.size / (1024 * 1024)).toFixed(1) : '2.4';
+
+    try {
+      const savedSub = await learningDAL.submitHomework(
+        asgId,
+        name,
+        sizeMb,
+        DEFAULT_STUDENT_ID
+      );
+
+      setSubmittedFileName(savedSub.fileName || name);
+      setSubmittedMeta(`Đã nộp lúc ${savedSub.submittedAt} • ${sizeMb} MB`);
+      setSubmission(savedSub);
+      setStatus('submitted');
+
+      if (savedSub.score !== null && savedSub.score !== undefined) {
+        setAsg((prev) => ({ ...prev, score: `${savedSub.score} / 10 (GV đã chấm)` }));
+      } else if (savedSub.aiScore !== null && savedSub.aiScore !== undefined) {
+        setAsg((prev) => ({ ...prev, score: `${savedSub.aiScore} / 10 (AI chấm sơ bộ)` }));
+      }
+
+      showToast('Nộp bài tập lên hệ thống thành công! AI đã chấm sơ bộ bài làm.');
+    } catch (err) {
+      console.warn('Không kết nối được Backend khi nộp bài, cập nhật local state:', err);
+      setSubmittedFileName(name);
+      setSubmittedMeta(`Đã nộp lúc vừa xong • ${sizeMb} MB`);
+      setStatus('submitted');
+      showToast('Nộp bài tập thành công!');
+    }
   };
 
   const handleEdit = () => {
@@ -81,10 +107,16 @@ export function StudentAssignmentDetailPage() {
     showToast('Chọn file mới để cập nhật bài nộp');
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa bài nộp này không?')) {
+      try {
+        await learningDAL.deleteSubmission(asgId, DEFAULT_STUDENT_ID);
+      } catch (err) {
+        console.warn('Lỗi khi xóa bài nộp trên Backend:', err);
+      }
+      setSubmission(null);
       setStatus('not-submitted');
-      showToast('Đã xóa bài nộp');
+      showToast('Đã xóa bài nộp trên hệ thống');
     }
   };
 
@@ -134,6 +166,7 @@ export function StudentAssignmentDetailPage() {
           submittedFileName={submittedFileName}
           submittedMeta={submittedMeta}
           dueDate={asg.dueDate}
+          submission={submission}
           onSubmit={handleSubmit}
           onEdit={handleEdit}
           onDelete={handleDelete}
@@ -141,6 +174,6 @@ export function StudentAssignmentDetailPage() {
       </div>
     </main>
   );
-};
+}
 
 export default StudentAssignmentDetailPage;

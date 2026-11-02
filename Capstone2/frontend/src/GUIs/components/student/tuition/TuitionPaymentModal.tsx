@@ -4,21 +4,37 @@ import { PaymentMethodCard } from './components/PaymentMethodCard';
 interface TuitionPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  studentName?: string;
+  period?: string;
+  totalAmountText?: string;
+  onConfirmPayment?: (method: 'qr' | 'momo' | 'atm' | 'visa') => Promise<void> | void;
 }
 
-export function TuitionPaymentModal({ isOpen, onClose }: TuitionPaymentModalProps) {
+export function TuitionPaymentModal({
+  isOpen,
+  onClose,
+  studentName = 'Lê Văn An',
+  period = 'Kỳ tháng 10 / 2026',
+  totalAmountText = '2.900.000 đ',
+  onConfirmPayment,
+}: TuitionPaymentModalProps) {
   const [selectedMethod, setSelectedMethod] = useState<'qr' | 'momo' | 'atm' | 'visa'>('qr');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      alert('🎉 Thanh toán thành công 7.500.000 đ! Hóa đơn điện tử đã được gửi đến email học sinh.');
-      setIsProcessing(false);
+    try {
+      if (onConfirmPayment) {
+        await onConfirmPayment(selectedMethod);
+      } else {
+        alert(`🎉 Thanh toán thành công ${totalAmountText}! Hóa đơn điện tử đã được ghi nhận.`);
+      }
       onClose();
-    }, 1200);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -45,7 +61,7 @@ export function TuitionPaymentModal({ isOpen, onClose }: TuitionPaymentModalProp
                   Thanh toán học phí trực tuyến
                 </h5>
                 <p className="mb-0 text-white-50 small">
-                  Kỳ học Tháng 8 / 2026 &middot; Học sinh Nguyễn Minh Anh
+                  {period} &middot; Học sinh {studentName}
                 </p>
               </div>
               <button
@@ -58,7 +74,7 @@ export function TuitionPaymentModal({ isOpen, onClose }: TuitionPaymentModalProp
             <div className="modal-body p-4">
               <div className="p-3 bg-light rounded-3 mb-3 d-flex justify-content-between align-items-center">
                 <span className="text-muted small">Tổng số tiền thanh toán:</span>
-                <span className="fs-4 fw-extrabold text-primary">7.500.000 đ</span>
+                <span className="fs-4 fw-extrabold text-primary">{totalAmountText}</span>
               </div>
 
               <label className="form-label small fw-bold text-uppercase text-muted mb-2">
@@ -130,6 +146,6 @@ export function TuitionPaymentModal({ isOpen, onClose }: TuitionPaymentModalProp
       </div>
     </>
   );
-};
+}
 
 export default TuitionPaymentModal;

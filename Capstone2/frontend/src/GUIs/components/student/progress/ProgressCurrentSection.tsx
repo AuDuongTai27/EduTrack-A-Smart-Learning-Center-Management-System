@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CURRENT_PROGRESS_CLASSES, type ProgressClassItem } from './progressData';
 import { ProgressClassAccordion } from './components/ProgressClassAccordion';
 
@@ -7,9 +7,17 @@ export interface ProgressCurrentSectionProps {
 }
 
 export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: ProgressCurrentSectionProps) {
-  const [openCards, setOpenCards] = useState<Record<string, boolean>>({
-    card1: true,
+  const [openCards, setOpenCards] = useState<Record<string, boolean>>(() => {
+    const firstId = classes[0]?.id || 'card1';
+    return { [firstId]: true };
   });
+
+  useEffect(() => {
+    if (classes.length > 0) {
+      const firstId = classes[0].id;
+      setOpenCards((prev) => (Object.keys(prev).length === 0 || !prev[firstId] ? { [firstId]: true } : prev));
+    }
+  }, [classes]);
 
   const toggleCard = (id: string) => {
     setOpenCards((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -43,6 +51,6 @@ export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: P
       ))}
     </section>
   );
-};
+}
 
 export default ProgressCurrentSection;

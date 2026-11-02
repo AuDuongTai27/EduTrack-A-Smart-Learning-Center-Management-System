@@ -1,34 +1,43 @@
 import React, { useState, useEffect } from 'react';
+import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
 import { DashboardWelcomeBanner } from '../../components/student/dashboard/DashboardWelcomeBanner';
 import { DashboardStatsGrid } from '../../components/student/dashboard/DashboardStatsGrid';
 import { DashboardClassesSection } from '../../components/student/dashboard/DashboardClassesSection';
-import { classDAL } from '../../../DAL/classDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import {
   MOCK_ENROLLED_CLASSES,
-  mapClassDtoToEnrolledItem,
   type EnrolledClassItem,
 } from '../../components/student/classes/classesData';
 
 export function StudentDashboardPage() {
+  const [studentName, setStudentName] = useState<string>('Lê Văn An');
+  const [avatarInitials, setAvatarInitials] = useState<string>('VA');
+  const [enrolledClassesCount, setEnrolledClassesCount] = useState<number>(
+    MOCK_ENROLLED_CLASSES.length
+  );
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(2);
   const [classes, setClasses] = useState<EnrolledClassItem[]>(MOCK_ENROLLED_CLASSES);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadClasses() {
+    async function loadDashboard() {
       try {
         setLoading(true);
 
-        // Gọi tầng DAL (tự động điều phối giữa live API và mockData)
-        const result = await classDAL.getAllClasses();
+        // Gọi tầng learningDAL (Bounded Context: Learning -> GET /api/learning/student/{id}/dashboard)
+        const dashboardData = await learningDAL.getStudentDashboard(DEFAULT_STUDENT_ID);
 
-        if (isMounted && result.data && result.data.length > 0) {
-          const mappedItems = result.data.map(mapClassDtoToEnrolledItem);
-          setClasses(mappedItems);
+        if (isMounted && dashboardData) {
+          setStudentName(dashboardData.fullName);
+          setAvatarInitials(dashboardData.avatarInitials);
+          setEnrolledClassesCount(dashboardData.enrolledClassesCount);
+          setPendingAssignmentsCount(dashboardData.pendingAssignmentsCount);
+          setClasses(dashboardData.classes);
         }
       } catch (err) {
-        console.warn('Lỗi khi tải danh sách lớp học:', err);
+        console.warn('Lỗi khi tải dữ liệu Dashboard học sinh:', err);
         if (isMounted) {
           setClasses(MOCK_ENROLLED_CLASSES);
         }
@@ -39,7 +48,7 @@ export function StudentDashboardPage() {
       }
     }
 
-    loadClasses();
+    loadDashboard();
 
     return () => {
       isMounted = false;
@@ -50,16 +59,26 @@ export function StudentDashboardPage() {
     <main className="main-content">
       <div className="content-container">
         {/* 1. Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Tổng quan học tập của bạn</p>
-        </div>
+        <StudentPageHeader
+          title="Dashboard"
+          subtitle="Tổng quan học tập của bạn"
+          breadcrumbs={[
+            { label: 'Cổng học sinh' },
+            { label: 'Dashboard' },
+          ]}
+        />
 
         {/* 2. Welcome Banner */}
-        <DashboardWelcomeBanner />
+        <DashboardWelcomeBanner
+          studentName={studentName}
+          avatarInitials={avatarInitials}
+        />
 
         {/* 3. Stats Row */}
-        <DashboardStatsGrid />
+        <DashboardStatsGrid
+          enrolledClassesCount={enrolledClassesCount}
+          pendingAssignmentsCount={pendingAssignmentsCount}
+        />
 
         {/* 4 & 5. Section Header & Classes Grid */}
         <DashboardClassesSection

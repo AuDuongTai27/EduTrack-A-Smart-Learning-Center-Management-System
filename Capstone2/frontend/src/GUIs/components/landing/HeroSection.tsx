@@ -11,11 +11,33 @@ export function HeroSection({
   slogan = 'Đồng Hành Cùng Tri Thức - Nâng Tầm Tương Lai',
   onOpenLogin,
 }: HeroSectionProps) {
+  const handleScrollToCourses = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const element = document.getElementById('courses');
+    if (element) {
+      const header = document.getElementById('header');
+      const headerOffset = header ? header.offsetHeight : 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
     <section id="hero" className="hero section dark-background">
       <img src="/assets/img/hero-bg.jpg" alt={centerName} data-aos="fade-in" className="aos-init aos-animate" />
 
       <div className="container">
+        <div data-aos="fade-up" className="aos-init aos-animate mb-3">
+          <span className="badge bg-success bg-opacity-25 text-white border border-success border-opacity-50 px-3 py-2 rounded-pill fw-medium">
+            <i className="bi bi-stars me-1 text-warning"></i> Chuyển đổi số giáo dục &amp; Ứng dụng AI thông minh
+          </span>
+        </div>
+
         <h2 data-aos="fade-up" data-aos-delay="100" className="aos-init aos-animate">
           {centerName}<br />
           <span className="fs-3 fw-normal opacity-75">{slogan}</span>
@@ -23,16 +45,22 @@ export function HeroSection({
         <p data-aos="fade-up" data-aos-delay="200" className="aos-init aos-animate">
           Nền tảng quản lý học tập, lịch học, điểm danh và chấm bài tự động bằng AI thế hệ mới.
         </p>
-        <div className="d-flex mt-4 aos-init aos-animate" data-aos="fade-up" data-aos-delay="300">
+        <div className="d-flex align-items-center flex-wrap gap-3 mt-4 aos-init aos-animate" data-aos="fade-up" data-aos-delay="300">
           <button
             type="button"
-            className="btn-get-started me-3 border-0"
+            className="btn btn-success rounded-pill px-4 py-2.5 fw-semibold d-inline-flex align-items-center shadow-sm"
             onClick={onOpenLogin}
           >
+            <i className="bi bi-box-arrow-in-right me-2"></i>
             Đăng nhập ngay
           </button>
-          <a href="#courses" className="btn btn-outline-light rounded-pill px-4 py-2 d-inline-flex align-items-center">
+          <a
+            href="#courses"
+            onClick={handleScrollToCourses}
+            className="btn btn-outline-light rounded-pill px-4 py-2.5 fw-semibold d-inline-flex align-items-center"
+          >
             Xem khóa học
+            <i className="bi bi-arrow-down-short ms-1 fs-5"></i>
           </a>
         </div>
       </div>

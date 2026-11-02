@@ -11,6 +11,12 @@ export function ParentDashboardPage() {
     let isMounted = true;
 
     async function loadClasses() {
+      // Ưu tiên danh sách lớp của con đang chọn (tải từ learningDAL.getParentChildrenOverview)
+      if (selectedChild && selectedChild.classes && selectedChild.classes.length > 0) {
+        setClasses(selectedChild.classes);
+        return;
+      }
+
       try {
         const data = await parentDAL.getAllClasses();
         if (isMounted && data && data.length > 0) {
@@ -259,6 +265,6 @@ export function ParentDashboardPage() {
       </div>
     </main>
   );
-};
+}
 
 export default ParentDashboardPage;

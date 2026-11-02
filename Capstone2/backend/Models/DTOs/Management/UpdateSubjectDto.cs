@@ -1,17 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduTrack.API.Models.DTOs.Management
 {
     public class UpdateSubjectDto
     {
-        [StringLength(20, ErrorMessage = "SubjectCode khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 20 kÃ½ tá»±")]
+        [StringLength(20, ErrorMessage = "SubjectCode không được vượt quá 20 ký tự")]
         public string? SubjectCode { get; set; }
 
-        [Required(ErrorMessage = "SubjectName lÃ  báº¯t buá»™c")]
-        [StringLength(100, ErrorMessage = "SubjectName khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 100 kÃ½ tá»±")]
+        [Required(ErrorMessage = "SubjectName là bắt buộc")]
+        [StringLength(100, ErrorMessage = "SubjectName không được vượt quá 100 ký tự")]
         public string SubjectName { get; set; } = null!;
 
         public string? Description { get; set; }
     }
 }
-

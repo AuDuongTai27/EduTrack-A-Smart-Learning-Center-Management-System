@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { FeedbackView } from '../../components/student/feedback/FeedbackView';
+import { DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function StudentFeedbackPage() {
   useEffect(() => {
@@ -11,8 +12,10 @@ export function StudentFeedbackPage() {
       userRole="student"
       userName="Lê Văn An"
       userPhone="0956 789 012"
+      userId={DEFAULT_STUDENT_ID}
+      studentId={DEFAULT_STUDENT_ID}
     />
   );
-};
+}
 
 export default StudentFeedbackPage;

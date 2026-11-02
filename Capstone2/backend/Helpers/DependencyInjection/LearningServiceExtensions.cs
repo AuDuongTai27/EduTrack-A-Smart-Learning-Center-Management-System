@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using EduTrack.API.Services.Learning.Interfaces;
+using EduTrack.API.Services.Learning.Implementation;
 
 namespace EduTrack.API.Helpers.DependencyInjection
 {
@@ -11,6 +13,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
         public static IServiceCollection AddLearningServices(this IServiceCollection services)
         {
             // Thành viên 3 đăng ký thêm các Service mới của nhánh Learning tại đây (tránh conflict Program.cs)
+            services.AddScoped<ILearnerDashboardService, LearnerDashboardService>();
             return services;
         }
     }

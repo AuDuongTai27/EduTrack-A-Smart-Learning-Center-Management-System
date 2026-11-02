@@ -4,10 +4,11 @@ import {
   CLASSES_DATA,
   MATERIALS_DATA,
   ASSIGNMENTS_DATA,
-  mapClassDtoToDetailItem,
   type ClassDetailItem,
+  type MaterialItem,
+  type AssignmentItem,
 } from '../../components/student/classDetail/classDetailData';
-import { classDAL } from '../../../DAL/classDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { ClassHeroBanner } from '../../components/student/classDetail/ClassHeroBanner';
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
 import { ClassMaterialsSection } from '../../components/student/classDetail/ClassMaterialsSection';
@@ -23,19 +24,26 @@ export function StudentClassDetailPage() {
 
   const initialCls = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
   const [cls, setCls] = useState<ClassDetailItem>(initialCls);
-
-  const materials = MATERIALS_DATA.filter((m) => m.classId === cls.id);
-  const assignments = ASSIGNMENTS_DATA.filter((a) => a.classId === cls.id);
+  const [materials, setMaterials] = useState<MaterialItem[]>(
+    MATERIALS_DATA.filter((m) => m.classId === classId)
+  );
+  const [assignments, setAssignments] = useState<AssignmentItem[]>(
+    ASSIGNMENTS_DATA.filter((a) => a.classId === classId)
+  );
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadClassDetail() {
       try {
-        const dto = await classDAL.getClassById(classId);
-        if (isMounted && dto) {
-          const fallback = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
-          setCls(mapClassDtoToDetailItem(dto, fallback));
+        const detailData = await learningDAL.getStudentClassDetail(
+          classId,
+          DEFAULT_STUDENT_ID
+        );
+        if (isMounted && detailData) {
+          setCls(detailData.cls);
+          setMaterials(detailData.materials);
+          setAssignments(detailData.assignments);
         }
       } catch (err) {
         console.warn('Lỗi khi tải chi tiết lớp học:', err);
@@ -106,6 +114,6 @@ export function StudentClassDetailPage() {
       </div>
     </main>
   );
-};
+}
 
 export default StudentClassDetailPage;

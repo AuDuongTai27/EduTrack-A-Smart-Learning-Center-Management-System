@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ScheduleHeader } from '../../components/student/schedule/ScheduleHeader';
+import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
 import { ScheduleTimetableCard } from '../../components/student/schedule/ScheduleTimetableCard';
 import { ScheduleLegendStrip } from '../../components/student/schedule/ScheduleLegendStrip';
-import { scheduleDAL } from '../../../DAL/scheduleDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import {
   getMonday,
   addDays,
   fmtDayMon,
   SESSIONS,
-  mapClassScheduleDtoToSessionItem,
   type SessionItem,
 } from '../../components/student/schedule/scheduleData';
 
@@ -21,10 +20,9 @@ export function StudentSchedulePage() {
 
     async function loadSchedules() {
       try {
-        const result = await scheduleDAL.getAllClassSchedules();
-        if (isMounted && result.data && result.data.length > 0) {
-          const mapped = result.data.map(mapClassScheduleDtoToSessionItem);
-          setSessions(mapped);
+        const liveSessions = await learningDAL.getStudentSchedule(DEFAULT_STUDENT_ID);
+        if (isMounted && liveSessions && liveSessions.length > 0) {
+          setSessions(liveSessions);
         }
       } catch (err) {
         console.warn('Lỗi khi tải thời khóa biểu học sinh:', err);
@@ -51,19 +49,58 @@ export function StudentSchedulePage() {
 
   const weekRangeText = `${fmtDayMon(monday)} – ${fmtDayMon(sunday)}`;
 
-  return (
-    <>
-      {/* Schedule Topbar Header with Navigator */}
-      <ScheduleHeader
-        weekRangeText={weekRangeText}
-        onToday={() => setWeekOffset(0)}
-        onPrev={() => setWeekOffset((w) => w - 1)}
-        onNext={() => setWeekOffset((w) => w + 1)}
-      />
+  const weekNavigatorActions = (
+    <div className="week-navigator-controls d-flex align-items-center gap-2">
+      <button
+        type="button"
+        className="btn-week-today"
+        id="btnWeekToday"
+        onClick={() => setWeekOffset(0)}
+      >
+        Hôm nay
+      </button>
 
-      {/* Main Schedule Content Area */}
-      <main className="schedule-panel-body">
-        {/* 1. Calendar Timetable Card */}
+      <div className="week-nav-group d-flex align-items-center">
+        <button
+          type="button"
+          className="btn-week-nav"
+          id="btnWeekPrev"
+          aria-label="Tuần trước"
+          onClick={() => setWeekOffset((w) => w - 1)}
+        >
+          <i className="bi bi-chevron-left"></i>
+        </button>
+        <span className="week-range-text px-2" id="weekRangeText">
+          {weekRangeText}
+        </span>
+        <button
+          type="button"
+          className="btn-week-nav"
+          id="btnWeekNext"
+          aria-label="Tuần sau"
+          onClick={() => setWeekOffset((w) => w + 1)}
+        >
+          <i className="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <main className="main-content">
+      <div className="content-container schedule-container">
+        {/* 1. Unified Page Header with Week Navigator */}
+        <StudentPageHeader
+          title="Lịch học"
+          subtitle="Thời khóa biểu các ca học trong tuần của bạn"
+          breadcrumbs={[
+            { label: 'Trang chủ', href: '/student/dashboard' },
+            { label: 'Lịch học' },
+          ]}
+          actions={weekNavigatorActions}
+        />
+
+        {/* 2. Calendar Timetable Card */}
         <ScheduleTimetableCard
           days={days}
           todayIdx={todayIdx}
@@ -72,11 +109,11 @@ export function StudentSchedulePage() {
           sessions={sessions}
         />
 
-        {/* 2. Status Legend Strip */}
+        {/* 3. Status Legend Strip */}
         <ScheduleLegendStrip />
-      </main>
-    </>
+      </div>
+    </main>
   );
-};
+}
 
 export default StudentSchedulePage;

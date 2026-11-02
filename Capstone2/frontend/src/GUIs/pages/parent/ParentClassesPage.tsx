@@ -1,39 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
-import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
 
 export function ParentClassesPage() {
   const { selectedChild } = useParent();
-  const [classes, setClasses] = useState<ChildClassItem[]>(selectedChild?.classes || []);
-  const [loading, setLoading] = useState<boolean>(true);
+  const classes = selectedChild?.classes || [];
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadClasses() {
-      try {
-        setLoading(true);
-        const data = await parentDAL.getAllClasses();
-        if (isMounted && data && data.length > 0) {
-          setClasses(data);
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải danh sách lớp của con:', err);
-        if (isMounted && selectedChild) {
-          setClasses(selectedChild.classes);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-
-    loadClasses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedChild]);
+    document.title = 'Lớp học của con – EduTrack';
+  }, []);
 
   if (!selectedChild) {
     return null;
@@ -105,7 +80,7 @@ export function ParentClassesPage() {
                       className="progress-bar bg-success"
                       role="progressbar"
                       style={{
-                        width: `${Math.round((cls.attendedLessons / cls.totalLessons) * 100)}%`,
+                        width: `${cls.totalLessons > 0 ? Math.round((cls.attendedLessons / cls.totalLessons) * 100) : 0}%`,
                       }}
                     ></div>
                   </div>
@@ -116,7 +91,7 @@ export function ParentClassesPage() {
               </div>
 
               <div className="class-card-footer">
-                <span>Xem thông tin lớp & lịch học</span>
+                <span>Xem thông tin lớp &amp; lịch học</span>
                 <i className="bi bi-chevron-right"></i>
               </div>
             </Link>
@@ -125,6 +100,6 @@ export function ParentClassesPage() {
       </div>
     </main>
   );
-};
+}
 
 export default ParentClassesPage;

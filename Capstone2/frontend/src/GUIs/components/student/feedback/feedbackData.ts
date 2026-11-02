@@ -1,13 +1,16 @@
-﻿export interface FeedbackApprovalRequest {
+export interface FeedbackApprovalRequest {
   id: number;
+  requestCode?: string;
   requestType: 'feedback';
   title: string;
   description: string;
   senderName: string;
   senderRole: 'parent' | 'student';
+  className?: string;
   createdAt: string;
   status: 'pending' | 'approved' | 'rejected';
   statusLabel: string;
+  canEdit: boolean;
   reviewedBy?: string;
   reviewedAt?: string;
   reviewNotes?: string;
@@ -16,41 +19,45 @@
 export const INITIAL_FEEDBACK_REQUESTS: FeedbackApprovalRequest[] = [
   {
     id: 1,
+    requestCode: 'FB0001',
     requestType: 'feedback',
-    title: 'Góp ý về phòng thực hành Hóa học',
-    description: 'Em mong muốn phòng thực hành có thêm kính bảo hộ và găng tay mới để đảm bảo an toàn hơn trong các buổi thí nghiệm.',
+    title: 'Đề xuất bổ sung bài tập ôn thi giữa kỳ môn Toán 9',
+    description: 'Thầy/Cô cho em xin thêm bộ đề trắc nghiệm chương Hệ thức lượng trong tam giác vuông để luyện tập trước kỳ thi giữa kỳ ạ.',
     senderName: 'Lê Văn An',
     senderRole: 'student',
-    createdAt: '12/10/2026 14:30',
-    status: 'approved',
-    statusLabel: 'Đã giải quyết',
-    reviewedBy: 'Thầy Nguyễn Văn Minh (Giáo vụ)',
-    reviewedAt: '13/10/2026 09:15',
-    reviewNotes: 'Trung tâm đã ghi nhận và bổ sung 20 bộ bảo hộ mới tại phòng thực hành C301.',
+    createdAt: '15/10/2026 14:20',
+    status: 'pending',
+    statusLabel: 'Chưa xem xét giải quyết',
+    canEdit: true,
   },
   {
     id: 2,
+    requestCode: 'FB0002',
     requestType: 'feedback',
-    title: 'Đề xuất đổi lịch học bù môn Toán',
-    description: 'Do tuần sau trường phổ thông có đợt thi giữa kỳ, em xin chuyển buổi học bù Toán thứ 4 sang chiều thứ 7.',
+    title: 'Góp ý tài liệu nghe Tiếng Anh và loa phòng học P.202',
+    description: 'Loa tại phòng P.202 hơi nhỏ ở dãy bàn cuối, mong trung tâm kiểm tra giúp lớp em trước buổi học tuần tới ạ.',
     senderName: 'Lê Văn An',
     senderRole: 'student',
-    createdAt: '10/10/2026 18:20',
+    createdAt: '12/10/2026 09:15',
     status: 'pending',
-    statusLabel: 'Chờ tiếp nhận',
+    statusLabel: 'Chờ duyệt',
+    canEdit: false,
+    reviewedBy: 'Trần Thị Nhân Viên (Admin Staff)',
   },
   {
     id: 3,
+    requestCode: 'FB0003',
     requestType: 'feedback',
-    title: 'Thắc mắc tài liệu ôn tập Tiếng Anh',
-    description: 'Tài liệu nghe Unit 4 trên hệ thống bị lỗi file âm thanh, em xin trung tâm re-upload lại file chất lượng cao hơn ạ.',
+    title: 'Góp ý điều hòa phòng học 201',
+    description: 'Em thấy phòng học 201 điều hòa bị chảy nước và hơi lạnh trong buổi học tối qua.',
     senderName: 'Lê Văn An',
     senderRole: 'student',
-    createdAt: '05/10/2026 20:10',
+    createdAt: '09/09/2026 20:45',
     status: 'approved',
     statusLabel: 'Đã giải quyết',
-    reviewedBy: 'Cô Phạm Thu Thảo (Giáo viên)',
-    reviewedAt: '06/10/2026 08:30',
-    reviewNotes: 'Cô đã upload lại file MP3 chất lượng cao lên mục Tài liệu lớp học rồi nhé.',
+    canEdit: false,
+    reviewedBy: 'Trần Thị Nhân Viên (Admin Staff)',
+    reviewedAt: '10/09/2026 08:30',
+    reviewNotes: 'Trung tâm đã ghi nhận và cho bộ phận kỹ thuật bảo trì điều hòa sáng nay. Cảm ơn em!',
   },
 ];
