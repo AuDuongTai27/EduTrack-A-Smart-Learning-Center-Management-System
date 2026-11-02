@@ -4,6 +4,7 @@ import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingSch
 import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
 import type { TeachingClassProgressDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
 import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNotificationDto';
+import type { TeacherProfileDto, UpdateTeacherProfilePayload } from '../BLL/models/teaching/TeachingProfileDto';
 
 export * from '../BLL/models/teaching';
 
@@ -263,6 +264,48 @@ export const teachingApi = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || `HTTP error ${res.status}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * GET /api/teaching/profile?userId={userId}
+   * Lấy thông tin hồ sơ cá nhân của Giáo viên hoặc Trợ giảng
+   */
+  async getProfile(userId: number): Promise<TeacherProfileDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/profile?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} khi tải hồ sơ người dùng #${userId}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * PUT /api/teaching/profile?userId={userId}
+   * Cập nhật thông tin hồ sơ cá nhân GV/TA
+   */
+  async updateProfile(userId: number, payload: UpdateTeacherProfilePayload): Promise<TeacherProfileDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/profile?userId=${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi cập nhật hồ sơ`);
     }
 
     const json = await res.json();

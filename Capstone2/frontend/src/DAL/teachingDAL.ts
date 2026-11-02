@@ -2,6 +2,8 @@ import {
   teachingApi,
   type CreateTeachingRequestPayload,
   type UpdateTeachingRequestPayload,
+  type TeacherProfileDto,
+  type UpdateTeacherProfilePayload,
 } from '../api/teachingApi';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
@@ -9,6 +11,10 @@ import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingSch
 import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
 import type { TeachingClassProgressDto, TeachingStudentProgressItemDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
 import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNotificationDto';
+
+export type { TeacherProfileDto, UpdateTeacherProfilePayload };
+export const DEFAULT_TEACHER_ID = 3;
+export const DEFAULT_TA_ID = 5;
 
 export interface TeachingDashboardViewModel extends TeachingDashboardDto {
   source: 'api' | 'mock';
@@ -710,6 +716,62 @@ export const teachingDAL = {
     return { success: true, data };
   },
 
+  /**
+   * Lấy thông tin hồ sơ chi tiết của GV / TA theo userId
+   */
+  async getProfile(userId: number): Promise<TeacherProfileDto> {
+    try {
+      const data = await teachingApi.getProfile(userId);
+      if (data && data.userId) {
+        return data;
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API Profile (userId=${userId}), dùng fallback profile:`, err?.message);
+    }
+
+    const isTa = userId === DEFAULT_TA_ID;
+    return {
+      userId,
+      userCode: isTa ? 'TA001' : 'TC001',
+      fullName: isTa ? 'Âu Dương Tài' : 'ThS. Hoàng Quốc Việt',
+      email: isTa ? 'tai.auduong@edutrack.edu.vn' : 'viet.hoang@edutrack.edu.vn',
+      phone: isTa ? '0912 345 678' : '0903 123 456',
+      dateOfBirth: isTa ? '1998-05-15' : '1990-11-10',
+      gender: 'Nam',
+      enrolledSince: '15/08/2023',
+      specialty: isTa ? 'Trợ giảng Toán & Khoa học' : 'Toán học & Luyện thi',
+      avatarUrl: '/assets/img/profiles/avatar-27.jpg',
+      address: '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh',
+      roleTitle: isTa ? 'Trợ giảng chuyên môn' : 'Giáo viên chuyên môn',
+      role: isTa ? 'teaching_assistant' : 'teacher',
+      activeClassesCount: isTa ? 3 : 2,
+      totalStudentsCount: isTa ? 50 : 35,
+    };
+  },
+
+  /**
+   * Cập nhật thông tin hồ sơ GV / TA
+   */
+  async updateProfile(userId: number, payload: UpdateTeacherProfilePayload): Promise<TeacherProfileDto> {
+    try {
+      const data = await teachingApi.updateProfile(userId, payload);
+      if (data && data.userId) {
+        return data;
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API updateProfile (userId=${userId}):`, err?.message);
+      throw err;
+    }
+
+    const current = await this.getProfile(userId);
+    return {
+      ...current,
+      ...payload,
+      gender: payload.gender || current.gender,
+      specialty: payload.specialty || current.specialty,
+      address: payload.address || current.address,
+    };
+  },
 };
 
 export default teachingDAL;
