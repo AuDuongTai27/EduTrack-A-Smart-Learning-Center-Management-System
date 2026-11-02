@@ -12,6 +12,10 @@ import type {
   SaveBulkTeachingAttendancePayload,
   UpdateSingleAttendancePayload,
 } from '../BLL/models/teaching/TeachingAttendanceDto';
+import type {
+  CreateTeachingAssignmentRequest,
+  TeachingAssignmentItemDto,
+} from '../BLL/models/teaching/TeachingAssignmentDto';
 
 export * from '../BLL/models/teaching';
 
@@ -402,6 +406,68 @@ export const teachingApi = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || `HTTP ${res.status} khi cập nhật điểm danh #${attendanceId}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * POST /api/teaching/assignments
+   * Tạo bài tập mới cho lớp học
+   */
+  async createAssignment(payload: CreateTeachingAssignmentRequest): Promise<TeachingAssignmentItemDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi tạo bài tập mới`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * GET /api/teaching/assignments?classId={classId}
+   * Lấy danh sách bài tập của một lớp học
+   */
+  async getClassAssignments(classId: number): Promise<TeachingAssignmentItemDto[]> {
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments?classId=${classId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} khi tải danh sách bài tập của lớp #${classId}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json ?? [];
+  },
+
+  /**
+   * GET /api/teaching/assignments/{id}
+   * Lấy chi tiết bài tập theo ID
+   */
+  async getAssignmentById(id: number): Promise<TeachingAssignmentItemDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} khi tải chi tiết bài tập #${id}`);
     }
 
     const json = await res.json();

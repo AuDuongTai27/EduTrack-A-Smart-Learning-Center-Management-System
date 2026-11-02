@@ -1,37 +1,91 @@
+using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using EduTrack.API.Services.Interfaces;
+using EduTrack.API.Models.DTOs.Teaching;
+using EduTrack.API.Services.Teaching.Interfaces;
 
 namespace EduTrack.API.Controllers.Teaching
 {
     /// <summary>
-    /// [Bounded Context: Teaching] Giao Bài tập (Assignments), Chấm điểm Bài nộp (Submissions) & Đánh giá AI
+    /// [Bounded Context: Teaching] Quản lý & Giao Bài tập (Assignments)
     /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
     /// </summary>
     [ApiController]
-    [Route("api/assignments")]
-    [Tags("Teaching - Assignments & Grading")]
+    [Route("api/teaching/assignments")]
+    [Tags("Teaching - Assignments")]
     public class TeachingAssignmentsController : ControllerBase
     {
-        private readonly IAssignmentService _assignmentService;
-        private readonly ISubmissionService _submissionService;
-        private readonly IAiEvaluationService _aiEvaluationService;
+        private readonly ITeachingAssignmentService _assignmentService;
 
-        public TeachingAssignmentsController(
-            IAssignmentService assignmentService,
-            ISubmissionService submissionService,
-            IAiEvaluationService aiEvaluationService)
+        public TeachingAssignmentsController(ITeachingAssignmentService assignmentService)
         {
             _assignmentService = assignmentService;
-            _submissionService = submissionService;
-            _aiEvaluationService = aiEvaluationService;
         }
 
-        // TODO [Thành viên 2 - Teacher & TA]:
-        // Viết các API tạo bài tập và chấm bài tại đây:
-        // - POST   /api/assignments                  (Tạo bài tập mới cho lớp)
-        // - PUT    /api/assignments/{id}             (Cập nhật đề bài tập)
-        // - DELETE /api/assignments/{id}             (Xóa bài tập)
-        // - PUT    /api/submissions/{id}/grade       (Giáo viên/TA chấm điểm & nhận xét bài nộp)
+        /// <summary>
+        /// Tạo bài tập mới cho lớp học
+        /// POST /api/teaching/assignments
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateAssignment([FromBody] CreateTeachingAssignmentRequestDto request)
+        {
+            if (request == null || request.ClassId <= 0 || string.IsNullOrWhiteSpace(request.Title))
+            {
+                return BadRequest(new { success = false, message = "Thông tin lớp học hoặc tiêu đề bài tập không hợp lệ." });
+            }
+
+            try
+            {
+                var created = await _assignmentService.CreateAssignmentAsync(request);
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    success = true,
+                    message = "Giao bài tập mới thành công!",
+                    data = created
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách bài tập của một lớp học
+        /// GET /api/teaching/assignments?classId={classId}
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAssignments([FromQuery] int classId)
+        {
+            if (classId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã lớp học (classId) không hợp lệ." });
+            }
+
+            var list = await _assignmentService.GetClassAssignmentsAsync(classId);
+            return Ok(new { success = true, data = list });
+        }
+
+        /// <summary>
+        /// Lấy chi tiết một bài tập theo ID
+        /// GET /api/teaching/assignments/{id}
+        /// </summary>
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetAssignmentById(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã bài tập không hợp lệ." });
+            }
+
+            var item = await _assignmentService.GetAssignmentByIdAsync(id);
+            if (item == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy bài tập ID = {id}." });
+            }
+
+            return Ok(new { success = true, data = item });
+        }
     }
 }

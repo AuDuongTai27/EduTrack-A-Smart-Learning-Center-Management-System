@@ -20,6 +20,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
             services.AddScoped<ITeachingNotificationService, TeachingNotificationService>();
             services.AddScoped<ITeachingProfileService, TeachingProfileService>();
             services.AddScoped<ITeachingAttendanceService, TeachingAttendanceService>();
+            services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
             return services;
         }
     }

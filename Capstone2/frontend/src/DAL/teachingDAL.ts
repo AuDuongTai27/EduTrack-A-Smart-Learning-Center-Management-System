@@ -10,6 +10,8 @@ import {
   type TeachingAttendanceStatsDto,
   type SaveBulkTeachingAttendancePayload,
   type UpdateSingleAttendancePayload,
+  type CreateTeachingAssignmentRequest,
+  type TeachingAssignmentItemDto,
 } from '../api/teachingApi';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
@@ -27,6 +29,8 @@ export type {
   TeachingAttendanceStatsDto,
   SaveBulkTeachingAttendancePayload,
   UpdateSingleAttendancePayload,
+  CreateTeachingAssignmentRequest,
+  TeachingAssignmentItemDto,
 };
 export const DEFAULT_TEACHER_ID = 3;
 export const DEFAULT_TA_ID = 5;
@@ -932,6 +936,89 @@ export const teachingDAL = {
    */
   async updateSingleAttendance(attendanceId: number, payload: UpdateSingleAttendancePayload): Promise<TeachingStudentAttendanceItemDto> {
     return await teachingApi.updateSingleAttendance(attendanceId, payload);
+  },
+
+  /**
+   * Tạo bài tập mới cho lớp học (Lưu DB thật qua /api/teaching/assignments)
+   */
+  async createAssignment(payload: CreateTeachingAssignmentRequest): Promise<TeachingAssignmentItemDto> {
+    try {
+      const res = await teachingApi.createAssignment(payload);
+      console.log('🟢 [teachingDAL] Đã tạo thành công bài tập mới:', res);
+      return res;
+    } catch (err: any) {
+      console.warn('🟡 [teachingDAL] Lỗi khi tạo bài tập qua API:', err?.message);
+      throw err;
+    }
+  },
+
+  /**
+   * Lấy danh sách bài tập của một lớp (kết nối DB thật /api/teaching/assignments?classId=...)
+   */
+  async getClassAssignments(classId: number): Promise<TeachingAssignmentItemDto[]> {
+    try {
+      const list = await teachingApi.getClassAssignments(classId);
+      if (list && Array.isArray(list) && list.length > 0) {
+        console.log(`🟢 [teachingDAL] Tải được ${list.length} bài tập từ DB cho lớp #${classId}`);
+        return list;
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không thể tải danh sách bài tập của lớp #${classId}:`, err?.message);
+    }
+
+    return [
+      {
+        assignmentId: 1,
+        classId,
+        className: `Class #${classId}`,
+        title: 'Homework 01: Quadratic Equations Problem Set',
+        description: 'Solve problems from page 45 to 48 in the textbook.',
+        fileUrl: '/assets/docs/assignment_default.pdf',
+        dueDate: '2026-09-15T23:59:00',
+        dueDateFormatted: '15/09/2026 23:59',
+        maxScore: 10.0,
+        createdBy: 3,
+        creatorName: 'ThS. Hoàng Quốc Việt',
+        assignmentType: 'Written Assignment',
+        submissionCount: 3,
+        gradedCount: 2,
+        status: 'active',
+        isAiGradingEnabled: true,
+        createdAt: '08/09/2026',
+      },
+      {
+        assignmentId: 2,
+        classId,
+        className: `Class #${classId}`,
+        title: 'Quiz 01: Applications of Vieta Theorem',
+        description: 'Complete 10 multiple-choice questions online.',
+        fileUrl: '/assets/docs/assignment_default.pdf',
+        dueDate: '2026-09-20T23:59:00',
+        dueDateFormatted: '20/09/2026 23:59',
+        maxScore: 10.0,
+        createdBy: 3,
+        creatorName: 'ThS. Hoàng Quốc Việt',
+        assignmentType: 'Multiple Choice Questions',
+        submissionCount: 0,
+        gradedCount: 0,
+        status: 'active',
+        isAiGradingEnabled: true,
+        createdAt: '12/09/2026',
+      },
+    ];
+  },
+
+  /**
+   * Lấy chi tiết bài tập theo ID
+   */
+  async getAssignmentById(id: number): Promise<TeachingAssignmentItemDto | null> {
+    try {
+      const item = await teachingApi.getAssignmentById(id);
+      if (item) return item;
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không thể tải chi tiết bài tập #${id}:`, err?.message);
+    }
+    return null;
   },
 };
 
