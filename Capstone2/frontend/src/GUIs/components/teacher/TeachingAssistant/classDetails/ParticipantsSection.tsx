@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
 import type { UserDto } from "../../../../../BLL/models/UserDto";
+import type { TeachingClassStudentItemDto } from "../../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export interface ParticipantsSectionProps {
-  participants?: UserDto[];
+  participants?: (TeachingClassStudentItemDto | UserDto | any)[];
   teacherName?: string;
   taName?: string;
 }
@@ -11,7 +13,7 @@ export default function ParticipantsSection({
   teacherName = "ThS. Hoàng Quốc Việt",
   taName = "Âu Dương Tài",
 }: ParticipantsSectionProps) {
-  const getInitials = (name?: string) => {
+  const getInitials = (name: string) => {
     if (!name) return "ST";
     const parts = name.trim().split(" ");
     if (parts.length >= 2) {
@@ -48,110 +50,117 @@ export default function ParticipantsSection({
           <thead>
             <tr>
               <th>Avatar</th>
-              <th>Full Name</th>
+              <th>Full Name &amp; Code</th>
               <th>Role</th>
-              <th>Overall Grade (Out of 10)</th>
+              <th>Contact Info</th>
+              <th>Parent / Guardian</th>
+              <th>Attendance Rate</th>
               <th className="text-end">Action</th>
             </tr>
           </thead>
           <tbody>
+            {/* Main Teacher */}
             <tr>
               <td>
                 <div className="ta-avatar-initials bg-primary text-white">
                   {getInitials(teacherName)}
                 </div>
               </td>
-              <td className="fw-semibold text-dark">{teacherName}</td>
+              <td className="fw-semibold text-dark">
+                {teacherName}
+                <small className="text-muted d-block fw-normal">Main Teacher</small>
+              </td>
               <td>
                 <span className="badge bg-primary-subtle text-primary fw-medium px-2.5 py-1">Teacher</span>
               </td>
+              <td>
+                <small className="text-dark d-block">viet.hoang@edutrack.edu.vn</small>
+                <small className="text-muted">0903 111 222</small>
+              </td>
               <td className="text-muted">-</td>
+              <td><span className="badge bg-success-subtle text-success fw-medium">100% Present</span></td>
               <td className="text-end"><span className="text-muted small">-</span></td>
             </tr>
+
+            {/* Teaching Assistant */}
             <tr>
               <td>
                 <div className="ta-avatar-initials bg-warning text-dark">
                   {getInitials(taName)}
                 </div>
               </td>
-              <td className="fw-semibold text-dark">{taName}</td>
+              <td className="fw-semibold text-dark">
+                {taName}
+                <small className="text-muted d-block fw-normal">Teaching Assistant</small>
+              </td>
               <td>
                 <span className="badge bg-warning-subtle text-warning-emphasis fw-medium px-2.5 py-1">Teaching Assistant</span>
               </td>
+              <td>
+                <small className="text-dark d-block">tai.auduong@edutrack.edu.vn</small>
+                <small className="text-muted">0904 222 333</small>
+              </td>
               <td className="text-muted">-</td>
+              <td><span className="badge bg-success-subtle text-success fw-medium">100% Present</span></td>
               <td className="text-end"><span className="text-muted small">-</span></td>
             </tr>
+
+            {/* Enrolled Students */}
             {participants.length > 0 ? (
-              participants.map((p, idx) => {
+              participants.map((student: any, idx: number) => {
                 const style = getAvatarBg(idx);
-                const score = (8.0 + (idx % 20) * 0.1).toFixed(1);
+                const rate = student.attendanceRate ?? (95 - (idx * 5));
+                const studentCode = student.studentCode || student.userCode || `STU${student.studentId || idx + 1}`;
+
                 return (
-                  <tr key={p.userId || idx}>
+                  <tr key={student.studentId || student.userId || idx}>
                     <td>
                       <div
                         className="ta-avatar-initials"
                         style={{ backgroundColor: style.bg, color: style.color }}
                       >
-                        {getInitials(p.fullName)}
+                        {getInitials(student.fullName)}
                       </div>
                     </td>
-                    <td className="fw-semibold text-dark">{p.fullName}</td>
-                    <td>
-                      <span className="badge bg-secondary-subtle text-secondary fw-medium px-2.5 py-1">Student</span>
+                    <td className="fw-semibold text-dark">
+                      {student.fullName}
+                      <small className="text-muted d-block fw-normal">{studentCode}</small>
                     </td>
                     <td>
-                      <span className="fw-bold text-dark">{score}</span>{" "}
-                      <small className="text-muted">/ 10</small>
+                      <span className="badge bg-info-subtle text-info fw-medium px-2.5 py-1">Student</span>
+                    </td>
+                    <td>
+                      <small className="text-dark d-block">{student.email || `${studentCode.toLowerCase()}@student.edutrack.edu.vn`}</small>
+                      <small className="text-muted">{student.phone || "0901 234 567"}</small>
+                    </td>
+                    <td>
+                      <small className="text-dark fw-medium d-block">{student.parentName || "Nguyễn Văn Phụ Huynh"}</small>
+                      <small className="text-muted">{student.parentPhone || "0912 345 678"}</small>
+                    </td>
+                    <td>
+                      <span className={`badge ${rate >= 90 ? "bg-success-subtle text-success" : rate >= 75 ? "bg-warning-subtle text-warning" : "bg-danger-subtle text-danger"} fw-medium px-2.5 py-1`}>
+                        {rate}% attendance
+                      </span>
                     </td>
                     <td className="text-end">
-                      <button type="button" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                        <i className="bi bi-chat-dots" /> Contact
-                      </button>
+                      <Link
+                        to="/teaching-assistant/learning-progress"
+                        className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                        title="View learning progress"
+                      >
+                        <i className="bi bi-graph-up" /> Progress
+                      </Link>
                     </td>
                   </tr>
                 );
               })
             ) : (
-              <>
-                <tr>
-                  <td>
-                    <div className="ta-avatar-initials" style={{ backgroundColor: "#e0e7ff", color: "#3730a3" }}>
-                      EM
-                    </div>
-                  </td>
-                  <td className="fw-semibold text-dark">[FE-Mock] Ethan Miller</td>
-                  <td>
-                    <span className="badge bg-secondary-subtle text-secondary fw-medium px-2.5 py-1">Student</span>
-                  </td>
-                  <td>
-                    <span className="fw-bold text-dark">8.5</span> <small className="text-muted">/ 10</small>
-                  </td>
-                  <td className="text-end">
-                    <button type="button" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                      <i className="bi bi-chat-dots" /> Contact
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="ta-avatar-initials" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>
-                      SL
-                    </div>
-                  </td>
-                  <td className="fw-semibold text-dark">[FE-Mock] Sophia Lee</td>
-                  <td>
-                    <span className="badge bg-secondary-subtle text-secondary fw-medium px-2.5 py-1">Student</span>
-                  </td>
-                  <td>
-                    <span className="fw-bold text-dark">9.0</span> <small className="text-muted">/ 10</small>
-                  </td>
-                  <td className="text-end">
-                    <button type="button" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                      <i className="bi bi-chat-dots" /> Contact
-                    </button>
-                  </td>
-                </tr>
-              </>
+              <tr>
+                <td colSpan={7} className="text-center py-4 text-muted">
+                  <i className="bi bi-people fs-3 d-block mb-1 text-secondary" />
+                  No students currently enrolled in this class.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

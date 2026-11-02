@@ -528,6 +528,20 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("is_read");
 
+                    b.Property<int?>("SenderId")
+                        .HasColumnType("int")
+                        .HasColumnName("sender_id");
+
+                    b.Property<string>("TargetRole")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("target_role");
+
+                    b.Property<string>("TargetScope")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("target_scope");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -548,9 +562,50 @@ namespace EduTrack.API.Migrations
 
                     b.HasIndex("ClassId");
 
+                    b.HasIndex("SenderId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("notifications");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.NotificationRecipient", b =>
+                {
+                    b.Property<int>("RecipientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("recipient_id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RecipientId"));
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_read");
+
+                    b.Property<int>("NotificationId")
+                        .HasColumnType("int")
+                        .HasColumnName("notification_id");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("read_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("RecipientId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("NotificationId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("notification_recipients");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.ParentStudent", b =>
@@ -592,6 +647,15 @@ namespace EduTrack.API.Migrations
                         .HasColumnName("payment_id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("AdditionalChargeAmount")
+                        .HasColumnType("decimal(12,2)")
+                        .HasColumnName("additional_charge_amount");
+
+                    b.Property<string>("AdditionalChargeNote")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("additional_charge_note");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(12,2)")
@@ -1263,12 +1327,38 @@ namespace EduTrack.API.Migrations
                         .HasForeignKey("ClassId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("EduTrack.API.Models.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("EduTrack.API.Models.Entities.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Class");
+
+                    b.Navigation("Sender");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.NotificationRecipient", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Notification", "Notification")
+                        .WithMany("Recipients")
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Notification");
 
                     b.Navigation("User");
                 });
@@ -1510,6 +1600,11 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Assignments");
 
                     b.Navigation("SubUnits");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>
+                {
+                    b.Navigation("Recipients");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Role", b =>

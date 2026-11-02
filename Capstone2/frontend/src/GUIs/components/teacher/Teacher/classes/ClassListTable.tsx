@@ -1,50 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { ClassDto } from "../../../../../BLL/models/ClassDto";
+import type { TeachingClassItemDto } from "../../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export interface ClassListTableProps {
-  classes?: ClassDto[];
+  classes?: (ClassDto | TeachingClassItemDto)[];
 }
 
-const DEFAULT_CLASSES: ClassDto[] = [
-  {
-    classId: 1,
-    className: "Toán 12 Chuyên Sâu – Luyện Thi ĐH",
-    subjectId: 1,
-    subjectName: "Toán học",
-    subjectCode: "MATH",
-    room: "Phòng 301",
-    tuitionFee: 3500000,
-    startDate: "2026-09-01",
-    status: "active",
-  },
-  {
-    classId: 2,
-    className: "Vật Lý 12 Nâng Cao",
-    subjectId: 2,
-    subjectName: "Vật lý",
-    subjectCode: "PHYS",
-    room: "Phòng 202",
-    tuitionFee: 3200000,
-    startDate: "2026-09-01",
-    status: "active",
-  },
-  {
-    classId: 3,
-    className: "Toán 11 Cơ Bản & Ôn Tập",
-    subjectId: 1,
-    subjectName: "Toán học",
-    subjectCode: "MATH",
-    room: "Phòng 104",
-    tuitionFee: 2800000,
-    startDate: "2026-09-01",
-    status: "active",
-  },
-];
-
-export function ClassListTable({ classes }: ClassListTableProps) {
-  const displayClasses = classes && classes.length > 0 ? classes : DEFAULT_CLASSES;
-
+export function ClassListTable({ classes = [] }: ClassListTableProps) {
   return (
     <div className="table-responsive-container">
       <table className="table custom-table align-middle mb-0" id="classesTable">
@@ -68,60 +31,80 @@ export function ClassListTable({ classes }: ClassListTableProps) {
           </tr>
         </thead>
         <tbody>
-          {displayClasses.map((cls) => {
-            const isActive = cls.status?.toLowerCase() === "active" || cls.status === "Đang học";
-            return (
-              <tr key={cls.classId}>
-                <td>
-                  <div className="form-check m-0">
-                    <input
-                      className="form-check-input row-checkbox"
-                      type="checkbox"
-                    />
-                  </div>
-                </td>
-                <td>
-                  <div className="fw-bold text-dark">{cls.className}</div>
-                  <small className="text-muted">Mã lớp: #{cls.classId}</small>
-                </td>
-                <td>
-                  <span className="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill">
-                    {cls.subjectName || "Môn học"}
-                  </span>
-                </td>
-                <td>
-                  <span className="text-secondary small">
-                    <i className="bi bi-geo-alt me-1 text-muted" />
-                    {cls.room || "Phòng P.301"}
-                  </span>
-                </td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <div
-                      className="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center"
-                      style={{ width: "28px", height: "28px", fontSize: "12px", border: "1px solid #dee2e6" }}
-                    >
-                      TA
+          {classes.length > 0 ? (
+            classes.map((cls) => {
+              const item = cls as any;
+              const isActive = cls.status?.toLowerCase() === "active" || cls.status === "Đang học" || cls.status === "open";
+              const taName = item.taName || item.partnerName || "Âu Dương Tài";
+              const taInitials = taName
+                .split(" ")
+                .map((w: string) => w[0])
+                .join("")
+                .toUpperCase()
+                .slice(-2) || "TA";
+
+              return (
+                <tr key={cls.classId}>
+                  <td>
+                    <div className="form-check m-0">
+                      <input
+                        className="form-check-input row-checkbox"
+                        type="checkbox"
+                      />
                     </div>
-                    <span className="small">Phạm Đức Minh</span>
-                  </div>
-                </td>
-                <td>
-                  <span className={`badge-status ${isActive ? "badge-status-active" : "badge-status-inactive"}`}>
-                    {isActive ? "Đang dạy" : "Đã kết thúc"}
-                  </span>
-                </td>
-                <td className="text-end">
-                  <Link
-                    to={`/teacher/classes/${cls.classId}`}
-                    className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                  >
-                    <i className="bi bi-eye" /> Chi tiết
-                  </Link>
-                </td>
-              </tr>
-            );
-          })}
+                  </td>
+                  <td>
+                    <Link to={`/teacher/classes/${cls.classId}`} className="fw-bold text-dark text-decoration-none">
+                      {cls.className}
+                    </Link>
+                    <small className="text-muted d-block">Mã lớp: #{cls.classId}</small>
+                  </td>
+                  <td>
+                    <span className="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill">
+                      {cls.subjectName || "Môn học"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="text-secondary small">
+                      <i className="bi bi-geo-alt me-1 text-muted" />
+                      {cls.room || "Phòng P.201"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="d-flex align-items-center gap-2">
+                      <div
+                        className="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center"
+                        style={{ width: "28px", height: "28px", fontSize: "12px", border: "1px solid #dee2e6" }}
+                      >
+                        {taInitials}
+                      </div>
+                      <span className="small">{taName}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`badge-status ${isActive ? "badge-status-active" : "badge-status-inactive"}`}>
+                      {isActive ? "Đang dạy" : "Đã kết thúc"}
+                    </span>
+                  </td>
+                  <td className="text-end">
+                    <Link
+                      to={`/teacher/classes/${cls.classId}`}
+                      className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                    >
+                      <i className="bi bi-eye" /> Chi tiết
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan={7} className="text-center py-4 text-muted">
+                <i className="bi bi-search fs-3 d-block mb-1 text-secondary" />
+                Không tìm thấy lớp học nào phù hợp với từ khóa hoặc bộ lọc.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

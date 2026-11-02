@@ -1,11 +1,16 @@
-import { MOCK_TEACHER_NOTIFICATIONS, type TeacherNotification } from "../../notificationsData";
+import React from "react";
+import type { TeachingNotificationDto } from "../../../../../BLL/models/teaching/TeachingNotificationDto";
 import type { NotificationDto } from "../../../../../BLL/models/NotificationDto";
 
 export interface NotificationListProps {
-  notifications?: NotificationDto[];
+  notifications?: Array<TeachingNotificationDto | NotificationDto>;
+  onMarkItemAsRead?: (id: number) => void;
 }
 
-export default function NotificationList({ notifications = [] }: NotificationListProps) {
+export default function NotificationList({
+  notifications = [],
+  onMarkItemAsRead,
+}: NotificationListProps) {
   const getInitials = (name?: string) => {
     if (!name) return "NT";
     const parts = name.trim().split(" ");
@@ -19,28 +24,45 @@ export default function NotificationList({ notifications = [] }: NotificationLis
     <div className="p-0">
       <div className="list-group list-group-flush">
         {notifications.length > 0 ? (
-          notifications.map((item, idx) => {
-            const isRead = item.isRead;
-            const timeAgo = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Just now";
-            const sender = item.userName || "Hệ thống EduTrack";
+          notifications.map((item: any, idx) => {
+            const isRead = item.isRead ?? false;
+            const timeAgo = item.timeAgo || (item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Vừa xong");
+            const sender = item.sender || item.userName || "Hệ thống EduTrack";
+            const initials = item.initials || getInitials(sender);
+            const bgClass = item.initialsBgClass || "bg-primary-subtle";
+            const colorClass = item.initialsColorClass || "text-primary";
+            const notifId = item.notificationId ?? item.id ?? idx;
 
             return (
               <div
-                key={item.notificationId || idx}
-                className={`list-group-item p-3 d-flex align-items-start gap-3 border-bottom ${isRead ? "bg-light-subtle" : ""}`.trim()}
+                key={notifId}
+                className={`list-group-item p-3 d-flex align-items-start gap-3 border-bottom transition-all ${
+                  isRead ? "bg-white" : "bg-light-subtle"
+                }`.trim()}
+                style={{ cursor: !isRead && onMarkItemAsRead ? "pointer" : "default" }}
+                onClick={() => {
+                  if (!isRead && onMarkItemAsRead) {
+                    onMarkItemAsRead(notifId);
+                  }
+                }}
               >
                 <span
-                  className="ta-avatar-initials bg-primary-subtle text-primary fw-bold flex-shrink-0"
-                  style={{ width: 42, height: 42, fontSize: 14 }}
+                  className={`ta-avatar-initials ${bgClass} ${colorClass} fw-bold flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center`}
+                  style={{ width: 44, height: 44, fontSize: 14 }}
                 >
-                  {getInitials(sender)}
+                  {initials}
                 </span>
 
                 <div className="flex-grow-1 min-w-0">
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
                     <div className="d-flex align-items-center gap-2">
                       <span className="fw-bold text-dark small">{sender}</span>
-                      {!isRead && <span className="badge bg-danger">New!</span>}
+                      {item.className && (
+                        <span className="badge bg-secondary-subtle text-secondary small">{item.className}</span>
+                      )}
+                      {!isRead && (
+                        <span className="badge bg-danger rounded-pill px-2">Mới</span>
+                      )}
                     </div>
                     <small className="text-muted">
                       <i className="bi bi-clock me-1" />
@@ -48,55 +70,31 @@ export default function NotificationList({ notifications = [] }: NotificationLis
                     </small>
                   </div>
                   <h6 className="mb-1 text-dark fw-semibold">{item.title}</h6>
-                  <p className="text-muted small mb-0">{item.content}</p>
+                  <p className="text-muted small mb-0">{item.content || item.description}</p>
                 </div>
+
+                {!isRead && onMarkItemAsRead && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-link text-primary p-0 text-decoration-none flex-shrink-0"
+                    title="Đánh dấu đã đọc"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMarkItemAsRead(notifId);
+                    }}
+                  >
+                    <i className="bi bi-check-circle fs-5" />
+                  </button>
+                )}
               </div>
             );
           })
         ) : (
-          MOCK_TEACHER_NOTIFICATIONS.map((item: TeacherNotification) => {
-            const borderClass = item.hasBottomBorder ?? true ? "border-bottom" : "";
-            const readClass = item.isRead ? "bg-light-subtle" : "";
-
-            return (
-              <div
-                key={item.id}
-                className={`list-group-item p-3 d-flex align-items-start gap-3 ${borderClass} ${readClass}`.trim()}
-              >
-                {item.avatarUrl ? (
-                  <img
-                    src={item.avatarUrl}
-                    className="rounded-circle flex-shrink-0"
-                    width={42}
-                    height={42}
-                    alt={item.sender}
-                  />
-                ) : (
-                  <span
-                    className={`ta-avatar-initials ${item.initialsBgClass ?? ""} ${item.initialsColorClass ?? ""} fw-bold flex-shrink-0`.trim()}
-                    style={{ width: 42, height: 42, fontSize: 14 }}
-                  >
-                    {item.initials}
-                  </span>
-                )}
-
-                <div className="flex-grow-1 min-w-0">
-                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="fw-bold text-dark small">{item.sender}</span>
-                      {item.isNew && <span className="badge bg-danger">New!</span>}
-                    </div>
-                    <small className="text-muted">
-                      <i className="bi bi-clock me-1" />
-                      {item.timeAgo}
-                    </small>
-                  </div>
-                  <h6 className="mb-1 text-dark fw-semibold">{item.title}</h6>
-                  <p className="text-muted small mb-0">{item.description}</p>
-                </div>
-              </div>
-            );
-          })
+          <div className="p-5 text-center text-muted">
+            <i className="bi bi-bell-slash fs-1 d-block mb-2 text-secondary opacity-50" />
+            <h6 className="fw-semibold">Không có thông báo nào</h6>
+            <small>Bạn đã xem hết các thông báo hoặc không có thông báo thỏa mãn bộ lọc.</small>
+          </div>
         )}
       </div>
     </div>

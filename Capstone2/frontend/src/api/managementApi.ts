@@ -1,9 +1,10 @@
-import type { UserDto } from '../BLL/models/UserDto';
-import type { ClassDto } from '../BLL/models/ClassDto';
-import type { SubjectDto } from '../BLL/models/SubjectDto';
-import type { ParentStudentDto } from './parentStudentApi';
+import type { UserDto } from "../BLL/models/UserDto";
+import type { ClassDto } from "../BLL/models/ClassDto";
+import type { SubjectDto } from "../BLL/models/SubjectDto";
+import type { TuitionDto, PaymentDto } from "../BLL/models/TuitionDto";
+import type { ParentStudentDto } from "./parentStudentApi";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 export interface CreateClassRequest {
   className: string;
@@ -25,6 +26,34 @@ export interface UpdateClassRequest {
   status: string;
 }
 
+export interface CreateTuitionInvoiceRequest {
+  studentId: number;
+  classId: number;
+  periodMonth: number;
+  periodYear: number;
+  amountDue: number;
+  dueDate: string;
+}
+
+export interface UpdateTuitionInvoiceRequest {
+  periodMonth: number;
+  periodYear: number;
+  amountDue: number;
+  dueDate: string;
+  status: string;
+}
+
+export interface RecordPaymentRequest {
+  amount: number;
+  paymentMethod: string;
+  transactionCode?: string;
+  paidByUserId?: number;
+  recordedBy?: number;
+  note?: string;
+  additionalChargeAmount?: number;
+  additionalChargeNote?: string;
+}
+
 /**
  * [Bounded Context: Management]
  * Tầng Network API dành riêng cho Thành viên 1 (Center Manager & Admin Staff)
@@ -44,13 +73,15 @@ export const managementApi = {
     gender?: string;
   }): Promise<UserDto> {
     const res = await fetch(`${API_BASE_URL}/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
@@ -65,41 +96,50 @@ export const managementApi = {
       specialty?: string;
       gender?: string;
       status?: string;
-    }
+    },
   ): Promise<UserDto> {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
 
-  async updateUserStatus(id: number, status: string): Promise<{ success: boolean; status: string; message: string }> {
+  async updateUserStatus(
+    id: number,
+    status: string,
+  ): Promise<{ success: boolean; status: string; message: string }> {
     const res = await fetch(`${API_BASE_URL}/users/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
 
   async deleteUser(id: number): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
@@ -114,25 +154,35 @@ export const managementApi = {
     isPrimaryContact?: boolean;
   }): Promise<ParentStudentDto> {
     const res = await fetch(`${API_BASE_URL}/parentstudents`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dto),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
 
-  async removeParentStudent(parentId: number, studentId: number): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(`${API_BASE_URL}/parentstudents/${parentId}/${studentId}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    });
+  async removeParentStudent(
+    parentId: number,
+    studentId: number,
+  ): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(
+      `${API_BASE_URL}/parentstudents/${parentId}/${studentId}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
@@ -140,43 +190,55 @@ export const managementApi = {
   // ==========================================================================
   // 3. QUẢN LÝ MÔN HỌC (SUBJECTS)
   // ==========================================================================
-  async createSubject(data: { subjectCode: string; subjectName: string; description?: string }): Promise<SubjectDto> {
+  async createSubject(data: {
+    subjectCode: string;
+    subjectName: string;
+    description?: string;
+  }): Promise<SubjectDto> {
     const res = await fetch(`${API_BASE_URL}/subjects`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
 
   async updateSubject(
     id: number,
-    data: { subjectCode?: string; subjectName: string; description?: string }
+    data: { subjectCode?: string; subjectName: string; description?: string },
   ): Promise<SubjectDto> {
     const res = await fetch(`${API_BASE_URL}/subjects/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
 
-  async deleteSubject(id: number): Promise<{ success: boolean; message: string }> {
+  async deleteSubject(
+    id: number,
+  ): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`${API_BASE_URL}/subjects/${id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.message || `HTTP Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
     }
     return await res.json();
   },
@@ -186,8 +248,8 @@ export const managementApi = {
   // ==========================================================================
   async createClass(data: CreateClassRequest): Promise<ClassDto> {
     const res = await fetch(`${API_BASE_URL}/classes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -199,8 +261,8 @@ export const managementApi = {
 
   async updateClass(id: number, data: UpdateClassRequest): Promise<ClassDto> {
     const res = await fetch(`${API_BASE_URL}/classes/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -212,8 +274,8 @@ export const managementApi = {
 
   async deleteClass(id: number): Promise<{ message: string }> {
     const res = await fetch(`${API_BASE_URL}/classes/${id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ message: res.statusText }));
@@ -222,8 +284,76 @@ export const managementApi = {
     return await res.json();
   },
 
-  // TODO [Thành viên 1 - Center Manager & Admin Staff]:
-  // Viết bổ sung các hàm API mới cho các trang còn lại của CM & Admin Staff tại đây.
+  // ==========================================================================
+  // 5. QUẢN LÝ HỌC PHÍ (TUITION)
+  // ==========================================================================
+
+  async createTuitionInvoice(
+    data: CreateTuitionInvoiceRequest,
+  ): Promise<TuitionDto> {
+    const res = await fetch(`${API_BASE_URL}/tuitioninvoices`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({
+        message: res.statusText,
+      }));
+
+      throw new Error(err.message || `Lỗi khi tạo hóa đơn: ${res.status}`);
+    }
+
+    return await res.json();
+  },
+
+  async updateTuitionInvoice(
+    id: number,
+    data: UpdateTuitionInvoiceRequest,
+  ): Promise<TuitionDto> {
+    const res = await fetch(`${API_BASE_URL}/tuitioninvoices/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({
+        message: res.statusText,
+      }));
+
+      throw new Error(err.message || `Lỗi khi cập nhật hóa đơn: ${res.status}`);
+    }
+
+    return await res.json();
+  },
+
+  async recordTuitionPayment(
+    invoiceId: number,
+    data: RecordPaymentRequest,
+  ): Promise<PaymentDto> {
+    const res = await fetch(
+      `${API_BASE_URL}/tuitioninvoices/${invoiceId}/payments`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      },
+    );
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({
+        message: res.statusText,
+      }));
+
+      throw new Error(
+        err.message || `Lỗi khi ghi nhận thanh toán: ${res.status}`,
+      );
+    }
+
+    return await res.json();
+  },
 };
 
 export default managementApi;

@@ -1,31 +1,40 @@
-import type { ClassDto } from "../../../../../BLL/models/ClassDto";
+import React from "react";
 
 export interface LearningProgressHeaderProps {
-  classes?: ClassDto[];
+  classes?: Array<{ classId: number; className: string }>;
   selectedClassId?: number;
   onSelectClass?: (classId: number) => void;
+  classNameTitle?: string;
+  totalStudents?: number;
 }
 
 export default function LearningProgressHeader({
   classes = [],
   selectedClassId,
   onSelectClass,
+  classNameTitle,
+  totalStudents,
 }: LearningProgressHeaderProps) {
   return (
-    <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
       <div>
-        <h4 className="class-list-title mb-1">Student Progress List</h4>
-        <small className="text-muted">Track attendance and assignment status by class</small>
+        <h4 className="class-list-title mb-1">
+          {classNameTitle ? `Tiến Độ: ${classNameTitle}` : "Danh Sách Tiến Độ Học Viên"}
+        </h4>
+        <small className="text-muted">
+          Theo dõi chuyên cần, tỉ lệ điểm danh và tình hình làm bài tập theo từng lớp
+          {totalStudents !== undefined && ` (${totalStudents} học viên)`}
+        </small>
       </div>
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <div className="d-flex align-items-center gap-2">
           <label htmlFor="filterClassSelect" className="form-label mb-0 small fw-bold text-nowrap">
-            Select Class:
+            Chọn lớp học:
           </label>
           <select
             className="form-select form-select-sm"
             id="filterClassSelect"
-            style={{ minWidth: 200 }}
+            style={{ minWidth: 220 }}
             value={selectedClassId || ""}
             onChange={(e) => onSelectClass && onSelectClass(Number(e.target.value))}
           >
@@ -37,8 +46,8 @@ export default function LearningProgressHeader({
               ))
             ) : (
               <>
-                <option value="1">[FE-Mock] Class 9 - Advanced Mathematics</option>
-                <option value="2">[FE-Mock] Class 9 - Intensive Physics</option>
+                <option value="1">Lớp 9A1 - Toán Nâng Cao</option>
+                <option value="2">Lớp 9B1 - Vật Lý Chuyên Sâu</option>
               </>
             )}
           </select>

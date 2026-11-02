@@ -32,6 +32,8 @@ namespace EduTrack.API.Models.EF
         public virtual DbSet<ApprovalRequest> ApprovalRequests { get; set; } = null!;
         public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public virtual DbSet<CenterSetting> CenterSettings { get; set; } = null!;
+        public virtual DbSet<NotificationRecipient> NotificationRecipients
+        { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -270,6 +272,30 @@ namespace EduTrack.API.Models.EF
                     .WithMany(c => c.Notifications)
                     .HasForeignKey(n => n.ClassId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+{
+    entity.HasOne(n => n.Sender)
+        .WithMany()
+        .HasForeignKey(n => n.SenderId)
+        .OnDelete(DeleteBehavior.SetNull);
+});
+
+            modelBuilder.Entity<NotificationRecipient>(entity =>
+            {
+                entity.HasIndex(r => new { r.NotificationId, r.UserId })
+                    .IsUnique();
+
+                entity.HasOne(r => r.Notification)
+                    .WithMany(n => n.Recipients)
+                    .HasForeignKey(r => r.NotificationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(r => r.User)
+                    .WithMany()
+                    .HasForeignKey(r => r.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

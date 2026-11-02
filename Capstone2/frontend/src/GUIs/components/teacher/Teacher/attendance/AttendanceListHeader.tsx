@@ -1,37 +1,57 @@
-function AttendanceListHeader() {
+import React from "react";
+import type { TeachingSessionItemDto } from "../../../../../BLL/models/teaching/TeachingAttendanceDto";
+
+export interface AttendanceListHeaderProps {
+  className?: string;
+  session?: TeachingSessionItemDto | null;
+  totalStudents?: number;
+}
+
+export function AttendanceListHeader({
+  className = "Lớp học",
+  session,
+  totalStudents = 0,
+}: AttendanceListHeaderProps) {
+  const isCompleted = session?.status === "completed" || session?.isRecorded;
+
   return (
-    <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3">
-      <h4 className="class-list-title">Student Attendance List</h4>
-      <div className="d-flex align-items-center gap-2 flex-wrap">
-        <div className="dropdown">
-          <button
-            type="button"
-            className="btn-header-action"
-            id="filterDropdownBtn"
-            data-bs-toggle="dropdown"
-            data-bs-auto-close="outside"
-            aria-expanded="false"
-          >
-            <i className="bi bi-funnel" />
-            Filter
-            <i className="bi bi-chevron-down ms-1" />
-          </button>
+    <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
+      <div>
+        <div className="d-flex align-items-center gap-2 mb-1">
+          <h4 className="class-list-title mb-0 fw-bold">{className}</h4>
+          {session && (
+            <span
+              className={`badge ${
+                isCompleted
+                  ? "bg-success-subtle text-success border border-success-subtle"
+                  : "bg-warning-subtle text-warning-emphasis border border-warning-subtle"
+              } px-2.5 py-1`}
+            >
+              <i className={`bi ${isCompleted ? "bi-check-circle-fill" : "bi-clock-history"} me-1`} />
+              {isCompleted ? "Đã điểm danh" : "Chưa điểm danh"}
+            </span>
+          )}
         </div>
-        <div className="dropdown">
-          <button
-            type="button"
-            className="btn-header-action"
-            id="sortDropdownBtn"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i className="bi bi-arrow-down-up" />
-            <span id="sortLabel">Sort by A-Z</span>
-            <i className="bi bi-chevron-down ms-1" />
-          </button>
-        </div>
+        <p className="text-muted small mb-0">
+          {session ? (
+            <>
+              <i className="bi bi-calendar3 me-1 text-primary" />
+              <span>{session.title}</span>
+            </>
+          ) : (
+            <span>Danh sách điểm danh chuyên cần của học viên</span>
+          )}
+        </p>
+      </div>
+
+      <div className="d-flex align-items-center gap-2">
+        <span className="badge bg-light text-dark border px-3 py-2 fw-semibold">
+          <i className="bi bi-people-fill text-primary me-1" />
+          Sĩ số: {totalStudents} học sinh
+        </span>
       </div>
     </div>
   );
 }
+
 export default AttendanceListHeader;

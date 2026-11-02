@@ -42,7 +42,13 @@ namespace EduTrack.API.Services.Implementation
                 Content = x.Content,
                 Type = x.Type,
                 IsRead = x.IsRead,
-                CreatedAt = x.CreatedAt
+                CreatedAt = x.CreatedAt,
+                SenderId = x.SenderId,
+                SenderName = x.Sender?.FullName,
+                TargetScope = x.TargetScope,
+                TargetRole = x.TargetRole,
+                RecipientCount = x.Recipients.Count,
+                ReadAt = null
             };
         }
     }

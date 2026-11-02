@@ -1,66 +1,68 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
   LearningProgressHeader,
   ProgressTable,
   ProgressPagination,
 } from "../../../components/teacher/TeachingAssistant/learningProgress";
-import classDAL from "../../../../DAL/classDAL";
-import userDAL from "../../../../DAL/userDAL";
-import progressDAL from "../../../../DAL/progressDAL";
-import assignmentDAL from "../../../../DAL/assignmentDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { UserDto } from "../../../../BLL/models/UserDto";
-import type { AttendanceDto } from "../../../../BLL/models/ProgressDto";
-import type { AssignmentDto } from "../../../../BLL/models/AssignmentDto";
+import teachingDAL from "../../../../DAL/teachingDAL";
+import type { TeachingClassItemDto } from "../../../../BLL/models/teaching/TeachingClassItemDto";
+import type { TeachingClassProgressDto } from "../../../../BLL/models/teaching/TeachingLearningProgressDto";
+
+const DEFAULT_TA_ID = 5; // Trợ giảng Âu Dương Tài
 
 export default function TeachingAssistantLearningProgressPage() {
-  const [classes, setClasses] = useState<ClassDto[]>([]);
+  const [classes, setClasses] = useState<TeachingClassItemDto[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number>(1);
-  const [students, setStudents] = useState<UserDto[]>([]);
-  const [attendances, setAttendances] = useState<AttendanceDto[]>([]);
-  const [latestAssignment, setLatestAssignment] = useState<string>("Homework 01: Quadratic Equations");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [classProgress, setClassProgress] = useState<TeachingClassProgressDto | null>(null);
+  const [loadingClasses, setLoadingClasses] = useState<boolean>(true);
+  const [loadingProgress, setLoadingProgress] = useState<boolean>(false);
 
+  // 1. Tải danh sách lớp trợ giảng phụ trách
   useEffect(() => {
     let isMounted = true;
-    async function fetchProgressData() {
+    async function loadTaClasses() {
       try {
-        setLoading(true);
-        // 1. GetAll classes
-        const classesRes = await classDAL.getAllClasses();
-        // 2. GetAll users (students)
-        const usersRes = await userDAL.getAllUsers();
-        const studentList = usersRes.data.filter(
-          (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
-        );
-        // 3. GetAll attendances
-        const attRes = await progressDAL.getAllAttendances();
-        // 4. GetAll assignments
-        const asgRes = await assignmentDAL.getAllAssignments();
-
-        if (isMounted) {
-          setClasses(classesRes.data);
-          if (classesRes.data.length > 0) {
-            setSelectedClassId(classesRes.data[0].classId);
-          }
-          setStudents(studentList);
-          setAttendances(attRes.data);
-          if (asgRes.data.length > 0) {
-            setLatestAssignment(asgRes.data[0].title);
-          }
+        setLoadingClasses(true);
+        const res = await teachingDAL.getMyClasses(DEFAULT_TA_ID);
+        if (isMounted && res.data && res.data.length > 0) {
+          setClasses(res.data);
+          setSelectedClassId(res.data[0].classId);
         }
       } catch (err) {
-        console.error("Failed to load TA learning progress data:", err);
+        console.warn("Lỗi tải danh sách lớp của trợ giảng:", err);
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) setLoadingClasses(false);
       }
     }
-    fetchProgressData();
+    loadTaClasses();
     return () => {
       isMounted = false;
     };
   }, []);
+
+  // 2. Tải tiến độ học tập khi đổi lớp
+  useEffect(() => {
+    if (!selectedClassId) return;
+    let isMounted = true;
+    async function loadProgress() {
+      try {
+        setLoadingProgress(true);
+        const res = await teachingDAL.getClassLearningProgress(selectedClassId, DEFAULT_TA_ID);
+        if (isMounted && res.data) {
+          setClassProgress(res.data);
+        }
+      } catch (err) {
+        console.warn("Lỗi tải tiến độ học tập của lớp:", err);
+      } finally {
+        if (isMounted) setLoadingProgress(false);
+      }
+    }
+    loadProgress();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedClassId]);
 
   return (
     <>
@@ -73,31 +75,81 @@ export default function TeachingAssistantLearningProgressPage() {
         ]}
       />
 
-      {loading && (
-        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
-          <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang tải tiến độ học tập và tình hình làm bài của học sinh...</span>
+      {/* Thẻ thống kê tổng quan của lớp */}
+      {classProgress && (
+        <div className="row g-3 mb-4">
+          <div className="col-md-3">
+            <div className="card border-0 shadow-sm p-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-primary-subtle text-primary p-3 rounded-3">
+                  <i className="bi bi-people-fill fs-4" />
+                </div>
+                <div>
+                  <small className="text-muted d-block">Sĩ số lớp</small>
+                  <h4 className="mb-0 fw-bold">{classProgress.totalStudents} học sinh</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="card border-0 shadow-sm p-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-success-subtle text-success p-3 rounded-3">
+                  <i className="bi bi-check2-circle fs-4" />
+                </div>
+                <div>
+                  <small className="text-muted d-block">Tiến độ buổi học</small>
+                  <h4 className="mb-0 fw-bold">{classProgress.completedSessions}/{classProgress.totalSessions} buổi</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="card border-0 shadow-sm p-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-info-subtle text-info p-3 rounded-3">
+                  <i className="bi bi-file-earmark-text-fill fs-4" />
+                </div>
+                <div>
+                  <small className="text-muted d-block">Bài tập đang giao</small>
+                  <h6 className="mb-0 fw-bold text-truncate" style={{ maxWidth: 380 }}>
+                    {classProgress.latestAssignmentTitle}
+                  </h6>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Learning Progress Card */}
-      <div className="card class-list-card border-0 mb-4">
+      <div className="card class-list-card border-0 mb-4 shadow-sm">
         {/* Card Header & Class Selector */}
         <LearningProgressHeader
           classes={classes}
           selectedClassId={selectedClassId}
           onSelectClass={(id) => setSelectedClassId(id)}
+          classNameTitle={classProgress?.className}
+          totalStudents={classProgress?.totalStudents}
         />
 
-        {/* Toolbar & Table */}
-        <ProgressTable
-          students={students}
-          attendances={attendances}
-          latestAssignmentTitle={latestAssignment}
-        />
+        {loadingClasses || loadingProgress ? (
+          <div className="p-5 text-center">
+            <div className="spinner-border text-primary mx-auto mb-2" role="status" />
+            <p className="text-muted mb-0">Đang tải tiến độ học tập và tình hình làm bài của học sinh...</p>
+          </div>
+        ) : (
+          <>
+            {/* Toolbar & Table */}
+            <ProgressTable
+              progressStudents={classProgress?.students ?? []}
+              latestAssignmentTitle={classProgress?.latestAssignmentTitle}
+            />
 
-        {/* Footer Pagination */}
-        <ProgressPagination />
+            {/* Footer Pagination */}
+            <ProgressPagination />
+          </>
+        )}
       </div>
     </>
   );

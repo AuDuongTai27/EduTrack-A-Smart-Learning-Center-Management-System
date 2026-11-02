@@ -15,6 +15,8 @@ export interface ApprovalRequestDto {
   reviewerName?: string | null;
   priority: string;
   status: string;
+  statusLabel?: string | null;
+  canEdit?: boolean;
   reason?: string | null;
   createdAt: string;
   reviewedAt?: string | null;
