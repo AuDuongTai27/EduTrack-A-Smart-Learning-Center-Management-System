@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { ClassScheduleDto } from "../../../../../BLL/models/ClassScheduleDto";
-import type { TeachingScheduleItemDto } from "../../../../../BLL/models/TeachingScheduleDto";
+import type { TeachingScheduleItemDto } from "../../../../../BLL/models/teaching/TeachingScheduleDto";
 
 export interface ScheduleTableProps {
   schedules?: (ClassScheduleDto | TeachingScheduleItemDto)[];

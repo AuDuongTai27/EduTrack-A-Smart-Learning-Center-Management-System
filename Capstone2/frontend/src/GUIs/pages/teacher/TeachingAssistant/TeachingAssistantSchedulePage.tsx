@@ -7,7 +7,7 @@ import {
   ScheduleTable,
 } from "../../../components/teacher/TeachingAssistant/schedule";
 import teachingDAL from "../../../../DAL/teachingDAL";
-import type { TeachingScheduleItemDto } from "../../../../BLL/models/TeachingScheduleDto";
+import type { TeachingScheduleItemDto } from "../../../../BLL/models/teaching/TeachingScheduleDto";
 
 const DEFAULT_TA_ID = 5; // Âu Dương Tài
 

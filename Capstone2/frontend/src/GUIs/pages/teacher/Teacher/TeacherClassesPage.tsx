@@ -7,7 +7,7 @@ import {
   ClassListToolbar,
 } from "../../../components/teacher/Teacher/classes";
 import teachingDAL from "../../../../DAL/teachingDAL";
-import type { TeachingClassItemDto } from "../../../../BLL/models/TeachingClassItemDto";
+import type { TeachingClassItemDto } from "../../../../BLL/models/teaching/TeachingClassItemDto";
 
 const DEFAULT_TEACHER_ID = 3; // ThS. Hoàng Quốc Việt
 

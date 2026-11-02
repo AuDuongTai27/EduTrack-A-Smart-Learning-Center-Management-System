@@ -1,7 +1,7 @@
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
-import type { TeachingDashboardDto } from '../BLL/models/TeachingDashboardDto';
-import type { TeachingScheduleItemDto } from '../BLL/models/TeachingScheduleDto';
-import type { TeachingClassItemDto } from '../BLL/models/TeachingClassItemDto';
+import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
+import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
+import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 

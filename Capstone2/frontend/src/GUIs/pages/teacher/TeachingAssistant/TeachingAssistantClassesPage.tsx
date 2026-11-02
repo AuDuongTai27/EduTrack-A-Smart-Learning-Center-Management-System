@@ -7,7 +7,7 @@ import {
   ClassListToolbar,
 } from "../../../components/teacher/TeachingAssistant/classes";
 import teachingDAL from "../../../../DAL/teachingDAL";
-import type { TeachingClassItemDto } from "../../../../BLL/models/TeachingClassItemDto";
+import type { TeachingClassItemDto } from "../../../../BLL/models/teaching/TeachingClassItemDto";
 
 const DEFAULT_TA_ID = 5; // Âu Dương Tài
 

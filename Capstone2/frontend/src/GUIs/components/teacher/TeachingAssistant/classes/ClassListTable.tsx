@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { ClassDto } from "../../../../../BLL/models/ClassDto";
-import type { TeachingClassItemDto } from "../../../../../BLL/models/TeachingClassItemDto";
+import type { TeachingClassItemDto } from "../../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export interface ClassListTableProps {
   classes?: (ClassDto | TeachingClassItemDto)[];

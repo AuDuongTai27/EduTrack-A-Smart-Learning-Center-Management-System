@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import { ScheduleListHeader, ScheduleListToolbar, ScheduleTable, ScheduleListPagination } from "../../../components/teacher/Teacher/schedule";
 import teachingDAL from "../../../../DAL/teachingDAL";
-import type { TeachingScheduleItemDto } from "../../../../BLL/models/TeachingScheduleDto";
+import type { TeachingScheduleItemDto } from "../../../../BLL/models/teaching/TeachingScheduleDto";
 
 const DEFAULT_TEACHER_ID = 3; // ThS. Hoàng Quốc Việt
 
