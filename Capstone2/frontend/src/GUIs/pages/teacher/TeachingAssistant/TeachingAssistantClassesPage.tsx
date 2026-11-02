@@ -6,25 +6,32 @@ import {
   ClassListTable,
   ClassListToolbar,
 } from "../../../components/teacher/TeachingAssistant/classes";
-import { classDAL } from "../../../../DAL/classDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import teachingDAL from "../../../../DAL/teachingDAL";
+import type { TeachingClassItemDto } from "../../../../BLL/models/TeachingClassItemDto";
+
+const DEFAULT_TA_ID = 5; // Âu Dương Tài
 
 export default function TeachingAssistantClassesPage() {
-  const [classes, setClasses] = useState<ClassDto[]>([]);
+  const [classes, setClasses] = useState<TeachingClassItemDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
     async function loadClasses() {
       try {
-        const res = await classDAL.getAllClasses();
+        setLoading(true);
+        const res = await teachingDAL.getMyClasses(DEFAULT_TA_ID);
         if (isMounted && res.data) {
           setClasses(res.data);
         }
       } catch (err) {
         console.warn("Lỗi tải danh sách lớp TA:", err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
     loadClasses();
+
     return () => {
       isMounted = false;
     };
@@ -40,6 +47,13 @@ export default function TeachingAssistantClassesPage() {
           { label: "Lớp học phụ trách" },
         ]}
       />
+
+      {loading && (
+        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
+          <div className="spinner-border spinner-border-sm" role="status" />
+          <span>Đang tải danh sách lớp học trợ giảng...</span>
+        </div>
+      )}
 
       {/* Class list section */}
       <div className="card class-list-card border-0 mb-4">

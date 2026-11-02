@@ -1,44 +1,44 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { ClassDto } from "../../../../../BLL/models/ClassDto";
+import type { TeachingClassItemDto } from "../../../../../BLL/models/TeachingClassItemDto";
 
 export interface ClassListTableProps {
-  classes?: ClassDto[];
+  classes?: (ClassDto | TeachingClassItemDto)[];
 }
 
-const DEFAULT_CLASSES: ClassDto[] = [
+const DEFAULT_CLASSES: TeachingClassItemDto[] = [
   {
     classId: 1,
-    className: "[FE-Mock] Toán 12 Chuyên Sâu – Luyện Thi ĐH",
+    className: "Class 9 - Advanced Mathematics",
     subjectId: 1,
-    subjectName: "Toán học",
+    subjectName: "Mathematics",
     subjectCode: "MATH",
-    room: "Phòng 301",
+    room: "Room 201",
     tuitionFee: 3500000,
     startDate: "2026-09-01",
     status: "active",
+    studentCount: 3,
+    teacherName: "ThS. Hoàng Quốc Việt",
+    taName: "Âu Dương Tài",
+    partnerName: "ThS. Hoàng Quốc Việt",
+    scheduleSummary: "Thứ Hai, Thứ Tư (18:00 - 20:00)",
   },
   {
     classId: 2,
-    className: "[FE-Mock] Vật Lý 12 Nâng Cao",
+    className: "Class 9 - Intensive Physics",
     subjectId: 2,
-    subjectName: "Vật lý",
+    subjectName: "Physics",
     subjectCode: "PHYS",
-    room: "Phòng 202",
+    room: "Room 202",
     tuitionFee: 3200000,
     startDate: "2026-09-01",
     status: "active",
-  },
-  {
-    classId: 3,
-    className: "[FE-Mock] Toán 11 Cơ Bản & Ôn Tập",
-    subjectId: 1,
-    subjectName: "Toán học",
-    subjectCode: "MATH",
-    room: "Phòng 104",
-    tuitionFee: 2800000,
-    startDate: "2026-09-01",
-    status: "active",
+    studentCount: 2,
+    teacherName: "ThS. Huỳnh Khánh Duy",
+    taName: "Âu Dương Tài",
+    partnerName: "ThS. Huỳnh Khánh Duy",
+    scheduleSummary: "Thứ Ba, Thứ Năm (18:00 - 20:00)",
   },
 ];
 
@@ -69,7 +69,16 @@ export function ClassListTable({ classes }: ClassListTableProps) {
         </thead>
         <tbody>
           {displayClasses.map((cls) => {
-            const isActive = cls.status?.toLowerCase() === "active" || cls.status === "Đang học";
+            const item = cls as any;
+            const isActive = cls.status?.toLowerCase() === "active" || cls.status === "Đang học" || cls.status === "open";
+            const teacherName = item.teacherName || item.partnerName || "ThS. Hoàng Quốc Việt";
+            const teacherInitials = teacherName
+              .split(" ")
+              .map((w: string) => w[0])
+              .join("")
+              .toUpperCase()
+              .slice(-2) || "GV";
+
             return (
               <tr key={cls.classId}>
                 <td>
@@ -92,7 +101,7 @@ export function ClassListTable({ classes }: ClassListTableProps) {
                 <td>
                   <span className="text-secondary small">
                     <i className="bi bi-geo-alt me-1 text-muted" />
-                    {cls.room || "Phòng P.301"}
+                    {cls.room || "Phòng P.201"}
                   </span>
                 </td>
                 <td>
@@ -101,9 +110,9 @@ export function ClassListTable({ classes }: ClassListTableProps) {
                       className="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center"
                       style={{ width: "28px", height: "28px", fontSize: "12px", border: "1px solid #dee2e6" }}
                     >
-                      TC
+                      {teacherInitials}
                     </div>
-                    <span className="small">ThS. Hoàng Quốc Việt</span>
+                    <span className="small">{teacherName}</span>
                   </div>
                 </td>
                 <td>

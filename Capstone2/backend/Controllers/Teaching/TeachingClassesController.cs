@@ -21,6 +21,7 @@ namespace EduTrack.API.Controllers.Teaching
         private readonly IContentUnitService _contentUnitService;
         private readonly ITeachingDashboardService _dashboardService;
         private readonly ITeachingScheduleService _teachingScheduleService;
+        private readonly ITeachingMyClassService _myClassService;
 
         public TeachingClassesController(
             IClassService classService,
@@ -28,7 +29,8 @@ namespace EduTrack.API.Controllers.Teaching
             IClassSessionService sessionService,
             IContentUnitService contentUnitService,
             ITeachingDashboardService dashboardService,
-            ITeachingScheduleService teachingScheduleService)
+            ITeachingScheduleService teachingScheduleService,
+            ITeachingMyClassService myClassService)
         {
             _classService = classService;
             _scheduleService = scheduleService;
@@ -36,6 +38,7 @@ namespace EduTrack.API.Controllers.Teaching
             _contentUnitService = contentUnitService;
             _dashboardService = dashboardService;
             _teachingScheduleService = teachingScheduleService;
+            _myClassService = myClassService;
         }
 
         /// <summary>
@@ -73,9 +76,23 @@ namespace EduTrack.API.Controllers.Teaching
             return Ok(new { success = true, data });
         }
 
+        /// <summary>
+        /// Lấy danh sách lớp học do Giáo viên hoặc Trợ giảng đang phụ trách
+        /// </summary>
+        [HttpGet("my-classes")]
+        public async Task<IActionResult> GetMyClasses([FromQuery] int userId)
+        {
+            if (userId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
+            }
+
+            var data = await _myClassService.GetMyClassesAsync(userId);
+            return Ok(new { success = true, data });
+        }
+
         // TODO [Thành viên 2 - Teacher & TA]:
-        // Viết các API lớp dạy và tài liệu buổi học tại đây:
-        // - GET  /api/teaching/classes/my-classes   (Danh sách lớp GV/TA đang phụ trách)
+        // Viết các API tài liệu buổi học tại đây:
         // - POST /api/classes/{classId}/content-units (Thêm nội dung bài giảng cho lớp)
     }
 }

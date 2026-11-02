@@ -6,22 +6,28 @@ import {
   ClassListTable,
   ClassListToolbar,
 } from "../../../components/teacher/Teacher/classes";
-import { classDAL } from "../../../../DAL/classDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import teachingDAL from "../../../../DAL/teachingDAL";
+import type { TeachingClassItemDto } from "../../../../BLL/models/TeachingClassItemDto";
+
+const DEFAULT_TEACHER_ID = 3; // ThS. Hoàng Quốc Việt
 
 export default function TeacherClassesPage() {
-  const [classes, setClasses] = useState<ClassDto[]>([]);
+  const [classes, setClasses] = useState<TeachingClassItemDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
     async function loadClasses() {
       try {
-        const res = await classDAL.getAllClasses();
+        setLoading(true);
+        const res = await teachingDAL.getMyClasses(DEFAULT_TEACHER_ID);
         if (isMounted && res.data) {
           setClasses(res.data);
         }
       } catch (err) {
         console.warn("Lỗi tải danh sách lớp học của giáo viên:", err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
     loadClasses();
@@ -41,6 +47,13 @@ export default function TeacherClassesPage() {
           { label: "Danh sách lớp học" },
         ]}
       />
+
+      {loading && (
+        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
+          <div className="spinner-border spinner-border-sm" role="status" />
+          <span>Đang tải danh sách lớp học phụ trách...</span>
+        </div>
+      )}
 
       {/* Class list section */}
       <div className="card class-list-card border-0 mb-4">

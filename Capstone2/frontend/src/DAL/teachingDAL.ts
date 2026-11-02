@@ -2,6 +2,7 @@ import { teachingApi, type CreateTeachingRequestPayload } from '../api/teachingA
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/TeachingDashboardDto';
 import type { TeachingScheduleItemDto } from '../BLL/models/TeachingScheduleDto';
+import type { TeachingClassItemDto } from '../BLL/models/TeachingClassItemDto';
 
 export interface TeachingDashboardViewModel extends TeachingDashboardDto {
   source: 'api' | 'mock';
@@ -28,7 +29,6 @@ export const teachingDAL = {
       console.warn(`🟡 [teachingDAL] Không kết nối được API Dashboard (userId=${userId}), chuyển sang dữ liệu mock:`, err?.message);
     }
 
-    // Mock fallback khi backend chưa chạy hoặc lỗi mạng (nhận diện role theo userId mẫu: 5 là TA, 3 là Teacher)
     const isTa = userId === 5;
     return {
       source: 'mock',
@@ -236,6 +236,81 @@ export const teachingDAL = {
         ];
 
     return { success: true, data: fallbackList, isLiveApi: false };
+  },
+
+  /**
+   * Lấy danh sách các lớp học phụ trách của Giáo viên hoặc Trợ giảng
+   */
+  async getMyClasses(userId: number): Promise<{
+    success: boolean;
+    data: TeachingClassItemDto[];
+    isLiveApi: boolean;
+  }> {
+    try {
+      const data = await teachingApi.getMyClasses(userId);
+      if (data && data.length > 0) {
+        return { success: true, data, isLiveApi: true };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API my-classes (userId=${userId}), dùng fallback mock:`, err?.message);
+    }
+
+    const isTa = userId === 5;
+    const fallbackClasses: TeachingClassItemDto[] = isTa
+      ? [
+          {
+            classId: 1,
+            className: 'Class 9 - Advanced Mathematics',
+            subjectId: 1,
+            subjectName: 'Mathematics',
+            subjectCode: 'MATH9',
+            room: 'Room 201',
+            tuitionFee: 3500000,
+            startDate: '2026-09-01',
+            status: 'active',
+            studentCount: 30,
+            teacherName: 'ThS. Hoàng Quốc Việt',
+            taName: 'Âu Dương Tài',
+            partnerName: 'ThS. Hoàng Quốc Việt',
+            scheduleSummary: 'Thứ Hai, Thứ Tư (18:00 - 20:00)',
+          },
+          {
+            classId: 2,
+            className: 'Class 10 - Physics Fundamentals',
+            subjectId: 2,
+            subjectName: 'Physics',
+            subjectCode: 'PHYS10',
+            room: 'Room 202',
+            tuitionFee: 3200000,
+            startDate: '2026-09-01',
+            status: 'active',
+            studentCount: 25,
+            teacherName: 'Huỳnh Bá Duy',
+            taName: 'Âu Dương Tài',
+            partnerName: 'Huỳnh Bá Duy',
+            scheduleSummary: 'Thứ Ba, Thứ Năm (18:00 - 20:00)',
+          },
+        ]
+      : [
+          {
+            classId: 1,
+            className: 'Class 9 - Advanced Mathematics',
+            subjectId: 1,
+            subjectName: 'Mathematics',
+            subjectCode: 'MATH9',
+            room: 'Room 201',
+            tuitionFee: 3500000,
+            startDate: '2026-09-01',
+            status: 'active',
+            studentCount: 30,
+            teacherName: 'ThS. Hoàng Quốc Việt',
+            taName: 'Âu Dương Tài',
+            partnerName: 'Âu Dương Tài',
+            scheduleSummary: 'Thứ Hai, Thứ Tư (18:00 - 20:00)',
+          },
+        ];
+
+    return { success: true, data: fallbackClasses, isLiveApi: false };
   },
 
   /**

@@ -1,44 +1,28 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { ClassDto } from "../../../../../BLL/models/ClassDto";
+import type { TeachingClassItemDto } from "../../../../../BLL/models/TeachingClassItemDto";
 
 export interface ClassListTableProps {
-  classes?: ClassDto[];
+  classes?: (ClassDto | TeachingClassItemDto)[];
 }
 
-const DEFAULT_CLASSES: ClassDto[] = [
+const DEFAULT_CLASSES: TeachingClassItemDto[] = [
   {
     classId: 1,
-    className: "Toán 12 Chuyên Sâu – Luyện Thi ĐH",
+    className: "Class 9 - Advanced Mathematics",
     subjectId: 1,
-    subjectName: "Toán học",
+    subjectName: "Mathematics",
     subjectCode: "MATH",
-    room: "Phòng 301",
+    room: "Room 201",
     tuitionFee: 3500000,
     startDate: "2026-09-01",
     status: "active",
-  },
-  {
-    classId: 2,
-    className: "Vật Lý 12 Nâng Cao",
-    subjectId: 2,
-    subjectName: "Vật lý",
-    subjectCode: "PHYS",
-    room: "Phòng 202",
-    tuitionFee: 3200000,
-    startDate: "2026-09-01",
-    status: "active",
-  },
-  {
-    classId: 3,
-    className: "Toán 11 Cơ Bản & Ôn Tập",
-    subjectId: 1,
-    subjectName: "Toán học",
-    subjectCode: "MATH",
-    room: "Phòng 104",
-    tuitionFee: 2800000,
-    startDate: "2026-09-01",
-    status: "active",
+    studentCount: 3,
+    teacherName: "ThS. Hoàng Quốc Việt",
+    taName: "Âu Dương Tài",
+    partnerName: "Âu Dương Tài",
+    scheduleSummary: "Thứ Hai, Thứ Tư (18:00 - 20:00)",
   },
 ];
 
@@ -69,7 +53,16 @@ export function ClassListTable({ classes }: ClassListTableProps) {
         </thead>
         <tbody>
           {displayClasses.map((cls) => {
-            const isActive = cls.status?.toLowerCase() === "active" || cls.status === "Đang học";
+            const item = cls as any;
+            const isActive = cls.status?.toLowerCase() === "active" || cls.status === "Đang học" || cls.status === "open";
+            const taName = item.taName || item.partnerName || "Âu Dương Tài";
+            const taInitials = taName
+              .split(" ")
+              .map((w: string) => w[0])
+              .join("")
+              .toUpperCase()
+              .slice(-2) || "TA";
+
             return (
               <tr key={cls.classId}>
                 <td>
@@ -92,7 +85,7 @@ export function ClassListTable({ classes }: ClassListTableProps) {
                 <td>
                   <span className="text-secondary small">
                     <i className="bi bi-geo-alt me-1 text-muted" />
-                    {cls.room || "Phòng P.301"}
+                    {cls.room || "Phòng P.201"}
                   </span>
                 </td>
                 <td>
@@ -101,9 +94,9 @@ export function ClassListTable({ classes }: ClassListTableProps) {
                       className="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center"
                       style={{ width: "28px", height: "28px", fontSize: "12px", border: "1px solid #dee2e6" }}
                     >
-                      TA
+                      {taInitials}
                     </div>
-                    <span className="small">Phạm Đức Minh</span>
+                    <span className="small">{taName}</span>
                   </div>
                 </td>
                 <td>
