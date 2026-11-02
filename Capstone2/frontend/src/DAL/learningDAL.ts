@@ -1,17 +1,17 @@
-import {
-  learningApi,
-  type StudentEnrolledClassApiDto,
-  type ClassSessionAttendanceItemApiDto,
-  type StudentSubmissionDetailApiDto,
-  type StudentTuitionOverviewApiDto,
-  type LearnerFeedbackItemApiDto,
-  type CreateLearnerFeedbackPayload,
-  type UpdateLearnerFeedbackPayload,
-  type LearnerNotificationItemApiDto,
-  type LearnerProfileApiDto,
-  type UpdateLearnerProfilePayload,
-  type ParentChildOverviewApiDto,
-} from '../api/learningApi';
+import { learningApi } from '../api/learningApi';
+import type {
+  StudentEnrolledClassApiDto,
+  ClassSessionAttendanceItemApiDto,
+  StudentSubmissionDetailApiDto,
+  StudentTuitionOverviewApiDto,
+  LearnerFeedbackItemApiDto,
+  CreateLearnerFeedbackPayload,
+  UpdateLearnerFeedbackPayload,
+  LearnerNotificationItemApiDto,
+  LearnerProfileApiDto,
+  UpdateLearnerProfilePayload,
+  ParentChildOverviewApiDto,
+} from '../BLL/models/learning';
 import {
   INITIAL_PROFILE,
   type StudentProfileData,
