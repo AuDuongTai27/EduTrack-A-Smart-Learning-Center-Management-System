@@ -95,6 +95,21 @@ namespace EduTrack.API.Controllers.Teaching
         }
 
         /// <summary>
+        /// Lấy danh sách học sinh theo lớp học dành cho Giáo viên & Trợ giảng
+        /// </summary>
+        [HttpGet("{classId:int}/students")]
+        public async Task<IActionResult> GetClassStudents(int classId)
+        {
+            if (classId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã lớp học (classId) không hợp lệ." });
+            }
+
+            var students = await _myClassService.GetClassStudentsAsync(classId);
+            return Ok(new { success = true, data = students });
+        }
+
+        /// <summary>
         /// Lấy tiến độ học tập và tình hình làm bài của tất cả học viên trong một lớp
         /// </summary>
         [HttpGet("{classId}/learning-progress")]

@@ -16,3 +16,19 @@ export interface TeachingClassItemDto {
   scheduleSummary?: string;
 }
 
+export interface TeachingClassStudentItemDto {
+  studentId: number;
+  studentCode: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+  dob?: string;
+  enrollmentDate?: string;
+  status: string;
+  parentName?: string;
+  parentPhone?: string;
+  attendanceRate: number;
+  totalAttendedSessions: number;
+  totalSessions: number;
+}

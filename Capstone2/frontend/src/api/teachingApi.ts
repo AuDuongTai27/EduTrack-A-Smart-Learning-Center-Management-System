@@ -1,7 +1,7 @@
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
 import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
-import type { TeachingClassItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
+import type { TeachingClassItemDto, TeachingClassStudentItemDto } from '../BLL/models/teaching/TeachingClassItemDto';
 import type { TeachingClassProgressDto } from '../BLL/models/teaching/TeachingLearningProgressDto';
 import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNotificationDto';
 import type { TeacherProfileDto, UpdateTeacherProfilePayload } from '../BLL/models/teaching/TeachingProfileDto';
@@ -104,6 +104,26 @@ export const teachingApi = {
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status} khi tải danh sách lớp phụ trách`);
+    }
+
+    const json = await response.json();
+    return json?.data ?? json ?? [];
+  },
+
+  /**
+   * GET /api/teaching/classes/{classId}/students
+   * Lấy danh sách học sinh theo lớp học dành cho Giáo viên & Trợ giảng
+   */
+  async getClassStudents(classId: number): Promise<TeachingClassStudentItemDto[]> {
+    const response = await fetch(`${API_BASE_URL}/teaching/classes/${classId}/students`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải danh sách học sinh của lớp #${classId}`);
     }
 
     const json = await response.json();

@@ -7,6 +7,6 @@ namespace EduTrack.API.Services.Teaching.Interfaces
     public interface ITeachingMyClassService
     {
         Task<List<TeachingClassItemDto>> GetMyClassesAsync(int userId);
+        Task<List<TeachingClassStudentItemDto>> GetClassStudentsAsync(int classId);
     }
 }
-

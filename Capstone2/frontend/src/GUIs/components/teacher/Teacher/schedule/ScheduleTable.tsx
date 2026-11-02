@@ -9,7 +9,7 @@ export interface ScheduleTableProps {
 export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
   return (
     <div className="table-responsive-container">
-      <table className="table custom-table align-middle" id="scheduleTable">
+      <table className="table custom-table align-middle mb-0" id="scheduleTable">
         <thead>
           <tr>
             <th className="th-checkbox">
@@ -21,16 +21,16 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                 />
               </div>
             </th>
-            <th>Class <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Subject <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Location <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Day / Date <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Start Time <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>End Time <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Students <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Teaching Assistant <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Status <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Action</th>
+            <th>Lớp Học <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Môn Học <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Phòng Học <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Thứ / Ngày <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Giờ Bắt Đầu <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Giờ Kết Thúc <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Sĩ Số <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Trợ Giảng (TA) <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Trạng Thái <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Thao Tác</th>
           </tr>
         </thead>
         <tbody>
@@ -60,22 +60,39 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                     </div>
                   </td>
                   <td>
-                    <Link to={`/teacher/classes/${s.classId}`} className="class-id-link fw-bold">
+                    <Link to={`/teacher/classes/${s.classId}`} className="class-id-link fw-bold text-dark text-decoration-none">
                       {s.className}
                     </Link>
                   </td>
-                  <td>{subject}</td>
-                  <td>{s.room || "Room 101"}</td>
-                  <td>{s.dayOfWeek ? `Every ${s.dayOfWeek}` : "16 Aug 2026"}</td>
-                  <td>{s.startTime ? s.startTime.substring(0, 5) : "08:00 AM"}</td>
-                  <td>{s.endTime ? s.endTime.substring(0, 5) : "09:30 AM"}</td>
-                  <td>{studentCount}</td>
+                  <td>
+                    <span className="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill">
+                      {subject}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="text-secondary small">
+                      <i className="bi bi-geo-alt me-1 text-muted" />
+                      {s.room || "Room 101"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="fw-medium text-dark">
+                      {s.dayOfWeek ? `Mỗi ${s.dayOfWeek}` : "Thứ Hai"}
+                    </span>
+                  </td>
+                  <td>{s.startTime ? s.startTime.substring(0, 5) : "18:00"}</td>
+                  <td>{s.endTime ? s.endTime.substring(0, 5) : "20:00"}</td>
+                  <td>
+                    <span className="badge bg-light text-dark border px-2 py-1">
+                      {studentCount} học viên
+                    </span>
+                  </td>
                   <td>
                     <div className="d-flex align-items-center gap-2">
                       <span className="ta-avatar-initials bg-warning text-dark">
                         {taInitials}
                       </span>
-                      <span>{taName}</span>
+                      <span className="small">{taName}</span>
                     </div>
                   </td>
                   <td>
@@ -88,42 +105,19 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                       to={`/teacher/classes/${s.classId}`}
                       className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                     >
-                      <i className="bi bi-eye" /> View
+                      <i className="bi bi-eye" /> Vào lớp
                     </Link>
                   </td>
                 </tr>
               );
             })
           ) : (
-            /* Fallback Mock Rows */
-            <>
-              <tr>
-                <td>
-                  <div className="form-check m-0">
-                    <input className="form-check-input row-checkbox" type="checkbox" />
-                  </div>
-                </td>
-                <td><Link to="/teacher/classes/1" className="class-id-link">Class 9 - Advanced Mathematics</Link></td>
-                <td>Mathematics</td>
-                <td>Room 201</td>
-                <td>Every Monday</td>
-                <td>18:00</td>
-                <td>20:00</td>
-                <td>30</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="ta-avatar-initials bg-warning text-dark">AT</span>
-                    <span>Âu Dương Tài</span>
-                  </div>
-                </td>
-                <td><span className="badge-status badge-status-active">Active</span></td>
-                <td>
-                  <Link to="/teacher/classes/1" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                    <i className="bi bi-eye" /> View
-                  </Link>
-                </td>
-              </tr>
-            </>
+            <tr>
+              <td colSpan={11} className="text-center py-4 text-muted">
+                <i className="bi bi-calendar-x fs-3 d-block mb-1 text-secondary" />
+                Không tìm thấy ca dạy nào phù hợp với bộ lọc tìm kiếm.
+              </td>
+            </tr>
           )}
         </tbody>
       </table>

@@ -21,7 +21,7 @@ export default function TeacherClassDetailsPage() {
     const targetClassId = String(numClassId);
 
     const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
-    const [students, setStudents] = useState<UserDto[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
     const [assignments, setAssignments] = useState<TeachingAssignmentItemDto[] | any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -34,11 +34,17 @@ export default function TeacherClassDetailsPage() {
                 // 1. GetId: Fetch class details by ID
                 const cls = await classDAL.getClassById(numClassId);
 
-                // 2. GetAll: Fetch users for participants (filter students)
-                const usersResult = await userDAL.getAllUsers();
-                const studentList = usersResult.data.filter(
-                    (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
-                );
+                // 2. Fetch real students for this class via teachingDAL
+                try {
+                    const classStudents = await teachingDAL.getClassStudents(numClassId);
+                    if (isMounted) setStudents(classStudents);
+                } catch {
+                    const usersResult = await userDAL.getAllUsers();
+                    const studentList = usersResult.data.filter(
+                        (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
+                    );
+                    if (isMounted) setStudents(studentList);
+                }
 
                 // 3. Fetch real assignments for this class via teachingDAL
                 try {
@@ -58,7 +64,6 @@ export default function TeacherClassDetailsPage() {
 
                 if (isMounted) {
                     setClassInfo(cls);
-                    setStudents(studentList);
                 }
             } catch (err) {
                 console.error("Failed to load class details:", err);
