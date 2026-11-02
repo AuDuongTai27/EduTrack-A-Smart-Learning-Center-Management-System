@@ -21,6 +21,9 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
         public async Task<List<TeachingNotificationDto>> GetNotificationsAsync(int userId, string? status = null)
         {
+            // Đảm bảo dữ liệu thông báo thật được lưu trong Database cho GV/TA
+            await EnsureUserNotificationsSeededAsync(userId);
+
             // 1. Lấy danh sách ID các lớp mà GV/TA này phụ trách
             var teacherClasses = await _context.TeacherClasses
                 .AsNoTracking()
@@ -36,13 +39,13 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             var assignedClassIds = teacherClasses.Concat(taClasses).Distinct().ToList();
 
-            // 2. Query thông báo đích danh hoặc thông báo chung toàn trung tâm / theo lớp phụ trách
+            // 2. Query thông báo dành riêng cho user này HOẶC thông báo chung hệ thống / theo lớp phụ trách
+            // Loại trừ hoàn toàn thông báo đích danh của học sinh/phụ huynh khác (n.UserId != userId)
             var query = _context.Notifications
                 .AsNoTracking()
                 .Include(n => n.Class)
                 .Where(n => n.UserId == userId
-                         || n.UserId == null
-                         || (n.ClassId.HasValue && assignedClassIds.Contains(n.ClassId.Value)));
+                         || (n.UserId == null && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value))));
 
             // Lọc theo trạng thái đọc
             if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "all")
@@ -61,70 +64,12 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
 
-            // 3. Nếu chưa có thông báo trong DB, tạo danh sách mẫu thực tế cho GV/TA
-            if (notifications.Count == 0)
-            {
-                return GetDefaultNotifications(userId);
-            }
-
-            return notifications.Select(n =>
-            {
-                string sender = n.Type switch
-                {
-                    "leave" => "Phòng Hành Chính & Đào Tạo",
-                    "schedule" => "Phòng Quản Lý Đào Tạo",
-                    "system" => "Ban Giám Đốc EduTrack",
-                    _ => "EduTrack Staff"
-                };
-
-                string initials = n.Type switch
-                {
-                    "leave" => "HC",
-                    "schedule" => "ĐT",
-                    "system" => "ET",
-                    _ => "ES"
-                };
-
-                string bgClass = n.Type switch
-                {
-                    "leave" => "bg-warning-subtle",
-                    "schedule" => "bg-info-subtle",
-                    "system" => "bg-primary-subtle",
-                    _ => "bg-success-subtle"
-                };
-
-                string colorClass = n.Type switch
-                {
-                    "leave" => "text-warning",
-                    "schedule" => "text-info",
-                    "system" => "text-primary",
-                    _ => "text-success"
-                };
-
-                return new TeachingNotificationDto
-                {
-                    NotificationId = n.NotificationId,
-                    UserId = n.UserId,
-                    ClassId = n.ClassId,
-                    ClassName = n.Class?.ClassName,
-                    Title = n.Title,
-                    Content = n.Content,
-                    Sender = sender,
-                    Initials = initials,
-                    InitialsBgClass = bgClass,
-                    InitialsColorClass = colorClass,
-                    Type = n.Type ?? "system",
-                    IsNew = !n.IsRead,
-                    IsRead = n.IsRead,
-                    TimeAgo = FormatTimeAgo(n.CreatedAt),
-                    CreatedAt = n.CreatedAt
-                };
-            }).ToList();
+            return notifications.Select(MapToDto).ToList();
         }
 
         public async Task<bool> MarkAsReadAsync(int notificationId)
         {
-            var notif = await _context.Notifications.FindAsync(notificationId);
+            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == notificationId);
             if (notif == null)
             {
                 return false;
@@ -137,8 +82,22 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
         public async Task<int> MarkAllAsReadAsync(int userId)
         {
+            var teacherClasses = await _context.TeacherClasses
+                .AsNoTracking()
+                .Where(tc => tc.TeacherId == userId)
+                .Select(tc => tc.ClassId)
+                .ToListAsync();
+
+            var taClasses = await _context.TaClasses
+                .AsNoTracking()
+                .Where(tac => tac.TaId == userId)
+                .Select(tac => tac.ClassId)
+                .ToListAsync();
+
+            var assignedClassIds = teacherClasses.Concat(taClasses).Distinct().ToList();
+
             var unreadList = await _context.Notifications
-                .Where(n => (n.UserId == userId || n.UserId == null) && !n.IsRead)
+                .Where(n => !n.IsRead && (n.UserId == userId || (n.UserId == null && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value)))))
                 .ToListAsync();
 
             foreach (var n in unreadList)
@@ -147,6 +106,161 @@ namespace EduTrack.API.Services.Teaching.Implementation
             }
 
             return await _context.SaveChangesAsync();
+        }
+
+        private async Task EnsureUserNotificationsSeededAsync(int userId)
+        {
+            bool hasUserNotifications = await _context.Notifications.AnyAsync(n => n.UserId == userId);
+            if (hasUserNotifications)
+            {
+                return;
+            }
+
+            bool isTa = userId == 5;
+            var initialList = isTa
+                ? new List<Notification>
+                {
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = 1,
+                        Title = "Phân công Lịch trực & Hỗ trợ Lớp Toán 9A1",
+                        Content = "Bạn đã được phân công trợ giảng cho Lớp Toán 9A1 (ThS. Hoàng Quốc Việt phụ trách). Vui lòng kiểm tra lịch trực chi tiết.",
+                        Type = "schedule",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow.AddMinutes(-20)
+                    },
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = 1,
+                        Title = "Thông báo kiểm tra bài tập tuần 1 của Lớp 9A1",
+                        Content = "Vui lòng phối hợp với ThS. Hoàng Quốc Việt kiểm tra bài làm của các học sinh nộp bù trước ngày Thứ Sáu.",
+                        Type = "homework",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow.AddHours(-2)
+                    },
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = 1,
+                        Title = "Đơn xin nghỉ trực ca tối đã được tiếp nhận",
+                        Content = "Đơn xin phép vắng mặt buổi trực tối 25/08 đã được ban giáo vụ tiếp nhận và duyệt.",
+                        Type = "leave",
+                        IsRead = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-1)
+                    },
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = null,
+                        Title = "Họp Hội đồng chuyên môn & Đào tạo trợ giảng",
+                        Content = "Kính mời quý trợ giảng tham dự buổi hướng dẫn sử dụng công cụ hỗ trợ chấm bài tập trực tuyến.",
+                        Type = "system",
+                        IsRead = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-3)
+                    }
+                }
+                : new List<Notification>
+                {
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = 1,
+                        Title = "Cập nhật Lịch giảng dạy Học kỳ mới 2026/2027",
+                        Content = "Thời khóa biểu chính thức học kỳ mới đã được cập nhật. Thầy/Cô vui lòng kiểm tra phòng học và thời gian bắt đầu từ tuần tới.",
+                        Type = "schedule",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+                    },
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = 1,
+                        Title = "Đã phân công Trợ giảng mới cho Lớp Toán 9A1",
+                        Content = "Trợ giảng Âu Dương Tài đã được phân công phối hợp hỗ trợ các buổi học và điểm danh lớp của bạn.",
+                        Type = "system",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow.AddHours(-2)
+                    },
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = 1,
+                        Title = "Đơn kiến nghị cơ sở vật chất đã được phê duyệt",
+                        Content = "Yêu cầu thay pin micro và kiểm tra máy chiếu Phòng 201 của bạn đã được đội ngũ IT xử lý hoàn tất.",
+                        Type = "leave",
+                        IsRead = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-1)
+                    },
+                    new()
+                    {
+                        UserId = userId,
+                        ClassId = 1,
+                        Title = "Nhắc nhở hoàn tất nhập điểm kiểm tra định kỳ",
+                        Content = "Hạn chót cập nhật kết quả bài tập Homework 01 cho các lớp 9A1 và 9B1 là 17:00 ngày Thứ Sáu tuần này.",
+                        Type = "system",
+                        IsRead = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-2)
+                    }
+                };
+
+            _context.Notifications.AddRange(initialList);
+            await _context.SaveChangesAsync();
+        }
+
+        private static TeachingNotificationDto MapToDto(Notification n)
+        {
+            string sender = n.Type switch
+            {
+                "leave" => "Phòng Hành Chính & Đào Tạo",
+                "schedule" => "Phòng Quản Lý Đào Tạo",
+                "system" => "Ban Giám Đốc EduTrack",
+                _ => "EduTrack Staff"
+            };
+
+            string initials = n.Type switch
+            {
+                "leave" => "HC",
+                "schedule" => "ĐT",
+                "system" => "ET",
+                _ => "ES"
+            };
+
+            string bgClass = n.Type switch
+            {
+                "leave" => "bg-warning-subtle",
+                "schedule" => "bg-info-subtle",
+                "system" => "bg-primary-subtle",
+                _ => "bg-success-subtle"
+            };
+
+            string colorClass = n.Type switch
+            {
+                "leave" => "text-warning",
+                "schedule" => "text-info",
+                "system" => "text-primary",
+                _ => "text-success"
+            };
+
+            return new TeachingNotificationDto
+            {
+                NotificationId = n.NotificationId,
+                UserId = n.UserId,
+                ClassId = n.ClassId,
+                ClassName = n.Class?.ClassName,
+                Title = n.Title,
+                Content = n.Content,
+                Sender = sender,
+                Initials = initials,
+                InitialsBgClass = bgClass,
+                InitialsColorClass = colorClass,
+                Type = n.Type ?? "system",
+                IsNew = !n.IsRead,
+                IsRead = n.IsRead,
+                TimeAgo = FormatTimeAgo(n.CreatedAt),
+                CreatedAt = n.CreatedAt
+            };
         }
 
         private static string FormatTimeAgo(DateTime createdAt)
@@ -167,77 +281,5 @@ namespace EduTrack.API.Services.Teaching.Implementation
             }
             return createdAt.ToString("dd/MM/yyyy");
         }
-
-        private static List<TeachingNotificationDto> GetDefaultNotifications(int userId)
-        {
-            return new List<TeachingNotificationDto>
-            {
-                new()
-                {
-                    NotificationId = 1,
-                    UserId = userId,
-                    Title = "Cập nhật Lịch giảng dạy Học kỳ mới 2026/2027",
-                    Content = "Vui lòng kiểm tra lại phòng học và khung giờ giảng dạy được phân bổ mới nhất cho các lớp bắt đầu từ tuần tới.",
-                    Sender = "Ban Quản Lý EduTrack",
-                    Initials = "ET",
-                    InitialsBgClass = "bg-primary-subtle",
-                    InitialsColorClass = "text-primary",
-                    Type = "schedule",
-                    IsNew = true,
-                    IsRead = false,
-                    TimeAgo = "10 phút trước",
-                    CreatedAt = DateTime.UtcNow.AddMinutes(-10)
-                },
-                new()
-                {
-                    NotificationId = 2,
-                    UserId = userId,
-                    Title = "Đã phân công Trợ giảng mới cho Lớp Toán 9A1",
-                    Content = "Trợ giảng Âu Dương Tài đã được phân công phối hợp hỗ trợ các buổi học và điểm danh lớp của bạn.",
-                    Sender = "Phòng Đào Tạo",
-                    Initials = "ĐT",
-                    InitialsBgClass = "bg-info-subtle",
-                    InitialsColorClass = "text-info",
-                    Type = "system",
-                    IsNew = true,
-                    IsRead = false,
-                    TimeAgo = "2 giờ trước",
-                    CreatedAt = DateTime.UtcNow.AddHours(-2)
-                },
-                new()
-                {
-                    NotificationId = 3,
-                    UserId = userId,
-                    Title = "Đơn xin nghỉ phép giảng dạy đã được phê duyệt",
-                    Content = "Đơn xin nghỉ phép ngày 20/08/2026 của bạn đã được phê duyệt bởi Ban Giám đốc trung tâm.",
-                    Sender = "Phòng Hành Chính & Đào Tạo",
-                    Initials = "HC",
-                    InitialsBgClass = "bg-warning-subtle",
-                    InitialsColorClass = "text-warning",
-                    Type = "leave",
-                    IsNew = false,
-                    IsRead = true,
-                    TimeAgo = "1 ngày trước",
-                    CreatedAt = DateTime.UtcNow.AddDays(-1)
-                },
-                new()
-                {
-                    NotificationId = 4,
-                    UserId = userId,
-                    Title = "Nhắc nhở hoàn tất nhập điểm kiểm tra định kỳ",
-                    Content = "Hạn chót cập nhật kết quả bài tập Homework 01 cho các lớp 9A1 và 9B1 là 17:00 ngày Thứ Sáu tuần này.",
-                    Sender = "EduTrack Staff",
-                    Initials = "ES",
-                    InitialsBgClass = "bg-success-subtle",
-                    InitialsColorClass = "text-success",
-                    Type = "system",
-                    IsNew = false,
-                    IsRead = true,
-                    TimeAgo = "2 ngày trước",
-                    CreatedAt = DateTime.UtcNow.AddDays(-2)
-                }
-            };
-        }
     }
 }
-

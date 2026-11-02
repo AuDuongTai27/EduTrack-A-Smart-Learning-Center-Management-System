@@ -41,7 +41,9 @@ export default function TeacherNotificationPage() {
   // Đánh dấu 1 thông báo là đã đọc
   const handleMarkItemAsRead = async (id: number) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.notificationId === id ? { ...n, isRead: true, isNew: false } : n))
+      prev
+        .map((n) => (n.notificationId === id ? { ...n, isRead: true, isNew: false } : n))
+        .filter((n) => (filterStatus === "unread" ? !n.isRead : true))
     );
     try {
       await teachingDAL.markNotificationAsRead(id);
@@ -53,7 +55,9 @@ export default function TeacherNotificationPage() {
   // Đánh dấu tất cả thông báo là đã đọc
   const handleMarkAllAsRead = async () => {
     setNotifications((prev) =>
-      prev.map((n) => ({ ...n, isRead: true, isNew: false }))
+      filterStatus === "unread"
+        ? []
+        : prev.map((n) => ({ ...n, isRead: true, isNew: false }))
     );
     try {
       await teachingDAL.markAllNotificationsAsRead(DEFAULT_TEACHER_ID);

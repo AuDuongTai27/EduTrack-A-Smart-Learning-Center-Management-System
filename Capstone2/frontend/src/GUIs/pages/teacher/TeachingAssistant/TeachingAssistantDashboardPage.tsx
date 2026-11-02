@@ -15,6 +15,7 @@ const DEFAULT_TA_ID = 5; // Âu Dương Tài
 
 export default function TeachingAssistantDashboardPage() {
   const [dashboardData, setDashboardData] = useState<TeachingDashboardViewModel | null>(null);
+  const [dashboardNotifications, setDashboardNotifications] = useState<TeacherNotification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -23,9 +24,36 @@ export default function TeachingAssistantDashboardPage() {
     async function loadDashboard() {
       try {
         setLoading(true);
-        const data = await teachingDAL.getDashboard(DEFAULT_TA_ID);
+        const [dashData, notifRes] = await Promise.all([
+          teachingDAL.getDashboard(DEFAULT_TA_ID),
+          teachingDAL.getNotifications(DEFAULT_TA_ID, "unread"),
+        ]);
+
         if (isMounted) {
-          setDashboardData(data);
+          setDashboardData(dashData);
+
+          // Chỉ lấy và hiển thị các thông báo MỚI (chưa đọc) tại Dashboard
+          const rawUnread = Array.isArray(notifRes?.data)
+            ? notifRes.data.filter((n) => !n.isRead || n.isNew)
+            : Array.isArray(dashData?.notifications)
+            ? dashData.notifications.filter((n) => !n.isRead || n.isNew)
+            : [];
+
+          setDashboardNotifications(
+            rawUnread.map((n: any) => ({
+              id: n.notificationId,
+              title: n.title,
+              description: n.content || n.description,
+              sender: n.sender || "Ban Giám Đốc EduTrack",
+              initials: n.initials || "ET",
+              initialsBgClass: n.initialsBgClass || "bg-primary-subtle",
+              initialsColorClass: n.initialsColorClass || "text-primary",
+              isNew: !n.isRead || n.isNew,
+              isRead: n.isRead,
+              timeAgo: n.timeAgo || "Hôm nay",
+              hasBottomBorder: true,
+            }))
+          );
         }
       } catch (err) {
         console.warn("Lỗi tải TeachingAssistantDashboard:", err);
@@ -55,20 +83,6 @@ export default function TeachingAssistantDashboardPage() {
     id: cls.classId,
     className: cls.className,
     timePeriod: cls.timePeriod,
-  }));
-
-  const mappedNotifications: TeacherNotification[] = (dashboardData?.notifications || []).map((n) => ({
-    id: n.notificationId,
-    sender: n.sender || "Ban Giám Đốc EduTrack",
-    initials: n.initials || "ET",
-    initialsBgClass: n.initialsBgClass || "bg-primary-subtle",
-    initialsColorClass: n.initialsColorClass || "text-primary",
-    isNew: n.isNew,
-    isRead: n.isRead,
-    timeAgo: n.timeAgo || "Hôm nay",
-    title: n.title,
-    description: n.description,
-    hasBottomBorder: true,
   }));
 
   return (
@@ -120,7 +134,7 @@ export default function TeachingAssistantDashboardPage() {
           <div className="col-xxl-6 col-xl-12 d-flex flex-column">
             {/* Notifications */}
             <NotificationsSection
-              notifications={mappedNotifications.length > 0 ? mappedNotifications : undefined}
+              notifications={dashboardNotifications}
               viewAllUrl="/teaching-assistant/notifications"
             />
           </div>

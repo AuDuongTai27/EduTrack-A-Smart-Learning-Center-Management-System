@@ -510,7 +510,7 @@ export const teachingDAL = {
   }> {
     try {
       const data = await teachingApi.getNotifications(userId, status);
-      if (data && data.length > 0) {
+      if (Array.isArray(data)) {
         return { success: true, data, isLiveApi: true };
       }
     } catch (err: any) {
@@ -630,7 +630,7 @@ export const teachingDAL = {
   }> {
     try {
       const data = await teachingApi.getRequests(userId, status);
-      if (data && data.length > 0) {
+      if (Array.isArray(data)) {
         return { success: true, data, isLiveApi: true };
       }
     } catch (err: any) {

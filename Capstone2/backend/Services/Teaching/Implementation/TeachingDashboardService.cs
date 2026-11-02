@@ -13,10 +13,14 @@ namespace EduTrack.API.Services.Teaching.Implementation
     public class TeachingDashboardService : ITeachingDashboardService
     {
         private readonly EduTrackDbContext _context;
+        private readonly ITeachingNotificationService _notificationService;
 
-        public TeachingDashboardService(EduTrackDbContext context)
+        public TeachingDashboardService(
+            EduTrackDbContext context,
+            ITeachingNotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<TeachingDashboardDto?> GetDashboardAsync(int userId)
@@ -239,28 +243,25 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 }
             }
 
-            // Thông báo
-            var notifications = await _context.Notifications
-                .AsNoTracking()
-                .Where(n => n.UserId == userId || n.UserId == null)
-                .OrderByDescending(n => n.CreatedAt)
-                .Take(4)
-                .ToListAsync();
-
-            var notificationDtos = notifications.Select(n => new TeachingNotificationItemDto
-            {
-                NotificationId = n.NotificationId,
-                Title = n.Title,
-                Description = n.Content,
-                Sender = "Ban Giám Đốc EduTrack",
-                Initials = "ET",
-                InitialsBgClass = "bg-primary-subtle",
-                InitialsColorClass = "text-primary",
-                IsNew = !n.IsRead,
-                IsRead = n.IsRead,
-                TimeAgo = FormatTimeAgo(n.CreatedAt),
-                CreatedAt = n.CreatedAt
-            }).ToList();
+            // Thông báo mới chưa đọc hiển thị trên Dashboard (Chỉ hiện thông báo mới/chưa đọc)
+            var notificationList = await _notificationService.GetNotificationsAsync(userId, "unread");
+            var notificationDtos = notificationList
+                .Where(n => !n.IsRead || n.IsNew)
+                .Take(5)
+                .Select(n => new TeachingNotificationItemDto
+                {
+                    NotificationId = n.NotificationId,
+                    Title = n.Title,
+                    Description = n.Content,
+                    Sender = n.Sender,
+                    Initials = n.Initials,
+                    InitialsBgClass = n.InitialsBgClass,
+                    InitialsColorClass = n.InitialsColorClass,
+                    IsNew = n.IsNew,
+                    IsRead = n.IsRead,
+                    TimeAgo = n.TimeAgo,
+                    CreatedAt = n.CreatedAt
+                }).ToList();
 
             var kpis = new TeachingKpiSummaryDto
             {
@@ -278,27 +279,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 TodayClasses = todayClassesList,
                 Notifications = notificationDtos
             };
-        }
-
-        private static string FormatTimeAgo(DateTime createdAt)
-        {
-            var diff = DateTime.UtcNow - createdAt;
-            if (diff.TotalMinutes < 60)
-            {
-                int mins = Math.Max(1, (int)diff.TotalMinutes);
-                return $"{mins} phút trước";
-            }
-            if (diff.TotalHours < 24)
-            {
-                int hours = (int)diff.TotalHours;
-                return $"{hours} giờ trước";
-            }
-            if (diff.TotalDays < 7)
-            {
-                int days = (int)diff.TotalDays;
-                return $"{days} ngày trước";
-            }
-            return createdAt.ToString("dd/MM/yyyy");
         }
     }
 }
