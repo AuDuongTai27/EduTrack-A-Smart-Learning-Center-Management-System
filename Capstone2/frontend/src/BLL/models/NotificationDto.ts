@@ -1,6 +1,6 @@
 export interface NotificationDto {
   notificationId: number;
-  userId?: number | null;
+  userId?: number | null; // legacy field, not sender ID
   userName?: string | null;
   classId?: number | null;
   className?: string | null;
@@ -9,4 +9,10 @@ export interface NotificationDto {
   type: string;
   isRead: boolean;
   createdAt: string;
+  senderId?: number | null;
+  senderName?: string | null;
+  targetScope?: string | null;
+  targetRole?: string | null;
+  recipientCount?: number | null;
+  readAt?: string | null;
 }

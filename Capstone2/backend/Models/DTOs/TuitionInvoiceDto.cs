@@ -10,6 +10,8 @@ namespace EduTrack.API.Models.DTOs
         public string StudentCode { get; set; } = null!;
         public int ClassId { get; set; }
         public string ClassName { get; set; } = null!;
+        public byte PeriodMonth { get; set; }
+        public short PeriodYear { get; set; }
         public decimal AmountDue { get; set; }
         public DateTime DueDate { get; set; }
         public string Status { get; set; } = null!;

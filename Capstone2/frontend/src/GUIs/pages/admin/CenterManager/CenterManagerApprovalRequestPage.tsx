@@ -22,7 +22,8 @@ export default function CenterManagerApprovalRequestPage() {
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
 
   // Detail & Processing Modal state (GetById)
-  const [selectedRequest, setSelectedRequest] = useState<ApprovalRequestDto | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<ApprovalRequestDto | null>(null);
   const [reviewNotes, setReviewNotes] = useState<string>("");
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
@@ -36,7 +37,10 @@ export default function CenterManagerApprovalRequestPage() {
           setRequests(res.data);
         }
       } catch (err) {
-        console.warn("Lỗi tải danh sách yêu cầu phê duyệt center manager:", err);
+        console.warn(
+          "Lỗi tải danh sách yêu cầu phê duyệt center manager:",
+          err,
+        );
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -52,18 +56,23 @@ export default function CenterManagerApprovalRequestPage() {
     return requests.filter((r) => {
       const matchSearch =
         searchTerm === "" ||
-        (r.requestCode && r.requestCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (r.requestCode &&
+          r.requestCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (r.title && r.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (r.studentName && r.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (r.description && r.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        (r.studentName &&
+          r.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (r.description &&
+          r.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchType = selectedType === "All" || r.requestType === selectedType;
+      const matchType =
+        selectedType === "All" || r.requestType === selectedType;
       const matchStatus =
         selectedStatus === "All" ||
         (r.status && r.status.toLowerCase() === selectedStatus.toLowerCase());
       const matchPriority =
         selectedPriority === "All" ||
-        (r.priority && r.priority.toLowerCase() === selectedPriority.toLowerCase());
+        (r.priority &&
+          r.priority.toLowerCase() === selectedPriority.toLowerCase());
 
       return matchSearch && matchType && matchStatus && matchPriority;
     });
@@ -88,27 +97,42 @@ export default function CenterManagerApprovalRequestPage() {
   };
 
   // Handle Approve or Reject
-  const handleProcessRequest = (newStatus: "Approved" | "Rejected") => {
+  const handleProcessRequest = async (newStatus: "Approved" | "Rejected") => {
     if (!selectedRequest) return;
 
-    const updated = requests.map((item) =>
-      item.requestId === selectedRequest.requestId
-        ? {
-            ...item,
-            status: newStatus,
-            reviewNotes: reviewNotes || `Đã được Quản lý trung tâm ${newStatus === "Approved" ? "phê duyệt" : "từ chối"}.`,
-            reviewedAt: new Date().toISOString(),
-            reviewerName: "Nguyễn Văn Quản Lý",
-          }
-        : item
-    );
+    if (selectedRequest.status.toLowerCase() !== "pending") {
+      alert("Yêu cầu này đã được xử lý.");
+      return;
+    }
 
-    setRequests(updated);
-    setSelectedRequest(null);
-    setActionSuccessMsg(
-      `Đã ${newStatus === "Approved" ? "phê duyệt" : "từ chối"} đơn #${selectedRequest.requestCode || selectedRequest.requestId} thành công!`
-    );
-    setTimeout(() => setActionSuccessMsg(null), 3500);
+    if (newStatus === "Rejected" && !reviewNotes.trim()) {
+      alert("Vui lòng nhập lý do từ chối.");
+      return;
+    }
+
+    try {
+      const updated = await feedbackDAL.reviewRequest(
+        selectedRequest.requestId,
+        {
+          reviewedBy: 1, // Center Manager - ID test
+          status: newStatus.toLowerCase() as "approved" | "rejected",
+          reviewNotes: reviewNotes.trim(),
+        },
+      );
+
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.requestId === updated.requestId ? updated : req,
+        ),
+      );
+
+      setSelectedRequest(null);
+      setActionSuccessMsg(
+        `Đã ${newStatus === "Approved" ? "phê duyệt" : "từ chối"} yêu cầu thành công!`,
+      );
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Xử lý yêu cầu thất bại.");
+    }
   };
 
   return (
@@ -124,10 +148,18 @@ export default function CenterManagerApprovalRequestPage() {
 
       {/* Success Notification Alert */}
       {actionSuccessMsg && (
-        <div className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+        <div
+          className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm"
+          role="alert"
+        >
           <i className="bi bi-check-circle-fill fs-5 me-2" />
           <div>{actionSuccessMsg}</div>
-          <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} aria-label="Close" />
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setActionSuccessMsg(null)}
+            aria-label="Close"
+          />
         </div>
       )}
 
@@ -164,7 +196,9 @@ export default function CenterManagerApprovalRequestPage() {
                 <option value="Tuition Adjustment">Tuition Adjustment</option>
                 <option value="Refund">Refund Request</option>
                 <option value="Due Date Extension">Due Date Extension</option>
-                <option value="Student Information Change">Student Info Change</option>
+                <option value="Student Information Change">
+                  Student Info Change
+                </option>
                 <option value="Academic">Academic Support</option>
               </select>
             </div>
@@ -232,7 +266,10 @@ export default function CenterManagerApprovalRequestPage() {
               {loading ? (
                 <tr>
                   <td colSpan={9} className="text-center py-5 text-muted">
-                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    <div
+                      className="spinner-border spinner-border-sm text-primary me-2"
+                      role="status"
+                    />
                     Đang nạp danh sách yêu cầu phê duyệt...
                   </td>
                 </tr>
@@ -245,7 +282,8 @@ export default function CenterManagerApprovalRequestPage() {
                 </tr>
               ) : (
                 paginatedRequests.map((req, idx) => {
-                  const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
+                  const itemIndex =
+                    (currentPage - 1) * entriesPerPage + idx + 1;
 
                   return (
                     <tr key={req.requestId || idx}>
@@ -256,17 +294,30 @@ export default function CenterManagerApprovalRequestPage() {
                         </strong>
                       </td>
                       <td>
-                        <span className="badge bg-light text-dark border">{req.requestType}</span>
+                        <span className="badge bg-light text-dark border">
+                          {req.requestType}
+                        </span>
                       </td>
                       <td>
-                        <div className="fw-semibold text-dark">{req.studentName || "Trung tâm"}</div>
-                        {req.className && <small className="text-muted">{req.className}</small>}
+                        <div className="fw-semibold text-dark">
+                          {req.studentName || "Trung tâm"}
+                        </div>
+                        {req.className && (
+                          <small className="text-muted">{req.className}</small>
+                        )}
                       </td>
                       <td>
-                        <div className="text-truncate fw-medium" style={{ maxWidth: "250px" }} title={req.title || undefined}>
+                        <div
+                          className="text-truncate fw-medium"
+                          style={{ maxWidth: "250px" }}
+                          title={req.title || undefined}
+                        >
                           {req.title}
                         </div>
-                        <small className="text-muted text-truncate d-block" style={{ maxWidth: "250px" }}>
+                        <small
+                          className="text-muted text-truncate d-block"
+                          style={{ maxWidth: "250px" }}
+                        >
                           {req.description || req.reason || "—"}
                         </small>
                       </td>
@@ -313,13 +364,18 @@ export default function CenterManagerApprovalRequestPage() {
 
       {/* DETAIL & PROCESSING MODAL (GetById) */}
       {selectedRequest && (
-        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-white text-primary font-monospace fs-6">
-                    {selectedRequest.requestCode || `AR${selectedRequest.requestId}`}
+                    {selectedRequest.requestCode ||
+                      `AR${selectedRequest.requestId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0">
                     Thẩm định & Phê duyệt yêu cầu
@@ -335,39 +391,78 @@ export default function CenterManagerApprovalRequestPage() {
               <div className="modal-body p-4">
                 <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
                   <div>
-                    <h5 className="fw-bold mb-1 text-dark">{selectedRequest.title}</h5>
+                    <h5 className="fw-bold mb-1 text-dark">
+                      {selectedRequest.title}
+                    </h5>
                     <div className="d-flex align-items-center gap-3 text-muted small">
-                      <span>Loại: <strong>{selectedRequest.requestType}</strong></span>
-                      <span>Người gửi: <strong>{selectedRequest.requesterName || "Admin Staff"}</strong></span>
-                      <span>Thời điểm gửi: {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleString("vi-VN") : "—"}</span>
+                      <span>
+                        Loại: <strong>{selectedRequest.requestType}</strong>
+                      </span>
+                      <span>
+                        Người gửi:{" "}
+                        <strong>
+                          {selectedRequest.requesterName || "Admin Staff"}
+                        </strong>
+                      </span>
+                      <span>
+                        Thời điểm gửi:{" "}
+                        {selectedRequest.createdAt
+                          ? new Date(selectedRequest.createdAt).toLocaleString(
+                              "vi-VN",
+                            )
+                          : "—"}
+                      </span>
                     </div>
                   </div>
                   <div className="d-flex flex-column align-items-end gap-1">
-                    <DotStatusBadge status={selectedRequest.status || "Pending"} />
-                    <StatusBadge status={selectedRequest.priority || "Medium"} />
+                    <DotStatusBadge
+                      status={selectedRequest.status || "Pending"}
+                    />
+                    <StatusBadge
+                      status={selectedRequest.priority || "Medium"}
+                    />
                   </div>
                 </div>
 
                 <div className="row g-3 mb-4">
                   <div className="col-md-6">
                     <div className="p-3 bg-light rounded-3">
-                      <small className="text-muted d-block mb-1">Đối tượng áp dụng</small>
-                      <strong className="text-dark">{selectedRequest.studentName || "Không xác định"}</strong>
-                      {selectedRequest.className && <div className="small text-muted">{selectedRequest.className}</div>}
+                      <small className="text-muted d-block mb-1">
+                        Đối tượng áp dụng
+                      </small>
+                      <strong className="text-dark">
+                        {selectedRequest.studentName || "Không xác định"}
+                      </strong>
+                      {selectedRequest.className && (
+                        <div className="small text-muted">
+                          {selectedRequest.className}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="col-md-6">
                     <div className="p-3 bg-light rounded-3">
-                      <small className="text-muted d-block mb-1">Độ ưu tiên xử lý</small>
-                      <strong className="text-dark">{selectedRequest.priority || "Medium"}</strong>
+                      <small className="text-muted d-block mb-1">
+                        Độ ưu tiên xử lý
+                      </small>
+                      <strong className="text-dark">
+                        {selectedRequest.priority || "Medium"}
+                      </strong>
                     </div>
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <h6 className="fw-bold text-dark mb-2">Lý do & Nội dung yêu cầu từ Giáo vụ:</h6>
-                  <div className="p-3 bg-light rounded border text-secondary" style={{ whiteSpace: "pre-line", minHeight: "90px" }}>
-                    {selectedRequest.description || selectedRequest.reason || "Không có thêm thông tin chi tiết."}
+                  <h6 className="fw-bold text-dark mb-2">
+                    Lý do & Nội dung yêu cầu từ Giáo vụ:
+                  </h6>
+                  <div
+                    className="p-3 bg-light rounded border text-secondary"
+                    style={{ whiteSpace: "pre-line", minHeight: "90px" }}
+                  >
+                    {selectedRequest.description ||
+                      selectedRequest.reason ||
+                      "Không có thêm thông tin chi tiết."}
                   </div>
                 </div>
 

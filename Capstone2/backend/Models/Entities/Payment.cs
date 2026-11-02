@@ -17,6 +17,13 @@ namespace EduTrack.API.Models.Entities
         [Column("amount", TypeName = "decimal(12,2)")]
         public decimal Amount { get; set; }
 
+        [Column("additional_charge_amount", TypeName = "decimal(12,2)")]
+        public decimal AdditionalChargeAmount { get; set; }
+
+        [StringLength(255)]
+        [Column("additional_charge_note")]
+        public string? AdditionalChargeNote { get; set; }
+
         [Required]
         [StringLength(30)]
         [Column("payment_method")]

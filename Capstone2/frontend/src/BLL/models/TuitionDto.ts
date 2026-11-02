@@ -5,6 +5,8 @@ export interface TuitionInvoiceDto {
   studentCode: string;
   classId: number;
   className: string;
+  periodMonth?: number;
+  periodYear?: number;
   amountDue: number;
   dueDate: string;
   status: string;

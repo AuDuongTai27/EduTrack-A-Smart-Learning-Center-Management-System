@@ -14,5 +14,12 @@ namespace EduTrack.API.Models.DTOs
         public string Type { get; set; } = null!;
         public bool IsRead { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        public int? SenderId { get; set; }
+        public string? SenderName { get; set; }
+        public string? TargetScope { get; set; }
+        public string? TargetRole { get; set; }
+        public int? RecipientCount { get; set; }
+        public DateTime? ReadAt { get; set; }
     }
 }

@@ -34,5 +34,24 @@ namespace EduTrack.API.Repositories.Implementation
                 .Include(ar => ar.Reviewer)
                 .FirstOrDefaultAsync(x => x.RequestId == id);
         }
+
+        public async Task<bool> TryReviewPendingAsync(
+    int id,
+    string status,
+    int reviewedBy,
+    string? reviewNotes,
+    DateTime reviewedAt)
+        {
+            var affected = await _dbSet
+                .Where(ar => ar.RequestId == id
+                          && ar.Status.ToLower() == "pending")
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(ar => ar.Status, status)
+                    .SetProperty(ar => ar.ReviewedBy, (int?)reviewedBy)
+                    .SetProperty(ar => ar.ReviewedAt, (DateTime?)reviewedAt)
+                    .SetProperty(ar => ar.ReviewNotes, reviewNotes));
+
+            return affected == 1;
+        }
     }
 }

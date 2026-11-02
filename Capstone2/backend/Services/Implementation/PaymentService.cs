@@ -36,6 +36,8 @@ namespace EduTrack.API.Services.Implementation
                 PaymentId = x.PaymentId,
                 InvoiceId = x.InvoiceId,
                 Amount = x.Amount,
+                AdditionalChargeAmount = x.AdditionalChargeAmount,
+                AdditionalChargeNote = x.AdditionalChargeNote,
                 PaymentMethod = x.PaymentMethod,
                 TransactionCode = x.TransactionCode,
                 PaidAt = x.PaidAt,
