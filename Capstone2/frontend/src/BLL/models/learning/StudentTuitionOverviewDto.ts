@@ -38,3 +38,4 @@ export interface PayStudentTuitionPayload {
   paymentMethod: string;
   invoiceIds?: number[];
 }
+

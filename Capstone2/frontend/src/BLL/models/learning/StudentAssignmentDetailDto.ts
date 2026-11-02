@@ -34,3 +34,4 @@ export interface SubmitHomeworkPayload {
   fileUrl?: string;
   fileSizeText?: string;
 }
+

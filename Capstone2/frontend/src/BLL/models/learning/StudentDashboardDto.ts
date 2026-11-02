@@ -22,3 +22,4 @@ export interface StudentDashboardApiDto {
   pendingAssignmentsCount: number;
   classes: StudentEnrolledClassApiDto[];
 }
+

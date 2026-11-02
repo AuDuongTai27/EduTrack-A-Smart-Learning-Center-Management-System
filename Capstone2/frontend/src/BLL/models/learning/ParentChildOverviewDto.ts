@@ -30,3 +30,4 @@ export interface ParentChildOverviewApiDto {
   unpaidAmount: number;
   classes: ParentChildClassApiDto[];
 }
+

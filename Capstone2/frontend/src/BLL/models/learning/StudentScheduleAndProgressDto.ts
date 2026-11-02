@@ -49,3 +49,4 @@ export interface StudentProgressOverviewApiDto {
   enrolledClassesCount: number;
   currentClasses: StudentProgressClassApiDto[];
 }
+

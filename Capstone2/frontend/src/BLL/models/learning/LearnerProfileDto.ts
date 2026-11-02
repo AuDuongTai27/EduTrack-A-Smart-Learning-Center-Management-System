@@ -22,3 +22,4 @@ export interface UpdateLearnerProfilePayload {
   avatarUrl?: string;
   address?: string;
 }
+

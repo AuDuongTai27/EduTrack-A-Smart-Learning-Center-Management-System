@@ -49,3 +49,4 @@ export interface LearnerNotificationItemApiDto {
   isRead: boolean;
   createdAt: string;
 }
+

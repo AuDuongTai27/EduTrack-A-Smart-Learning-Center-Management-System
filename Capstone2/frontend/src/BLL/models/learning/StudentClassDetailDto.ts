@@ -50,3 +50,4 @@ export interface StudentClassDetailApiDto {
   assignments: ClassAssignmentItemApiDto[];
   sessions: ClassSessionAttendanceItemApiDto[];
 }
+
