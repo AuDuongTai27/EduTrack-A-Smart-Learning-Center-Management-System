@@ -13,6 +13,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
         public static IServiceCollection AddTeachingServices(this IServiceCollection services)
         {
             services.AddScoped<ITeachingRequestService, TeachingRequestService>();
+            services.AddScoped<ITeachingDashboardService, TeachingDashboardService>();
             return services;
         }
     }

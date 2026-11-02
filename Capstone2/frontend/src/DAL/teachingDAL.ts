@@ -1,11 +1,125 @@
 import { teachingApi, type CreateTeachingRequestPayload } from '../api/teachingApi';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
+import type { TeachingDashboardDto } from '../BLL/models/TeachingDashboardDto';
+
+export interface TeachingDashboardViewModel extends TeachingDashboardDto {
+  source: 'api' | 'mock';
+}
 
 /**
  * [Bounded Context: Teaching]
  * Tầng Data Access Layer (DAL) dành riêng cho Thành viên 2 (Teacher & Teaching Assistant)
  */
 export const teachingDAL = {
+  /**
+   * Lấy dữ liệu Bảng điều khiển (Dashboard) cho Giáo viên hoặc Trợ giảng chỉ dựa trên userId
+   */
+  async getDashboard(userId: number): Promise<TeachingDashboardViewModel> {
+    try {
+      const data = await teachingApi.getDashboard(userId);
+      if (data) {
+        return {
+          ...data,
+          source: 'api',
+        };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không kết nối được API Dashboard (userId=${userId}), chuyển sang dữ liệu mock:`, err?.message);
+    }
+
+    // Mock fallback khi backend chưa chạy hoặc lỗi mạng (nhận diện role theo userId mẫu: 5 là TA, 3 là Teacher)
+    const isTa = userId === 5;
+    return {
+      source: 'mock',
+      profile: {
+        userId: userId,
+        userCode: isTa ? 'TA001' : 'TC001',
+        fullName: isTa ? 'Âu Dương Tài' : 'ThS. Hoàng Quốc Việt',
+        email: isTa ? 'tai.auduong@edutrack.edu.vn' : 'viet.hoang@edutrack.edu.vn',
+        phone: isTa ? '0912 345 678' : '0903 123 456',
+        specialty: isTa ? 'Trợ giảng Toán & Khoa học' : 'Toán học & Luyện thi',
+        avatarUrl: '/assets/img/profiles/avatar-27.jpg',
+        roleTitle: isTa ? 'Trợ giảng chuyên môn' : 'Giáo viên chuyên môn',
+        role: isTa ? 'teaching_assistant' : 'teacher',
+      },
+      kpis: {
+        activeAssignments: isTa ? 10 : 8,
+        assignmentsDueToday: isTa ? 4 : 3,
+        activeClasses: 6,
+        classesToday: isTa ? 3 : 2,
+        totalStudents: isTa ? 50 : 45,
+      },
+      todayClasses: isTa
+        ? [
+            {
+              classId: 1,
+              className: '[Mock] Hỗ trợ phụ đạo Toán 12',
+              timePeriod: '08:00 - 09:45',
+              room: 'Phòng 201',
+              subjectName: 'Toán học',
+            },
+            {
+              classId: 2,
+              className: '[Mock] Trực phòng thực hành Vật Lý 12',
+              timePeriod: '10:00 - 11:45',
+              room: 'Phòng 202',
+              subjectName: 'Vật Lý',
+            },
+            {
+              classId: 3,
+              className: '[Mock] Hỗ trợ điểm danh ca chiều Hóa 10',
+              timePeriod: '14:00 - 15:45',
+              room: 'Phòng 203',
+              subjectName: 'Hóa học',
+            },
+          ]
+        : [
+            {
+              classId: 1,
+              className: '[Mock] Toán 12 Chuyên Sâu – Luyện Thi ĐH',
+              timePeriod: '08:00 - 09:45',
+              room: 'Phòng 201',
+              subjectName: 'Toán học',
+            },
+            {
+              classId: 2,
+              className: '[Mock] Toán 10 Nâng Cao',
+              timePeriod: '10:00 - 11:45',
+              room: 'Phòng 202',
+              subjectName: 'Toán học',
+            },
+          ],
+      notifications: [
+        {
+          notificationId: 1,
+          title: 'Họp hội đồng chuyên môn Tháng 11',
+          description: 'Kính mời quý thầy cô tham gia buổi họp đánh giá tiến độ giữa kỳ vào 15:00 Thứ Sáu tuần này.',
+          sender: 'Ban Giám Đốc EduTrack',
+          initials: 'ET',
+          initialsBgClass: 'bg-primary-subtle',
+          initialsColorClass: 'text-primary',
+          isNew: true,
+          isRead: false,
+          timeAgo: '2 giờ trước',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          notificationId: 2,
+          title: 'Nhắc nhở cập nhật kết quả kiểm tra định kỳ',
+          description: 'Hệ thống đã mở cổng nhập điểm số và nhận xét tiến độ học viên cho các bài kiểm tra tuần trước.',
+          sender: 'Phòng Đào Tạo',
+          initials: 'PĐT',
+          initialsBgClass: 'bg-warning-subtle',
+          initialsColorClass: 'text-warning',
+          isNew: true,
+          isRead: false,
+          timeAgo: '5 giờ trước',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    };
+  },
+
   /**
    * Gửi đơn yêu cầu mới từ Giáo viên / Trợ giảng
    */

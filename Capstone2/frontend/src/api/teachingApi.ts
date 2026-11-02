@@ -1,4 +1,5 @@
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
+import type { TeachingDashboardDto } from '../BLL/models/TeachingDashboardDto';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -18,6 +19,26 @@ export interface CreateTeachingRequestPayload {
  * Tầng Network API dành riêng cho Thành viên 2 (Teacher & Teaching Assistant)
  */
 export const teachingApi = {
+  /**
+   * GET /api/teaching/dashboard?userId={userId}
+   * Lấy tổng quan Dashboard cho Giáo viên hoặc Trợ giảng (Backend tự động xác định role theo userId)
+   */
+  async getDashboard(userId: number): Promise<TeachingDashboardDto | null> {
+    const response = await fetch(`${API_BASE_URL}/teaching/dashboard?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} khi tải Dashboard giảng dạy`);
+    }
+
+    const json = await response.json();
+    return json?.data ?? json ?? null;
+  },
+
   /**
    * POST /api/teaching/requests
    * Tạo đơn yêu cầu/kiến nghị từ phía Giáo viên hoặc Trợ giảng

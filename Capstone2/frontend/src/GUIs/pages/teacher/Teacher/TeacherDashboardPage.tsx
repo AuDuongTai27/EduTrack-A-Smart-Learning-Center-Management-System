@@ -8,89 +8,68 @@ import {
   NotificationsSection,
   type TodayClassItem,
 } from "../../../components/teacher/Teacher/dashboard";
-import { userDAL } from "../../../../DAL/userDAL";
-import { classDAL } from "../../../../DAL/classDAL";
-import { scheduleDAL } from "../../../../DAL/scheduleDAL";
-import { notificationDAL } from "../../../../DAL/notificationDAL";
-import type { UserDto } from "../../../../BLL/models/UserDto";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { ClassScheduleDto } from "../../../../BLL/models/ClassScheduleDto";
-import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
+import { teachingDAL, type TeachingDashboardViewModel } from "../../../../DAL/teachingDAL";
 import type { TeacherNotification } from "../../../components/teacher/notificationsData";
 
+const DEFAULT_TEACHER_ID = 3; // ThS. Hoàng Quốc Việt
+
 export default function TeacherDashboardPage() {
-  const [teacher, setTeacher] = useState<UserDto | null>(null);
-  const [classes, setClasses] = useState<ClassDto[]>([]);
-  const [todayClasses, setTodayClasses] = useState<TodayClassItem[]>([]);
-  const [notifications, setNotifications] = useState<TeacherNotification[]>([]);
+  const [dashboardData, setDashboardData] = useState<TeachingDashboardViewModel | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadDashboardData() {
+    async function loadDashboard() {
       try {
-        const [userRes, classesRes, schedulesRes, notifsRes] = await Promise.all([
-          userDAL.getUserById(3), // ThS. Hoàng Quốc Việt
-          classDAL.getAllClasses(),
-          scheduleDAL.getAllClassSchedules(),
-          notificationDAL.getAllNotifications(),
-        ]);
-
+        setLoading(true);
+        const data = await teachingDAL.getDashboard(DEFAULT_TEACHER_ID);
         if (isMounted) {
-          if (userRes) setTeacher(userRes);
-          if (classesRes.data) setClasses(classesRes.data);
-
-          // Lấy các ca học hôm nay từ schedules hoặc classes
-          if (schedulesRes.data && schedulesRes.data.length > 0) {
-            const mappedToday: TodayClassItem[] = schedulesRes.data.slice(0, 3).map((s: ClassScheduleDto) => ({
-              id: s.classId,
-              className: s.className || `Lớp học #${s.classId}`,
-              timePeriod: `${s.startTime?.substring(0, 5) || "08:00"} - ${s.endTime?.substring(0, 5) || "09:45"}`,
-            }));
-            setTodayClasses(mappedToday);
-          } else if (classesRes.data && classesRes.data.length > 0) {
-            const mappedToday: TodayClassItem[] = classesRes.data.slice(0, 2).map((c: ClassDto, idx: number) => ({
-              id: c.classId,
-              className: c.className,
-              timePeriod: idx === 0 ? "08:00 - 09:45" : "10:00 - 11:45",
-            }));
-            setTodayClasses(mappedToday);
-          }
-
-          // Map thông báo sang format TeacherNotification
-          if (notifsRes.data && notifsRes.data.length > 0) {
-            const mappedNotifs: TeacherNotification[] = notifsRes.data.slice(0, 4).map((n: NotificationDto) => ({
-              id: n.notificationId,
-              sender: "Ban Giám Đốc EduTrack",
-              initials: "ET",
-              initialsBgClass: "bg-primary-subtle",
-              initialsColorClass: "text-primary",
-              isNew: !n.isRead,
-              isRead: n.isRead,
-              timeAgo: n.createdAt ? new Date(n.createdAt).toLocaleDateString("vi-VN") : "Hôm nay",
-              title: n.title,
-              description: n.content,
-              hasBottomBorder: true,
-            }));
-            setNotifications(mappedNotifs);
-          }
+          setDashboardData(data);
         }
       } catch (err) {
-        console.warn("Lỗi tải dữ liệu TeacherDashboard:", err);
+        console.warn("Lỗi tải TeacherDashboard:", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
-    loadDashboardData();
+    loadDashboard();
 
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const teacherName = teacher?.fullName || "ThS. Hoàng Quốc Việt";
-  const userCode = teacher?.userCode ? `#${teacher.userCode}` : "#TC001";
-  const specialty = teacher?.specialty || "Toán học & Luyện thi";
-  const avatar = teacher?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
+  const profile = dashboardData?.profile;
+  const kpis = dashboardData?.kpis;
+  const teacherName = profile?.fullName || "ThS. Hoàng Quốc Việt";
+  const userCode = profile?.userCode ? `#${profile.userCode}` : "#TC001";
+  const specialty = profile?.specialty || "Toán học & Luyện thi";
+  const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
+  const roleTitle = profile?.roleTitle || "Giáo viên chuyên môn";
+
+  const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || []).map((cls) => ({
+    id: cls.classId,
+    className: cls.className,
+    timePeriod: cls.timePeriod,
+  }));
+
+  const mappedNotifications: TeacherNotification[] = (dashboardData?.notifications || []).map((n) => ({
+    id: n.notificationId,
+    sender: n.sender || "Ban Giám Đốc EduTrack",
+    initials: n.initials || "ET",
+    initialsBgClass: n.initialsBgClass || "bg-primary-subtle",
+    initialsColorClass: n.initialsColorClass || "text-primary",
+    isNew: n.isNew,
+    isRead: n.isRead,
+    timeAgo: n.timeAgo || "Hôm nay",
+    title: n.title,
+    description: n.description,
+    hasBottomBorder: true,
+  }));
 
   return (
     <>
@@ -106,38 +85,47 @@ export default function TeacherDashboardPage() {
       {/* Greeting section */}
       <GreetingSection name={teacherName} message="Chúc thầy/cô một ngày giảng dạy hiệu quả tại EduTrack!" />
 
-      <div className="row">
-        <div className="col-xxl-6 col-xl-12">
-          {/* Teacher profile */}
-          <TeacherProfileCard
-            id={userCode}
-            name={teacherName}
-            avatar={avatar}
-            role="Giáo viên chuyên môn"
-            subject={specialty}
-            profileUrl="/teacher/profile"
-          />
-
-          {/* Dashboard KPI Cards */}
-          <TeacherKpiCards
-            activeAssignments={8}
-            assignmentsDueToday={3}
-            activeClasses={classes.length > 0 ? classes.length : 6}
-            classesToday={todayClasses.length > 0 ? todayClasses.length : 2}
-          />
-
-          {/* Today's class */}
-          <TodayClassesSection classes={todayClasses} />
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Đang tải...</span>
+          </div>
+          <p className="text-muted mt-2">Đang tải thông tin bảng điều khiển...</p>
         </div>
+      ) : (
+        <div className="row">
+          <div className="col-xxl-6 col-xl-12">
+            {/* Teacher profile */}
+            <TeacherProfileCard
+              id={userCode}
+              name={teacherName}
+              avatar={avatar}
+              role={roleTitle}
+              subject={specialty}
+              profileUrl="/teacher/profile"
+            />
 
-        <div className="col-xxl-6 col-xl-12 d-flex flex-column">
-          {/* Notifications */}
-          <NotificationsSection
-            notifications={notifications.length > 0 ? notifications : undefined}
-            viewAllUrl="/teacher/notifications"
-          />
+            {/* Dashboard KPI Cards */}
+            <TeacherKpiCards
+              activeAssignments={kpis?.activeAssignments ?? 8}
+              assignmentsDueToday={kpis?.assignmentsDueToday ?? 3}
+              activeClasses={kpis?.activeClasses ?? 6}
+              classesToday={kpis?.classesToday ?? (mappedTodayClasses.length > 0 ? mappedTodayClasses.length : 2)}
+            />
+
+            {/* Today's class */}
+            <TodayClassesSection classes={mappedTodayClasses} />
+          </div>
+
+          <div className="col-xxl-6 col-xl-12 d-flex flex-column">
+            {/* Notifications */}
+            <NotificationsSection
+              notifications={mappedNotifications.length > 0 ? mappedNotifications : undefined}
+              viewAllUrl="/teacher/notifications"
+            />
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

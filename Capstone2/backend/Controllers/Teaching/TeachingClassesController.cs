@@ -1,6 +1,8 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using EduTrack.API.Services.Interfaces;
+using EduTrack.API.Services.Teaching.Interfaces;
 
 namespace EduTrack.API.Controllers.Teaching
 {
@@ -17,17 +19,40 @@ namespace EduTrack.API.Controllers.Teaching
         private readonly IClassScheduleService _scheduleService;
         private readonly IClassSessionService _sessionService;
         private readonly IContentUnitService _contentUnitService;
+        private readonly ITeachingDashboardService _dashboardService;
 
         public TeachingClassesController(
             IClassService classService,
             IClassScheduleService scheduleService,
             IClassSessionService sessionService,
-            IContentUnitService contentUnitService)
+            IContentUnitService contentUnitService,
+            ITeachingDashboardService dashboardService)
         {
             _classService = classService;
             _scheduleService = scheduleService;
             _sessionService = sessionService;
             _contentUnitService = contentUnitService;
+            _dashboardService = dashboardService;
+        }
+
+        /// <summary>
+        /// Lấy tổng quan Dashboard cho Giáo viên hoặc Trợ giảng dựa trên userId (tự động phân quyền từ database)
+        /// </summary>
+        [HttpGet("~/api/teaching/dashboard")]
+        public async Task<IActionResult> GetDashboard([FromQuery] int userId)
+        {
+            if (userId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
+            }
+
+            var data = await _dashboardService.GetDashboardAsync(userId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy thông tin tài khoản có ID = {userId}" });
+            }
+
+            return Ok(new { success = true, data });
         }
 
         // TODO [Thành viên 2 - Teacher & TA]:
