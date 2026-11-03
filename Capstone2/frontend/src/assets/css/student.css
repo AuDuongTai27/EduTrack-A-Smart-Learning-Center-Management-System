@@ -1927,42 +1927,75 @@
   border-radius: 10px;
   padding: 8px 10px;
   overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
   z-index: 10;
   display: flex;
   flex-direction: column;
 }
 
 .session-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
   z-index: 20;
 }
 
 .session-card-upcoming {
   background: #EFF6FF;
-  border-left: 3.5px solid #2563EB;
+  border-color: rgba(37, 99, 235, 0.22);
+  border-left: 4px solid #2563EB;
   color: #1E3A8A;
+}
+
+.session-card-upcoming:hover {
+  background: #DBEAFE;
+  border-color: #2563EB;
+  border-left: 4px solid #1D4ED8;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18), 0 0 0 1px rgba(37, 99, 235, 0.28);
 }
 
 .session-card-ongoing {
   background: #ECFDF5;
-  border-left: 3.5px solid #10B981;
+  border-color: rgba(16, 185, 129, 0.24);
+  border-left: 4px solid #10B981;
   color: #064E3B;
+}
+
+.session-card-ongoing:hover {
+  background: #D1FAE5;
+  border-color: #10B981;
+  border-left: 4px solid #059669;
+  box-shadow: 0 6px 14px rgba(16, 185, 129, 0.18), 0 0 0 1px rgba(16, 185, 129, 0.28);
 }
 
 .session-card-completed {
   background: #F1F5F9;
-  border-left: 3.5px solid #94A3B8;
+  border-color: rgba(148, 163, 184, 0.28);
+  border-left: 4px solid #94A3B8;
   color: #334155;
+}
+
+.session-card-completed:hover {
+  background: #E2E8F0;
+  border-color: #64748B;
+  border-left: 4px solid #475569;
+  box-shadow: 0 6px 14px rgba(100, 116, 139, 0.16), 0 0 0 1px rgba(100, 116, 139, 0.24);
 }
 
 .session-card-cancelled {
   background: #FEF2F2;
-  border-left: 3.5px solid #EF4444;
+  border-color: rgba(239, 68, 68, 0.24);
+  border-left: 4px solid #EF4444;
   color: #7F1D1D;
+}
+
+.session-card-cancelled:hover {
+  background: #FEE2E2;
+  border-color: #EF4444;
+  border-left: 4px solid #DC2626;
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.18), 0 0 0 1px rgba(239, 68, 68, 0.28);
 }
 
 .session-card-time {
