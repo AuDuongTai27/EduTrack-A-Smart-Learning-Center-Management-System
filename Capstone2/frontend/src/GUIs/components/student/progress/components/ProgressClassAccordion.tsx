@@ -14,7 +14,11 @@ export function ProgressClassAccordion({
   onToggle,
 }: ProgressClassAccordionProps) {
   return (
-    <div className={`class-accordion-card ${item.colorTheme} ${isOpen ? 'is-open' : ''}`}>
+    <div
+      className={`class-accordion-card ${item.colorTheme} ${
+        item.isCompleted ? 'is-completed-class' : ''
+      } ${isOpen ? 'is-open' : ''}`}
+    >
       <button type="button" className="class-row-header-btn" onClick={onToggle}>
         <div className="class-subject-icon-box">
           <i className={`bi ${item.icon}`}></i>
@@ -24,7 +28,12 @@ export function ProgressClassAccordion({
             <span className="class-main-name">{item.className}</span>
             <span className="class-meta-sep">&middot;</span>
             <span className="class-subject-name">{item.subjectName}</span>
-            {item.isCompleted && <span className="completed-tag">Đã hoàn thành</span>}
+            {item.isCompleted && (
+              <span className="completed-tag">
+                <i className="bi bi-patch-check-fill me-1"></i>
+                Đã hoàn thành
+              </span>
+            )}
           </div>
           <div className="attendance-bar-wrap">
             <div className="attendance-progress-track">
@@ -45,7 +54,9 @@ export function ProgressClassAccordion({
           <span className="count-num">
             {item.attended}/{item.total}
           </span>
-          <span className="count-label">buổi điểm danh</span>
+          <span className="count-label">
+            {item.isCompleted ? 'buổi hoàn tất' : 'buổi điểm danh'}
+          </span>
         </div>
         <div className="class-pct-square-badge d-none d-sm-flex">
           {item.percentage}%
@@ -59,7 +70,9 @@ export function ProgressClassAccordion({
         <div className="accordion-sub-header">
           <div className="accordion-sub-dot"></div>
           <span className="accordion-sub-title">
-            Nhận xét từ giáo viên ({item.feedbacks.length})
+            {item.isCompleted
+              ? `Đánh giá tổng kết khóa học (${item.feedbacks.length})`
+              : `Nhận xét từ giáo viên (${item.feedbacks.length})`}
           </span>
         </div>
         <div className="feedback-list">
@@ -70,6 +83,6 @@ export function ProgressClassAccordion({
       </div>
     </div>
   );
-};
+}
 
 export default ProgressClassAccordion;

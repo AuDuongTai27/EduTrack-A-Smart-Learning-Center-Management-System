@@ -3977,3 +3977,193 @@
 .student-header-breadcrumbs ol li {
   line-height: 1.2;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESS COMPLETED CLASSES & STATUS BADGE ENHANCEMENTS
+═══════════════════════════════════════════════════════════════ */
+.completed-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #ECFDF5;
+  color: #047857;
+  padding: 2px 10px;
+  border-radius: 99px;
+  border: 1px solid #A7F3D0;
+  margin-left: 4px;
+}
+
+.psb-caithien,
+.psb-canluuy {
+  background-color: #FFFBEB;
+  color: #B45309;
+  border-color: #FDE68A;
+}
+
+.psb-chuadat {
+  background-color: #FEF2F2;
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+.psb-chuacoxn,
+.psb-chuacham {
+  background-color: #F1F5F9;
+  color: var(--et-muted);
+  border-color: #E2E8F0;
+}
+
+.prog-purple .class-subject-icon-box {
+  background-color: #F5F3FF;
+  color: #7C3AED;
+  border-color: #DDD6FE;
+}
+.prog-purple .class-subject-name {
+  color: #7C3AED;
+}
+.prog-purple .attendance-progress-fill {
+  background-color: #7C3AED;
+}
+.prog-purple .class-pct-square-badge {
+  background-color: #F5F3FF;
+  color: #7C3AED;
+}
+.prog-purple .accordion-sub-dot,
+.prog-purple .feedback-left-line {
+  background-color: #8B5CF6;
+}
+
+.prog-green .class-subject-icon-box {
+  background-color: #ECFDF5;
+  color: #0D9488;
+  border-color: #99F6E4;
+}
+.prog-green .class-subject-name {
+  color: #0D9488;
+}
+.prog-green .attendance-progress-fill {
+  background-color: #0D9488;
+}
+.prog-green .class-pct-square-badge {
+  background-color: #ECFDF5;
+  color: #0D9488;
+}
+.prog-green .accordion-sub-dot,
+.prog-green .feedback-left-line {
+  background-color: #14B8A6;
+}
+
+.past-completed-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  background-color: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #059669;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.btn-toggle-past-classes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--et-border-light);
+  background-color: #fff;
+  color: var(--et-slate);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-past-classes:hover {
+  border-color: #BFDBFE;
+  color: var(--et-primary);
+  background-color: #EFF6FF;
+}
+
+.btn-toggle-past-classes.is-open {
+  border-color: #CBD5E1;
+  background-color: #F8FAFC;
+}
+
+.btn-toggle-past-classes .toggle-arrow {
+  font-size: 11px;
+  transition: transform 0.25s ease;
+}
+
+.btn-toggle-past-classes .toggle-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+.past-collapsed-preview-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px dashed #CBD5E1;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.past-collapsed-preview-card:hover {
+  border-style: solid;
+  border-color: #93C5FD;
+  background-color: #F8FAFC;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+}
+
+.past-preview-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.past-preview-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--et-dark);
+}
+
+.past-preview-subtitle {
+  font-size: 12.5px;
+  color: var(--et-muted);
+  margin-top: 2px;
+}
+
+.past-preview-action {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--et-primary);
+  white-space: nowrap;
+}
+
+.past-history-container {
+  display: none;
+  margin-top: 0;
+}
+
+.past-history-container.is-open {
+  display: block;
+}
