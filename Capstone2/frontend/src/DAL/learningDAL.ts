@@ -707,15 +707,25 @@ export const learningDAL = {
           }
         );
 
+        const presentCount = apiData.presentCount ?? 0;
+        const absentCount = apiData.absentCount ?? 0;
+        const lateCount = apiData.lateCount ?? 0;
+        const totalSessionsCount = presentCount + absentCount + lateCount;
+        const attendedSessionsCount = presentCount;
+        const overallAttendanceRate =
+          totalSessionsCount > 0
+            ? Math.round((presentCount * 100) / totalSessionsCount)
+            : 100;
+
         return {
           studentId: apiData.studentId,
           studentName: apiData.studentName,
-          overallAttendanceRate: apiData.overallAttendanceRate,
-          attendedSessionsCount: apiData.attendedSessionsCount,
-          presentCount: apiData.presentCount,
-          absentCount: apiData.absentCount,
-          lateCount: apiData.lateCount,
-          totalSessionsCount: apiData.totalSessionsCount,
+          overallAttendanceRate,
+          attendedSessionsCount,
+          presentCount,
+          absentCount,
+          lateCount,
+          totalSessionsCount,
           enrolledClassesCount: apiData.enrolledClassesCount,
           currentClasses: mappedClasses.length > 0 ? mappedClasses : CURRENT_PROGRESS_CLASSES,
           source: 'api',
