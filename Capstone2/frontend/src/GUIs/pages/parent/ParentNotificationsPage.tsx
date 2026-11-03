@@ -118,7 +118,7 @@ export function ParentNotificationsPage() {
 
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
   const [notifications, setNotifications] = useState<ParentNotificationItem[]>(INITIAL_PARENT_NOTIFS);
-  const [readIds, setReadIds] = useState<Set<number>>(new Set());
+  const [readIds, setReadIds] = useState<Set<number>>(() => learningDAL.getLocalReadIds());
 
   useEffect(() => {
     document.title = 'Thông báo phụ huynh – EduTrack';
@@ -159,9 +159,10 @@ export function ParentNotificationsPage() {
   };
 
   const handleMarkAllRead = async () => {
-    setReadIds(new Set(notifications.map((n) => n.id)));
+    const allIds = notifications.map((n) => n.id);
+    setReadIds(new Set(allIds));
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-    await learningDAL.markAllNotificationsRead(DEFAULT_PARENT_ID, targetStudentId);
+    await learningDAL.markAllNotificationsRead(DEFAULT_PARENT_ID, targetStudentId, allIds);
   };
 
   const filtered = notifications.filter((n) => {

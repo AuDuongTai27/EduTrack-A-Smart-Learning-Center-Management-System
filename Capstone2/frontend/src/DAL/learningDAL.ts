@@ -412,7 +412,74 @@ function mapApiProfileToStudentProfile(dto: LearnerProfileApiDto): StudentProfil
  * [Bounded Context: Learning]
  * Tầng Data Access Layer (DAL) dành riêng cho Thành viên 3 (Student & Parent)
  */
+const LOCAL_READ_NOTIFS_KEY = 'edutrack_read_notification_ids';
+
+export function getLocalReadNotificationIds(): Set<number> {
+  try {
+    const raw = localStorage.getItem(LOCAL_READ_NOTIFS_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {
+    // fallback
+  }
+  return new Set();
+}
+
+export function saveLocalReadNotificationId(id: number) {
+  try {
+    const set = getLocalReadNotificationIds();
+    set.add(id);
+    localStorage.setItem(LOCAL_READ_NOTIFS_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore
+  }
+}
+
+export function saveAllLocalReadNotificationIds(ids: number[]) {
+  try {
+    const set = getLocalReadNotificationIds();
+    ids.forEach((id) => set.add(id));
+    localStorage.setItem(LOCAL_READ_NOTIFS_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore
+  }
+}
+
 export const learningDAL = {
+  getLocalReadIds(): Set<number> {
+    return getLocalReadNotificationIds();
+  },
+
+  /**
+   * Lấy số lượng thông báo chưa đọc của Học sinh
+   */
+  async getStudentUnreadCount(studentId = DEFAULT_STUDENT_ID): Promise<number> {
+    try {
+      const notifs = await this.getStudentNotifications(studentId);
+      const readSet = getLocalReadNotificationIds();
+      return notifs.filter((n) => n.unread && !readSet.has(n.id)).length;
+    } catch {
+      return 0;
+    }
+  },
+
+  /**
+   * Lấy số lượng thông báo chưa đọc của Phụ huynh
+   */
+  async getParentUnreadCount(
+    parentId = DEFAULT_PARENT_ID,
+    studentId?: number
+  ): Promise<number> {
+    try {
+      const notifs = await this.getParentNotifications(parentId, studentId);
+      const readSet = getLocalReadNotificationIds();
+      return notifs.filter((n) => !n.isRead && !readSet.has(n.notificationId)).length;
+    } catch {
+      return 0;
+    }
+  },
   /**
    * Lấy toàn bộ dữ liệu Dashboard của Học sinh từ Backend (kèm fallback an toàn khi offline)
    */
@@ -880,13 +947,51 @@ export const learningDAL = {
     parentId = DEFAULT_PARENT_ID,
     studentId?: number
   ): Promise<LearnerNotificationItemApiDto[]> {
-    return await learningApi.getParentNotifications(parentId, studentId);
+    try {
+      const list = await learningApi.getParentNotifications(parentId, studentId);
+      if (list && list.length > 0) {
+        return list;
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Parent Notifications, dùng mock fallback:', error);
+    }
+
+    return [
+      {
+        notificationId: 1,
+        title: 'Thông báo học phí kỳ mới tháng 10/2026',
+        content: 'Hóa đơn học phí kỳ tháng 10/2026 của học sinh Lê Văn An đã được phát hành. Quý phụ huynh có thể kiểm tra và thanh toán trực tuyến tại mục Học phí.',
+        type: 'tuition',
+        className: 'Toán Nâng Cao 9',
+        createdAt: '2026-10-14T09:00:00Z',
+        isRead: false,
+      },
+      {
+        notificationId: 2,
+        title: 'Cập nhật nhận xét định kỳ từ Giáo viên',
+        content: 'Giáo viên phụ trách lớp Toán Nâng Cao 9 đã cập nhật phiếu đánh giá tiến độ và chuyên cần tháng 10 cho học sinh Lê Văn An.',
+        type: 'class_review',
+        className: 'Toán Nâng Cao 9',
+        createdAt: '2026-10-13T17:45:00Z',
+        isRead: false,
+      },
+      {
+        notificationId: 3,
+        title: 'Thông báo lịch nghỉ lễ và học bù của trung tâm',
+        content: 'EduTrack xin gửi tới Quý phụ huynh kế hoạch nghỉ lễ và lịch học bù của các lớp trong tuần tới.',
+        type: 'system',
+        className: undefined,
+        createdAt: '2026-10-10T08:00:00Z',
+        isRead: true,
+      },
+    ];
   },
 
-  /**
-   * Đánh dấu 1 thông báo đã đọc trên CSDL
-   */
   async markNotificationRead(notificationId: number): Promise<boolean> {
+    saveLocalReadNotificationId(notificationId);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
     try {
       return await learningApi.markNotificationRead(notificationId);
     } catch (error) {
@@ -895,10 +1000,17 @@ export const learningDAL = {
     }
   },
 
-  /**
-   * Đánh dấu tất cả thông báo đã đọc trên CSDL
-   */
-  async markAllNotificationsRead(userId: number, studentId?: number): Promise<number> {
+  async markAllNotificationsRead(
+    userId: number,
+    studentId?: number,
+    notificationIds?: number[]
+  ): Promise<number> {
+    if (notificationIds && notificationIds.length > 0) {
+      saveAllLocalReadNotificationIds(notificationIds);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
     try {
       return await learningApi.markAllNotificationsRead(userId, studentId);
     } catch (error) {

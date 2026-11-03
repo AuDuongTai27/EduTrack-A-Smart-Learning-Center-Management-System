@@ -13,7 +13,7 @@ import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 export function StudentNotificationsPage() {
   const [activeTab, setActiveTab] = useState<NotifTabType>('All');
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
-  const [readIds, setReadIds] = useState<Set<number>>(new Set());
+  const [readIds, setReadIds] = useState<Set<number>>(() => learningDAL.getLocalReadIds());
   const [prefsOpen, setPrefsOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -51,9 +51,10 @@ export function StudentNotificationsPage() {
   };
 
   const handleMarkAllRead = async () => {
-    setReadIds(new Set(notifications.map((n) => n.id)));
+    const allIds = notifications.map((n) => n.id);
+    setReadIds(new Set(allIds));
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-    await learningDAL.markAllNotificationsRead(DEFAULT_STUDENT_ID, DEFAULT_STUDENT_ID);
+    await learningDAL.markAllNotificationsRead(DEFAULT_STUDENT_ID, DEFAULT_STUDENT_ID, allIds);
   };
 
   const filteredNotifications = notifications.filter((n) => {

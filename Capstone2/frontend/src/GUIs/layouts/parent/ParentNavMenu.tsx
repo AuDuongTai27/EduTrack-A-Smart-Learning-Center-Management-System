@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
+import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
 
 interface ParentNavMenuProps {
   onLinkClick?: () => void;
@@ -9,6 +11,35 @@ interface ParentNavMenuProps {
 
 export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const { selectedChild } = useParent();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUnreadCount = async () => {
+      try {
+        const count = await learningDAL.getParentUnreadCount(
+          DEFAULT_PARENT_ID,
+          selectedChild?.id || DEFAULT_STUDENT_ID
+        );
+        if (isMounted) setUnreadCount(count);
+      } catch {
+        if (isMounted) setUnreadCount(0);
+      }
+    };
+
+    loadUnreadCount();
+
+    const handleUpdate = () => {
+      loadUnreadCount();
+    };
+
+    window.addEventListener('notifications-updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('notifications-updated', handleUpdate);
+    };
+  }, [selectedChild?.id]);
 
   return (
     <>
@@ -92,7 +123,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
             >
               <span className="nav-icon"><i className="bi bi-bell"></i></span>
               <span className="nav-label">Thông báo</span>
-              <span className="sidebar-badge">2</span>
+              {unreadCount > 0 && <span className="sidebar-badge">{unreadCount}</span>}
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
