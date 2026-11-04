@@ -6,6 +6,7 @@ import {
   TeachingProfilePrimaryInfo,
   TeachingAssistantProfileEditCard,
 } from "../../../components/teacher/TeachingAssistant/profile";
+import ChangePasswordModal from "../../../components/teacher/ChangePasswordModal";
 import {
   teachingDAL,
   DEFAULT_TA_ID,
@@ -18,6 +19,7 @@ export default function TeachingAssistantProfilePage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "danger" } | null>(null);
 
   useEffect(() => {
@@ -129,10 +131,21 @@ export default function TeachingAssistantProfilePage() {
             <TeachingProfileDetails profile={profile} />
 
             {/* Bottom Action */}
-            <TeachingAssistantProfileBottomAction onEdit={() => setIsEditing(true)} />
+            <TeachingAssistantProfileBottomAction
+              onEdit={() => setIsEditing(true)}
+              onChangePassword={() => setIsPasswordModalOpen(true)}
+            />
           </div>
         </div>
       )}
+
+      {/* Modal Đổi mật khẩu */}
+      <ChangePasswordModal
+        userId={DEFAULT_TA_ID}
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        onSuccess={(msg) => showToast(msg, "success")}
+      />
     </>
   );
 }

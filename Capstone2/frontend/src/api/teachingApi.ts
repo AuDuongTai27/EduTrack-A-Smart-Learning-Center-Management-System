@@ -328,6 +328,23 @@ export const teachingApi = {
    * PUT /api/teaching/profile?userId={userId}
    * Cập nhật thông tin hồ sơ cá nhân GV/TA
    */
+  async changePassword(userId: number, payload: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE_URL}/teaching/profile/change-password?userId=${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi đổi mật khẩu`);
+    }
+
+    return await res.json();
+  },
+
   async updateProfile(userId: number, payload: UpdateTeacherProfilePayload): Promise<TeacherProfileDto> {
     const res = await fetch(`${API_BASE_URL}/teaching/profile?userId=${userId}`, {
       method: 'PUT',

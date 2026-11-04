@@ -89,6 +89,38 @@ namespace EduTrack.API.Controllers.Teaching
         {
             return await UpdateProfile(userId, request);
         }
+
+        /// <summary>
+        /// Đổi mật khẩu tài khoản Giáo viên hoặc Trợ giảng
+        /// </summary>
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromQuery] int userId, [FromBody] ChangePasswordRequestDto request)
+        {
+            if (userId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
+            }
+
+            var result = await _profileService.ChangePasswordAsync(userId, request);
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.Message });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = result.Message
+            });
+        }
+
+        /// <summary>
+        /// Đổi mật khẩu theo route param /api/teaching/profile/{userId}/change-password
+        /// </summary>
+        [HttpPost("{userId:int}/change-password")]
+        public async Task<IActionResult> ChangePasswordById(int userId, [FromBody] ChangePasswordRequestDto request)
+        {
+            return await ChangePassword(userId, request);
+        }
     }
 }
-

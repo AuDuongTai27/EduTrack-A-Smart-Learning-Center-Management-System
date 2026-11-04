@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { userDAL } from "../../../DAL/userDAL";
 import { notificationDAL } from "../../../DAL/notificationDAL";
+import { useAuthContext } from "../../../contexts/AuthContext";
 import type { UserDto } from "../../../BLL/models/UserDto";
 import type { NotificationDto } from "../../../BLL/models/NotificationDto";
 
 export function TeacherTopBar() {
   const [teacher, setTeacher] = useState<UserDto | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { dispatch } = useAuthContext();
 
   useEffect(() => {
     let isMounted = true;
@@ -33,6 +38,25 @@ export function TeacherTopBar() {
       isMounted = false;
     };
   }, []);
+
+  // Đóng dropdown khi click bên ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    setIsDropdownOpen(false);
+    dispatch({ type: "logout" });
+    navigate("/");
+  };
 
   const initials = teacher?.fullName
     ? teacher.fullName
@@ -75,21 +99,75 @@ export function TeacherTopBar() {
           <i className="bi bi-bell" />
           {unreadCount > 0 && <span className="status-dot" />}
         </Link>
-        <Link className="profile-btn text-decoration-none" to="/teacher/profile" title={teacher?.fullName || "Hồ sơ giáo viên"}>
-          {teacher?.avatarUrl ? (
-            <img
-              src={teacher.avatarUrl}
-              alt={teacher.fullName}
-              className="rounded-circle"
-              style={{ width: "32px", height: "32px", objectFit: "cover" }}
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = "none";
+
+        {/* User Avatar with Dropdown */}
+        <div className="position-relative" ref={dropdownRef}>
+          <button
+            type="button"
+            className="profile-btn border-0 p-0 bg-transparent"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            title={teacher?.fullName || "Tài khoản giáo viên"}
+            aria-expanded={isDropdownOpen}
+          >
+            {teacher?.avatarUrl ? (
+              <img
+                src={teacher.avatarUrl}
+                alt={teacher.fullName}
+                className="rounded-circle"
+                style={{ width: "32px", height: "32px", objectFit: "cover" }}
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = "none";
+                }}
+              />
+            ) : (
+              <span className="profile-avatar">{initials}</span>
+            )}
+          </button>
+
+          {isDropdownOpen && (
+            <div
+              className="dropdown-menu dropdown-menu-end show shadow-lg border rounded-3 py-2 position-absolute"
+              style={{
+                top: "calc(100% + 8px)",
+                right: 0,
+                minWidth: "220px",
+                zIndex: 1050,
               }}
-            />
-          ) : (
-            <span className="profile-avatar">{initials}</span>
+            >
+              <div className="px-3 py-2 border-bottom mb-1">
+                <div className="fw-bold text-dark text-truncate">
+                  {teacher?.fullName || "Giáo viên"}
+                </div>
+                <small className="text-muted d-block text-truncate">
+                  {teacher?.email || "teacher@edutrack.edu.vn"}
+                </small>
+                <span className="badge bg-primary-subtle text-primary mt-1" style={{ fontSize: "10px" }}>
+                  Giáo viên chuyên môn
+                </span>
+              </div>
+
+              <Link
+                to="/teacher/profile"
+                className="dropdown-item d-flex align-items-center gap-2 py-2"
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <i className="bi bi-person-circle text-primary fs-6" />
+                <span>Hồ sơ cá nhân</span>
+              </Link>
+
+              <div className="dropdown-divider my-1" />
+
+              <button
+                type="button"
+                className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                onClick={handleLogout}
+              >
+                <i className="bi bi-box-arrow-right fs-6" />
+                <span>Đăng xuất</span>
+              </button>
+            </div>
           )}
-        </Link>
+        </div>
       </div>
     </header>
   );

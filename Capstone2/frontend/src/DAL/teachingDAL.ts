@@ -843,6 +843,15 @@ export const teachingDAL = {
   /**
    * Cập nhật thông tin hồ sơ GV / TA
    */
+  async changePassword(userId: number, payload: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      return await teachingApi.changePassword(userId, payload);
+    } catch (err: any) {
+      console.warn(`[teachingDAL] Loi goi API changePassword (userId=${userId}):`, err?.message);
+      throw err;
+    }
+  },
+
   async updateProfile(userId: number, payload: UpdateTeacherProfilePayload): Promise<TeacherProfileDto> {
     try {
       const data = await teachingApi.updateProfile(userId, payload);

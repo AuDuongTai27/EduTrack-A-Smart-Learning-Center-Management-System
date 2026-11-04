@@ -94,6 +94,46 @@ namespace EduTrack.API.Services.Teaching.Implementation
             return await MapUserToProfileDtoAsync(user);
         }
 
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+        {
+            if (request == null)
+            {
+                return (false, "Dữ liệu yêu cầu không hợp lệ.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+            {
+                return (false, "Vui lòng nhập mật khẩu hiện tại.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+            {
+                return (false, "Mật khẩu mới phải có ít nhất 6 ký tự.");
+            }
+
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                return (false, "Xác nhận mật khẩu mới không trùng khớp.");
+            }
+
+            if (request.CurrentPassword == request.NewPassword)
+            {
+                return (false, "Mật khẩu mới không được trùng với mật khẩu hiện tại.");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (user == null)
+            {
+                return (false, $"Không tìm thấy người dùng ID = {userId}.");
+            }
+
+            // Lưu mật khẩu mới (trong DB seed dùng chuỗi hash/mock)
+            user.PasswordHash = request.NewPassword.Trim();
+            await _context.SaveChangesAsync();
+
+            return (true, "Đổi mật khẩu thành công!");
+        }
+
         private async Task<TeacherProfileDto> MapUserToProfileDtoAsync(User user)
         {
             var roleNames = user.UserRoles
@@ -170,4 +210,3 @@ namespace EduTrack.API.Services.Teaching.Implementation
         }
     }
 }
-
