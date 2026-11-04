@@ -1,13 +1,14 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using EduTrack.API.Models.DTOs;
+using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduTrack.API.Controllers.Management
 {
-    /// <summary>
-    /// [Bounded Context: Management] Quản lý Cấu hình Trung tâm (4 Tabs Settings)
-    /// Phụ trách: Nhóm Center Manager (Thành viên 1)
-    /// </summary>
     [ApiController]
     [Route("api/centersettings")]
     [Tags("Management - Center Settings")]
@@ -20,9 +21,25 @@ namespace EduTrack.API.Controllers.Management
             _settingService = settingService;
         }
 
-        // TODO [Thành viên 1 - Center Manager]:
-        // Viết các API lưu cấu hình hệ thống tại đây:
-        // - PUT /api/centersettings/{id} (Cập nhật 1 cấu hình theo ID/Key)
-        // - PUT /api/centersettings/bulk (Lưu hàng loạt cấu hình trong 1 tab)
+        // PUT /api/centersettings/bulk
+        // Development only until real authentication/authorization is integrated.
+        [HttpPut("bulk")]
+        public async Task<ActionResult<IReadOnlyList<CenterSettingDto>>> UpdateBulk(
+            [FromBody] CenterSettingsBulkUpdateDto request)
+        {
+            try
+            {
+                var saved = await _settingService.SaveSettingsAsync(request.Settings);
+                return Ok(saved);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (DbUpdateException)
+            {
+                return Conflict(new { message = "Settings could not be saved. Please retry." });
+            }
+        }
     }
 }

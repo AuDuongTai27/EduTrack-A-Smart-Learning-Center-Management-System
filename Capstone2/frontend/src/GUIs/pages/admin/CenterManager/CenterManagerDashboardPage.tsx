@@ -8,15 +8,19 @@ import tuitionDAL from "../../../../DAL/tuitionDAL";
 import notificationDAL from "../../../../DAL/notificationDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
+import type { TuitionDto, PaymentDto } from "../../../../BLL/models/TuitionDto";
+import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
 import managementDAL from "../../../../DAL/managementDAL";
 
 export default function CenterManagerDashboardPage() {
+  const { centerName, academicYear } = useCenterSettings();
   const [manager, setManager] = useState<UserDto | null>(null);
   const [users, setUsers] = useState<UserDto[]>([]);
   const [classes, setClasses] = useState<ClassDto[]>([]);
   const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
+  const [payments, setPayments] = useState<PaymentDto[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -31,12 +35,14 @@ export default function CenterManagerDashboardPage() {
     async function fetchDashboardData() {
       try {
         setLoading(true);
-        const [mgrRes, userRes, classRes, tuiRes, notifRes] = await Promise.all(
+        setLoadError(null);
+        const [mgrRes, userRes, classRes, tuiRes, paymentRes, notifRes] = await Promise.all(
           [
             userDAL.getUserById(1), // Nguyễn Văn Quản Lý
             userDAL.getAllUsers(),
             classDAL.getAllClasses(),
             tuitionDAL.getAllTuitions(),
+            tuitionDAL.getAllPayments(),
             notificationDAL.getAllNotifications(),
           ],
         );
@@ -46,10 +52,12 @@ export default function CenterManagerDashboardPage() {
           if (userRes.data) setUsers(userRes.data);
           if (classRes.data) setClasses(classRes.data);
           if (tuiRes.data) setTuitions(tuiRes.data);
+          if (paymentRes.data) setPayments(paymentRes.data);
           if (notifRes.data) setNotifications(notifRes.data);
         }
       } catch (err) {
         console.warn("Lỗi tải dữ liệu dashboard center manager:", err);
+        if (isMounted) setLoadError(err instanceof Error ? err.message : "Không thể tải dữ liệu từ Backend.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -60,50 +68,58 @@ export default function CenterManagerDashboardPage() {
     };
   }, []);
 
-  // Calculate Metrics
+  // All figures below are calculated from real API records, without fabricated defaults.
   const metrics = useMemo(() => {
-    const studentCount =
-      users.filter((u) => u.roles?.includes("student")).length || 128;
-    const staffCount =
-      users.filter((u) =>
-        u.roles?.some((r) =>
-          ["teacher", "teaching_assistant", "admin_staff"].includes(r),
-        ),
-      ).length || 42;
-    const activeClassesCount =
-      classes.filter((c) => c.status === "active").length ||
-      classes.length ||
-      24;
+    const studentCount = users.filter(
+      (u) => u.roles?.some((r) => r.toLowerCase() === "student") && u.status?.toLowerCase() === "active",
+    ).length;
+    const staffCount = users.filter(
+      (u) => u.roles?.some((r) =>
+        ["teacher", "teaching_assistant", "admin_staff"].includes(r.toLowerCase()),
+      ) && u.status?.toLowerCase() === "active",
+    ).length;
+    const activeClassesCount = classes.filter((c) => c.status?.toLowerCase() === "active").length;
 
-    let totalCollected = 0;
+    const paidByInvoice = new Map<number, number>();
+    for (const payment of payments) {
+      paidByInvoice.set(
+        payment.invoiceId,
+        (paidByInvoice.get(payment.invoiceId) ?? 0) + payment.amount,
+      );
+    }
+
+    let totalBilled = 0;
     let totalOutstanding = 0;
     let totalOverdue = 0;
-
-    tuitions.forEach((t) => {
-      const amount = t.amount || t.amountDue || 0;
-      const paid = t.paidAmount || (t.status === "Paid" ? amount : 0);
-      totalCollected += paid;
-      const remaining = Math.max(0, amount - paid);
+    for (const invoice of tuitions) {
+      const due = invoice.amountDue ?? invoice.amount ?? 0;
+      const paid = paidByInvoice.get(invoice.invoiceId) ?? 0;
+      const remaining = Math.max(0, due - paid);
+      totalBilled += due;
       totalOutstanding += remaining;
-      if (t.status === "Overdue") totalOverdue += remaining;
-    });
+      const overdue = invoice.status?.toLowerCase() === "overdue" ||
+        (invoice.dueDate && new Date(invoice.dueDate).getTime() < Date.now());
+      if (overdue && remaining > 0) totalOverdue += remaining;
+    }
+
+    const totalCollected = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const formatAmount = (amount: number) =>
+      amount >= 1_000_000
+        ? (amount / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 2 }) + "M"
+        : amount.toLocaleString("vi-VN");
 
     return {
       studentCount,
       staffCount,
       activeClassesCount,
-      collectedStr:
-        totalCollected > 0
-          ? `${Math.round(totalCollected / 1000000)}M`
-          : "485M",
-      outstandingStr:
-        totalOutstanding > 0
-          ? `${Math.round(totalOutstanding / 1000000)}M`
-          : "72M",
-      overdueStr:
-        totalOverdue > 0 ? `${Math.round(totalOverdue / 1000000)}M` : "18M",
+      totalClasses: classes.length,
+      totalStudents: users.filter((u) => u.roles?.some((r) => r.toLowerCase() === "student")).length,
+      collectedStr: formatAmount(totalCollected),
+      outstandingStr: formatAmount(totalOutstanding),
+      overdueStr: formatAmount(totalOverdue),
+      collectionRate: totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0,
     };
-  }, [users, classes, tuitions]);
+  }, [users, classes, tuitions, payments]);
 
   const handleQuickAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +182,8 @@ export default function CenterManagerDashboardPage() {
         }
       />
 
+      {loadError && <div className="alert alert-danger mb-3" role="alert">Không tải được dữ liệu Dashboard: {loadError}</div>}
+
       {/* Success Notification Alert */}
       {actionSuccessMsg && (
         <div
@@ -183,34 +201,13 @@ export default function CenterManagerDashboardPage() {
         </div>
       )}
 
-      {/* Popup News and Hello Account */}
-      <div className="row mb-4">
-        <div className="col-md-12">
-          <div className="alert-message">
-            <div
-              className="alert alert-success rounded-pill d-flex align-items-center justify-content-between border-success mb-0 shadow-sm"
-              role="alert"
-            >
-              <div className="d-flex align-items-center">
-                <span className="me-2 avatar avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center">
-                  <i className="bi bi-check2" />
-                </span>
-                <p className="mb-0">
-                  Hệ thống quản lý trung tâm EduTrack đang hoạt động ổn định.
-                  <strong className="mx-1">Kỳ học Tháng 08/2026</strong> đã đồng
-                  bộ hóa 100% dữ liệu.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn-close p-0"
-                data-bs-dismiss="alert"
-                aria-label="Close"
-              />
-            </div>
-          </div>
+      {/* Information sourced from saved center settings; no fake sync percentages. */}
+      {!loading && !loadError && (
+        <div className="alert alert-light border d-flex align-items-center gap-2 mb-4">
+          <i className="bi bi-building text-primary" />
+          <span><strong>{centerName || "Trung tâm"}</strong>{academicYear ? <> — Năm học: {academicYear}</> : null}</span>
         </div>
-      </div>
+      )}
 
       {/* Dashboard KPI Cards */}
       <div className="dashboard-kpis mb-4">
@@ -220,9 +217,8 @@ export default function CenterManagerDashboardPage() {
           status="active"
           title="Active Students"
           value={metrics.studentCount}
-          footerValue="2.4%"
-          footerLabel="this month"
-          trend="up"
+          footerValue={metrics.totalStudents}
+          footerLabel="tổng hồ sơ học sinh"
         />
 
         {/* Active Classes */}
@@ -230,8 +226,8 @@ export default function CenterManagerDashboardPage() {
           type="class"
           title="Active Classes"
           value={metrics.activeClassesCount}
-          footerValue={6}
-          footerLabel="classes today"
+          footerValue={metrics.totalClasses}
+          footerLabel="tổng số lớp"
         />
 
         {/* Active Staff */}
@@ -248,9 +244,8 @@ export default function CenterManagerDashboardPage() {
           status="collected"
           title="Tuition Collected"
           value={metrics.collectedStr}
-          footerValue="8.2%"
-          footerLabel="this month"
-          trend="up"
+          footerValue={`${metrics.collectionRate}%`}
+          footerLabel="đã thu trên tổng học phí"
         />
 
         {/* Outstanding Tuition */}
@@ -270,10 +265,10 @@ export default function CenterManagerDashboardPage() {
         <div className="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div>
             <h4 className="mb-1 text-white fw-bold">
-              Welcome back, {manager ? manager.fullName : "Nguyễn Văn Quản Lý"}
+              Welcome back, {manager ? manager.fullName : "Center Manager"}
             </h4>
             <p className="mb-0 text-white-50">
-              Trung tâm EduTrack - Báo cáo tổng hợp hoạt động ngày hôm nay.
+              {centerName || "Trung tâm"} - Báo cáo tổng hợp hoạt động ngày hôm nay.
             </p>
           </div>
           <div className="welcome-date text-white bg-white bg-opacity-25 px-3 py-2 rounded-pill">
@@ -330,8 +325,7 @@ export default function CenterManagerDashboardPage() {
               </div>
               <div className="p-3 bg-light rounded-3 border text-secondary small">
                 <i className="bi bi-info-circle me-2 text-primary" />
-                Số lượng giao dịch đóng phí trực tuyến tháng này tăng{" "}
-                <strong>15.4%</strong> so với tháng trước.
+                Đã ghi nhận <strong>{payments.length}</strong> khoản thanh toán từ hệ thống.
               </div>
             </div>
           </div>

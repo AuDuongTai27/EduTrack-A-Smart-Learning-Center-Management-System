@@ -4,8 +4,10 @@ import { userDAL } from "../../../DAL/userDAL";
 import { notificationDAL } from "../../../DAL/notificationDAL";
 import type { UserDto } from "../../../BLL/models/UserDto";
 import type { NotificationDto } from "../../../BLL/models/NotificationDto";
+import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
 
 export default function AdminTopBar() {
+  const { academicYear, loading: settingsLoading, error: settingsError } = useCenterSettings();
   const location = useLocation();
   const isAdminStaff = location.pathname.startsWith("/admin-staff");
   const targetUserId = isAdminStaff ? 2 : 1; // 2: ADM001 (Trần Thị Nhân Viên), 1: MGR001 (Nguyễn Văn Quản Lý)
@@ -26,7 +28,7 @@ export default function AdminTopBar() {
           if (userRes) setUser(userRes);
           if (notifRes.data) {
             const unread = notifRes.data.filter((n: NotificationDto) => !n.isRead).length;
-            setUnreadCount(unread > 0 ? unread : notifRes.data.length);
+            setUnreadCount(unread);
           }
         }
       } catch (err) {
@@ -73,7 +75,7 @@ export default function AdminTopBar() {
       <div className="topbar-actions">
         <button className="academic-year-btn" type="button">
           <i className="bi bi-calendar3" />
-          <span>Năm học: 2026 - 2027</span>
+          <span>Năm học: {academicYear || (settingsLoading ? "Đang tải..." : settingsError ? "Không tải được" : "Chưa cấu hình")}</span>
         </button>
         <button className="icon-btn" type="button" title="Giao diện">
           <i className="bi bi-moon-stars" />

@@ -12,7 +12,6 @@ import type { ClassDto } from "../BLL/models/ClassDto";
 import type { SubjectDto } from "../BLL/models/SubjectDto";
 import type { TuitionDto, PaymentDto } from "../BLL/models/TuitionDto";
 import type { ParentStudentDto } from "../api/parentStudentApi";
-import { MOCK_CLASSES, MOCK_SUBJECTS } from "./mockData";
 
 export interface ClassActionResult {
   success: boolean;
@@ -23,14 +22,12 @@ export interface ClassActionResult {
 
 /**
  * [Bounded Context: Management]
- * Tầng Data Access Layer (DAL) dành riêng cho Thành viên 1 (Center Manager & Admin Staff)
- * Chứa toàn bộ các thao tác thêm/sửa/xóa đã hoàn thiện của 4 tính năng (Users, ParentStudents, Subjects, Classes)
- * và là nơi Thành viên 1 viết tiếp các hàm cho các trang còn lại của Center Manager & Admin Staff.
+ * All mutations must be confirmed by the Backend.
+ * API errors intentionally propagate to the calling page's catch handler.
+ * No fabricated IDs, mock entities, or local-only success responses.
  */
 export const managementDAL = {
-  // ==========================================================================
-  // 1. QUẢN LÝ NGƯỜI DÙNG & HỌC SINH (USERS)
-  // ==========================================================================
+  // Users
   async createUser(dto: {
     userCode?: string;
     fullName: string;
@@ -40,42 +37,8 @@ export const managementDAL = {
     specialty?: string;
     gender?: string;
   }): Promise<{ data: UserDto; isLiveApi: boolean }> {
-    try {
-      const created = await managementApi.createUser(dto);
-      console.log(
-        "🟢 [managementDAL] Tạo tài khoản người dùng thành công qua API:",
-        created,
-      );
-      return { data: created, isLiveApi: true };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API createUser thất bại, fallback local:",
-        err.message,
-      );
-      const fallbackId = Date.now();
-      const prefix =
-        dto.role === "center_manager"
-          ? "MGR"
-          : dto.role === "admin_staff"
-            ? "ADM"
-            : dto.role === "teaching_assistant"
-              ? "TA"
-              : "TEA";
-      const fallback: UserDto = {
-        userId: fallbackId,
-        userCode: dto.userCode || `${prefix}${fallbackId.toString().slice(-4)}`,
-        fullName: dto.fullName,
-        email:
-          dto.email || `${prefix.toLowerCase()}${fallbackId}@edutrack.edu.vn`,
-        phone: dto.phone || "0901 234 567",
-        roles: [dto.role],
-        specialty: dto.specialty || "General",
-        gender: dto.gender || "other",
-        status: "active",
-        createdAt: new Date().toISOString(),
-      };
-      return { data: fallback, isLiveApi: false };
-    }
+    const created = await managementApi.createUser(dto);
+    return { data: created, isLiveApi: true };
   },
 
   async updateUser(
@@ -90,312 +53,96 @@ export const managementDAL = {
       status?: string;
     },
   ): Promise<{ data: UserDto; isLiveApi: boolean }> {
-    try {
-      const updated = await managementApi.updateUser(id, dto);
-      console.log(
-        "🟢 [managementDAL] Cập nhật người dùng thành công qua API:",
-        updated,
-      );
-      return { data: updated, isLiveApi: true };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API updateUser thất bại, fallback local:",
-        err.message,
-      );
-      const fallback: UserDto = {
-        userId: id,
-        userCode: `USR${id}`,
-        fullName: dto.fullName,
-        email: dto.email || undefined,
-        phone: dto.phone || undefined,
-        roles: dto.role ? [dto.role] : ["teacher"],
-        specialty: dto.specialty || undefined,
-        gender: dto.gender || "other",
-        status: dto.status || "active",
-        createdAt: new Date().toISOString(),
-      };
-      return { data: fallback, isLiveApi: false };
-    }
+    const updated = await managementApi.updateUser(id, dto);
+    return { data: updated, isLiveApi: true };
   },
 
   async updateUserStatus(
     id: number,
     status: string,
   ): Promise<{ success: boolean; isLiveApi: boolean }> {
-    try {
-      await managementApi.updateUserStatus(id, status);
-      console.log(
-        `🟢 [managementDAL] Cập nhật trạng thái user #${id} thành ${status} qua API thành công.`,
-      );
-      return { success: true, isLiveApi: true };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API updateUserStatus thất bại, fallback local:",
-        err.message,
-      );
-      return { success: true, isLiveApi: false };
-    }
+    await managementApi.updateUserStatus(id, status);
+    return { success: true, isLiveApi: true };
   },
 
   async deleteUser(
     id: number,
   ): Promise<{ success: boolean; isLiveApi: boolean; message?: string }> {
-    try {
-      const res = await managementApi.deleteUser(id);
-      console.log(`🟢 [managementDAL] Xóa user #${id} thành công qua API.`);
-      return { success: true, isLiveApi: true, message: res.message };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API deleteUser thất bại, fallback local:",
-        err.message,
-      );
-      return { success: true, isLiveApi: false, message: err.message };
-    }
+    const result = await managementApi.deleteUser(id);
+    return { success: true, isLiveApi: true, message: result.message };
   },
 
-  // ==========================================================================
-  // 2. LIÊN KẾT PHỤ HUYNH - HỌC SINH (PARENT - STUDENT LINKS)
-  // ==========================================================================
+  // Parent/student links: retained for compatibility until role scope is reconciled.
   async assignLink(dto: {
     parentId: number;
     studentId: number;
     relationship?: string;
     isPrimaryContact?: boolean;
   }): Promise<{ data: ParentStudentDto; isLiveApi: boolean }> {
-    try {
-      const res = await managementApi.assignParentStudent(dto);
-      console.log("🟢 [managementDAL] Gán liên kết thành công:", res);
-      return { data: res, isLiveApi: true };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API assignParentStudent thất bại, fallback local:",
-        err.message,
-      );
-      const fallback: ParentStudentDto = {
-        parentId: dto.parentId,
-        parentName: `Phụ huynh #${dto.parentId}`,
-        parentPhone: "0901 234 567",
-        parentEmail: "parent@edutrack.edu.vn",
-        studentId: dto.studentId,
-        studentName: `Học sinh #${dto.studentId}`,
-        studentCode: `STU${dto.studentId}`,
-        relationship: dto.relationship || "Parent",
-        isPrimaryContact: dto.isPrimaryContact ?? true,
-        createdAt: new Date().toISOString(),
-      };
-      return { data: fallback, isLiveApi: false };
-    }
+    const created = await managementApi.assignParentStudent(dto);
+    return { data: created, isLiveApi: true };
   },
 
   async removeLink(
     parentId: number,
     studentId: number,
   ): Promise<{ success: boolean; isLiveApi: boolean }> {
-    try {
-      await managementApi.removeParentStudent(parentId, studentId);
-      console.log(
-        `🟢 [managementDAL] Hủy liên kết Parent ${parentId} - Student ${studentId} thành công.`,
-      );
-      return { success: true, isLiveApi: true };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API removeParentStudent thất bại, fallback local:",
-        err.message,
-      );
-      return { success: true, isLiveApi: false };
-    }
+    await managementApi.removeParentStudent(parentId, studentId);
+    return { success: true, isLiveApi: true };
   },
 
-  // ==========================================================================
-  // 3. QUẢN LÝ MÔN HỌC (SUBJECTS)
-  // ==========================================================================
+  // Subjects
   async createSubject(dto: {
     subjectCode: string;
     subjectName: string;
     description?: string;
   }): Promise<{ data: SubjectDto; isLiveApi: boolean }> {
-    try {
-      const created = await managementApi.createSubject(dto);
-      console.log(
-        "🟢 [managementDAL] Tạo môn học thành công qua API:",
-        created,
-      );
-      return { data: created, isLiveApi: true };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API createSubject thất bại, fallback local:",
-        err.message,
-      );
-      const fallback: SubjectDto = {
-        subjectId: Date.now(),
-        subjectCode: dto.subjectCode.toUpperCase(),
-        subjectName: dto.subjectName,
-        description: dto.description || null,
-        totalClasses: 0,
-      };
-      return { data: fallback, isLiveApi: false };
-    }
+    const created = await managementApi.createSubject(dto);
+    return { data: created, isLiveApi: true };
   },
 
   async updateSubject(
     id: number,
     dto: { subjectCode?: string; subjectName: string; description?: string },
   ): Promise<{ data: SubjectDto; isLiveApi: boolean }> {
-    try {
-      const updated = await managementApi.updateSubject(id, dto);
-      console.log(
-        "🟢 [managementDAL] Cập nhật môn học thành công qua API:",
-        updated,
-      );
-      return { data: updated, isLiveApi: true };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API updateSubject thất bại, fallback local:",
-        err.message,
-      );
-      const fallback: SubjectDto = {
-        subjectId: id,
-        subjectCode: dto.subjectCode || `SUB${id}`,
-        subjectName: dto.subjectName,
-        description: dto.description || null,
-        totalClasses: 1,
-      };
-      return { data: fallback, isLiveApi: false };
-    }
+    const updated = await managementApi.updateSubject(id, dto);
+    return { data: updated, isLiveApi: true };
   },
 
   async deleteSubject(
     id: number,
   ): Promise<{ success: boolean; isLiveApi: boolean; message?: string }> {
-    try {
-      const res = await managementApi.deleteSubject(id);
-      console.log("🟢 [managementDAL] Xóa môn học thành công qua API:", res);
-      return { success: true, isLiveApi: true, message: res.message };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] API deleteSubject thất bại, fallback local:",
-        err.message,
-      );
-      return { success: true, isLiveApi: false, message: err.message };
-    }
+    const result = await managementApi.deleteSubject(id);
+    return { success: true, isLiveApi: true, message: result.message };
   },
 
-  // ==========================================================================
-  // 4. QUẢN LÝ LỚP HỌC (CLASSES)
-  // ==========================================================================
+  // Classes
   async createClass(dto: CreateClassRequest): Promise<ClassActionResult> {
-    try {
-      const created = await managementApi.createClass(dto);
-      return {
-        success: true,
-        data: created,
-        isLiveApi: true,
-      };
-    } catch (err: any) {
-      console.warn(
-        "🟡 [managementDAL] Lỗi Backend khi tạo lớp học, fallback local mock:",
-        err.message,
-      );
-      const newId =
-        MOCK_CLASSES.length > 0
-          ? Math.max(...MOCK_CLASSES.map((c) => c.classId)) + 1
-          : 100;
-      const subject = MOCK_SUBJECTS.find((s) => s.subjectId === dto.subjectId);
-      const mockNew: ClassDto = {
-        classId: newId,
-        className: dto.className,
-        subjectId: dto.subjectId,
-        subjectName: subject?.subjectName || "Môn học",
-        subjectCode: subject?.subjectCode || "MH",
-        room: dto.room ?? null,
-        tuitionFee: dto.tuitionFee,
-        startDate: dto.startDate,
-        endDate: dto.endDate ?? null,
-        status: dto.status || "active",
-      };
-      return {
-        success: true,
-        data: mockNew,
-        message: "Đã lưu lớp học (chế độ cục bộ)",
-        isLiveApi: false,
-      };
-    }
+    const created = await managementApi.createClass(dto);
+    return { success: true, data: created, isLiveApi: true };
   },
 
   async updateClass(
     id: number,
     dto: UpdateClassRequest,
   ): Promise<ClassActionResult> {
-    try {
-      const updated = await managementApi.updateClass(id, dto);
-      return {
-        success: true,
-        data: updated,
-        isLiveApi: true,
-      };
-    } catch (err: any) {
-      console.warn(
-        `🟡 [managementDAL] Lỗi Backend khi cập nhật lớp #${id}, fallback local mock:`,
-        err.message,
-      );
-      const subject = MOCK_SUBJECTS.find((s) => s.subjectId === dto.subjectId);
-      const mockUpdated: ClassDto = {
-        classId: id,
-        className: dto.className,
-        subjectId: dto.subjectId,
-        subjectName: subject?.subjectName || "Môn học",
-        subjectCode: subject?.subjectCode || "MH",
-        room: dto.room ?? null,
-        tuitionFee: dto.tuitionFee,
-        startDate: dto.startDate,
-        endDate: dto.endDate ?? null,
-        status: dto.status,
-      };
-      return {
-        success: true,
-        data: mockUpdated,
-        message: "Đã cập nhật lớp học (chế độ cục bộ)",
-        isLiveApi: false,
-      };
-    }
+    const updated = await managementApi.updateClass(id, dto);
+    return { success: true, data: updated, isLiveApi: true };
   },
 
   async deleteClass(
     id: number,
   ): Promise<{ success: boolean; message?: string; isLiveApi: boolean }> {
-    try {
-      const res = await managementApi.deleteClass(id);
-      return {
-        success: true,
-        message: res.message,
-        isLiveApi: true,
-      };
-    } catch (err: any) {
-      console.warn(
-        `🟡 [managementDAL] Lỗi Backend khi xóa lớp #${id}:`,
-        err.message,
-      );
-      return {
-        success: false,
-        message: err.message || "Không thể xóa lớp học.",
-        isLiveApi: false,
-      };
-    }
+    const result = await managementApi.deleteClass(id);
+    return { success: true, message: result.message, isLiveApi: true };
   },
 
-  // ==========================================================================
-  // 5. QUẢN LÝ HỌC PHÍ (TUITION)
-  // ==========================================================================
-
+  // Tuition: already uses the real API for all mutations.
   async createTuitionInvoice(
     dto: CreateTuitionInvoiceRequest,
   ): Promise<{ data: TuitionDto; isLiveApi: boolean }> {
     const created = await managementApi.createTuitionInvoice(dto);
-
-    return {
-      data: created,
-      isLiveApi: true,
-    };
+    return { data: created, isLiveApi: true };
   },
 
   async updateTuitionInvoice(
@@ -403,11 +150,7 @@ export const managementDAL = {
     dto: UpdateTuitionInvoiceRequest,
   ): Promise<{ data: TuitionDto; isLiveApi: boolean }> {
     const updated = await managementApi.updateTuitionInvoice(id, dto);
-
-    return {
-      data: updated,
-      isLiveApi: true,
-    };
+    return { data: updated, isLiveApi: true };
   },
 
   async recordTuitionPayment(
@@ -415,11 +158,7 @@ export const managementDAL = {
     dto: RecordPaymentRequest,
   ): Promise<{ data: PaymentDto; isLiveApi: boolean }> {
     const payment = await managementApi.recordTuitionPayment(invoiceId, dto);
-
-    return {
-      data: payment,
-      isLiveApi: true,
-    };
+    return { data: payment, isLiveApi: true };
   },
 };
 

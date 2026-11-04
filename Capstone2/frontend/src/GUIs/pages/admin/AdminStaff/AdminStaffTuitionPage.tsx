@@ -7,6 +7,11 @@ import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
 import KpiCard from "../../../components/Common/KpiCard";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
+import managementDAL from "../../../../DAL/managementDAL";
+import userDAL from "../../../../DAL/userDAL";
+import classDAL from "../../../../DAL/classDAL";
+import type { UserDto } from "../../../../BLL/models/UserDto";
+import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
 
 export default function AdminStaffTuitionPage() {
@@ -25,28 +30,70 @@ export default function AdminStaffTuitionPage() {
   const [selectedTuition, setSelectedTuition] = useState<TuitionDto | null>(null);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState<boolean>(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [lookupsLoading, setLookupsLoading] = useState(false);
+  const [students, setStudents] = useState<UserDto[]>([]);
+  const [classes, setClasses] = useState<ClassDto[]>([]);
 
-  // Form Generate
-  const [genStudentName, setGenStudentName] = useState("");
-  const [genClassName, setGenClassName] = useState("Toán 12 Chuyên Sâu");
-  const [genAmount, setGenAmount] = useState("3500000");
+  // Form: only IDs fetched from Backend are submitted (never a typed mock name).
+  const [genStudentId, setGenStudentId] = useState("");
+  const [genClassId, setGenClassId] = useState("");
+  const [genAmount, setGenAmount] = useState("");
+  const [genDueDate, setGenDueDate] = useState(() => {
+    const due = new Date();
+    due.setDate(due.getDate() + 15);
+    return due.toISOString().slice(0, 10);
+  });
 
+  useEffect(() => {
+    if (!isGenerateModalOpen) return;
+    let active = true;
+    async function loadInvoiceReferences() {
+      setLookupsLoading(true);
+      setGenerateError(null);
+      try {
+        const [users, classes] = await Promise.all([
+          userDAL.getAllUsers(),
+          classDAL.getAllClasses(),
+        ]);
+        if (!active) return;
+        setStudents(users.data.filter(user =>
+          user.roles?.some(role => role.toLowerCase() === "student") &&
+          user.status.toLowerCase() === "active"
+        ));
+        setClasses(classes.data);
+      } catch (error) {
+        if (active) {
+          setStudents([]);
+          setClasses([]);
+          setGenerateError(error instanceof Error ? error.message : "Unable to load students/classes from Backend.");
+        }
+      } finally {
+        if (active) setLookupsLoading(false);
+      }
+    }
+    void loadInvoiceReferences();
+    return () => { active = false; };
+  }, [isGenerateModalOpen]);
   useEffect(() => {
     let isMounted = true;
     async function loadTuitionData() {
       try {
         setLoading(true);
+        setLoadError(null);
         const res = await tuitionDAL.getAllTuitions();
-        if (isMounted && res.data) {
-          setTuitions(res.data);
+        if (isMounted) setTuitions(res.data);
+      } catch (error) {
+        if (isMounted) {
+          setTuitions([]);
+          setLoadError(error instanceof Error ? error.message : "Unable to load invoices from Backend.");
         }
-      } catch (err) {
-        console.warn("Lỗi tải danh sách học phí:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
-    }
-    loadTuitionData();
+    }    loadTuitionData();
     return () => {
       isMounted = false;
     };
@@ -102,36 +149,59 @@ export default function AdminStaffTuitionPage() {
     }
   };
 
-  // Submit Generate Tuition
-  const handleGenerateSubmit = (e: React.FormEvent) => {
+  // Submit to MySQL via POST /api/tuitioninvoices.
+  const handleGenerateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!genStudentName.trim()) return;
+    if (submitting) return;
+    const studentId = Number(genStudentId);
+    const classId = Number(genClassId);
+    const amountDue = Number(genAmount);
+    if (!students.some(s => s.userId === studentId) ||
+        !classes.some(c => c.classId === classId)) {
+      setGenerateError("Select a valid student and class from Backend.");
+      return;
+    }
+    if (!Number.isSafeInteger(amountDue) || amountDue <= 0) {
+      setGenerateError("Invoice amount must be a positive integer (VND).");
+      return;
+    }
+    if (!genDueDate || Number.isNaN(new Date(genDueDate).getTime())) {
+      setGenerateError("Choose a valid due date.");
+      return;
+    }
 
-    const validIds = tuitions.map((t) => t.tuitionId || t.invoiceId || 0);
-    const newId = validIds.length > 0 ? Math.max(...validIds) + 1 : 201;
-    const newInvoice: TuitionDto = {
-      invoiceId: newId,
-      tuitionId: newId,
-      studentId: 6,
-      studentCode: "STU006",
-      studentName: genStudentName.trim(),
-      classId: 1,
-      className: genClassName,
-      amountDue: Number(genAmount) || 3500000,
-      amount: Number(genAmount) || 3500000,
-      dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0],
-      status: "pending",
-      invoiceCode: `INV${String(newId).padStart(4, "0")}`,
-      createdAt: new Date().toISOString(),
-    };
-
-    setTuitions((prev) => [newInvoice, ...prev]);
-    setIsGenerateModalOpen(false);
-    setGenStudentName("");
-    setActionSuccessMsg(`Đã lập hóa đơn #${newInvoice.invoiceCode} cho học viên "${newInvoice.studentName}" thành công!`);
-    setTimeout(() => setActionSuccessMsg(null), 3500);
+    setSubmitting(true);
+    setGenerateError(null);
+    try {
+      const now = new Date();
+      const result = await managementDAL.createTuitionInvoice({
+        studentId, classId,
+        periodMonth: now.getMonth() + 1,
+        periodYear: now.getFullYear(),
+        amountDue,
+        dueDate: genDueDate,
+      });
+      // Only show a server-confirmed invoice. Never invent an ID on Frontend.
+      setTuitions(prev => [result.data, ...prev.filter(t => t.invoiceId !== result.data.invoiceId)]);
+      setIsGenerateModalOpen(false);
+      setGenStudentId("");
+      setGenClassId("");
+      setGenAmount("");
+      setActionSuccessMsg(`Invoice #${result.data.invoiceId} saved successfully.`);
+      try {
+        const fresh = await tuitionDAL.getAllTuitions();
+        setTuitions(fresh.data);
+        setLoadError(null);
+      } catch (refreshError) {
+        setLoadError("Invoice was saved but list refresh failed. Reload once Backend is available.");
+        console.warn("Invoice refresh failed after successful POST", refreshError);
+      }
+    } catch (error) {
+      setGenerateError(error instanceof Error ? error.message : "Could not create invoice.");
+    } finally {
+      setSubmitting(false);
+    }
   };
-
   return (
     <>
       {/* Breadcrumb and Quick Access */}
@@ -146,7 +216,7 @@ export default function AdminStaffTuitionPage() {
             <button
               type="button"
               className="btn btn-primary d-flex align-items-center gap-2"
-              onClick={() => setIsGenerateModalOpen(true)}
+              onClick={() => { setGenerateError(null); setIsGenerateModalOpen(true); }}
             >
               <i className="bi bi-file-earmark-plus-fill" />
               Lập phiếu thu học phí mới
@@ -168,6 +238,10 @@ export default function AdminStaffTuitionPage() {
           {actionSuccessMsg}
           <button type="button" className="btn-close" onClick={() => setActionSuccessMsg(null)} />
         </div>
+      )}
+
+      {loadError && (
+        <div className="alert alert-danger mb-3" role="alert">{loadError}</div>
       )}
 
       {/* Tuition Summary KPIs */}
@@ -300,8 +374,8 @@ export default function AdminStaffTuitionPage() {
                       : t.status.toLowerCase() === "overdue"
                       ? "Overdue"
                       : "Pending";
-                  const dueDateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString("vi-VN") : "15/09/2026";
-                  const amountStr = t.amount ? `${t.amount.toLocaleString("vi-VN")} đ` : "3.500.000 đ";
+                  const dueDateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString("vi-VN") : "-";
+                  const amountStr = `${(t.amount ?? t.amountDue).toLocaleString("vi-VN")} VND`;
 
                   return (
                     <tr key={t.tuitionId}>
@@ -318,7 +392,7 @@ export default function AdminStaffTuitionPage() {
                         </div>
                       </td>
                       <td>
-                        <SubjectBadge subject={t.className || "Toán 12 Chuyên Sâu"} />
+                        <SubjectBadge subject={t.className || "-"} />
                       </td>
                       <td>
                         <strong className="text-dark">{amountStr}</strong>
@@ -391,7 +465,7 @@ export default function AdminStaffTuitionPage() {
                   </div>
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <span className="text-muted small">Hạn thanh toán</span>
-                    <span>{selectedTuition.dueDate ? new Date(selectedTuition.dueDate).toLocaleDateString("vi-VN") : "15/09/2026"}</span>
+                    <span>{selectedTuition.dueDate ? new Date(selectedTuition.dueDate).toLocaleDateString("vi-VN") : "-"}</span>
                   </div>
                   <div className="d-flex justify-content-between align-items-center border-top pt-2">
                     <span className="text-muted small">Trạng thái</span>
@@ -401,7 +475,7 @@ export default function AdminStaffTuitionPage() {
                 <div className="text-center p-3 bg-success bg-opacity-10 rounded">
                   <small className="text-muted d-block">SỐ TIỀN THANH TOÁN</small>
                   <h3 className="fw-bold text-success mb-0">
-                    {selectedTuition.amount ? `${selectedTuition.amount.toLocaleString("vi-VN")} VND` : "3.500.000 VND"}
+                    {(selectedTuition.amount ?? selectedTuition.amountDue).toLocaleString("vi-VN") + " VND"}
                   </h3>
                 </div>
               </div>
@@ -436,55 +510,55 @@ export default function AdminStaffTuitionPage() {
               </div>
               <form onSubmit={handleGenerateSubmit}>
                 <div className="modal-body p-4">
+                  {lookupsLoading && <div className="alert alert-info">Loading students and classes from Backend...</div>}
+                  {generateError && <div className="alert alert-danger" role="alert">{generateError}</div>}
                   <div className="mb-3">
-                    <label className="form-label small fw-bold">Tên học viên *</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="VD: Lê Văn An"
-                      required
-                      value={genStudentName}
-                      onChange={(e) => setGenStudentName(e.target.value)}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Khóa học / Lớp đào tạo</label>
-                    <select
-                      className="form-select"
-                      value={genClassName}
-                      onChange={(e) => setGenClassName(e.target.value)}
-                    >
-                      <option value="Toán 12 Chuyên Sâu">Toán 12 Chuyên Sâu</option>
-                      <option value="Vật Lý 12 Nâng Cao">Vật Lý 12 Nâng Cao</option>
-                      <option value="Hóa Học 11 Cơ Bản">Hóa Học 11 Cơ Bản</option>
-                      <option value="Tiếng Anh Giao Tiếp">Tiếng Anh Giao Tiếp</option>
+                    <label className="form-label small fw-bold">Student *</label>
+                    <select className="form-select" required value={genStudentId}
+                      onChange={e => setGenStudentId(e.target.value)} disabled={lookupsLoading}>
+                      <option value="">Choose student...</option>
+                      {students.map(student => (
+                        <option key={student.userId} value={student.userId}>
+                          {student.fullName} ({student.userCode})
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label small fw-bold">Mức học phí (VND) *</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="3500000"
-                      required
-                      value={genAmount}
-                      onChange={(e) => setGenAmount(e.target.value)}
-                    />
+                    <label className="form-label small fw-bold">Class *</label>
+                    <select className="form-select" required value={genClassId}
+                      onChange={e => {
+                        setGenClassId(e.target.value);
+                        const selected = classes.find(c => c.classId === Number(e.target.value));
+                        if (selected) setGenAmount(String(selected.tuitionFee));
+                      }} disabled={lookupsLoading}>
+                      <option value="">Choose class...</option>
+                      {classes.map(cls => (
+                        <option key={cls.classId} value={cls.classId}>
+                          {cls.className}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label small fw-bold">Invoice amount (VND) *</label>
+                    <input type="number" className="form-control" min="1" step="1" required
+                      value={genAmount} onChange={e => setGenAmount(e.target.value)} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label small fw-bold">Due date *</label>
+                    <input type="date" className="form-control" required
+                      value={genDueDate} onChange={e => setGenDueDate(e.target.value)} />
                   </div>
                 </div>
                 <div className="modal-footer bg-light">
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setIsGenerateModalOpen(false)}
-                  >
-                    Hủy
+                  <button type="button" className="btn btn-secondary btn-sm"
+                    onClick={() => setIsGenerateModalOpen(false)} disabled={submitting}>Cancel</button>
+                  <button type="submit" className="btn btn-primary btn-sm"
+                    disabled={submitting || lookupsLoading || students.length === 0 || classes.length === 0}>
+                    {submitting ? "Saving..." : "Create invoice"}
                   </button>
-                  <button type="submit" className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
-                    <i className="bi bi-check-lg" /> Phát hành hóa đơn
-                  </button>
-                </div>
-              </form>
+                </div>              </form>
             </div>
           </div>
         </div>
