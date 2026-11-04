@@ -107,6 +107,7 @@ namespace EduTrack.API.Services.Management.Implementation
                 ClassId = classId,
                 InvoiceId = dto.InvoiceId,
                 RequestedBy = dto.RequestedBy,
+                ReviewedBy = null,
                 Priority = priority,
                 Status = "pending",
                 CreatedAt = DateTime.UtcNow
@@ -117,25 +118,120 @@ namespace EduTrack.API.Services.Management.Implementation
                    ?? throw new InvalidOperationException("Không tải được yêu cầu vừa tạo.");
         }
 
+        public async Task<ApprovalRequestDto?> UpdateAsync(int id, UpdateApprovalRequestDto dto)
+        {
+            await EnsureRoleAsync(dto.RequestedBy, "admin_staff", "chỉnh sửa yêu cầu");
+
+            var existing = await _requestRepository.GetByIdAsync(id);
+            if (existing == null) return null;
+
+            if (existing.RequestedBy != dto.RequestedBy)
+                throw new InvalidOperationException("Bạn chỉ có thể chỉnh sửa yêu cầu do chính mình tạo.");
+
+            bool canEdit = string.Equals(existing.Status, "pending", StringComparison.OrdinalIgnoreCase)
+                           && existing.ReviewedBy == null;
+            if (!canEdit)
+                throw new InvalidOperationException("Yêu cầu đang được xem xét giải quyết hoặc đã xử lý nên không thể chỉnh sửa.");
+
+            var type = NormalizeType(dto.RequestType);
+            if (!AllowedTypes.Contains(type))
+                throw new InvalidOperationException("Loại yêu cầu không hợp lệ.");
+
+            var priority = dto.Priority?.Trim().ToLowerInvariant() ?? "";
+            if (priority is not ("low" or "medium" or "high"))
+                throw new InvalidOperationException("Độ ưu tiên phải là low, medium hoặc high.");
+
+            if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Reason))
+                throw new InvalidOperationException("Vui lòng nhập tiêu đề và lý do yêu cầu.");
+
+            if ((type is "tuition_adjustment" or "refund_request" or "due_date_extension")
+                && !dto.InvoiceId.HasValue)
+                throw new InvalidOperationException("Yêu cầu học phí cần chọn hóa đơn (InvoiceId).");
+
+            if (type == "student_information_change" && !dto.StudentId.HasValue)
+                throw new InvalidOperationException("Yêu cầu thay đổi thông tin cần chọn học viên.");
+
+            if (dto.StudentId.HasValue)
+            {
+                var student = await _userRepository.GetByIdAsync(dto.StudentId.Value);
+                if (student == null || !HasRole(student, "student"))
+                    throw new InvalidOperationException("StudentId không phải học viên hợp lệ.");
+            }
+
+            if (dto.ClassId.HasValue &&
+                await _classRepository.GetByIdAsync(dto.ClassId.Value) == null)
+                throw new InvalidOperationException("Không tìm thấy lớp học được chọn.");
+
+            int? studentId = dto.StudentId;
+            int? classId = dto.ClassId;
+
+            if (dto.InvoiceId.HasValue)
+            {
+                var invoice = await _invoiceRepository.GetByIdAsync(dto.InvoiceId.Value);
+                if (invoice == null)
+                    throw new InvalidOperationException("Không tìm thấy hóa đơn được chọn.");
+                if (studentId.HasValue && invoice.StudentId != studentId.Value)
+                    throw new InvalidOperationException("Hóa đơn không thuộc học viên được chọn.");
+                if (classId.HasValue && invoice.ClassId != classId.Value)
+                    throw new InvalidOperationException("Hóa đơn không thuộc lớp được chọn.");
+
+                studentId ??= invoice.StudentId;
+                classId ??= invoice.ClassId;
+            }
+
+            existing.RequestType = type;
+            existing.Title = dto.Title.Trim();
+            existing.Reason = dto.Reason.Trim();
+            existing.Description = string.IsNullOrWhiteSpace(dto.Description)
+                ? dto.Reason.Trim()
+                : dto.Description.Trim();
+            existing.Priority = priority;
+            existing.StudentId = studentId;
+            existing.ClassId = classId;
+            existing.InvoiceId = dto.InvoiceId;
+
+            await _requestRepository.UpdateAsync(existing);
+            return await _queryService.GetApprovalRequestByIdAsync(id)
+                   ?? throw new InvalidOperationException("Không tải được yêu cầu sau khi chỉnh sửa.");
+        }
+
         public async Task<ApprovalRequestDto?> ReviewAsync(int id, ReviewApprovalRequestDto dto)
         {
-            await EnsureRoleAsync(dto.ReviewedBy, "center_manager", "duyệt yêu cầu");
+            var existing = await _requestRepository.GetByIdAsync(id);
+            if (existing == null) return null;
+
+            bool isRequesterAdminStaff =
+                (existing.Requester != null && HasRole(existing.Requester, "admin_staff")) ||
+                (existing.RequestedBy == 2 && !string.Equals(existing.RequestType, "feedback", StringComparison.OrdinalIgnoreCase));
+
+            if (isRequesterAdminStaff)
+            {
+                // Requests submitted by Admin Staff must be reviewed by Center Manager
+                await EnsureRoleAsync(dto.ReviewedBy, "center_manager", "duyệt yêu cầu của Giáo vụ");
+            }
+            else
+            {
+                // Feedback & requests from Students, Parents, Teachers, or TAs can be reviewed by Admin Staff (or Center Manager)
+                await EnsureAnyRoleAsync(dto.ReviewedBy, new[] { "admin_staff", "center_manager" }, "xử lý đơn từ / phản hồi");
+            }
+
             var status = dto.Status?.Trim().ToLowerInvariant() ?? "";
-            if (status is not ("approved" or "rejected"))
-                throw new InvalidOperationException("Chỉ được chọn approved hoặc rejected.");
+            if (status is not ("pending" or "approved" or "rejected"))
+                throw new InvalidOperationException("Chỉ được chọn pending, approved hoặc rejected.");
 
             var reviewNotes = dto.ReviewNotes?.Trim();
             if (status == "rejected" && string.IsNullOrWhiteSpace(reviewNotes))
                 throw new InvalidOperationException("Khi từ chối phải nhập lý do.");
-
-            var existing = await _requestRepository.GetByIdAsync(id);
-            if (existing == null) return null;
 
             if (!string.Equals(existing.Status, "pending", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Yêu cầu đã được xử lý và không thể duyệt lại.");
 
             if (existing.RequestedBy == dto.ReviewedBy)
                 throw new InvalidOperationException("Người tạo yêu cầu không được tự phê duyệt.");
+
+            if (status is ("approved" or "rejected") && existing.ReviewedBy == null)
+                throw new InvalidOperationException(
+                    "Vui lòng nhấn Pending (Đang xem xét giải quyết) trước khi phê duyệt hoặc từ chối yêu cầu.");
 
             // Atomic conditional UPDATE: concurrent reviewers cannot both win.
             var updated = await _requestRepository.TryReviewPendingAsync(
@@ -158,6 +254,18 @@ namespace EduTrack.API.Services.Management.Implementation
             {
                 throw new InvalidOperationException(
                     $"Tài khoản không hợp lệ hoặc không có quyền {action} ({role}).");
+            }
+        }
+
+        private async Task EnsureAnyRoleAsync(int userId, IEnumerable<string> roles, string action)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null ||
+                !string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase) ||
+                !roles.Any(r => HasRole(user, r)))
+            {
+                throw new InvalidOperationException(
+                    $"Tài khoản không hợp lệ hoặc không có quyền {action}.");
             }
         }
 

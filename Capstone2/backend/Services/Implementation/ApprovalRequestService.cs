@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,6 +32,48 @@ namespace EduTrack.API.Services.Implementation
 
         private static ApprovalRequestDto MapToDto(ApprovalRequest x)
         {
+            var statusLower = (x.Status ?? "pending").Trim().ToLowerInvariant();
+            bool canEdit = statusLower == "pending" && x.ReviewedBy == null;
+
+            string statusLabel;
+            if (statusLower == "approved")
+            {
+                statusLabel = "Approved";
+            }
+            else if (statusLower == "rejected")
+            {
+                statusLabel = "Rejected";
+            }
+            else if (x.ReviewedBy != null)
+            {
+                statusLabel = "Pending";
+            }
+            else
+            {
+                statusLabel = "Chờ phê duyệt";
+            }
+
+            var requesterRole = x.Requester?.UserRoles?
+                .Select(ur => ur.Role?.RoleName)
+                .FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
+
+            if (string.IsNullOrWhiteSpace(requesterRole))
+            {
+                var code = x.Requester?.UserCode ?? string.Empty;
+                if (code.StartsWith("PAR", StringComparison.OrdinalIgnoreCase) || x.RequestedBy is 9 or 10)
+                    requesterRole = "parent";
+                else if (code.StartsWith("STU", StringComparison.OrdinalIgnoreCase) || x.RequestedBy is 6 or 7 or 8)
+                    requesterRole = "student";
+                else if (code.StartsWith("TEA", StringComparison.OrdinalIgnoreCase) || x.RequestedBy is 3 or 4)
+                    requesterRole = "teacher";
+                else if (code.StartsWith("TA", StringComparison.OrdinalIgnoreCase) || x.RequestedBy == 5)
+                    requesterRole = "ta";
+                else if (x.RequestedBy == 2)
+                    requesterRole = "admin_staff";
+                else if (x.RequestedBy == 1)
+                    requesterRole = "center_manager";
+            }
+
             return new ApprovalRequestDto
             {
                 RequestId = x.RequestId,
@@ -45,10 +88,13 @@ namespace EduTrack.API.Services.Implementation
                 ClassName = x.Class?.ClassName,
                 RequestedBy = x.RequestedBy,
                 RequesterName = x.Requester?.FullName ?? string.Empty,
+                RequesterRole = requesterRole,
                 ReviewedBy = x.ReviewedBy,
                 ReviewerName = x.Reviewer?.FullName,
-                Priority = x.Priority,
-                Status = x.Status,
+                Priority = x.Priority ?? "medium",
+                Status = x.Status ?? "pending",
+                StatusLabel = statusLabel,
+                CanEdit = canEdit,
                 Reason = x.Reason,
                 CreatedAt = x.CreatedAt,
                 ReviewedAt = x.ReviewedAt,

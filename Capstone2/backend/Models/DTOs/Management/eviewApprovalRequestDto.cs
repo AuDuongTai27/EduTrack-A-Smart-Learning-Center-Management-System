@@ -8,7 +8,7 @@ namespace EduTrack.API.Models.DTOs.Management
         public int ReviewedBy { get; set; }
 
         [Required]
-        [RegularExpression("(?i)^(approved|rejected)$")]
+        [RegularExpression("(?i)^(pending|approved|rejected)$")]
         public string Status { get; set; } = string.Empty;
 
         [StringLength(2000)]

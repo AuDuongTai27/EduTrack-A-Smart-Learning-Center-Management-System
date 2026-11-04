@@ -11,6 +11,7 @@ export interface ApprovalRequestDto {
   className?: string | null;
   requestedBy: number;
   requesterName: string;
+  requesterRole?: string | null;
   reviewedBy?: number | null;
   reviewerName?: string | null;
   priority: string;

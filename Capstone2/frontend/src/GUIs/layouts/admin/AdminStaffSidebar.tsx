@@ -87,7 +87,7 @@ export default function AdminStaffSidebar() {
             to="/admin-staff/feedback"
           >
             <i className="bi bi-inbox-fill" />
-            <span>Received Requests &amp; Feedback</span>
+            <span>Received Feedback</span>
           </NavLink>
           <NavLink
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}

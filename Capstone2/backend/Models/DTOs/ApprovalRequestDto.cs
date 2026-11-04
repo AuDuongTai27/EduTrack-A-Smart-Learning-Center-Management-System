@@ -16,6 +16,7 @@ namespace EduTrack.API.Models.DTOs
         public string? ClassName { get; set; }
         public int RequestedBy { get; set; }
         public string RequesterName { get; set; } = null!;
+        public string? RequesterRole { get; set; }
         public int? ReviewedBy { get; set; }
         public string? ReviewerName { get; set; }
         public string Priority { get; set; } = null!;

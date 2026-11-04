@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using EduTrack.API.Models.EF;
@@ -20,7 +22,10 @@ namespace EduTrack.API.Repositories.Implementation
                 .Include(ar => ar.Student)
                 .Include(ar => ar.Class)
                 .Include(ar => ar.Requester)
+                    .ThenInclude(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
                 .Include(ar => ar.Reviewer)
+                .OrderByDescending(ar => ar.CreatedAt)
                 .ToListAsync();
         }
 
@@ -31,16 +36,18 @@ namespace EduTrack.API.Repositories.Implementation
                 .Include(ar => ar.Student)
                 .Include(ar => ar.Class)
                 .Include(ar => ar.Requester)
+                    .ThenInclude(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
                 .Include(ar => ar.Reviewer)
                 .FirstOrDefaultAsync(x => x.RequestId == id);
         }
 
         public async Task<bool> TryReviewPendingAsync(
-    int id,
-    string status,
-    int reviewedBy,
-    string? reviewNotes,
-    DateTime reviewedAt)
+            int id,
+            string status,
+            int reviewedBy,
+            string? reviewNotes,
+            DateTime reviewedAt)
         {
             var affected = await _dbSet
                 .Where(ar => ar.RequestId == id

@@ -12,6 +12,48 @@ import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { TuitionInvoiceDto } from "../../../../BLL/models/TuitionDto";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
+const REQUEST_TYPE_LABELS: Record<string, string> = {
+  tuition_adjustment: "Tuition Adjustment",
+  refund_request: "Refund Request",
+  due_date_extension: "Due Date Extension",
+  student_information_change: "Student Info Change",
+  class_transfer: "Class Transfer",
+  academic_support: "Academic Support",
+  other: "Other",
+};
+
+function formatRequestType(type?: string | null): string {
+  if (!type) return "Other";
+  const key = type.trim().toLowerCase();
+  return REQUEST_TYPE_LABELS[key] || type;
+}
+
+function isFromAdminStaff(req: ApprovalRequestDto): boolean {
+  if (req.requesterRole) {
+    return req.requesterRole.trim().toLowerCase() === "admin_staff";
+  }
+  return (
+    req.requestedBy === 2 &&
+    (req.requestType || "").trim().toLowerCase() !== "feedback"
+  );
+}
+
+function canEditRequest(req: ApprovalRequestDto): boolean {
+  if (typeof req.canEdit === "boolean") return req.canEdit;
+  return (
+    (req.status || "pending").trim().toLowerCase() === "pending" &&
+    req.reviewedBy == null
+  );
+}
+
+function getDisplayStatus(req: ApprovalRequestDto): string {
+  const s = (req.status || "pending").trim().toLowerCase();
+  if (s === "approved") return "Approved";
+  if (s === "rejected") return "Rejected";
+  if (req.reviewedBy != null) return "Pending";
+  return "Chờ phê duyệt";
+}
+
 export default function AdminStaffApprovalRequestPage() {
   const [requests, setRequests] = useState<ApprovalRequestDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,8 +74,9 @@ export default function AdminStaffApprovalRequestPage() {
     useState<ApprovalRequestDto | null>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
 
-  // New Request Modal state
+  // New / Edit Request Modal state
   const [showNewModal, setShowNewModal] = useState<boolean>(false);
+  const [editingRequestId, setEditingRequestId] = useState<number | null>(null);
   const [newRequestForm, setNewRequestForm] = useState({
     requestType: "other",
     studentId: "",
@@ -45,6 +88,7 @@ export default function AdminStaffApprovalRequestPage() {
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+
   // Student search: visible label is name/code, submitted value is verified userId.
   const [students, setStudents] = useState<UserDto[]>([]);
   const [invoices, setInvoices] = useState<TuitionInvoiceDto[]>([]);
@@ -94,14 +138,22 @@ export default function AdminStaffApprovalRequestPage() {
           tuitionApi.getAllInvoices(),
         ]);
         if (!active) return;
-        setStudents(
-          allUsers.filter(
-            (u) =>
-              u.roles?.some((role) => role.toLowerCase() === "student") &&
-              u.status.toLowerCase() === "active",
-          ),
+        const activeStudents = allUsers.filter(
+          (u) =>
+            u.roles?.some((role) => role.toLowerCase() === "student") &&
+            u.status.toLowerCase() === "active",
         );
+        setStudents(activeStudents);
         setInvoices(allInvoices);
+
+        if (newRequestForm.studentId) {
+          const found = activeStudents.find(
+            (s) => String(s.userId) === newRequestForm.studentId,
+          );
+          if (found) {
+            setStudentSearch(`${found.fullName} (${found.userCode})`);
+          }
+        }
       } catch (error) {
         if (active) {
           setReferenceError(
@@ -118,7 +170,7 @@ export default function AdminStaffApprovalRequestPage() {
     return () => {
       active = false;
     };
-  }, [showNewModal]);
+  }, [showNewModal, newRequestForm.studentId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -128,8 +180,8 @@ export default function AdminStaffApprovalRequestPage() {
         setLoadError(null);
         const res = await feedbackDAL.getAllRequests();
         if (isMounted && res.data) {
-          // Admin Staff's approval requests: requests initiated by staff or internal requests
-          setRequests(res.data);
+          // Admin Staff's approval requests: requests initiated by Admin Staff
+          setRequests(res.data.filter(isFromAdminStaff));
         }
       } catch (err) {
         console.warn("Lỗi tải danh sách yêu cầu phê duyệt:", err);
@@ -167,13 +219,20 @@ export default function AdminStaffApprovalRequestPage() {
 
         const matchType =
           selectedType === "All" ||
-          r.requestType?.toLowerCase() === selectedType;
+          r.requestType?.toLowerCase() === selectedType.toLowerCase();
         const matchPriority =
           selectedPriority === "All" ||
           r.priority?.toLowerCase() === selectedPriority.toLowerCase();
-        const matchStatus =
-          selectedStatus === "All" ||
-          r.status?.toLowerCase() === selectedStatus.toLowerCase();
+
+        const statusLower = (r.status || "pending").trim().toLowerCase();
+        let matchStatus = true;
+        if (selectedStatus === "waiting") {
+          matchStatus = statusLower === "pending" && r.reviewedBy == null;
+        } else if (selectedStatus === "pending") {
+          matchStatus = statusLower === "pending" && r.reviewedBy != null;
+        } else if (selectedStatus !== "All") {
+          matchStatus = statusLower === selectedStatus.toLowerCase();
+        }
 
         return matchSearch && matchType && matchPriority && matchStatus;
       })
@@ -234,8 +293,45 @@ export default function AdminStaffApprovalRequestPage() {
     }
   };
 
-  // Create the request on Backend. Never create a fake local request.
-  const handleCreateSubmit = async (e: React.FormEvent) => {
+  const handleOpenCreateModal = () => {
+    setEditingRequestId(null);
+    setNewRequestForm({
+      requestType: "other",
+      studentId: "",
+      invoiceId: "",
+      priority: "medium",
+      title: "",
+      reason: "",
+    });
+    setStudentSearch("");
+    setShowStudentSuggestions(false);
+    setShowNewModal(true);
+  };
+
+  const handleOpenEditModal = (req: ApprovalRequestDto) => {
+    if (!canEditRequest(req)) {
+      alert(
+        "Đơn yêu cầu này đang được Quản lý trung tâm xem xét hoặc đã xử lý nên không thể chỉnh sửa.",
+      );
+      return;
+    }
+    setSelectedRequest(null);
+    setEditingRequestId(req.requestId);
+    setNewRequestForm({
+      requestType: (req.requestType || "other").toLowerCase(),
+      studentId: req.studentId ? String(req.studentId) : "",
+      invoiceId: req.invoiceId ? String(req.invoiceId) : "",
+      priority: (req.priority || "medium").toLowerCase(),
+      title: req.title || "",
+      reason: req.reason || req.description || "",
+    });
+    setStudentSearch(req.studentName || "");
+    setShowStudentSuggestions(false);
+    setShowNewModal(true);
+  };
+
+  // Create or update the request on Backend.
+  const handleCreateOrUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (creating) return;
 
@@ -262,7 +358,7 @@ export default function AdminStaffApprovalRequestPage() {
 
     setCreating(true);
     try {
-      const created = await feedbackDAL.createRequest({
+      const payload = {
         requestedBy: 2, // Tài khoản Admin Staff seed để test; thay bằng auth khi có đăng nhập thật.
         requestType: newRequestForm.requestType,
         title: newRequestForm.title.trim(),
@@ -276,18 +372,39 @@ export default function AdminStaffApprovalRequestPage() {
           ? Number(newRequestForm.invoiceId)
           : null,
         classId: null,
-      });
+      };
 
-      setRequests((prev) => [
-        created,
-        ...prev.filter((item) => item.requestId !== created.requestId),
-      ]);
-      setSearchTerm("");
-      setSelectedType("All");
-      setSelectedPriority("All");
-      setSelectedStatus("All");
-      setCurrentPage(1);
+      if (editingRequestId != null) {
+        const updated = await feedbackDAL.updateRequest(
+          editingRequestId,
+          payload,
+        );
+        setRequests((prev) =>
+          prev.map((item) =>
+            item.requestId === updated.requestId ? updated : item,
+          ),
+        );
+        setActionSuccessMsg(
+          `Đã cập nhật yêu cầu ${updated.requestCode} thành công!`,
+        );
+      } else {
+        const created = await feedbackDAL.createRequest(payload);
+        setRequests((prev) => [
+          created,
+          ...prev.filter((item) => item.requestId !== created.requestId),
+        ]);
+        setSearchTerm("");
+        setSelectedType("All");
+        setSelectedPriority("All");
+        setSelectedStatus("All");
+        setCurrentPage(1);
+        setActionSuccessMsg(
+          `Đã tạo yêu cầu ${created.requestCode} thành công (Trạng thái: Chờ phê duyệt)!`,
+        );
+      }
+
       setShowNewModal(false);
+      setEditingRequestId(null);
       setNewRequestForm({
         requestType: "other",
         studentId: "",
@@ -298,9 +415,14 @@ export default function AdminStaffApprovalRequestPage() {
       });
       setStudentSearch("");
       setShowStudentSuggestions(false);
-      setActionSuccessMsg(`Đã tạo yêu cầu ${created.requestCode} thành công!`);
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Tạo yêu cầu thất bại.");
+      alert(
+        error instanceof Error
+          ? error.message
+          : editingRequestId != null
+            ? "Cập nhật yêu cầu thất bại."
+            : "Tạo yêu cầu thất bại.",
+      );
     } finally {
       setCreating(false);
     }
@@ -319,7 +441,7 @@ export default function AdminStaffApprovalRequestPage() {
           <button
             type="button"
             className="btn btn-primary d-flex align-items-center shadow-sm"
-            onClick={() => setShowNewModal(true)}
+            onClick={handleOpenCreateModal}
           >
             <i className="bi bi-plus-square me-2" />
             New Request
@@ -385,6 +507,7 @@ export default function AdminStaffApprovalRequestPage() {
                 <option value="student_information_change">
                   Student Information Change
                 </option>
+                <option value="class_transfer">Class Transfer</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -413,7 +536,10 @@ export default function AdminStaffApprovalRequestPage() {
                 }}
               >
                 <option value="All">All Statuses</option>
-                <option value="pending">Pending</option>
+                <option value="waiting">Chờ phê duyệt (Có thể sửa)</option>
+                <option value="pending">
+                  Pending (Đang xem xét giải quyết)
+                </option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
               </select>
@@ -501,6 +627,7 @@ export default function AdminStaffApprovalRequestPage() {
                         year: "numeric",
                       })
                     : "—";
+                  const editable = canEditRequest(req);
 
                   return (
                     <tr key={req.requestId || idx}>
@@ -512,7 +639,7 @@ export default function AdminStaffApprovalRequestPage() {
                       </td>
                       <td>
                         <span className="badge bg-light text-dark border">
-                          {req.requestType}
+                          {formatRequestType(req.requestType)}
                         </span>
                       </td>
                       <td>
@@ -543,7 +670,7 @@ export default function AdminStaffApprovalRequestPage() {
                         <StatusBadge status={req.priority || "Medium"} />
                       </td>
                       <td>
-                        <DotStatusBadge status={req.status || "Pending"} />
+                        <DotStatusBadge status={getDisplayStatus(req)} />
                       </td>
                       <td className="text-center">
                         <div className="d-flex align-items-center justify-content-center gap-1">
@@ -552,6 +679,13 @@ export default function AdminStaffApprovalRequestPage() {
                             title="Xem chi tiết đơn yêu cầu"
                             onClick={() => handleViewDetails(req)}
                           />
+                          {editable && (
+                            <TableActionButton
+                              action="Edit"
+                              title="Chỉnh sửa yêu cầu (đang chờ phê duyệt)"
+                              onClick={() => handleOpenEditModal(req)}
+                            />
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -572,7 +706,7 @@ export default function AdminStaffApprovalRequestPage() {
         />
       </div>
 
-      {/* CREATE NEW REQUEST MODAL */}
+      {/* CREATE / EDIT REQUEST MODAL */}
       {showNewModal && (
         <div
           className="modal show d-block"
@@ -583,16 +717,23 @@ export default function AdminStaffApprovalRequestPage() {
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-plus-circle me-2" />
-                  Tạo yêu cầu phê duyệt mới lên Quản lý trung tâm
+                  <i
+                    className={`bi ${editingRequestId != null ? "bi-pencil-square" : "bi-plus-circle"} me-2`}
+                  />
+                  {editingRequestId != null
+                    ? "Chỉnh sửa yêu cầu phê duyệt (Chờ phê duyệt)"
+                    : "Tạo yêu cầu phê duyệt mới lên Quản lý trung tâm"}
                 </h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
-                  onClick={() => setShowNewModal(false)}
+                  onClick={() => {
+                    setShowNewModal(false);
+                    setEditingRequestId(null);
+                  }}
                 />
               </div>
-              <form onSubmit={handleCreateSubmit}>
+              <form onSubmit={handleCreateOrUpdateSubmit}>
                 <div className="modal-body p-4">
                   <div className="row g-3">
                     <div className="col-md-6">
@@ -835,7 +976,7 @@ export default function AdminStaffApprovalRequestPage() {
 
                     <div className="col-md-12">
                       <label className="form-label fw-bold">
-                        Nội dung chi tiết & Lý do đề xuất
+                        Nội dung chi tiết &amp; Lý do đề xuất
                       </label>
                       <textarea
                         className="form-control"
@@ -857,7 +998,10 @@ export default function AdminStaffApprovalRequestPage() {
                   <button
                     type="button"
                     className="btn btn-outline-secondary"
-                    onClick={() => setShowNewModal(false)}
+                    onClick={() => {
+                      setShowNewModal(false);
+                      setEditingRequestId(null);
+                    }}
                   >
                     Hủy bỏ
                   </button>
@@ -867,7 +1011,11 @@ export default function AdminStaffApprovalRequestPage() {
                     disabled={creating}
                   >
                     <i className="bi bi-send me-1" />
-                    {creating ? "Đang gửi yêu cầu..." : "Gửi yêu cầu phê duyệt"}
+                    {creating
+                      ? "Đang lưu..."
+                      : editingRequestId != null
+                        ? "Lưu thay đổi"
+                        : "Gửi yêu cầu phê duyệt"}
                   </button>
                 </div>
               </form>
@@ -921,7 +1069,7 @@ export default function AdminStaffApprovalRequestPage() {
                         <div className="d-flex align-items-center gap-3 text-muted small">
                           <span>
                             <i className="bi bi-tag me-1" />
-                            {selectedRequest.requestType}
+                            {formatRequestType(selectedRequest.requestType)}
                           </span>
                           <span>
                             <i className="bi bi-clock me-1" />
@@ -942,7 +1090,7 @@ export default function AdminStaffApprovalRequestPage() {
                       </div>
                       <div className="d-flex flex-column align-items-end gap-1">
                         <DotStatusBadge
-                          status={selectedRequest.status || "Pending"}
+                          status={getDisplayStatus(selectedRequest)}
                         />
                         <StatusBadge
                           status={selectedRequest.priority || "Medium"}
@@ -975,7 +1123,9 @@ export default function AdminStaffApprovalRequestPage() {
                             {selectedRequest.reviewerName ||
                               (selectedRequest.status?.toLowerCase() ===
                               "pending"
-                                ? "Đang chờ duyệt"
+                                ? selectedRequest.reviewedBy != null
+                                  ? "Đang xem xét giải quyết (Pending)"
+                                  : "Đang chờ phê duyệt"
                                 : "Chưa có thông tin người duyệt")}
                           </div>
                           {selectedRequest.reviewedAt && (
@@ -992,7 +1142,7 @@ export default function AdminStaffApprovalRequestPage() {
 
                     <div className="mb-4">
                       <h6 className="fw-bold text-dark mb-2">
-                        Nội dung chi tiết & Căn cứ đề xuất:
+                        Nội dung chi tiết &amp; Căn cứ đề xuất:
                       </h6>
                       <div
                         className="p-3 bg-light rounded border text-secondary"
@@ -1022,7 +1172,7 @@ export default function AdminStaffApprovalRequestPage() {
                 )}
               </div>
 
-              <div className="modal-footer bg-light">
+              <div className="modal-footer bg-light d-flex justify-content-between">
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -1030,6 +1180,16 @@ export default function AdminStaffApprovalRequestPage() {
                 >
                   Đóng
                 </button>
+                {canEditRequest(selectedRequest) && (
+                  <button
+                    type="button"
+                    className="btn btn-primary d-inline-flex align-items-center gap-1"
+                    onClick={() => handleOpenEditModal(selectedRequest)}
+                  >
+                    <i className="bi bi-pencil-square" />
+                    Chỉnh sửa yêu cầu
+                  </button>
+                )}
               </div>
             </div>
           </div>
