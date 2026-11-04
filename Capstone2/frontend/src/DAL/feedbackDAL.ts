@@ -1,6 +1,7 @@
 import {
   approvalRequestApi,
   type CreateApprovalRequestPayload,
+  type UpdateApprovalRequestPayload,
   type ReviewApprovalRequestPayload,
 } from "../api/approvalRequestApi";
 
@@ -26,6 +27,13 @@ export const feedbackDAL = {
     dto: CreateApprovalRequestPayload,
   ): Promise<ApprovalRequestDto> {
     return approvalRequestApi.create(dto);
+  },
+
+  async updateRequest(
+    id: number,
+    dto: UpdateApprovalRequestPayload,
+  ): Promise<ApprovalRequestDto> {
+    return approvalRequestApi.update(id, dto);
   },
 
   async reviewRequest(

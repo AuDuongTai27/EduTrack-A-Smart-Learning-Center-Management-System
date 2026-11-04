@@ -1181,6 +1181,15 @@
     border-radius: 50%;
   }
 
+  .approval-waiting {
+    color: #1d4ed8;
+    background: #dbeafe;
+  }
+
+  .approval-waiting span {
+    background: #3b82f6;
+  }
+
   .approval-pending {
     color: #a16207;
     background: #fef3c7;

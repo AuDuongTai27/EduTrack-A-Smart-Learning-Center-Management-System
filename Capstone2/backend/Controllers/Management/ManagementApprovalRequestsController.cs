@@ -45,6 +45,29 @@ namespace EduTrack.API.Controllers.Management
             }
         }
 
+        // PUT /api/approvalrequests/{id}
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApprovalRequestDto>> Update(
+            int id, [FromBody] UpdateApprovalRequestDto dto)
+        {
+            try
+            {
+                var updated = await _service.UpdateAsync(id, dto);
+                if (updated == null)
+                    return NotFound(new { message = "Không tìm thấy yêu cầu." });
+                return Ok(updated);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Update approval request failed: {RequestId}", id);
+                return StatusCode(500, new { message = "Không thể chỉnh sửa yêu cầu." });
+            }
+        }
+
         // PUT /api/approvalrequests/{id}/review
         [HttpPut("{id:int}/review")]
         public async Task<ActionResult<ApprovalRequestDto>> Review(

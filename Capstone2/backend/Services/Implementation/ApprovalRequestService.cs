@@ -31,6 +31,32 @@ namespace EduTrack.API.Services.Implementation
 
         private static ApprovalRequestDto MapToDto(ApprovalRequest x)
         {
+            var statusLower = (x.Status ?? "pending").Trim().ToLowerInvariant();
+            bool canEdit = statusLower == "pending" && x.ReviewedBy == null;
+
+            string statusLabel;
+            if (statusLower == "approved")
+            {
+                statusLabel = "Approved";
+            }
+            else if (statusLower == "rejected")
+            {
+                statusLabel = "Rejected";
+            }
+            else if (x.ReviewedBy != null)
+            {
+                statusLabel = "Pending";
+            }
+            else
+            {
+                statusLabel = "Chờ phê duyệt";
+            }
+
+            var requesterRole = x.Requester?.UserRoles?
+                .Select(ur => ur.Role?.RoleName)
+                .FirstOrDefault(r => !string.IsNullOrWhiteSpace(r))
+                ?? (x.RequestedBy == 2 ? "admin_staff" : null);
+
             return new ApprovalRequestDto
             {
                 RequestId = x.RequestId,
@@ -45,10 +71,13 @@ namespace EduTrack.API.Services.Implementation
                 ClassName = x.Class?.ClassName,
                 RequestedBy = x.RequestedBy,
                 RequesterName = x.Requester?.FullName ?? string.Empty,
+                RequesterRole = requesterRole,
                 ReviewedBy = x.ReviewedBy,
                 ReviewerName = x.Reviewer?.FullName,
                 Priority = x.Priority,
                 Status = x.Status,
+                StatusLabel = statusLabel,
+                CanEdit = canEdit,
                 Reason = x.Reason,
                 CreatedAt = x.CreatedAt,
                 ReviewedAt = x.ReviewedAt,
