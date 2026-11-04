@@ -6,6 +6,11 @@ export interface TuitionBillCardProps {
 }
 
 export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCardProps) {
+  const isPaid =
+    bill.totalAmount.trim() === '0 đ' ||
+    bill.totalAmount.trim() === '0đ' ||
+    bill.remainingDaysText.toLowerCase().includes('hoàn thành') ||
+    bill.remainingDaysText.toLowerCase().includes('đã nộp');
 
   return (
     <div className="bill-card">
@@ -14,7 +19,9 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
         {/* Left Column: Total Due */}
         <div className="bill-left-col">
           <div className="bill-total-label">Tổng tiền cần đóng</div>
-          <div className="bill-hero-amount">{bill.totalAmount}</div>
+          <div className={`bill-hero-amount ${isPaid ? 'text-success' : ''}`}>
+            {bill.totalAmount}
+          </div>
 
           <div className="bill-meta-lines">
             <div className="bill-meta-item">
@@ -23,13 +30,19 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
             </div>
             <div className="bill-meta-item">
               <span className="bill-meta-title">Hạn đóng:</span>
-              <span className="bill-meta-due-date">{bill.dueDate}</span>
+              <span className={`bill-meta-due-date ${isPaid ? 'is-paid' : ''}`}>
+                {bill.dueDate}
+              </span>
             </div>
           </div>
 
           <div className="mt-auto">
-            <div className="bill-remaining-chip">
-              <i className="bi bi-info-circle-fill"></i>
+            <div className={`bill-remaining-chip ${isPaid ? 'is-paid' : 'is-unpaid'}`}>
+              <i
+                className={`bi ${
+                  isPaid ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'
+                }`}
+              ></i>
               <span>{bill.remainingDaysText}</span>
             </div>
           </div>
@@ -68,6 +81,6 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
       </div>
     </div>
   );
-};
+}
 
 export default TuitionBillCard;

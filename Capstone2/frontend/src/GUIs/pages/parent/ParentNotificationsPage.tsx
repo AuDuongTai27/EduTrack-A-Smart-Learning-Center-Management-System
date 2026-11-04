@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Pagination from "../../components/Common/Pagination";
+import { LearnerPageLoader } from "../../components/student/common/LearnerPageLoader";
 import { useParent } from "../../../contexts/ParentContext";
 import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
 import { DEFAULT_PARENT_ID } from "../../../DAL/parentDAL";
@@ -58,48 +59,6 @@ const PARENT_CATEGORY_STYLES: Record<
     tip: "Thông báo chính thức từ Ban quản lý Trung tâm EduTrack gửi tới Quý phụ huynh.",
   },
 };
-
-const INITIAL_PARENT_NOTIFS: ParentNotificationItem[] = [
-  {
-    id: 1,
-    category: "payment",
-    badgeLabel: "Học phí",
-    sender: "Phòng Tài vụ EduTrack",
-    icon: "bi-wallet2",
-    title: "Thông báo học phí kỳ mới tháng 10/2026",
-    snippet:
-      "Hóa đơn học phí kỳ tháng 10/2026 của học sinh Lê Văn An đã được phát hành. Quý phụ huynh có thể kiểm tra và thanh toán trực tuyến tại mục Học phí.",
-    meta: "Học phí · 2.900.000 ₫",
-    timestamp: "14/10/2026 09:00",
-    unread: true,
-  },
-  {
-    id: 2,
-    category: "class",
-    badgeLabel: "Lớp học",
-    sender: "Giáo viên phụ trách lớp",
-    icon: "bi-journal-check",
-    title: "Cập nhật nhận xét định kỳ từ Giáo viên",
-    snippet:
-      "Giáo viên phụ trách lớp Toán Nâng Cao 9 đã cập nhật phiếu đánh giá tiến độ và chuyên cần tháng 10 cho học sinh Lê Văn An.",
-    meta: "Nhận xét · Toán Nâng Cao 9",
-    timestamp: "13/10/2026 17:45",
-    unread: true,
-  },
-  {
-    id: 3,
-    category: "system",
-    badgeLabel: "Trung tâm",
-    sender: "Ban Quản lý EduTrack",
-    icon: "bi-megaphone-fill",
-    title: "Thông báo lịch nghỉ lễ và học bù của trung tâm",
-    snippet:
-      "EduTrack xin gửi tới Quý phụ huynh kế hoạch nghỉ lễ và lịch học bù của các lớp trong tuần tới.",
-    meta: "Thông báo chung",
-    timestamp: "10/10/2026 08:00",
-    unread: false,
-  },
-];
 
 function mapLearnerDtoToParentItem(
   dto: LearnerNotificationItemApiDto
@@ -165,12 +124,12 @@ function mapLearnerDtoToParentItem(
 }
 
 export function ParentNotificationsPage() {
-  const { selectedChild } = useParent();
+  const { selectedChild, loading: parentLoading } = useParent();
   const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
   const childName = selectedChild?.name || "Lê Văn An";
 
   const [notifications, setNotifications] =
-    useState<ParentNotificationItem[]>(INITIAL_PARENT_NOTIFS);
+    useState<ParentNotificationItem[]>([]);
   const [readIds, setReadIds] = useState<Set<number>>(() =>
     learningDAL.getLocalReadIds()
   );
@@ -197,10 +156,7 @@ export function ParentNotificationsPage() {
       );
       const localReads = learningDAL.getLocalReadIds();
       setReadIds(localReads);
-      const mapped =
-        list && list.length > 0
-          ? list.map(mapLearnerDtoToParentItem)
-          : INITIAL_PARENT_NOTIFS;
+      const mapped = (list || []).map(mapLearnerDtoToParentItem);
       setNotifications(mapped);
       setSelectedNotification((prev) => {
         if (!prev) return null;
@@ -303,6 +259,16 @@ export function ParentNotificationsPage() {
   const selectedIsUnread = selectedNotification
     ? isItemUnread(selectedNotification)
     : false;
+
+  if (parentLoading || (loading && notifications.length === 0)) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải thông báo phụ huynh..."
+        message="Hệ thống đang đồng bộ thông báo về học phí và kết quả học tập của con."
+        containerClassName="notifications-container"
+      />
+    );
+  }
 
   return (
     <main className="main-content">

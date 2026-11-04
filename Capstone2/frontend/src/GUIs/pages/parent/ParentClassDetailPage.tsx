@@ -1,57 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
-import { learningDAL } from '../../../DAL/learningDAL';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import type { ClassSessionAttendanceItemApiDto } from '../../../api/learningApi';
-
-const DEFAULT_SESSIONS: ClassSessionAttendanceItemApiDto[] = [
-  {
-    sessionId: 1,
-    sessionNo: 1,
-    date: 'Thứ 2, 01/09/2026',
-    topic: 'Buổi 1: Giới thiệu đề cương & Ôn tập kiến thức nền tảng',
-    status: 'present',
-    statusLabel: 'Có mặt',
-    notes: 'Đúng giờ, hăng hái xây dựng bài.',
-  },
-  {
-    sessionId: 2,
-    sessionNo: 2,
-    date: 'Thứ 4, 03/09/2026',
-    topic: 'Buổi 2: Chuyên đề nâng cao phần 1 & Bài tập ứng dụng',
-    status: 'present',
-    statusLabel: 'Có mặt',
-    notes: 'Làm bài nhanh, hiểu sâu phương pháp.',
-  },
-  {
-    sessionId: 3,
-    sessionNo: 3,
-    date: 'Thứ 6, 05/09/2026',
-    topic: 'Buổi 3: Luyện tập kỹ năng giải nhanh dạng đề trọng tâm',
-    status: 'present',
-    statusLabel: 'Có mặt',
-    notes: 'Tham gia thảo luận nhóm tích cực.',
-  },
-];
 
 export function ParentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
-  const { selectedChild } = useParent();
+  const { selectedChild, loading: parentLoading } = useParent();
 
   const classId = parseInt(paramId || '1', 10);
-  const fallbackCls =
-    selectedChild?.classes.find((c) => c.id === classId) ||
-    selectedChild?.classes[0];
 
-  const [cls, setCls] = useState<ChildClassItem | undefined>(fallbackCls);
-  const [sessions, setSessions] = useState<ClassSessionAttendanceItemApiDto[]>(DEFAULT_SESSIONS);
+  const [cls, setCls] = useState<ChildClassItem | undefined>(undefined);
+  const [sessions, setSessions] = useState<ClassSessionAttendanceItemApiDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadDetail() {
-      const studentId = selectedChild?.id || 6;
+      setLoading(true);
+      const studentId = selectedChild?.id || DEFAULT_STUDENT_ID;
       try {
         const detailVm = await learningDAL.getStudentClassDetail(classId, studentId);
         if (isMounted && detailVm) {
@@ -69,9 +39,7 @@ export function ParentClassDetailPage() {
             totalLessons: detailVm.totalLessons,
             notes: detailVm.latestTeacherNote,
           });
-          if (detailVm.sessions && detailVm.sessions.length > 0) {
-            setSessions(detailVm.sessions);
-          }
+          setSessions(detailVm.sessions || []);
           return;
         }
 
@@ -81,6 +49,10 @@ export function ParentClassDetailPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải chi tiết lớp học của con:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -96,6 +68,15 @@ export function ParentClassDetailPage() {
       document.title = `${cls.name} – Chi tiết lớp (Phụ huynh) – EduTrack`;
     }
   }, [cls]);
+
+  if (parentLoading || loading) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải chi tiết lớp học..."
+        message="Hệ thống đang tải thông tin lớp học và nhật ký điểm danh của con."
+      />
+    );
+  }
 
   if (!cls || !selectedChild) {
     return (
@@ -277,29 +258,37 @@ export function ParentClassDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {sessions.map((ses) => (
-                  <tr key={ses.sessionNo}>
-                    <td className="fw-bold text-primary">#{ses.sessionNo}</td>
-                    <td className="small text-muted">{ses.date}</td>
-                    <td className="fw-medium text-dark">{ses.topic}</td>
-                    <td>
-                      {ses.status === 'present' ? (
-                        <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                          <i className="bi bi-check-circle-fill me-1"></i> {ses.statusLabel}
-                        </span>
-                      ) : ses.status === 'scheduled' ? (
-                        <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1">
-                          <i className="bi bi-clock-history me-1"></i> {ses.statusLabel}
-                        </span>
-                      ) : (
-                        <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
-                          <i className="bi bi-exclamation-circle-fill me-1"></i> {ses.statusLabel}
-                        </span>
-                      )}
+                {sessions.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center text-muted py-4">
+                      Chưa có nhật ký buổi học nào được ghi nhận cho lớp này.
                     </td>
-                    <td className="small text-muted">{ses.notes}</td>
                   </tr>
-                ))}
+                ) : (
+                  sessions.map((ses) => (
+                    <tr key={ses.sessionNo}>
+                      <td className="fw-bold text-primary">#{ses.sessionNo}</td>
+                      <td className="small text-muted">{ses.date}</td>
+                      <td className="fw-medium text-dark">{ses.topic}</td>
+                      <td>
+                        {ses.status === 'present' ? (
+                          <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                            <i className="bi bi-check-circle-fill me-1"></i> {ses.statusLabel}
+                          </span>
+                        ) : ses.status === 'scheduled' ? (
+                          <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1">
+                            <i className="bi bi-clock-history me-1"></i> {ses.statusLabel}
+                          </span>
+                        ) : (
+                          <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
+                            <i className="bi bi-exclamation-circle-fill me-1"></i> {ses.statusLabel}
+                          </span>
+                        )}
+                      </td>
+                      <td className="small text-muted">{ses.notes}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

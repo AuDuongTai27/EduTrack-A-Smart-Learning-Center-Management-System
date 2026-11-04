@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import {
-  ASSIGNMENTS_DB,
-  DEFAULT_ASG,
-  type AssignmentDetailItem,
-  type SubmissionStatus,
+import type {
+  AssignmentDetailItem,
+  SubmissionStatus,
 } from '../../components/student/assignmentDetail/assignmentDetailData';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import type { StudentSubmissionDetailApiDto } from '../../../api/learningApi';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { AssignmentDetailHeader } from '../../components/student/assignmentDetail/AssignmentDetailHeader';
 import { AssignmentMetaCards } from '../../components/student/assignmentDetail/AssignmentMetaCards';
 import { AssignmentInstructions } from '../../components/student/assignmentDetail/AssignmentInstructions';
@@ -20,19 +19,20 @@ export function StudentAssignmentDetailPage() {
 
   const rawId = paramId || searchParams.get('id') || '1';
   const asgId = parseInt(rawId, 10) || 1;
-  const initialAsg = ASSIGNMENTS_DB[asgId] || DEFAULT_ASG;
 
-  const [asg, setAsg] = useState<AssignmentDetailItem>(initialAsg);
-  const [status, setStatus] = useState<SubmissionStatus>(initialAsg.defaultStatus || 'not-submitted');
-  const [submittedFileName, setSubmittedFileName] = useState('Bai_lam_PT_bac2_LeVanAn.pdf');
-  const [submittedMeta, setSubmittedMeta] = useState('Đã nộp lúc 20:30, 13/09/2026 • Đã lưu trên hệ thống');
+  const [asg, setAsg] = useState<AssignmentDetailItem | null>(null);
+  const [status, setStatus] = useState<SubmissionStatus>('not-submitted');
+  const [submittedFileName, setSubmittedFileName] = useState('');
+  const [submittedMeta, setSubmittedMeta] = useState('');
   const [submission, setSubmission] = useState<StudentSubmissionDetailApiDto | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadAssignmentDetail() {
+      setLoading(true);
       try {
         const vm = await learningDAL.getStudentAssignmentDetail(asgId, DEFAULT_STUDENT_ID);
         if (isMounted && vm) {
@@ -44,6 +44,10 @@ export function StudentAssignmentDetailPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải chi tiết bài tập:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -55,8 +59,10 @@ export function StudentAssignmentDetailPage() {
   }, [asgId]);
 
   useEffect(() => {
-    document.title = `${asg.title} – EduTrack`;
-  }, [asg.title]);
+    if (asg?.title) {
+      document.title = `${asg.title} – EduTrack`;
+    }
+  }, [asg?.title]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -87,9 +93,9 @@ export function StudentAssignmentDetailPage() {
       setStatus('submitted');
 
       if (savedSub.score !== null && savedSub.score !== undefined) {
-        setAsg((prev) => ({ ...prev, score: `${savedSub.score} / 10 (GV đã chấm)` }));
+        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.score} / 10 (GV đã chấm)` } : prev));
       } else if (savedSub.aiScore !== null && savedSub.aiScore !== undefined) {
-        setAsg((prev) => ({ ...prev, score: `${savedSub.aiScore} / 10 (AI chấm sơ bộ)` }));
+        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.aiScore} / 10 (AI chấm sơ bộ)` } : prev));
       }
 
       showToast('Nộp bài tập lên hệ thống thành công! AI đã chấm sơ bộ bài làm.');
@@ -119,6 +125,15 @@ export function StudentAssignmentDetailPage() {
       showToast('Đã xóa bài nộp trên hệ thống');
     }
   };
+
+  if (loading || !asg) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải chi tiết bài tập..."
+        message="Hệ thống đang tải đề bài, hướng dẫn và trạng thái nộp bài của bạn."
+      />
+    );
+  }
 
   return (
     <main className="main-content">

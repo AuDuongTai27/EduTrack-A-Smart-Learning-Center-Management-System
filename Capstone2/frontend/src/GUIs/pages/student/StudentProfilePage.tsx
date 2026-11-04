@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { StudentProfileData } from '../../components/student/profile/profileData';
-import { INITIAL_PROFILE } from '../../components/student/profile/profileData';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ProfileHeader } from '../../components/student/profile/ProfileHeader';
 import { ProfileViewCard } from '../../components/student/profile/ProfileViewCard';
 import { ProfileEditCard } from '../../components/student/profile/ProfileEditCard';
@@ -8,8 +8,9 @@ import { ProfileToast } from '../../components/student/profile/ProfileToast';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function StudentProfilePage() {
-  const [profile, setProfile] = useState<StudentProfileData>(INITIAL_PROFILE);
-  const [formData, setFormData] = useState<StudentProfileData>(INITIAL_PROFILE);
+  const [profile, setProfile] = useState<StudentProfileData | null>(null);
+  const [formData, setFormData] = useState<StudentProfileData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
 
@@ -18,10 +19,19 @@ export function StudentProfilePage() {
     let isMounted = true;
 
     async function loadProfile() {
-      const loaded = await learningDAL.getStudentProfile(DEFAULT_STUDENT_ID);
-      if (isMounted && loaded) {
-        setProfile(loaded);
-        setFormData(loaded);
+      setLoading(true);
+      try {
+        const loaded = await learningDAL.getStudentProfile(DEFAULT_STUDENT_ID);
+        if (isMounted && loaded) {
+          setProfile(loaded);
+          setFormData(loaded);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải hồ sơ học sinh:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -32,11 +42,13 @@ export function StudentProfilePage() {
   }, []);
 
   const handleStartEdit = () => {
+    if (!profile) return;
     setFormData(profile);
     setIsEditing(true);
   };
 
   const handleSave = async () => {
+    if (!formData) return;
     try {
       const updated = await learningDAL.updateStudentProfile(formData, DEFAULT_STUDENT_ID);
       setProfile(updated);
@@ -56,6 +68,16 @@ export function StudentProfilePage() {
     setFormData(profile);
     setIsEditing(false);
   };
+
+  if (loading || !profile || !formData) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải hồ sơ cá nhân..."
+        message="Hệ thống đang tải thông tin học sinh của bạn."
+        containerClassName="profile-container"
+      />
+    );
+  }
 
   return (
     <main className="main-content">

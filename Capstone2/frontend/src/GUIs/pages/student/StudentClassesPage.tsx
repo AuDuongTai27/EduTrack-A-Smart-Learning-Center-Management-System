@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ClassesGridSection } from '../../components/student/classes/ClassesGridSection';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
-import {
-  MOCK_ENROLLED_CLASSES,
-  type EnrolledClassItem,
-} from '../../components/student/classes/classesData';
+import type { EnrolledClassItem } from '../../components/student/classes/classesData';
 
 export function StudentClassesPage() {
-  const [classes, setClasses] = useState<EnrolledClassItem[]>(MOCK_ENROLLED_CLASSES);
+  const [classes, setClasses] = useState<EnrolledClassItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -23,9 +21,6 @@ export function StudentClassesPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải danh sách lớp học của học sinh:', err);
-        if (isMounted) {
-          setClasses(MOCK_ENROLLED_CLASSES);
-        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -39,6 +34,15 @@ export function StudentClassesPage() {
       isMounted = false;
     };
   }, []);
+
+  if (loading) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải danh sách lớp học..."
+        message="Vui lòng đợi trong giây lát, hệ thống đang tải các lớp học bạn đang tham gia."
+      />
+    );
+  }
 
   return (
     <main className="main-content">

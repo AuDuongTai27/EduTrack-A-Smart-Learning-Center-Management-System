@@ -162,7 +162,7 @@ function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): Studen
     studentName: apiData.studentName,
     totalUnpaidAmount: totalUnpaid,
     bill,
-    history: history.length > 0 ? history : TUITION_HISTORY,
+    history,
     source: 'api',
   };
 }
@@ -521,7 +521,7 @@ export const learningDAL = {
   async getParentChildrenOverview(parentId = DEFAULT_PARENT_ID): Promise<ChildStudent[]> {
     try {
       const apiChildren = await learningApi.getParentChildrenOverview(parentId);
-      if (apiChildren && apiChildren.length > 0) {
+      if (Array.isArray(apiChildren)) {
         return apiChildren.map((child) => ({
           id: child.id,
           code: child.code,
@@ -590,30 +590,28 @@ export const learningDAL = {
           studentCount: apiData.studentCount || fallbackCls.studentCount,
         };
 
-        const materials: MaterialItem[] =
-          apiData.materials && apiData.materials.length > 0
-            ? apiData.materials.map((m) => ({
-                id: m.id,
-                classId: m.classId,
-                type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
-                fileName: m.fileName,
-                description: m.description,
-                uploadDate: m.uploadDate,
-                uploadedBy: m.uploadedBy,
-                sizeMb: m.sizeMb,
-              }))
-            : fallbackMaterials;
+        const materials: MaterialItem[] = Array.isArray(apiData.materials)
+          ? apiData.materials.map((m) => ({
+              id: m.id,
+              classId: m.classId,
+              type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
+              fileName: m.fileName,
+              description: m.description,
+              uploadDate: m.uploadDate,
+              uploadedBy: m.uploadedBy,
+              sizeMb: m.sizeMb,
+            }))
+          : fallbackMaterials;
 
-        const assignments: AssignmentItem[] =
-          apiData.assignments && apiData.assignments.length > 0
-            ? apiData.assignments.map((a) => ({
-                id: a.id,
-                classId: a.classId,
-                title: a.title,
-                dueDate: a.dueDate,
-                status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
-              }))
-            : fallbackAssignments;
+        const assignments: AssignmentItem[] = Array.isArray(apiData.assignments)
+          ? apiData.assignments.map((a) => ({
+              id: a.id,
+              classId: a.classId,
+              title: a.title,
+              dueDate: a.dueDate,
+              status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
+            }))
+          : fallbackAssignments;
 
         return {
           cls,
@@ -648,7 +646,7 @@ export const learningDAL = {
   async getStudentSchedule(studentId = DEFAULT_STUDENT_ID): Promise<SessionItem[]> {
     try {
       const apiSlots = await learningApi.getStudentSchedule(studentId);
-      if (apiSlots && apiSlots.length > 0) {
+      if (Array.isArray(apiSlots)) {
         return apiSlots.map((slot) => {
           const theme = mapSubjectBannerTheme(slot.subjectCode, slot.subject);
           return {
@@ -727,7 +725,7 @@ export const learningDAL = {
           lateCount,
           totalSessionsCount,
           enrolledClassesCount: apiData.enrolledClassesCount,
-          currentClasses: mappedClasses.length > 0 ? mappedClasses : CURRENT_PROGRESS_CLASSES,
+          currentClasses: mappedClasses,
           source: 'api',
         };
       }
@@ -895,7 +893,7 @@ export const learningDAL = {
   ): Promise<FeedbackApprovalRequest[]> {
     try {
       const apiList = await learningApi.getLearnerFeedbacks(userId, studentId);
-      if (apiList && apiList.length > 0) {
+      if (Array.isArray(apiList)) {
         return apiList.map((item) => mapApiFeedbackToViewModel(item, userRole, userName));
       }
     } catch (error) {
@@ -940,7 +938,7 @@ export const learningDAL = {
   async getStudentNotifications(studentId = DEFAULT_STUDENT_ID): Promise<NotificationItem[]> {
     try {
       const apiList = await learningApi.getStudentNotifications(studentId);
-      if (apiList && apiList.length > 0) {
+      if (Array.isArray(apiList)) {
         return apiList.map(mapApiLearnerNotifToStudentItem);
       }
     } catch (error) {
@@ -959,7 +957,7 @@ export const learningDAL = {
   ): Promise<LearnerNotificationItemApiDto[]> {
     try {
       const list = await learningApi.getParentNotifications(parentId, studentId);
-      if (list && list.length > 0) {
+      if (Array.isArray(list)) {
         return list;
       }
     } catch (error) {

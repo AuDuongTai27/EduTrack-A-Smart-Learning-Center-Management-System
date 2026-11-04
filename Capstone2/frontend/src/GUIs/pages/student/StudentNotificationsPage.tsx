@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Pagination from "../../components/Common/Pagination";
-import {
-  INITIAL_NOTIFICATIONS,
-  type NotificationItem,
-} from "../../components/student/notifications/notificationsData";
+import { LearnerPageLoader } from "../../components/student/common/LearnerPageLoader";
+import type { NotificationItem } from "../../components/student/notifications/notificationsData";
 import { NotificationsPreferencesModal } from "../../components/student/notifications/NotificationsPreferencesModal";
 import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
 
@@ -78,9 +76,7 @@ function getCategoryStyle(category: string): CategoryStyle {
 }
 
 export function StudentNotificationsPage() {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(
-    INITIAL_NOTIFICATIONS
-  );
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [readIds, setReadIds] = useState<Set<number>>(() =>
     learningDAL.getLocalReadIds()
   );
@@ -107,13 +103,11 @@ export function StudentNotificationsPage() {
       );
       const localReads = learningDAL.getLocalReadIds();
       setReadIds(localReads);
-      if (items.length > 0) {
-        setNotifications(items);
-        setSelectedNotification((prev) => {
-          if (!prev) return null;
-          return items.find((item) => item.id === prev.id) || null;
-        });
-      }
+      setNotifications(items);
+      setSelectedNotification((prev) => {
+        if (!prev) return null;
+        return items.find((item) => item.id === prev.id) || null;
+      });
     } finally {
       setLoading(false);
     }
@@ -213,6 +207,16 @@ export function StudentNotificationsPage() {
   const selectedIsUnread = selectedNotification
     ? isItemUnread(selectedNotification)
     : false;
+
+  if (loading && notifications.length === 0) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải thông báo học tập..."
+        message="Hệ thống đang đồng bộ hộp thư thông báo của bạn."
+        containerClassName="notifications-container"
+      />
+    );
+  }
 
   return (
     <main className="main-content">

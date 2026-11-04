@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import {
-  CLASSES_DATA,
-  MATERIALS_DATA,
-  ASSIGNMENTS_DATA,
-  type ClassDetailItem,
-  type MaterialItem,
-  type AssignmentItem,
+import type {
+  ClassDetailItem,
+  MaterialItem,
+  AssignmentItem,
 } from '../../components/student/classDetail/classDetailData';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ClassHeroBanner } from '../../components/student/classDetail/ClassHeroBanner';
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
 import { ClassMaterialsSection } from '../../components/student/classDetail/ClassMaterialsSection';
@@ -22,19 +20,16 @@ export function StudentClassDetailPage() {
   const rawId = paramId || searchParams.get('id') || '1';
   const classId = parseInt(rawId, 10) || 1;
 
-  const initialCls = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
-  const [cls, setCls] = useState<ClassDetailItem>(initialCls);
-  const [materials, setMaterials] = useState<MaterialItem[]>(
-    MATERIALS_DATA.filter((m) => m.classId === classId)
-  );
-  const [assignments, setAssignments] = useState<AssignmentItem[]>(
-    ASSIGNMENTS_DATA.filter((a) => a.classId === classId)
-  );
+  const [cls, setCls] = useState<ClassDetailItem | null>(null);
+  const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadClassDetail() {
+      setLoading(true);
       try {
         const detailData = await learningDAL.getStudentClassDetail(
           classId,
@@ -47,6 +42,10 @@ export function StudentClassDetailPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải chi tiết lớp học:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -58,8 +57,10 @@ export function StudentClassDetailPage() {
   }, [classId]);
 
   useEffect(() => {
-    document.title = `${cls.name} – EduTrack`;
-  }, [cls.name]);
+    if (cls?.name) {
+      document.title = `${cls.name} – EduTrack`;
+    }
+  }, [cls?.name]);
 
   const handleDownload = (fileName: string) => {
     setToastMessage(`Đang tải xuống tài liệu: ${fileName}`);
@@ -67,6 +68,15 @@ export function StudentClassDetailPage() {
       setToastMessage(null);
     }, 3000);
   };
+
+  if (loading || !cls) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải chi tiết lớp học..."
+        message="Hệ thống đang tải thông tin lớp học, tài liệu bài giảng và danh sách bài tập."
+      />
+    );
+  }
 
   return (
     <main className="main-content">

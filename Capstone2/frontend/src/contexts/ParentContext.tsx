@@ -12,14 +12,14 @@ export type ParentState = {
   childrenList: ChildStudent[];
   selectedChildId: number | null;
   pendingRequests: PendingLinkRequest[];
+  loading: boolean;
 };
 
-const INITIAL_CHILDREN: ChildStudent[] = parentDAL.getLinkedChildrenSync();
-
 const iniState: ParentState = {
-  childrenList: INITIAL_CHILDREN,
-  selectedChildId: INITIAL_CHILDREN.length > 0 ? INITIAL_CHILDREN[0].id : null,
+  childrenList: [],
+  selectedChildId: null,
   pendingRequests: [],
+  loading: true,
 };
 
 /**
@@ -31,6 +31,7 @@ export type ParentAction =
   | { type: 'ADD_PENDING_REQUEST'; payload: PendingLinkRequest }
   | { type: 'SET_EMPTY_STATE' }
   | { type: 'RESET_CHILDREN'; payload: ChildStudent[] }
+  | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'UPDATE_CHILD_UNPAID'; payload: { studentId: number; unpaidAmount: number } };
 
 function reducer(state: ParentState, action: ParentAction): ParentState {
@@ -56,6 +57,7 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
         ...state,
         childrenList: [],
         selectedChildId: null,
+        loading: false,
       };
     case 'RESET_CHILDREN':
       return {
@@ -67,6 +69,12 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
             : action.payload.length > 0
               ? action.payload[0].id
               : null,
+        loading: false,
+      };
+    case 'SET_LOADING':
+      return {
+        ...state,
+        loading: action.payload,
       };
     case 'UPDATE_CHILD_UNPAID':
       return {
@@ -126,13 +134,20 @@ export function ParentProvider({ children }: ParentProviderProps) {
     let isMounted = true;
 
     async function loadLiveChildrenOverview() {
+      dispatch({ type: 'SET_LOADING', payload: true });
       try {
         const liveChildren = await learningDAL.getParentChildrenOverview(DEFAULT_PARENT_ID);
-        if (isMounted && liveChildren && liveChildren.length > 0) {
-          dispatch({ type: 'RESET_CHILDREN', payload: liveChildren });
+        if (isMounted) {
+          dispatch({ type: 'RESET_CHILDREN', payload: liveChildren || [] });
         }
       } catch (err) {
-        console.warn('[ParentContext] Không thể tải dữ liệu con từ Backend, giữ mock mặc định:', err);
+        console.warn('[ParentContext] Không thể tải dữ liệu con từ Backend, dùng fallback:', err);
+        if (isMounted) {
+          dispatch({
+            type: 'RESET_CHILDREN',
+            payload: parentDAL.getLinkedChildrenSync(DEFAULT_PARENT_ID),
+          });
+        }
       }
     }
 
@@ -238,6 +253,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
   };
 
   const resetDemoChildren = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const liveChildren = await learningDAL.getParentChildrenOverview(DEFAULT_PARENT_ID);
       if (liveChildren && liveChildren.length > 0) {
@@ -245,9 +261,12 @@ export function ParentProvider({ children }: ParentProviderProps) {
         return;
       }
     } catch (err) {
-      console.warn('[ParentContext] Không kết nối được Backend khi tải lại danh sách con, dùng mock:', err);
+      console.warn('[ParentContext] Không kết nối được Backend khi tải lại danh sách con:', err);
     }
-    dispatch({ type: 'RESET_CHILDREN', payload: INITIAL_CHILDREN });
+    dispatch({
+      type: 'RESET_CHILDREN',
+      payload: parentDAL.getLinkedChildrenSync(DEFAULT_PARENT_ID),
+    });
   };
 
   return (

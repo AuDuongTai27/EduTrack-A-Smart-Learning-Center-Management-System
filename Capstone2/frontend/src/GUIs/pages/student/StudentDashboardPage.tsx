@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { DashboardWelcomeBanner } from '../../components/student/dashboard/DashboardWelcomeBanner';
 import { DashboardStatsGrid } from '../../components/student/dashboard/DashboardStatsGrid';
 import { DashboardClassesSection } from '../../components/student/dashboard/DashboardClassesSection';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
-import {
-  MOCK_ENROLLED_CLASSES,
-  type EnrolledClassItem,
-} from '../../components/student/classes/classesData';
+import type { EnrolledClassItem } from '../../components/student/classes/classesData';
 
 export function StudentDashboardPage() {
-  const [studentName, setStudentName] = useState<string>('Lê Văn An');
-  const [avatarInitials, setAvatarInitials] = useState<string>('VA');
-  const [enrolledClassesCount, setEnrolledClassesCount] = useState<number>(
-    MOCK_ENROLLED_CLASSES.length
-  );
-  const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(2);
-  const [classes, setClasses] = useState<EnrolledClassItem[]>(MOCK_ENROLLED_CLASSES);
+  const [studentName, setStudentName] = useState<string>('');
+  const [avatarInitials, setAvatarInitials] = useState<string>('HS');
+  const [enrolledClassesCount, setEnrolledClassesCount] = useState<number>(0);
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(0);
+  const [classes, setClasses] = useState<EnrolledClassItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -25,8 +21,6 @@ export function StudentDashboardPage() {
     async function loadDashboard() {
       try {
         setLoading(true);
-
-        // Gọi tầng learningDAL (Bounded Context: Learning -> GET /api/learning/student/{id}/dashboard)
         const dashboardData = await learningDAL.getStudentDashboard(DEFAULT_STUDENT_ID);
 
         if (isMounted && dashboardData) {
@@ -38,9 +32,6 @@ export function StudentDashboardPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải dữ liệu Dashboard học sinh:', err);
-        if (isMounted) {
-          setClasses(MOCK_ENROLLED_CLASSES);
-        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -54,6 +45,15 @@ export function StudentDashboardPage() {
       isMounted = false;
     };
   }, []);
+
+  if (loading) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải tổng quan học tập..."
+        message="Hệ thống đang đồng bộ danh sách lớp học và bài tập của bạn."
+      />
+    );
+  }
 
   return (
     <main className="main-content">

@@ -1,25 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { learningDAL } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
 
+interface ParentProfileState {
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  identityCard: string;
+  relationship: string;
+}
+
+const FALLBACK_PARENT_PROFILE: ParentProfileState = {
+  fullName: 'Lê Văn Nam',
+  phone: '0981 112 233',
+  email: 'nam.le@example.com',
+  address: 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
+  identityCard: '001085012345',
+  relationship: 'Phụ huynh',
+};
+
 export function ParentProfilePage() {
   const navigate = useNavigate();
-  const { childrenList, resetDemoChildren, setDemoEmptyState } = useParent();
+  const { childrenList, loading: parentLoading, resetDemoChildren, setDemoEmptyState } = useParent();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Thông tin phụ huynh
-  const [parentInfo, setParentInfo] = useState({
-    fullName: 'Lê Văn Nam',
-    phone: '0981 112 233',
-    email: 'nam.le@example.com',
-    address: 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
-    identityCard: '001085012345',
-    relationship: 'Phụ huynh',
-  });
-
-  const [formData, setFormData] = useState(parentInfo);
+  const [parentInfo, setParentInfo] = useState<ParentProfileState | null>(null);
+  const [formData, setFormData] = useState<ParentProfileState | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
@@ -27,22 +38,31 @@ export function ParentProfilePage() {
     let isMounted = true;
 
     async function loadParentProfile() {
+      setLoading(true);
       try {
         const dto = await learningDAL.getParentProfile(DEFAULT_PARENT_ID);
         if (isMounted && dto) {
-          const info = {
-            fullName: dto.fullName || 'Lê Văn Nam',
-            phone: dto.phone || '0981 112 233',
-            email: dto.email || 'nam.le@example.com',
-            address: dto.address || 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
-            identityCard: dto.identityCard || '001085012345',
-            relationship: dto.relationship || 'Phụ huynh',
+          const info: ParentProfileState = {
+            fullName: dto.fullName || FALLBACK_PARENT_PROFILE.fullName,
+            phone: dto.phone || FALLBACK_PARENT_PROFILE.phone,
+            email: dto.email || FALLBACK_PARENT_PROFILE.email,
+            address: dto.address || FALLBACK_PARENT_PROFILE.address,
+            identityCard: dto.identityCard || FALLBACK_PARENT_PROFILE.identityCard,
+            relationship: dto.relationship || FALLBACK_PARENT_PROFILE.relationship,
           };
           setParentInfo(info);
           setFormData(info);
         }
       } catch (err) {
         console.warn('Lỗi khi tải hồ sơ phụ huynh:', err);
+        if (isMounted) {
+          setParentInfo(FALLBACK_PARENT_PROFILE);
+          setFormData(FALLBACK_PARENT_PROFILE);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -53,6 +73,7 @@ export function ParentProfilePage() {
   }, []);
 
   const handleSave = async () => {
+    if (!formData) return;
     try {
       const updated = await learningDAL.updateParentProfile(
         {
@@ -63,7 +84,7 @@ export function ParentProfilePage() {
         },
         DEFAULT_PARENT_ID
       );
-      const nextInfo = {
+      const nextInfo: ParentProfileState = {
         fullName: updated.fullName || formData.fullName,
         phone: updated.phone || formData.phone,
         email: updated.email || formData.email,
@@ -85,6 +106,16 @@ export function ParentProfilePage() {
   const handleGoToFeedbackForLinking = () => {
     navigate('/parent/feedback?type=link_student');
   };
+
+  if (parentLoading || loading || !parentInfo || !formData) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải hồ sơ phụ huynh..."
+        message="Hệ thống đang đồng bộ thông tin liên hệ và danh sách học sinh đã liên kết."
+        containerClassName="profile-container"
+      />
+    );
+  }
 
   return (
     <main className="main-content">

@@ -1,17 +1,23 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 
 export function ParentClassesPage() {
-  const { selectedChild } = useParent();
+  const { selectedChild, loading } = useParent();
   const classes = selectedChild?.classes || [];
 
   useEffect(() => {
     document.title = 'Lớp học của con – EduTrack';
   }, []);
 
-  if (!selectedChild) {
-    return null;
+  if (loading || !selectedChild) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải danh sách lớp học..."
+        message="Hệ thống đang tải danh sách các lớp học của con trong học kỳ này."
+      />
+    );
   }
 
   return (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ScheduleTimetableCard } from '../../components/student/schedule/ScheduleTimetableCard';
 import { ScheduleLegendStrip } from '../../components/student/schedule/ScheduleLegendStrip';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
@@ -7,25 +8,30 @@ import {
   getMonday,
   addDays,
   fmtDayMon,
-  SESSIONS,
   type SessionItem,
 } from '../../components/student/schedule/scheduleData';
 
 export function StudentSchedulePage() {
   const [weekOffset, setWeekOffset] = useState<number>(0);
-  const [sessions, setSessions] = useState<SessionItem[]>(SESSIONS);
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadSchedules() {
+      setLoading(true);
       try {
         const liveSessions = await learningDAL.getStudentSchedule(DEFAULT_STUDENT_ID);
-        if (isMounted && liveSessions && liveSessions.length > 0) {
+        if (isMounted && liveSessions) {
           setSessions(liveSessions);
         }
       } catch (err) {
         console.warn('Lỗi khi tải thời khóa biểu học sinh:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -85,6 +91,16 @@ export function StudentSchedulePage() {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải lịch học..."
+        message="Hệ thống đang đồng bộ thời khóa biểu các ca học trong tuần của bạn."
+        containerClassName="schedule-container"
+      />
+    );
+  }
 
   return (
     <main className="main-content">
