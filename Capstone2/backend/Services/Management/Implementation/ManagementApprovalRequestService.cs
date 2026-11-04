@@ -197,7 +197,24 @@ namespace EduTrack.API.Services.Management.Implementation
 
         public async Task<ApprovalRequestDto?> ReviewAsync(int id, ReviewApprovalRequestDto dto)
         {
-            await EnsureRoleAsync(dto.ReviewedBy, "center_manager", "duyệt yêu cầu");
+            var existing = await _requestRepository.GetByIdAsync(id);
+            if (existing == null) return null;
+
+            bool isRequesterAdminStaff =
+                (existing.Requester != null && HasRole(existing.Requester, "admin_staff")) ||
+                (existing.RequestedBy == 2 && !string.Equals(existing.RequestType, "feedback", StringComparison.OrdinalIgnoreCase));
+
+            if (isRequesterAdminStaff)
+            {
+                // Requests submitted by Admin Staff must be reviewed by Center Manager
+                await EnsureRoleAsync(dto.ReviewedBy, "center_manager", "duyệt yêu cầu của Giáo vụ");
+            }
+            else
+            {
+                // Feedback & requests from Students, Parents, Teachers, or TAs can be reviewed by Admin Staff (or Center Manager)
+                await EnsureAnyRoleAsync(dto.ReviewedBy, new[] { "admin_staff", "center_manager" }, "xử lý đơn từ / phản hồi");
+            }
+
             var status = dto.Status?.Trim().ToLowerInvariant() ?? "";
             if (status is not ("pending" or "approved" or "rejected"))
                 throw new InvalidOperationException("Chỉ được chọn pending, approved hoặc rejected.");
@@ -205,9 +222,6 @@ namespace EduTrack.API.Services.Management.Implementation
             var reviewNotes = dto.ReviewNotes?.Trim();
             if (status == "rejected" && string.IsNullOrWhiteSpace(reviewNotes))
                 throw new InvalidOperationException("Khi từ chối phải nhập lý do.");
-
-            var existing = await _requestRepository.GetByIdAsync(id);
-            if (existing == null) return null;
 
             if (!string.Equals(existing.Status, "pending", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Yêu cầu đã được xử lý và không thể duyệt lại.");
@@ -240,6 +254,18 @@ namespace EduTrack.API.Services.Management.Implementation
             {
                 throw new InvalidOperationException(
                     $"Tài khoản không hợp lệ hoặc không có quyền {action} ({role}).");
+            }
+        }
+
+        private async Task EnsureAnyRoleAsync(int userId, IEnumerable<string> roles, string action)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null ||
+                !string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase) ||
+                !roles.Any(r => HasRole(user, r)))
+            {
+                throw new InvalidOperationException(
+                    $"Tài khoản không hợp lệ hoặc không có quyền {action}.");
             }
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -54,8 +55,24 @@ namespace EduTrack.API.Services.Implementation
 
             var requesterRole = x.Requester?.UserRoles?
                 .Select(ur => ur.Role?.RoleName)
-                .FirstOrDefault(r => !string.IsNullOrWhiteSpace(r))
-                ?? (x.RequestedBy == 2 ? "admin_staff" : null);
+                .FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
+
+            if (string.IsNullOrWhiteSpace(requesterRole))
+            {
+                var code = x.Requester?.UserCode ?? string.Empty;
+                if (code.StartsWith("PAR", StringComparison.OrdinalIgnoreCase) || x.RequestedBy is 9 or 10)
+                    requesterRole = "parent";
+                else if (code.StartsWith("STU", StringComparison.OrdinalIgnoreCase) || x.RequestedBy is 6 or 7 or 8)
+                    requesterRole = "student";
+                else if (code.StartsWith("TEA", StringComparison.OrdinalIgnoreCase) || x.RequestedBy is 3 or 4)
+                    requesterRole = "teacher";
+                else if (code.StartsWith("TA", StringComparison.OrdinalIgnoreCase) || x.RequestedBy == 5)
+                    requesterRole = "ta";
+                else if (x.RequestedBy == 2)
+                    requesterRole = "admin_staff";
+                else if (x.RequestedBy == 1)
+                    requesterRole = "center_manager";
+            }
 
             return new ApprovalRequestDto
             {
@@ -74,8 +91,8 @@ namespace EduTrack.API.Services.Implementation
                 RequesterRole = requesterRole,
                 ReviewedBy = x.ReviewedBy,
                 ReviewerName = x.Reviewer?.FullName,
-                Priority = x.Priority,
-                Status = x.Status,
+                Priority = x.Priority ?? "medium",
+                Status = x.Status ?? "pending",
                 StatusLabel = statusLabel,
                 CanEdit = canEdit,
                 Reason = x.Reason,
