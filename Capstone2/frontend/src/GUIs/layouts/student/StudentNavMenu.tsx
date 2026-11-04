@@ -1,11 +1,38 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, Link } from "react-router-dom";
+import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
 
 interface StudentNavMenuProps {
   onLinkClick?: () => void;
 }
 
 export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUnreadCount = async () => {
+      try {
+        const count = await learningDAL.getStudentUnreadCount(DEFAULT_STUDENT_ID);
+        if (isMounted) setUnreadCount(count);
+      } catch {
+        if (isMounted) setUnreadCount(0);
+      }
+    };
+
+    loadUnreadCount();
+
+    const handleUpdate = () => {
+      loadUnreadCount();
+    };
+
+    window.addEventListener("notifications-updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("notifications-updated", handleUpdate);
+    };
+  }, []);
   return (
     <>
       <nav className="sidebar-nav">
@@ -81,7 +108,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
             >
               <span className="nav-icon"><i className="bi bi-bell"></i></span>
               <span className="nav-label">Thông báo</span>
-              <span className="sidebar-badge">3</span>
+              {unreadCount > 0 && <span className="sidebar-badge">{unreadCount}</span>}
             </NavLink>
           </li>
           <li className="sidebar-nav-item">

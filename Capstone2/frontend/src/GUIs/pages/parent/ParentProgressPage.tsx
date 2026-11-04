@@ -1,33 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ProgressPageHeader } from '../../components/student/progress/ProgressPageHeader';
 import { ProgressStatsGrid } from '../../components/student/progress/ProgressStatsGrid';
 import { ProgressCurrentSection } from '../../components/student/progress/ProgressCurrentSection';
 import { ProgressPastHistorySection } from '../../components/student/progress/ProgressPastHistorySection';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
-import {
-  CURRENT_PROGRESS_CLASSES,
-  type ProgressClassItem,
-} from '../../components/student/progress/progressData';
+import type { ProgressClassItem } from '../../components/student/progress/progressData';
 
 export function ParentProgressPage() {
-  const { selectedChild } = useParent();
-  const [classes, setClasses] = useState<ProgressClassItem[]>(CURRENT_PROGRESS_CLASSES);
-  const [overallAttendanceRate, setOverallAttendanceRate] = useState<number>(80);
-  const [attendedSessionsCount, setAttendedSessionsCount] = useState<number>(35);
-  const [presentCount, setPresentCount] = useState<number>(35);
-  const [absentCount, setAbsentCount] = useState<number>(4);
-  const [lateCount, setLateCount] = useState<number>(5);
-  const [totalSessionsCount, setTotalSessionsCount] = useState<number>(44);
-  const [enrolledClassesCount, setEnrolledClassesCount] = useState<number>(
-    CURRENT_PROGRESS_CLASSES.length
-  );
+  const { selectedChild, loading: parentLoading } = useParent();
+  const [classes, setClasses] = useState<ProgressClassItem[]>([]);
+  const [overallAttendanceRate, setOverallAttendanceRate] = useState<number>(100);
+  const [attendedSessionsCount, setAttendedSessionsCount] = useState<number>(0);
+  const [presentCount, setPresentCount] = useState<number>(0);
+  const [absentCount, setAbsentCount] = useState<number>(0);
+  const [lateCount, setLateCount] = useState<number>(0);
+  const [totalSessionsCount, setTotalSessionsCount] = useState<number>(0);
+  const [enrolledClassesCount, setEnrolledClassesCount] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadProgress() {
       const studentId = selectedChild?.id || DEFAULT_STUDENT_ID;
+      setLoading(true);
       try {
         const vm = await learningDAL.getStudentProgress(studentId);
         if (isMounted && vm) {
@@ -42,6 +40,10 @@ export function ParentProgressPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải tiến độ con cho phụ huynh:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -52,8 +54,13 @@ export function ParentProgressPage() {
     };
   }, [selectedChild?.id]);
 
-  if (!selectedChild) {
-    return null;
+  if (parentLoading || loading || !selectedChild) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải báo cáo tiến độ..."
+        message="Hệ thống đang tổng hợp dữ liệu điểm danh và nhận xét từ giáo viên về con."
+      />
+    );
   }
 
   return (

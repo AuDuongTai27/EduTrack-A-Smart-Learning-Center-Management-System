@@ -1927,42 +1927,75 @@
   border-radius: 10px;
   padding: 8px 10px;
   overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
   z-index: 10;
   display: flex;
   flex-direction: column;
 }
 
 .session-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
   z-index: 20;
 }
 
 .session-card-upcoming {
   background: #EFF6FF;
-  border-left: 3.5px solid #2563EB;
+  border-color: rgba(37, 99, 235, 0.22);
+  border-left: 4px solid #2563EB;
   color: #1E3A8A;
+}
+
+.session-card-upcoming:hover {
+  background: #DBEAFE;
+  border-color: #2563EB;
+  border-left: 4px solid #1D4ED8;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18), 0 0 0 1px rgba(37, 99, 235, 0.28);
 }
 
 .session-card-ongoing {
   background: #ECFDF5;
-  border-left: 3.5px solid #10B981;
+  border-color: rgba(16, 185, 129, 0.24);
+  border-left: 4px solid #10B981;
   color: #064E3B;
+}
+
+.session-card-ongoing:hover {
+  background: #D1FAE5;
+  border-color: #10B981;
+  border-left: 4px solid #059669;
+  box-shadow: 0 6px 14px rgba(16, 185, 129, 0.18), 0 0 0 1px rgba(16, 185, 129, 0.28);
 }
 
 .session-card-completed {
   background: #F1F5F9;
-  border-left: 3.5px solid #94A3B8;
+  border-color: rgba(148, 163, 184, 0.28);
+  border-left: 4px solid #94A3B8;
   color: #334155;
+}
+
+.session-card-completed:hover {
+  background: #E2E8F0;
+  border-color: #64748B;
+  border-left: 4px solid #475569;
+  box-shadow: 0 6px 14px rgba(100, 116, 139, 0.16), 0 0 0 1px rgba(100, 116, 139, 0.24);
 }
 
 .session-card-cancelled {
   background: #FEF2F2;
-  border-left: 3.5px solid #EF4444;
+  border-color: rgba(239, 68, 68, 0.24);
+  border-left: 4px solid #EF4444;
   color: #7F1D1D;
+}
+
+.session-card-cancelled:hover {
+  background: #FEE2E2;
+  border-color: #EF4444;
+  border-left: 4px solid #DC2626;
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.18), 0 0 0 1px rgba(239, 68, 68, 0.28);
 }
 
 .session-card-time {
@@ -3944,3 +3977,213 @@
 .student-header-breadcrumbs ol li {
   line-height: 1.2;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESS COMPLETED CLASSES & STATUS BADGE ENHANCEMENTS
+═══════════════════════════════════════════════════════════════ */
+.completed-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #ECFDF5;
+  color: #047857;
+  padding: 2px 10px;
+  border-radius: 99px;
+  border: 1px solid #A7F3D0;
+  margin-left: 4px;
+}
+
+.psb-caithien,
+.psb-canluuy {
+  background-color: #FFFBEB;
+  color: #B45309;
+  border-color: #FDE68A;
+}
+
+.psb-chuadat {
+  background-color: #FEF2F2;
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+.psb-chuacoxn,
+.psb-chuacham {
+  background-color: #F1F5F9;
+  color: var(--et-muted);
+  border-color: #E2E8F0;
+}
+
+.prog-purple .class-subject-icon-box {
+  background-color: #F5F3FF;
+  color: #7C3AED;
+  border-color: #DDD6FE;
+}
+.prog-purple .class-subject-name {
+  color: #7C3AED;
+}
+.prog-purple .attendance-progress-fill {
+  background-color: #7C3AED;
+}
+.prog-purple .class-pct-square-badge {
+  background-color: #F5F3FF;
+  color: #7C3AED;
+}
+.prog-purple .accordion-sub-dot,
+.prog-purple .feedback-left-line {
+  background-color: #8B5CF6;
+}
+
+.prog-green .class-subject-icon-box {
+  background-color: #ECFDF5;
+  color: #0D9488;
+  border-color: #99F6E4;
+}
+.prog-green .class-subject-name {
+  color: #0D9488;
+}
+.prog-green .attendance-progress-fill {
+  background-color: #0D9488;
+}
+.prog-green .class-pct-square-badge {
+  background-color: #ECFDF5;
+  color: #0D9488;
+}
+.prog-green .accordion-sub-dot,
+.prog-green .feedback-left-line {
+  background-color: #14B8A6;
+}
+
+.past-completed-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  background-color: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #059669;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.btn-toggle-past-classes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--et-border-light);
+  background-color: #fff;
+  color: var(--et-slate);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-past-classes:hover {
+  border-color: #BFDBFE;
+  color: var(--et-primary);
+  background-color: #EFF6FF;
+}
+
+.btn-toggle-past-classes.is-open {
+  border-color: #CBD5E1;
+  background-color: #F8FAFC;
+}
+
+.btn-toggle-past-classes .toggle-arrow {
+  font-size: 11px;
+  transition: transform 0.25s ease;
+}
+
+.btn-toggle-past-classes .toggle-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+.past-collapsed-preview-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px dashed #CBD5E1;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.past-collapsed-preview-card:hover {
+  border-style: solid;
+  border-color: #93C5FD;
+  background-color: #F8FAFC;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+}
+
+.past-preview-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.past-preview-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--et-dark);
+}
+
+.past-preview-subtitle {
+  font-size: 12.5px;
+  color: var(--et-muted);
+  margin-top: 2px;
+}
+
+.past-preview-action {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--et-primary);
+  white-space: nowrap;
+}
+
+.past-history-container {
+  display: none;
+  margin-top: 0;
+}
+
+.past-history-container.is-open {
+  display: block;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TUITION BILL CHIP STATUS STYLES (UNPAID vs PAID)
+═══════════════════════════════════════════════════════════════ */
+.bill-remaining-chip.is-unpaid {
+  background-color: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+.bill-remaining-chip.is-paid {
+  background-color: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.bill-meta-due-date.is-paid {
+  color: #059669;
+}

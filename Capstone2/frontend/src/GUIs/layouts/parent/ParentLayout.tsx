@@ -3,19 +3,20 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ParentSidebar } from './ParentSidebar';
 import { ParentNavMenu } from './ParentNavMenu';
 import { ParentEmptyState } from '../../components/parent/ParentEmptyState';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ParentProvider, useParent } from '../../../contexts/ParentContext';
 import '../../../assets/css/student.css';
 
 function ParentLayoutContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { childrenList } = useParent();
+  const { childrenList, loading } = useParent();
   const location = useLocation();
 
   const isFeedbackOrProfile =
     location.pathname.startsWith('/parent/feedback') ||
     location.pathname.startsWith('/parent/profile');
 
-  const showEmptyState = childrenList.length === 0 && !isFeedbackOrProfile;
+  const showEmptyState = !loading && childrenList.length === 0 && !isFeedbackOrProfile;
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -105,14 +106,19 @@ function ParentLayoutContent() {
                 fontSize: '11px',
                 background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
               }}
-              title="Phụ huynh: Nguyễn Văn Bình"
+              title="Phụ huynh: Lê Văn Nam"
             >
-              VB
+              VN
             </div>
           </header>
 
           {/* Main Content Area */}
-          {showEmptyState ? (
+          {loading && !isFeedbackOrProfile ? (
+            <LearnerPageLoader
+              title="Đang tải hồ sơ học sinh..."
+              message="Hệ thống đang đồng bộ danh sách con và dữ liệu học tập mới nhất."
+            />
+          ) : showEmptyState ? (
             <ParentEmptyState />
           ) : (
             <Outlet />
@@ -121,7 +127,7 @@ function ParentLayoutContent() {
       </div>
     </div>
   );
-};
+}
 
 export function ParentLayout() {
   return (
@@ -129,6 +135,6 @@ export function ParentLayout() {
       <ParentLayoutContent />
     </ParentProvider>
   );
-};
+}
 
 export default ParentLayout;

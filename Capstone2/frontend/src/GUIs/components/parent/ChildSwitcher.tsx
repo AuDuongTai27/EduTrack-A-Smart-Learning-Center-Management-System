@@ -20,6 +20,7 @@ export function ChildSwitcher({
     childrenList,
     selectedChildId,
     selectedChild,
+    loading,
     setSelectedChildId,
     setDemoEmptyState,
     resetDemoChildren,
@@ -48,6 +49,20 @@ export function ChildSwitcher({
     if (onChildSelected) onChildSelected();
   };
 
+  if (loading) {
+    return (
+      <div className={`sidebar-child-switcher px-3 py-2 border-bottom ${className}`}>
+        <div className="sidebar-nav-title px-0 pb-1" style={{ fontSize: '10px' }}>
+          HỌC SINH ĐANG CHỌN
+        </div>
+        <div className="d-flex align-items-center gap-2 p-2 rounded-3 border bg-light text-muted small">
+          <span className="spinner-border spinner-border-sm text-primary flex-shrink-0" role="status" />
+          <span className="text-truncate" style={{ fontSize: '12px' }}>Đang tải hồ sơ con...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (childrenList.length === 0) {
     return (
       <div className={`sidebar-child-switcher px-3 py-2 border-bottom ${className}`}>
@@ -67,7 +82,7 @@ export function ChildSwitcher({
             type="button"
             className="btn btn-sm btn-outline-secondary py-1.5 px-2 rounded-3"
             onClick={resetDemoChildren}
-            title="Nạp lại 2 học sinh mẫu"
+            title="Nạp lại danh sách học sinh"
           >
             <i className="bi bi-arrow-counterclockwise"></i>
           </button>
@@ -242,6 +257,6 @@ export function ChildSwitcher({
       )}
     </div>
   );
-};
+}
 
 export default ChildSwitcher;

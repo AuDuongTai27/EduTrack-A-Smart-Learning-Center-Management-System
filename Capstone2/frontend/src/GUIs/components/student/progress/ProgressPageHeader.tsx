@@ -12,15 +12,23 @@ export function ProgressPageHeader({
   attendedSessionsCount = 35,
   totalSessionsCount = 44,
 }: ProgressPageHeaderProps) {
+  const computedRate =
+    totalSessionsCount > 0
+      ? Math.round((attendedSessionsCount * 100) / totalSessionsCount)
+      : overallAttendanceRate;
+
   const attendanceActions = (
-    <div className="overall-attendance-pill shadow-sm">
+    <div
+      className="overall-attendance-pill shadow-sm"
+      title={`Điểm danh chung = ${attendedSessionsCount} buổi có mặt / ${totalSessionsCount} buổi đã học tính đến hiện tại`}
+    >
       <div>
         <div className="overall-label">Điểm danh chung</div>
-        <div className="overall-value">{overallAttendanceRate}%</div>
+        <div className="overall-value">{computedRate}%</div>
       </div>
       <div className="overall-divider"></div>
       <div>
-        <div className="overall-label">Tổng buổi học</div>
+        <div className="overall-label">Có mặt / Đã học</div>
         <div className="overall-value">
           {attendedSessionsCount}/{totalSessionsCount}
         </div>
@@ -31,7 +39,7 @@ export function ProgressPageHeader({
   return (
     <StudentPageHeader
       title="Tiến độ học tập"
-      subtitle="Năm học 2025–2026 · Học kỳ 1"
+      subtitle="Tổng hợp điểm danh và nhận xét tính đến thời điểm hiện tại"
       breadcrumbs={[
         { label: 'Trang chủ', href: '/student/dashboard' },
         { label: 'Tiến độ học tập' },

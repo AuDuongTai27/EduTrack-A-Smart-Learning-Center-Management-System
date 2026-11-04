@@ -1,45 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
-import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 
 export function ParentDashboardPage() {
-  const { selectedChild } = useParent();
-  const [classes, setClasses] = useState<ChildClassItem[]>(selectedChild?.classes || []);
+  const { selectedChild, loading } = useParent();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadClasses() {
-      // Ưu tiên danh sách lớp của con đang chọn (tải từ learningDAL.getParentChildrenOverview)
-      if (selectedChild && selectedChild.classes && selectedChild.classes.length > 0) {
-        setClasses(selectedChild.classes);
-        return;
-      }
-
-      try {
-        const data = await parentDAL.getAllClasses();
-        if (isMounted && data && data.length > 0) {
-          setClasses(data);
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải danh sách lớp con ở dashboard:', err);
-        if (isMounted && selectedChild) {
-          setClasses(selectedChild.classes);
-        }
-      }
-    }
-
-    loadClasses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedChild]);
-
-  if (!selectedChild) {
-    return null;
+  if (loading || !selectedChild) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải tổng quan học tập..."
+        message="Hệ thống đang đồng bộ hồ sơ học tập và danh sách lớp của con."
+      />
+    );
   }
+
+  const classes = selectedChild.classes || [];
 
   return (
     <main className="main-content">
@@ -240,7 +216,7 @@ export function ParentDashboardPage() {
                   <div className="d-flex justify-content-between small text-muted mb-1">
                     <span>Đã học: <strong>{cls.attendedLessons}/{cls.totalLessons} buổi</strong></span>
                     <span className="text-success fw-bold">
-                      {Math.round((cls.attendedLessons / cls.totalLessons) * 100)}%
+                      {cls.totalLessons > 0 ? Math.round((cls.attendedLessons / cls.totalLessons) * 100) : 0}%
                     </span>
                   </div>
                   <div className="progress" style={{ height: '6px' }}>
@@ -248,7 +224,7 @@ export function ParentDashboardPage() {
                       className="progress-bar bg-success"
                       role="progressbar"
                       style={{
-                        width: `${Math.round((cls.attendedLessons / cls.totalLessons) * 100)}%`,
+                        width: `${cls.totalLessons > 0 ? Math.round((cls.attendedLessons / cls.totalLessons) * 100) : 0}%`,
                       }}
                     ></div>
                   </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ScheduleHeader } from '../../components/student/schedule/ScheduleHeader';
 import { ScheduleTimetableCard } from '../../components/student/schedule/ScheduleTimetableCard';
 import { ScheduleLegendStrip } from '../../components/student/schedule/ScheduleLegendStrip';
@@ -8,27 +9,32 @@ import {
   getMonday,
   addDays,
   fmtDayMon,
-  SESSIONS,
   type SessionItem,
 } from '../../components/student/schedule/scheduleData';
 
 export function ParentSchedulePage() {
-  const { selectedChild } = useParent();
+  const { selectedChild, loading: parentLoading } = useParent();
   const [weekOffset, setWeekOffset] = useState<number>(0);
-  const [sessions, setSessions] = useState<SessionItem[]>(SESSIONS);
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadSchedules() {
       const studentId = selectedChild?.id || DEFAULT_STUDENT_ID;
+      setLoading(true);
       try {
         const liveSessions = await learningDAL.getStudentSchedule(studentId);
-        if (isMounted && liveSessions && liveSessions.length > 0) {
+        if (isMounted && liveSessions) {
           setSessions(liveSessions);
         }
       } catch (err) {
         console.warn('Lỗi khi tải thời khóa biểu phụ huynh:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -52,8 +58,13 @@ export function ParentSchedulePage() {
 
   const weekRangeText = `${fmtDayMon(monday)} – ${fmtDayMon(sunday)}`;
 
-  if (!selectedChild) {
-    return null;
+  if (parentLoading || loading || !selectedChild) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải lịch học..."
+        message="Hệ thống đang đồng bộ thời khóa biểu các ca học trong tuần của con."
+      />
+    );
   }
 
   return (

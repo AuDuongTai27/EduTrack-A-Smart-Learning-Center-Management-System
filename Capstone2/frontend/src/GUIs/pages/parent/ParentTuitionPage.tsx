@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { TuitionBillCard } from '../../components/student/tuition/TuitionBillCard';
 import { TuitionPaymentCTA } from '../../components/student/tuition/TuitionPaymentCTA';
 import { TuitionHistorySection } from '../../components/student/tuition/TuitionHistorySection';
 import { TuitionPaymentModal } from '../../components/student/tuition/TuitionPaymentModal';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
-import {
-  CURRENT_TUITION_BILL,
-  TUITION_HISTORY,
-  type TuitionBill,
-  type TuitionHistoryItem,
+import type {
+  TuitionBill,
+  TuitionHistoryItem,
 } from '../../components/student/tuition/tuitionData';
 
 export function ParentTuitionPage() {
-  const { selectedChild, updateChildUnpaidAmount } = useParent();
+  const { selectedChild, loading: parentLoading, updateChildUnpaidAmount } = useParent();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [bill, setBill] = useState<TuitionBill>(CURRENT_TUITION_BILL);
-  const [history, setHistory] = useState<TuitionHistoryItem[]>(TUITION_HISTORY);
-  const [totalUnpaid, setTotalUnpaid] = useState<number>(selectedChild?.unpaidAmount ?? 2900000);
+  const [bill, setBill] = useState<TuitionBill | null>(null);
+  const [history, setHistory] = useState<TuitionHistoryItem[]>([]);
+  const [totalUnpaid, setTotalUnpaid] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const studentId = selectedChild?.id || DEFAULT_STUDENT_ID;
@@ -34,6 +34,7 @@ export function ParentTuitionPage() {
     let isMounted = true;
 
     async function loadTuition() {
+      setLoading(true);
       try {
         const vm = await learningDAL.getStudentTuition(studentId);
         if (isMounted && vm) {
@@ -44,6 +45,10 @@ export function ParentTuitionPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải thông tin học phí phụ huynh:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -76,33 +81,30 @@ export function ParentTuitionPage() {
     } catch (err) {
       console.warn('Lỗi khi gọi API thanh toán, cập nhật local state:', err);
       setTotalUnpaid(0);
-      setBill((prev) => ({
-        ...prev,
-        totalAmount: '0 đ',
-        subTotal: '0 đ',
-        remainingDaysText: 'Đã hoàn thành toàn bộ học phí kỳ này',
-        items: [{ name: 'Đã hoàn thành học phí tất cả các môn học trong kỳ', amount: '0 đ' }],
-      }));
+      setBill((prev) =>
+        prev
+          ? {
+              ...prev,
+              totalAmount: '0 đ',
+              subTotal: '0 đ',
+              remainingDaysText: 'Đã hoàn thành toàn bộ học phí kỳ này',
+              items: [{ name: 'Đã hoàn thành học phí tất cả các môn học trong kỳ', amount: '0 đ' }],
+            }
+          : prev
+      );
       updateChildUnpaidAmount(studentId, 0);
       showToast('Thanh toán học phí thành công!');
     }
   };
 
-  const handleResetDemo = async () => {
-    try {
-      const updatedVm = await learningDAL.resetDemoTuition(studentId);
-      setBill(updatedVm.bill);
-      setHistory(updatedVm.history);
-      setTotalUnpaid(updatedVm.totalUnpaidAmount);
-      updateChildUnpaidAmount(studentId, updatedVm.totalUnpaidAmount);
-      showToast('Đã khôi phục hóa đơn học phí mẫu để Demo!');
-    } catch (err) {
-      console.warn('Lỗi khi khôi phục hóa đơn mẫu:', err);
-    }
-  };
-
-  if (!selectedChild) {
-    return null;
+  if (parentLoading || loading || !selectedChild || !bill) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải thông tin học phí..."
+        message="Hệ thống đang kiểm tra hóa đơn kỳ hiện tại và lịch sử thanh toán học phí của con."
+        containerClassName="tuition-container"
+      />
+    );
   }
 
   return (
@@ -151,7 +153,6 @@ export function ParentTuitionPage() {
         <TuitionPaymentCTA
           onPayNow={() => setModalOpen(true)}
           totalUnpaidAmount={totalUnpaid}
-          onResetDemo={handleResetDemo}
         />
 
         {/* 4. Payment History Section (Lịch sử các giao dịch) */}

@@ -24,12 +24,12 @@ export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: P
   };
 
   return (
-    <section className="mb-5">
+    <section className="mb-4">
       <div className="progress-section-header">
         <div>
           <h2 className="progress-section-title">Tiến độ hiện tại</h2>
           <div className="progress-section-subtitle">
-            {classes.length} lớp đang học &middot; Học kỳ 1
+            {classes.length} lớp đang học &middot; Học kỳ hiện tại
           </div>
         </div>
         <div className="live-studying-badge">

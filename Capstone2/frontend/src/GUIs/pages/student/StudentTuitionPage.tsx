@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { TuitionPageHeader } from '../../components/student/tuition/TuitionPageHeader';
 import { TuitionBillCard } from '../../components/student/tuition/TuitionBillCard';
 import { TuitionHistorySection } from '../../components/student/tuition/TuitionHistorySection';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
-import {
-  CURRENT_TUITION_BILL,
-  TUITION_HISTORY,
-  type TuitionBill,
-  type TuitionHistoryItem,
+import type {
+  TuitionBill,
+  TuitionHistoryItem,
 } from '../../components/student/tuition/tuitionData';
 
 export function StudentTuitionPage() {
-  const [bill, setBill] = useState<TuitionBill>(CURRENT_TUITION_BILL);
-  const [history, setHistory] = useState<TuitionHistoryItem[]>(TUITION_HISTORY);
+  const [bill, setBill] = useState<TuitionBill | null>(null);
+  const [history, setHistory] = useState<TuitionHistoryItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadTuition() {
+      setLoading(true);
       try {
         const vm = await learningDAL.getStudentTuition(DEFAULT_STUDENT_ID);
         if (isMounted && vm) {
@@ -26,6 +27,10 @@ export function StudentTuitionPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải thông tin học phí học sinh:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -35,6 +40,16 @@ export function StudentTuitionPage() {
       isMounted = false;
     };
   }, []);
+
+  if (loading || !bill) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải thông tin học phí..."
+        message="Hệ thống đang kiểm tra hóa đơn kỳ hiện tại và lịch sử thanh toán của bạn."
+        containerClassName="tuition-container"
+      />
+    );
+  }
 
   return (
     <main className="main-content">

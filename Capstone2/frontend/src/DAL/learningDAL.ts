@@ -1,17 +1,17 @@
-import {
-  learningApi,
-  type StudentEnrolledClassApiDto,
-  type ClassSessionAttendanceItemApiDto,
-  type StudentSubmissionDetailApiDto,
-  type StudentTuitionOverviewApiDto,
-  type LearnerFeedbackItemApiDto,
-  type CreateLearnerFeedbackPayload,
-  type UpdateLearnerFeedbackPayload,
-  type LearnerNotificationItemApiDto,
-  type LearnerProfileApiDto,
-  type UpdateLearnerProfilePayload,
-  type ParentChildOverviewApiDto,
-} from '../api/learningApi';
+import { learningApi } from '../api/learningApi';
+import type {
+  StudentEnrolledClassApiDto,
+  ClassSessionAttendanceItemApiDto,
+  StudentSubmissionDetailApiDto,
+  StudentTuitionOverviewApiDto,
+  LearnerFeedbackItemApiDto,
+  CreateLearnerFeedbackPayload,
+  UpdateLearnerFeedbackPayload,
+  LearnerNotificationItemApiDto,
+  LearnerProfileApiDto,
+  UpdateLearnerProfilePayload,
+  ParentChildOverviewApiDto,
+} from '../BLL/models/learning';
 import {
   INITIAL_PROFILE,
   type StudentProfileData,
@@ -162,7 +162,7 @@ function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): Studen
     studentName: apiData.studentName,
     totalUnpaidAmount: totalUnpaid,
     bill,
-    history: history.length > 0 ? history : TUITION_HISTORY,
+    history,
     source: 'api',
   };
 }
@@ -412,7 +412,74 @@ function mapApiProfileToStudentProfile(dto: LearnerProfileApiDto): StudentProfil
  * [Bounded Context: Learning]
  * Tầng Data Access Layer (DAL) dành riêng cho Thành viên 3 (Student & Parent)
  */
+const LOCAL_READ_NOTIFS_KEY = 'edutrack_read_notification_ids';
+
+export function getLocalReadNotificationIds(): Set<number> {
+  try {
+    const raw = localStorage.getItem(LOCAL_READ_NOTIFS_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {
+    // fallback
+  }
+  return new Set();
+}
+
+export function saveLocalReadNotificationId(id: number) {
+  try {
+    const set = getLocalReadNotificationIds();
+    set.add(id);
+    localStorage.setItem(LOCAL_READ_NOTIFS_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore
+  }
+}
+
+export function saveAllLocalReadNotificationIds(ids: number[]) {
+  try {
+    const set = getLocalReadNotificationIds();
+    ids.forEach((id) => set.add(id));
+    localStorage.setItem(LOCAL_READ_NOTIFS_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore
+  }
+}
+
 export const learningDAL = {
+  getLocalReadIds(): Set<number> {
+    return getLocalReadNotificationIds();
+  },
+
+  /**
+   * Lấy số lượng thông báo chưa đọc của Học sinh
+   */
+  async getStudentUnreadCount(studentId = DEFAULT_STUDENT_ID): Promise<number> {
+    try {
+      const notifs = await this.getStudentNotifications(studentId);
+      const readSet = getLocalReadNotificationIds();
+      return notifs.filter((n) => n.unread && !readSet.has(n.id)).length;
+    } catch {
+      return 0;
+    }
+  },
+
+  /**
+   * Lấy số lượng thông báo chưa đọc của Phụ huynh
+   */
+  async getParentUnreadCount(
+    parentId = DEFAULT_PARENT_ID,
+    studentId?: number
+  ): Promise<number> {
+    try {
+      const notifs = await this.getParentNotifications(parentId, studentId);
+      const readSet = getLocalReadNotificationIds();
+      return notifs.filter((n) => !n.isRead && !readSet.has(n.notificationId)).length;
+    } catch {
+      return 0;
+    }
+  },
   /**
    * Lấy toàn bộ dữ liệu Dashboard của Học sinh từ Backend (kèm fallback an toàn khi offline)
    */
@@ -454,7 +521,7 @@ export const learningDAL = {
   async getParentChildrenOverview(parentId = DEFAULT_PARENT_ID): Promise<ChildStudent[]> {
     try {
       const apiChildren = await learningApi.getParentChildrenOverview(parentId);
-      if (apiChildren && apiChildren.length > 0) {
+      if (Array.isArray(apiChildren)) {
         return apiChildren.map((child) => ({
           id: child.id,
           code: child.code,
@@ -523,30 +590,28 @@ export const learningDAL = {
           studentCount: apiData.studentCount || fallbackCls.studentCount,
         };
 
-        const materials: MaterialItem[] =
-          apiData.materials && apiData.materials.length > 0
-            ? apiData.materials.map((m) => ({
-                id: m.id,
-                classId: m.classId,
-                type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
-                fileName: m.fileName,
-                description: m.description,
-                uploadDate: m.uploadDate,
-                uploadedBy: m.uploadedBy,
-                sizeMb: m.sizeMb,
-              }))
-            : fallbackMaterials;
+        const materials: MaterialItem[] = Array.isArray(apiData.materials)
+          ? apiData.materials.map((m) => ({
+              id: m.id,
+              classId: m.classId,
+              type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
+              fileName: m.fileName,
+              description: m.description,
+              uploadDate: m.uploadDate,
+              uploadedBy: m.uploadedBy,
+              sizeMb: m.sizeMb,
+            }))
+          : fallbackMaterials;
 
-        const assignments: AssignmentItem[] =
-          apiData.assignments && apiData.assignments.length > 0
-            ? apiData.assignments.map((a) => ({
-                id: a.id,
-                classId: a.classId,
-                title: a.title,
-                dueDate: a.dueDate,
-                status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
-              }))
-            : fallbackAssignments;
+        const assignments: AssignmentItem[] = Array.isArray(apiData.assignments)
+          ? apiData.assignments.map((a) => ({
+              id: a.id,
+              classId: a.classId,
+              title: a.title,
+              dueDate: a.dueDate,
+              status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
+            }))
+          : fallbackAssignments;
 
         return {
           cls,
@@ -581,7 +646,7 @@ export const learningDAL = {
   async getStudentSchedule(studentId = DEFAULT_STUDENT_ID): Promise<SessionItem[]> {
     try {
       const apiSlots = await learningApi.getStudentSchedule(studentId);
-      if (apiSlots && apiSlots.length > 0) {
+      if (Array.isArray(apiSlots)) {
         return apiSlots.map((slot) => {
           const theme = mapSubjectBannerTheme(slot.subjectCode, slot.subject);
           return {
@@ -640,17 +705,27 @@ export const learningDAL = {
           }
         );
 
+        const presentCount = apiData.presentCount ?? 0;
+        const absentCount = apiData.absentCount ?? 0;
+        const lateCount = apiData.lateCount ?? 0;
+        const totalSessionsCount = presentCount + absentCount + lateCount;
+        const attendedSessionsCount = presentCount;
+        const overallAttendanceRate =
+          totalSessionsCount > 0
+            ? Math.round((presentCount * 100) / totalSessionsCount)
+            : 100;
+
         return {
           studentId: apiData.studentId,
           studentName: apiData.studentName,
-          overallAttendanceRate: apiData.overallAttendanceRate,
-          attendedSessionsCount: apiData.attendedSessionsCount,
-          presentCount: apiData.presentCount,
-          absentCount: apiData.absentCount,
-          lateCount: apiData.lateCount,
-          totalSessionsCount: apiData.totalSessionsCount,
+          overallAttendanceRate,
+          attendedSessionsCount,
+          presentCount,
+          absentCount,
+          lateCount,
+          totalSessionsCount,
           enrolledClassesCount: apiData.enrolledClassesCount,
-          currentClasses: mappedClasses.length > 0 ? mappedClasses : CURRENT_PROGRESS_CLASSES,
+          currentClasses: mappedClasses,
           source: 'api',
         };
       }
@@ -818,7 +893,7 @@ export const learningDAL = {
   ): Promise<FeedbackApprovalRequest[]> {
     try {
       const apiList = await learningApi.getLearnerFeedbacks(userId, studentId);
-      if (apiList && apiList.length > 0) {
+      if (Array.isArray(apiList)) {
         return apiList.map((item) => mapApiFeedbackToViewModel(item, userRole, userName));
       }
     } catch (error) {
@@ -863,7 +938,7 @@ export const learningDAL = {
   async getStudentNotifications(studentId = DEFAULT_STUDENT_ID): Promise<NotificationItem[]> {
     try {
       const apiList = await learningApi.getStudentNotifications(studentId);
-      if (apiList && apiList.length > 0) {
+      if (Array.isArray(apiList)) {
         return apiList.map(mapApiLearnerNotifToStudentItem);
       }
     } catch (error) {
@@ -880,13 +955,51 @@ export const learningDAL = {
     parentId = DEFAULT_PARENT_ID,
     studentId?: number
   ): Promise<LearnerNotificationItemApiDto[]> {
-    return await learningApi.getParentNotifications(parentId, studentId);
+    try {
+      const list = await learningApi.getParentNotifications(parentId, studentId);
+      if (Array.isArray(list)) {
+        return list;
+      }
+    } catch (error) {
+      console.warn('[learningDAL] Không kết nối được Backend Parent Notifications, dùng mock fallback:', error);
+    }
+
+    return [
+      {
+        notificationId: 1,
+        title: 'Thông báo học phí kỳ mới tháng 10/2026',
+        content: 'Hóa đơn học phí kỳ tháng 10/2026 của học sinh Lê Văn An đã được phát hành. Quý phụ huynh có thể kiểm tra và thanh toán trực tuyến tại mục Học phí.',
+        type: 'tuition',
+        className: 'Toán Nâng Cao 9',
+        createdAt: '2026-10-14T09:00:00Z',
+        isRead: false,
+      },
+      {
+        notificationId: 2,
+        title: 'Cập nhật nhận xét định kỳ từ Giáo viên',
+        content: 'Giáo viên phụ trách lớp Toán Nâng Cao 9 đã cập nhật phiếu đánh giá tiến độ và chuyên cần tháng 10 cho học sinh Lê Văn An.',
+        type: 'class_review',
+        className: 'Toán Nâng Cao 9',
+        createdAt: '2026-10-13T17:45:00Z',
+        isRead: false,
+      },
+      {
+        notificationId: 3,
+        title: 'Thông báo lịch nghỉ lễ và học bù của trung tâm',
+        content: 'EduTrack xin gửi tới Quý phụ huynh kế hoạch nghỉ lễ và lịch học bù của các lớp trong tuần tới.',
+        type: 'system',
+        className: undefined,
+        createdAt: '2026-10-10T08:00:00Z',
+        isRead: true,
+      },
+    ];
   },
 
-  /**
-   * Đánh dấu 1 thông báo đã đọc trên CSDL
-   */
   async markNotificationRead(notificationId: number): Promise<boolean> {
+    saveLocalReadNotificationId(notificationId);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
     try {
       return await learningApi.markNotificationRead(notificationId);
     } catch (error) {
@@ -895,10 +1008,17 @@ export const learningDAL = {
     }
   },
 
-  /**
-   * Đánh dấu tất cả thông báo đã đọc trên CSDL
-   */
-  async markAllNotificationsRead(userId: number, studentId?: number): Promise<number> {
+  async markAllNotificationsRead(
+    userId: number,
+    studentId?: number,
+    notificationIds?: number[]
+  ): Promise<number> {
+    if (notificationIds && notificationIds.length > 0) {
+      saveAllLocalReadNotificationIds(notificationIds);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
     try {
       return await learningApi.markAllNotificationsRead(userId, studentId);
     } catch (error) {

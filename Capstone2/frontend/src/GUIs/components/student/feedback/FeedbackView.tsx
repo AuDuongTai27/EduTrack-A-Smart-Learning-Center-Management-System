@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { StudentPageHeader } from '../common/StudentPageHeader';
+import { LearnerPageLoader } from '../common/LearnerPageLoader';
 import type { FeedbackApprovalRequest } from './feedbackData';
-import { INITIAL_FEEDBACK_REQUESTS } from './feedbackData';
 import { FeedbackFormCard } from './components/FeedbackFormCard';
 import { FeedbackItemCard } from './components/FeedbackItemCard';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../../DAL/learningDAL';
@@ -30,7 +30,8 @@ export function FeedbackView({
   const resolvedUserId = userId ?? (userRole === 'parent' ? DEFAULT_PARENT_ID : DEFAULT_STUDENT_ID);
   const resolvedStudentId = studentId ?? DEFAULT_STUDENT_ID;
 
-  const [requests, setRequests] = useState<FeedbackApprovalRequest[]>(INITIAL_FEEDBACK_REQUESTS);
+  const [requests, setRequests] = useState<FeedbackApprovalRequest[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [title, setTitle] = useState<string>(
     isLinkStudentRequest ? 'Yêu cầu liên kết thêm hồ sơ học sinh' : ''
   );
@@ -50,16 +51,25 @@ export function FeedbackView({
     let isMounted = true;
 
     async function loadRequests() {
-      const list = await learningDAL.getLearnerFeedbacks(
-        resolvedUserId,
-        userRole,
-        userName,
-        resolvedStudentId
-      );
-      if (!isMounted) return;
-      setRequests(list);
-      if (list.length > 0 && selectedId === null) {
-        setSelectedId(list[0].id);
+      setLoading(true);
+      try {
+        const list = await learningDAL.getLearnerFeedbacks(
+          resolvedUserId,
+          userRole,
+          userName,
+          resolvedStudentId
+        );
+        if (!isMounted) return;
+        setRequests(list);
+        if (list.length > 0 && selectedId === null) {
+          setSelectedId(list[0].id);
+        }
+      } catch (err) {
+        console.warn('Lỗi khi tải lịch sử phản hồi:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -182,6 +192,15 @@ export function FeedbackView({
     }
   };
 
+  if (loading) {
+    return (
+      <LearnerPageLoader
+        title="Đang tải phản hồi & yêu cầu..."
+        message="Hệ thống đang tải lịch sử phản hồi của bạn gửi tới Giáo vụ."
+      />
+    );
+  }
+
   return (
     <main className="main-content">
       <div className="content-container">
@@ -242,15 +261,23 @@ export function FeedbackView({
               </div>
 
               <div className="d-flex flex-column gap-2.5" style={{ maxHeight: '550px', overflowY: 'auto' }}>
-                {requests.map((item) => (
-                  <FeedbackItemCard
-                    key={item.id}
-                    item={item}
-                    isSelected={selectedId === item.id}
-                    onToggle={() => setSelectedId(selectedId === item.id ? null : item.id)}
-                    onEdit={handleStartEdit}
-                  />
-                ))}
+                {requests.length === 0 ? (
+                  <div className="text-center text-muted py-5">
+                    <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
+                    <p className="mb-0 fw-semibold">Chưa có phản hồi nào</p>
+                    <small>Các ý kiến hoặc yêu cầu hỗ trợ bạn gửi sẽ hiển thị tại đây.</small>
+                  </div>
+                ) : (
+                  requests.map((item) => (
+                    <FeedbackItemCard
+                      key={item.id}
+                      item={item}
+                      isSelected={selectedId === item.id}
+                      onToggle={() => setSelectedId(selectedId === item.id ? null : item.id)}
+                      onEdit={handleStartEdit}
+                    />
+                  ))
+                )}
               </div>
             </div>
           </div>

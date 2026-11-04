@@ -3,13 +3,11 @@ import React from 'react';
 interface TuitionPaymentCTAProps {
   onPayNow: () => void;
   totalUnpaidAmount?: number;
-  onResetDemo?: () => void;
 }
 
 export function TuitionPaymentCTA({
   onPayNow,
   totalUnpaidAmount = 2900000,
-  onResetDemo,
 }: TuitionPaymentCTAProps) {
   if (totalUnpaidAmount <= 0) {
     return (
@@ -19,17 +17,6 @@ export function TuitionPaymentCTA({
             <i className="bi bi-check-circle-fill me-2"></i>
             Đã tất toán toàn bộ học phí trong kỳ
           </span>
-          {onResetDemo && (
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5"
-              onClick={onResetDemo}
-              title="Tạo lại hóa đơn chưa đóng để phục vụ Demo thanh toán"
-            >
-              <i className="bi bi-arrow-counterclockwise me-1"></i>
-              Khôi phục hóa đơn mẫu (Demo)
-            </button>
-          )}
         </div>
       </div>
     );

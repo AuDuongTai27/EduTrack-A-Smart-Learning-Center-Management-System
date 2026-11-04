@@ -664,8 +664,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                 int clsPresent = classAttendances.Count(a => a.Status == "present");
                 int clsLate = classAttendances.Count(a => a.Status == "late");
                 int clsAbsent = classAttendances.Count(a => a.Status == "absent" || a.Status == "excused");
-                int clsAttended = clsPresent + clsLate;
-                int clsTotal = cls.ClassSessions.Count > 0 ? cls.ClassSessions.Count : Math.Max(clsAttended, 10);
+                int clsTotal = clsPresent + clsAbsent + clsLate;
+                int clsAttended = clsPresent;
 
                 totalPresent += clsPresent;
                 totalLate += clsLate;
@@ -767,7 +767,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 });
             }
 
-            int totalAttended = totalPresent + totalLate;
+            int totalAttended = totalPresent;
             int overallRate = totalSessions > 0
                 ? (int)Math.Round(totalAttended * 100.0 / totalSessions)
                 : 100;
