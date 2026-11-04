@@ -69,26 +69,41 @@ export function fmtTime(h: number, m: number): string {
 }
 
 import type { ClassScheduleDto } from '../../../../BLL/models/ClassScheduleDto';
+import type { TeachingScheduleItemDto } from '../../../../BLL/models/teaching/TeachingScheduleDto';
 
 const DAY_MAP: Record<string, number> = {
   monday: 0,
   mon: 0,
+  'thứ 2': 0,
+  'thứ hai': 0,
   tuesday: 1,
   tue: 1,
+  'thứ 3': 1,
+  'thứ ba': 1,
   wednesday: 2,
   wed: 2,
+  'thứ 4': 2,
+  'thứ tư': 2,
   thursday: 3,
   thu: 3,
+  'thứ 5': 3,
+  'thứ năm': 3,
   friday: 4,
   fri: 4,
+  'thứ 6': 4,
+  'thứ sáu': 4,
   saturday: 5,
   sat: 5,
+  'thứ 7': 5,
+  'thứ bảy': 5,
   sunday: 6,
   sun: 6,
+  'chủ nhật': 6,
+  cn: 6,
 };
 
 /**
- * Chuyển đổi ClassScheduleDto từ Backend .NET sang SessionItem cho lưới thời khóa biểu
+ * Chuyển đổi ClassScheduleDto từ Backend .NET sang SessionItem cho lưới thời khóa biểu học sinh
  */
 export function mapClassScheduleDtoToSessionItem(dto: ClassScheduleDto, index = 0): SessionItem {
   const dayKey = (dto.dayOfWeek || '').toLowerCase().trim();
@@ -142,3 +157,83 @@ export function mapClassScheduleDtoToSessionItem(dto: ClassScheduleDto, index = 
   };
 }
 
+/**
+ * Chuyển đổi TeachingScheduleItemDto từ Giáo viên / Trợ giảng sang SessionItem cho lưới thời khóa biểu
+ */
+export function mapTeachingScheduleDtoToSessionItem(
+  dto: TeachingScheduleItemDto,
+  isTa = false,
+  index = 0
+): SessionItem {
+  const dayKey = (dto.dayOfWeek || '').toLowerCase().trim();
+  const day = DAY_MAP[dayKey] ?? (index % 7);
+
+  const startParts = (dto.startTime || '08:00:00').split(':');
+  const startH = parseInt(startParts[0], 10) || 8;
+  const startM = parseInt(startParts[1], 10) || 0;
+
+  const endParts = (dto.endTime || '10:00:00').split(':');
+  const endH = parseInt(endParts[0], 10) || 10;
+  const endM = parseInt(endParts[1], 10) || 0;
+
+  let subject = dto.subjectName || 'Môn học';
+  let avatarBg = '#2563EB';
+  const nameLower = `${dto.subjectName || ''} ${dto.className || ''}`.toLowerCase();
+  if (nameLower.includes('toán') || nameLower.includes('math')) {
+    subject = dto.subjectName || 'Toán học';
+    avatarBg = '#2563EB';
+  } else if (nameLower.includes('lý') || nameLower.includes('phys')) {
+    subject = dto.subjectName || 'Vật lý';
+    avatarBg = '#7C3AED';
+  } else if (nameLower.includes('hóa') || nameLower.includes('chem')) {
+    subject = dto.subjectName || 'Hóa học';
+    avatarBg = '#D97706';
+  } else if (nameLower.includes('anh') || nameLower.includes('eng')) {
+    subject = dto.subjectName || 'Tiếng Anh';
+    avatarBg = '#0EA5E9';
+  } else if (nameLower.includes('văn') || nameLower.includes('lit')) {
+    subject = dto.subjectName || 'Ngữ văn';
+    avatarBg = '#DC2626';
+  } else if (nameLower.includes('sinh') || nameLower.includes('bio')) {
+    subject = dto.subjectName || 'Sinh học';
+    avatarBg = '#059669';
+  }
+
+  // Đối tác cùng lớp:
+  // Nếu là Giáo viên chính -> hiện tên Trợ giảng (TA)
+  // Nếu là Trợ giảng -> hiện tên Giáo viên chính
+  const partnerName = isTa
+    ? (dto.teacherName || dto.partnerName || 'Giáo viên phụ trách')
+    : (dto.taName || dto.partnerName || 'Trợ giảng');
+
+  const words = partnerName.trim().split(/\s+/).filter(Boolean);
+  const initials = words.length >= 2
+    ? `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase()
+    : (words[0]?.slice(0, 2).toUpperCase() || (isTa ? 'GV' : 'TG'));
+
+  const stLower = (dto.status || '').toLowerCase();
+  let status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled' = 'upcoming';
+  if (stLower.includes('cancel') || stLower.includes('hủy')) {
+    status = 'cancelled';
+  } else if (stLower.includes('ongoing') || stLower.includes('diễn ra')) {
+    status = 'ongoing';
+  } else if (stLower.includes('completed') || stLower.includes('hoàn thành')) {
+    status = 'completed';
+  }
+
+  return {
+    id: `sched_${dto.scheduleId || index}`,
+    className: dto.className,
+    subject,
+    startH,
+    startM,
+    endH,
+    endM,
+    teacher: partnerName,
+    initials,
+    avatarBg,
+    room: dto.room || 'Phòng học',
+    day,
+    status,
+  };
+}
