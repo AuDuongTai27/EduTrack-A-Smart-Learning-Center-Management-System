@@ -94,7 +94,7 @@ export function AttendanceTable({
                   <div className="d-flex align-items-center gap-3 flex-wrap">
                     {/* Có mặt */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-1.5 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
                         currentStatus === "present"
                           ? "btn-success text-white shadow-sm fw-bold"
                           : "btn-outline-secondary"
@@ -114,7 +114,7 @@ export function AttendanceTable({
 
                     {/* Đi muộn */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-1.5 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
                         currentStatus === "late"
                           ? "btn-warning text-dark shadow-sm fw-bold"
                           : "btn-outline-secondary"
@@ -134,7 +134,7 @@ export function AttendanceTable({
 
                     {/* Vắng */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-1.5 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
                         currentStatus === "absent"
                           ? "btn-danger text-white shadow-sm fw-bold"
                           : "btn-outline-secondary"
@@ -154,7 +154,7 @@ export function AttendanceTable({
 
                     {/* Có phép */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-1.5 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
                         currentStatus === "excused" || currentStatus === "excuse"
                           ? "btn-info text-dark shadow-sm fw-bold"
                           : "btn-outline-secondary"
