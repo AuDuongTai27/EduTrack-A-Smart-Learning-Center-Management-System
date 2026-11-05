@@ -144,6 +144,8 @@ export default function TeacherLearningProgressPage() {
             <ProgressTable
               progressStudents={classProgress?.students ?? []}
               latestAssignmentTitle={classProgress?.latestAssignmentTitle}
+              classId={selectedClassId}
+              className={classProgress?.className}
             />
 
             {/* Footer Pagination */}

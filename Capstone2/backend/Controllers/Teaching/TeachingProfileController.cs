@@ -24,9 +24,10 @@ namespace EduTrack.API.Controllers.Teaching
 
         /// <summary>
         /// Lấy thông tin hồ sơ chi tiết của Giáo viên hoặc Trợ giảng theo userId
+        /// GET: api/teaching/profile/{userId}
         /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetProfile([FromQuery] int userId)
+        [HttpGet("{userId:int}")]
+        public async Task<IActionResult> GetProfile(int userId)
         {
             if (userId <= 0)
             {
@@ -43,19 +44,11 @@ namespace EduTrack.API.Controllers.Teaching
         }
 
         /// <summary>
-        /// Lấy thông tin hồ sơ theo route param /api/teaching/profile/{userId}
-        /// </summary>
-        [HttpGet("{userId:int}")]
-        public async Task<IActionResult> GetProfileById(int userId)
-        {
-            return await GetProfile(userId);
-        }
-
-        /// <summary>
         /// Cập nhật thông tin hồ sơ cá nhân của Giáo viên hoặc Trợ giảng
+        /// PUT: api/teaching/profile/{userId}
         /// </summary>
-        [HttpPut]
-        public async Task<IActionResult> UpdateProfile([FromQuery] int userId, [FromBody] UpdateTeacherProfileRequestDto request)
+        [HttpPut("{userId:int}")]
+        public async Task<IActionResult> UpdateProfile(int userId, [FromBody] UpdateTeacherProfileRequestDto request)
         {
             if (userId <= 0)
             {
@@ -82,13 +75,28 @@ namespace EduTrack.API.Controllers.Teaching
         }
 
         /// <summary>
-        /// Cập nhật hồ sơ theo route param /api/teaching/profile/{userId}
+        /// Đổi mật khẩu tài khoản Giáo viên hoặc Trợ giảng
+        /// POST: api/teaching/profile/{userId}/change-password
         /// </summary>
-        [HttpPut("{userId:int}")]
-        public async Task<IActionResult> UpdateProfileById(int userId, [FromBody] UpdateTeacherProfileRequestDto request)
+        [HttpPost("{userId:int}/change-password")]
+        public async Task<IActionResult> ChangePassword(int userId, [FromBody] ChangePasswordRequestDto request)
         {
-            return await UpdateProfile(userId, request);
+            if (userId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
+            }
+
+            var result = await _profileService.ChangePasswordAsync(userId, request);
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.Message });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = result.Message
+            });
         }
     }
 }
-

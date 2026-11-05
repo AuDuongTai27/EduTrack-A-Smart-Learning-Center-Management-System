@@ -7,6 +7,6 @@ namespace EduTrack.API.Services.Teaching.Interfaces
     {
         Task<TeacherProfileDto?> GetProfileAsync(int userId);
         Task<TeacherProfileDto?> UpdateProfileAsync(int userId, UpdateTeacherProfileRequestDto request);
+        Task<(bool Success, string Message)> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
     }
 }
-

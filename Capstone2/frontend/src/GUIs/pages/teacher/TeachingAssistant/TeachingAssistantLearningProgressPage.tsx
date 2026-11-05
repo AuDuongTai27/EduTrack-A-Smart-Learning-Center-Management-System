@@ -68,7 +68,7 @@ export default function TeachingAssistantLearningProgressPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Tiến Độ Học Tập &amp; Điểm Danh Học Viên"
+        title="Tiến Độ Học Tập & Điểm Danh Học Viên"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "Tiến độ học tập" },
@@ -144,6 +144,8 @@ export default function TeachingAssistantLearningProgressPage() {
             <ProgressTable
               progressStudents={classProgress?.students ?? []}
               latestAssignmentTitle={classProgress?.latestAssignmentTitle}
+              classId={selectedClassId}
+              className={classProgress?.className}
             />
 
             {/* Footer Pagination */}

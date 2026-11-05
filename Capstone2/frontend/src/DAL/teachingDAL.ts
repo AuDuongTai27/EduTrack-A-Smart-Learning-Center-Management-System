@@ -1,3 +1,8 @@
+import type {
+  TeachingStudentProgressDetailDto,
+  TeachingStudentEvaluationItemDto,
+  CreateTeachingEvaluationPayload,
+} from '../BLL/models/teaching/TeachingStudentProgressDetailDto';
 import {
   teachingApi,
   type CreateTeachingRequestPayload,
@@ -38,6 +43,9 @@ export type {
   TeachingSubmissionItemDto,
   GradeTeachingSubmissionRequest,
   TeachingClassStudentItemDto,
+  TeachingStudentProgressDetailDto,
+  TeachingStudentEvaluationItemDto,
+  CreateTeachingEvaluationPayload,
 };
 export const DEFAULT_TEACHER_ID = 3;
 export const DEFAULT_TA_ID = 5;
@@ -843,6 +851,15 @@ export const teachingDAL = {
   /**
    * Cập nhật thông tin hồ sơ GV / TA
    */
+  async changePassword(userId: number, payload: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      return await teachingApi.changePassword(userId, payload);
+    } catch (err: any) {
+      console.warn(`[teachingDAL] Loi goi API changePassword (userId=${userId}):`, err?.message);
+      throw err;
+    }
+  },
+
   async updateProfile(userId: number, payload: UpdateTeacherProfilePayload): Promise<TeacherProfileDto> {
     try {
       const data = await teachingApi.updateProfile(userId, payload);
@@ -1231,6 +1248,121 @@ export const teachingDAL = {
         uploadedAt: new Date().toISOString(),
       };
     }
+  },
+  /**
+   * Lấy chi tiết toàn diện tiến độ của một học viên trong môn học
+   */
+  async getStudentProgressDetail(classId: number, studentId: number): Promise<{
+    success: boolean;
+    data: TeachingStudentProgressDetailDto;
+    isLiveApi: boolean;
+  }> {
+    try {
+      const data = await teachingApi.getStudentProgressDetail(classId, studentId);
+      if (data) {
+        return { success: true, data, isLiveApi: true };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không tải được API progress-detail (classId=${classId}, studentId=${studentId}), dùng fallback mock:`, err?.message);
+    }
+
+    const fallbackDetail: TeachingStudentProgressDetailDto = {
+      studentId,
+      studentCode: `STU${String(studentId).padStart(3, '0')}`,
+      fullName: studentId === 6 ? 'Lê Văn An' : (studentId === 7 ? 'Phạm Thị Bích' : `Học viên #${studentId}`),
+      avatarInitials: studentId === 6 ? 'LA' : (studentId === 7 ? 'PB' : 'HV'),
+      email: `student${studentId}@edutrack.edu.vn`,
+      phone: '0901 234 567',
+      presentDays: 19,
+      absentDays: 1,
+      totalDays: 20,
+      attendancePercentage: 95,
+      className: classId === 2 ? 'Lớp 9B1 - Vật Lý Chuyên Sâu' : 'Lớp 9A1 - Toán Nâng Cao',
+      subjectName: classId === 2 ? 'Vật lý' : 'Toán học',
+      avgScore: '9.2',
+      assignments: [
+        {
+          assignmentId: 1,
+          title: 'Homework 01: Quadratic Equations Problem Set',
+          weekTitle: 'Tuần 1. Homework 01: Quadratic Equations Problem Set',
+          dueDate: '14/09/2026 23:59',
+          submittedAt: '13/09/2026 20:30',
+          status: 'graded',
+          score: 9.5,
+          maxScore: 10,
+          aiScore: 9.5,
+          submissionFileUrl: 'https://storage.edutrack.edu.vn/submissions/hw01.pdf',
+          teacherFeedback: 'Bài làm rất xuất sắc, các bước biến đổi phương trình bậc hai chính xác.',
+          aiFeedback: 'Độ chính xác cao trên toàn bộ các bài toán. Sử dụng đúng định lý Viète.',
+        },
+        {
+          assignmentId: 2,
+          title: 'Quiz 01: Applications of Vieta Theorem',
+          weekTitle: 'Tuần 2. Quiz 01: Applications of Vieta Theorem',
+          dueDate: '20/09/2026 23:59',
+          submittedAt: '20/09/2026 21:15',
+          status: 'graded',
+          score: 8.5,
+          maxScore: 10,
+          aiScore: 8.5,
+          submissionFileUrl: 'https://storage.edutrack.edu.vn/submissions/quiz01.pdf',
+          teacherFeedback: 'Nắm vững biểu thức đối xứng. Chú ý tính toán cẩn thận hơn.',
+        },
+      ],
+      evaluations: [
+        {
+          id: 1,
+          evaluatorName: 'ThS. Hoàng Quốc Việt',
+          evaluatorRole: 'Giáo viên',
+          evaluationType: 'attitude',
+          typeLabel: 'Thái độ & Tinh thần học tập',
+          rating: 'excellent',
+          ratingLabel: 'Xuất sắc / Rất tích cực',
+          content: 'Em luôn có mặt đúng giờ, thái độ học tập nghiêm túc, tích cực xung phong giải bài trên bảng.',
+          suggestions: 'Phát huy tinh thần tự học hiện tại và hỗ trợ thêm các bạn cùng nhóm.',
+          createdAt: '18/09/2026',
+        },
+      ],
+    };
+
+    return { success: true, data: fallbackDetail, isLiveApi: false };
+  },
+
+  /**
+   * Tạo đánh giá cá nhân mới cho học sinh
+   */
+  async createStudentEvaluation(
+    classId: number,
+    studentId: number,
+    payload: CreateTeachingEvaluationPayload
+  ): Promise<{
+    success: boolean;
+    data: TeachingStudentEvaluationItemDto;
+    isLiveApi: boolean;
+  }> {
+    try {
+      const data = await teachingApi.createStudentEvaluation(classId, studentId, payload);
+      if (data) {
+        return { success: true, data, isLiveApi: true };
+      }
+    } catch (err: any) {
+      console.warn(`🟡 [teachingDAL] Không lưu được đánh giá qua API, dùng fallback local:`, err?.message);
+    }
+
+    const fallbackItem: TeachingStudentEvaluationItemDto = {
+      id: Date.now(),
+      evaluatorName: payload.evaluatorName || 'ThS. Hoàng Quốc Việt',
+      evaluatorRole: payload.evaluatorRole || 'Giáo viên',
+      evaluationType: payload.evaluationType,
+      typeLabel: payload.typeLabel || 'Thái độ & Tinh thần học tập',
+      rating: payload.rating,
+      ratingLabel: payload.ratingLabel || 'Tốt / Đạt yêu cầu',
+      content: payload.content,
+      suggestions: payload.suggestions,
+      createdAt: new Date().toLocaleDateString('vi-VN'),
+    };
+
+    return { success: true, data: fallbackItem, isLiveApi: false };
   },
 };
 

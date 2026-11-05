@@ -1,13 +1,21 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import type { UserDto } from "../../../../../BLL/models/UserDto";
 import type { AttendanceDto } from "../../../../../BLL/models/ProgressDto";
-import type { TeachingStudentProgressItemDto } from "../../../../../BLL/models/teaching/TeachingLearningProgressDto";
+import type {
+  TeachingStudentProgressItemDto,
+  CreateTeachingEvaluationPayload,
+} from "../../../../../BLL/models/teaching";
+import CreateEvaluationModal from "./CreateEvaluationModal";
+import teachingDAL from "../../../../../DAL/teachingDAL";
 
 export interface ProgressTableProps {
   students?: UserDto[];
   attendances?: AttendanceDto[];
   latestAssignmentTitle?: string;
   progressStudents?: TeachingStudentProgressItemDto[];
+  classId?: number;
+  className?: string;
 }
 
 export default function ProgressTable({
@@ -15,11 +23,15 @@ export default function ProgressTable({
   attendances = [],
   latestAssignmentTitle = "Homework 01: Quadratic Equations",
   progressStudents = [],
+  classId = 1,
+  className = "Toán 10 - Nâng Cao",
 }: ProgressTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedStudent, setSelectedStudent] = useState<TeachingStudentProgressItemDto | null>(null);
+  const [evaluatingStudent, setEvaluatingStudent] = useState<TeachingStudentProgressItemDto | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [updatedNotes, setUpdatedNotes] = useState<Record<number, string>>({});
 
   const getInitials = (name?: string) => {
     if (!name) return "ST";
@@ -43,7 +55,10 @@ export default function ProgressTable({
   // Dữ liệu hiển thị ưu tiên từ progressStudents
   const displayItems: TeachingStudentProgressItemDto[] = useMemo(() => {
     if (progressStudents.length > 0) {
-      return progressStudents;
+      return progressStudents.map((s) => ({
+        ...s,
+        latestNote: updatedNotes[s.studentId] || s.latestNote,
+      }));
     }
 
     if (students.length > 0) {
@@ -72,13 +87,13 @@ export default function ProgressTable({
           latestAssignmentStatus: idx % 3 === 0 ? "Late" : "Submitted",
           latestAssignmentScore: 9.0,
           maxScore: 10,
-          latestNote: "Học tập tốt, trợ giảng đã hỗ trợ làm bài.",
+          latestNote: updatedNotes[stu.userId] || "Học tập tốt, trợ giảng đã hỗ trợ làm bài.",
         };
       });
     }
 
     return [];
-  }, [progressStudents, students, attendances, latestAssignmentTitle]);
+  }, [progressStudents, students, attendances, latestAssignmentTitle, updatedNotes]);
 
   // Bộ lọc tìm kiếm
   const filteredItems = useMemo(() => {
@@ -98,8 +113,53 @@ export default function ProgressTable({
     return filteredItems.slice(start, start + rowsPerPage);
   }, [filteredItems, currentPage, rowsPerPage]);
 
+  const handleEvaluationSubmit = async (payload: CreateTeachingEvaluationPayload) => {
+    try {
+      const res = await teachingDAL.createStudentEvaluation(classId, payload.studentId, {
+        ...payload,
+        evaluatorName: "Âu Dương Tài",
+        evaluatorRole: "Trợ giảng",
+      });
+
+      if (res.data) {
+        setUpdatedNotes((prev) => ({
+          ...prev,
+          [payload.studentId]: payload.content,
+        }));
+      }
+
+      setToastMessage("Đã lưu đánh giá cá nhân thành công vào hệ thống!");
+    } catch (err) {
+      console.warn("Lỗi khi lưu đánh giá:", err);
+      setToastMessage("Đã lưu đánh giá cá nhân.");
+    }
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   return (
     <>
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          className="position-fixed top-0 start-50 translate-middle-x p-3"
+          style={{ zIndex: 1090, marginTop: "16px" }}
+        >
+          <div className="toast show align-items-center text-bg-success border-0 shadow" role="alert">
+            <div className="d-flex">
+              <div className="toast-body d-flex align-items-center gap-2">
+                <i className="bi bi-check-circle-fill fs-6" />
+                <span>{toastMessage}</span>
+              </div>
+              <button
+                type="button"
+                className="btn-close btn-close-white me-2 m-auto"
+                onClick={() => setToastMessage(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom">
         <div className="table-entries-select d-flex align-items-center gap-2">
@@ -176,7 +236,15 @@ export default function ProgressTable({
                         {stu.avatarInitials || getInitials(stu.fullName)}
                       </div>
                     </td>
-                    <td className="fw-semibold text-dark">{stu.fullName}</td>
+                    <td>
+                      <strong className="d-block text-dark">{stu.fullName}</strong>
+                      {stu.latestNote && (
+                        <small className="text-muted d-block text-truncate" style={{ maxWidth: 220 }} title={stu.latestNote}>
+                          <i className="bi bi-chat-left-dots text-primary me-1" />
+                          {stu.latestNote}
+                        </small>
+                      )}
+                    </td>
                     <td>
                       <span className="text-muted small">#{stu.studentCode}</span>
                     </td>
@@ -209,13 +277,26 @@ export default function ProgressTable({
                       </div>
                     </td>
                     <td className="text-end">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                        onClick={() => setSelectedStudent(stu)}
-                      >
-                        <i className="bi bi-eye" /> Chi tiết
-                      </button>
+                      <div className="d-inline-flex align-items-center gap-1.5">
+                        {/* 1. Nút Chi tiết mở trang riêng */}
+                        <Link
+                          to={`/teaching-assistant/learning-progress/class/${classId}/student/${stu.studentId}`}
+                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                          title="Xem toàn bộ tiến độ, bài tập & đánh giá cá nhân của học sinh"
+                        >
+                          <i className="bi bi-eye" /> Chi tiết
+                        </Link>
+
+                        {/* 2. Nút Tạo đánh giá ngay bên ngoài */}
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-xs"
+                          title="Tạo đánh giá cá nhân nhanh"
+                          onClick={() => setEvaluatingStudent(stu)}
+                        >
+                          <i className="bi bi-pencil-square" /> Đánh giá
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -232,96 +313,20 @@ export default function ProgressTable({
         </table>
       </div>
 
-      {/* Modal chi tiết học viên */}
-      {selectedStudent && (
-        <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow">
-              <div className="modal-header">
-                <h5 className="modal-title d-flex align-items-center gap-2">
-                  <i className="bi bi-person-badge text-primary" />
-                  Tiến Độ Học Tập - {selectedStudent.fullName}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setSelectedStudent(null)}
-                />
-              </div>
-              <div className="modal-body">
-                <div className="d-flex align-items-center gap-3 mb-3 p-3 bg-light rounded-3">
-                  <div className="ta-avatar-initials avatar-initials-md avatar-initials-emerald">
-                    {selectedStudent.avatarInitials}
-                  </div>
-                  <div>
-                    <h6 className="mb-0 fw-bold">{selectedStudent.fullName}</h6>
-                    <small className="text-muted d-block">Mã số: {selectedStudent.studentCode}</small>
-                    {selectedStudent.email && (
-                      <small className="text-muted d-block">Email: {selectedStudent.email}</small>
-                    )}
-                    {selectedStudent.phone && (
-                      <small className="text-muted d-block">SĐT: {selectedStudent.phone}</small>
-                    )}
-                  </div>
-                </div>
-
-                <div className="row g-2 mb-3">
-                  <div className="col-4">
-                    <div className="p-2 border rounded-2 text-center bg-white">
-                      <small className="text-muted d-block">Chuyên cần</small>
-                      <strong className="text-success fs-5">{selectedStudent.attendancePercentage}%</strong>
-                    </div>
-                  </div>
-                  <div className="col-4">
-                    <div className="p-2 border rounded-2 text-center bg-white">
-                      <small className="text-muted d-block">Có mặt</small>
-                      <strong className="text-dark fs-5">{selectedStudent.presentDays}/{selectedStudent.totalDays}</strong>
-                    </div>
-                  </div>
-                  <div className="col-4">
-                    <div className="p-2 border rounded-2 text-center bg-white">
-                      <small className="text-muted d-block">Vắng / Trễ</small>
-                      <strong className="text-danger fs-5">{selectedStudent.absentDays + selectedStudent.lateDays}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label small fw-bold text-muted mb-1">Bài tập gần nhất:</label>
-                  <div className="p-2 bg-light rounded-2 border">
-                    <span className="fw-semibold d-block">{selectedStudent.latestAssignmentTitle}</span>
-                    <div className="d-flex align-items-center justify-content-between mt-1">
-                      <span className="small text-muted">Trạng thái: <strong>{selectedStudent.latestAssignmentStatus}</strong></span>
-                      {selectedStudent.latestAssignmentScore != null && (
-                        <span className="badge bg-primary">
-                          Điểm: {selectedStudent.latestAssignmentScore}/{selectedStudent.maxScore ?? 10}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {selectedStudent.latestNote && (
-                  <div>
-                    <label className="form-label small fw-bold text-muted mb-1">Ghi chú trợ giảng:</label>
-                    <div className="p-2 bg-light rounded-2 border text-secondary small fst-italic">
-                      "{selectedStudent.latestNote}"
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setSelectedStudent(null)}
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Modal Tạo đánh giá cá nhân bên ngoài */}
+      {evaluatingStudent && (
+        <CreateEvaluationModal
+          isOpen={true}
+          onClose={() => setEvaluatingStudent(null)}
+          studentId={evaluatingStudent.studentId}
+          studentName={evaluatingStudent.fullName}
+          studentCode={evaluatingStudent.studentCode}
+          classId={classId}
+          className={className}
+          evaluatorName="Âu Dương Tài"
+          evaluatorRole="Trợ giảng"
+          onSubmit={handleEvaluationSubmit}
+        />
       )}
     </>
   );

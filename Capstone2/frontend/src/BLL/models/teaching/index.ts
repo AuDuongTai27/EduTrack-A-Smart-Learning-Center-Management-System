@@ -6,3 +6,4 @@ export * from './TeachingNotificationDto';
 export * from './TeachingProfileDto';
 export * from './TeachingAttendanceDto';
 export * from './TeachingAssignmentDto';
+export * from './TeachingStudentProgressDetailDto';

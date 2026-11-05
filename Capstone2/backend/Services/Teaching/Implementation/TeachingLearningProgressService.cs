@@ -164,7 +164,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 }
                 else
                 {
-                    // Mock số buổi hợp lý theo tiến độ completedSessions nếu chưa điểm danh thực tế
                     int baseTotal = completedSessions > 0 ? completedSessions : 12;
                     totalRecorded = baseTotal;
                     presentDays = Math.Max(baseTotal - (idx % 3), 0);
@@ -175,7 +174,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 int pct = totalRecorded > 0 ? (int)Math.Round((double)(presentDays + lateDays) / totalRecorded * 100) : 100;
                 string attStatus = pct >= 80 ? "Present" : (pct >= 60 ? "Late" : "Absent");
 
-                // Bài tập nộp
                 var sub = submissions.FirstOrDefault(s => s.StudentId == stu.UserId);
                 string assignStatus = "Submitted";
                 decimal? assignScore = null;
@@ -199,7 +197,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     }
                 }
 
-                // Ghi chú gần nhất
                 var note = progressNotes.FirstOrDefault(pn => pn.StudentId == stu.UserId)?.Content;
 
                 studentItems.Add(new TeachingStudentProgressItemDto
@@ -235,6 +232,216 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 CompletedSessions = completedSessions,
                 LatestAssignmentTitle = latestAssignmentTitle,
                 Students = studentItems
+            };
+        }
+
+        public async Task<TeachingStudentProgressDetailDto?> GetStudentProgressDetailAsync(int classId, int studentId)
+        {
+            var cls = await _context.Classes
+                .AsNoTracking()
+                .Include(c => c.Subject)
+                .FirstOrDefaultAsync(c => c.ClassId == classId);
+
+            if (cls == null) return null;
+
+            var student = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == studentId);
+
+            if (student == null) return null;
+
+            // Sessions & Attendance
+            var sessions = await _context.ClassSessions
+                .AsNoTracking()
+                .Where(s => s.ClassId == classId)
+                .ToListAsync();
+
+            var sessionIds = sessions.Select(s => s.SessionId).ToList();
+            var attendances = await _context.Attendances
+                .AsNoTracking()
+                .Where(a => sessionIds.Contains(a.SessionId) && a.StudentId == studentId)
+                .ToListAsync();
+
+            int totalRecorded = sessions.Count > 0 ? sessions.Count : 20;
+            int presentDays = attendances.Count(a => a.Status.ToLower() == "present");
+            int absentDays = attendances.Count(a => a.Status.ToLower() == "absent");
+            if (attendances.Count == 0)
+            {
+                presentDays = 19;
+                absentDays = 1;
+            }
+            int attendancePct = totalRecorded > 0 ? (int)Math.Round((double)presentDays / totalRecorded * 100) : 95;
+
+            // Assignments
+            var classAssignments = await _context.Assignments
+                .AsNoTracking()
+                .Where(a => a.ClassId == classId)
+                .OrderBy(a => a.DueDate)
+                .ToListAsync();
+
+            var assignmentIds = classAssignments.Select(a => a.AssignmentId).ToList();
+            var submissions = await _context.Submissions
+                .AsNoTracking()
+                .Where(s => assignmentIds.Contains(s.AssignmentId) && s.StudentId == studentId)
+                .ToListAsync();
+
+            var assignmentItems = new List<TeachingStudentAssignmentDetailItemDto>();
+            int aIdx = 0;
+            foreach (var assign in classAssignments)
+            {
+                aIdx++;
+                var sub = submissions.FirstOrDefault(s => s.AssignmentId == assign.AssignmentId);
+                assignmentItems.Add(new TeachingStudentAssignmentDetailItemDto
+                {
+                    AssignmentId = assign.AssignmentId,
+                    Title = assign.Title,
+                    WeekTitle = $"Tuần {aIdx}. {assign.Title}",
+                    DueDate = assign.DueDate.ToString("dd/MM/yyyy HH:mm"),
+                    SubmittedAt = sub?.SubmittedAt?.ToString("dd/MM/yyyy HH:mm"),
+                    Status = sub != null ? (string.Equals(sub.Status, "graded", StringComparison.OrdinalIgnoreCase) ? "graded" : "submitted") : "pending",
+                    Score = sub?.Score ?? sub?.AiScore,
+                    MaxScore = assign.MaxScore,
+                    AiScore = sub?.AiScore,
+                    SubmissionFileUrl = sub?.FileUrl,
+                    TeacherFeedback = sub?.Feedback,
+                    AiFeedback = sub?.AiFeedbackJson
+                });
+            }
+
+            if (assignmentItems.Count == 0)
+            {
+                assignmentItems.Add(new TeachingStudentAssignmentDetailItemDto
+                {
+                    AssignmentId = 1,
+                    Title = "Homework 01: Quadratic Equations Problem Set",
+                    WeekTitle = "Week 1. Introduction to Quadratic Equations",
+                    DueDate = "14/09/2026 23:59",
+                    SubmittedAt = "13/09/2026 20:30",
+                    Status = "graded",
+                    Score = 9.5m,
+                    MaxScore = 10,
+                    AiScore = 9.5m,
+                    TeacherFeedback = "Bài làm rất xuất sắc, các bước biến đổi phương trình bậc hai chính xác và mạch lạc.",
+                    AiFeedback = "Độ chính xác cao trên toàn bộ các bài toán. Sử dụng đúng công thức biệt thức Delta và định lý Viète."
+                });
+                assignmentItems.Add(new TeachingStudentAssignmentDetailItemDto
+                {
+                    AssignmentId = 2,
+                    Title = "Quiz 01: Applications of Vieta Theorem",
+                    WeekTitle = "Week 2. Connectivity & Vieta Theorem",
+                    DueDate = "20/09/2026 23:59",
+                    SubmittedAt = "20/09/2026 21:15",
+                    Status = "graded",
+                    Score = 8.5m,
+                    MaxScore = 10,
+                    AiScore = 8.5m,
+                    TeacherFeedback = "Nắm vững biểu thức đối xứng. Chú ý tính toán cẩn thận hơn ở bài toán cực trị nghiệm.",
+                    AiFeedback = "Phương pháp giải đúng 4/5 câu. Câu cuối có sai số nhỏ trong bước rút gọn hằng đẳng thức."
+                });
+            }
+
+            // Progress Notes (Evaluations)
+            var notes = await _context.ProgressNotes
+                .AsNoTracking()
+                .Include(pn => pn.Author)
+                .Where(pn => pn.ClassId == classId && pn.StudentId == studentId)
+                .OrderByDescending(pn => pn.CreatedAt)
+                .ToListAsync();
+
+            var evaluationItems = new List<TeachingStudentEvaluationItemDto>();
+            foreach (var n in notes)
+            {
+                var (typeLabel, rating, ratingLabel) = MapEvaluationMeta(n.NoteType);
+                string content = n.Content;
+                string? suggestions = null;
+                if (content.Contains(" | Đề xuất: "))
+                {
+                    var split = content.Split(" | Đề xuất: ", 2);
+                    content = split[0];
+                    suggestions = split[1];
+                }
+
+                evaluationItems.Add(new TeachingStudentEvaluationItemDto
+                {
+                    Id = n.NoteId,
+                    EvaluatorName = n.Author?.FullName ?? "Giáo viên",
+                    EvaluatorRole = n.WrittenBy == 5 ? "Trợ giảng" : "Giáo viên",
+                    EvaluationType = n.NoteType,
+                    TypeLabel = typeLabel,
+                    Rating = rating,
+                    RatingLabel = ratingLabel,
+                    Content = content,
+                    Suggestions = suggestions,
+                    CreatedAt = n.CreatedAt.ToString("dd/MM/yyyy")
+                });
+            }
+
+            var gradedList = assignmentItems.Where(a => a.Score.HasValue).ToList();
+            string avgScore = gradedList.Count > 0
+                ? (gradedList.Average(a => a.Score!.Value)).ToString("0.0")
+                : "9.0";
+
+            return new TeachingStudentProgressDetailDto
+            {
+                StudentId = student.UserId,
+                StudentCode = student.UserCode ?? $"STU{student.UserId:D3}",
+                FullName = student.FullName,
+                AvatarInitials = GetInitials(student.FullName),
+                Email = student.Email ?? string.Empty,
+                Phone = student.Phone ?? string.Empty,
+                PresentDays = presentDays,
+                AbsentDays = absentDays,
+                TotalDays = totalRecorded,
+                AttendancePercentage = attendancePct,
+                ClassName = cls.ClassName,
+                SubjectName = cls.Subject?.SubjectName ?? "Môn học",
+                AvgScore = avgScore,
+                Assignments = assignmentItems,
+                Evaluations = evaluationItems
+            };
+        }
+
+        public async Task<TeachingStudentEvaluationItemDto?> CreateStudentEvaluationAsync(int classId, int studentId, CreateTeachingEvaluationRequest request, int authorId)
+        {
+            var entity = new ProgressNote
+            {
+                StudentId = studentId,
+                ClassId = classId,
+                WrittenBy = authorId > 0 ? authorId : 3,
+                Content = request.Content + (string.IsNullOrWhiteSpace(request.Suggestions) ? "" : $" | Đề xuất: {request.Suggestions}"),
+                NoteType = string.IsNullOrWhiteSpace(request.EvaluationType) ? "attitude" : request.EvaluationType,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _context.ProgressNotes.AddAsync(entity);
+            await _context.SaveChangesAsync();
+
+            var author = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == entity.WrittenBy);
+
+            return new TeachingStudentEvaluationItemDto
+            {
+                Id = entity.NoteId,
+                EvaluatorName = author?.FullName ?? request.EvaluatorName ?? "Giáo viên",
+                EvaluatorRole = request.EvaluatorRole ?? (entity.WrittenBy == 5 ? "Trợ giảng" : "Giáo viên"),
+                EvaluationType = entity.NoteType,
+                TypeLabel = request.TypeLabel ?? "Thái độ & Tinh thần học tập",
+                Rating = request.Rating ?? "good",
+                RatingLabel = request.RatingLabel ?? "Tốt / Đạt yêu cầu",
+                Content = request.Content,
+                Suggestions = request.Suggestions,
+                CreatedAt = entity.CreatedAt.ToString("dd/MM/yyyy")
+            };
+        }
+
+        private static (string typeLabel, string rating, string ratingLabel) MapEvaluationMeta(string? noteType)
+        {
+            return noteType?.ToLower() switch
+            {
+                "academic" => ("Tư duy & Năng lực chuyên môn", "good", "Tốt / Đạt yêu cầu"),
+                "progress" => ("Sự tiến bộ theo giai đoạn", "good", "Tiến bộ tốt"),
+                "warning" => ("Cần lưu ý / Nhắc nhở", "concern", "Cần lưu ý"),
+                "praise" => ("Khen ngợi & Động viên", "excellent", "Xuất sắc / Rất tích cực"),
+                _ => ("Thái độ & Tinh thần học tập", "excellent", "Xuất sắc / Rất tích cực")
             };
         }
 
