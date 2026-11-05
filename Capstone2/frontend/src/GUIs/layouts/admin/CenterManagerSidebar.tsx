@@ -1,6 +1,8 @@
 import { NavLink } from "react-router-dom";
+import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
 
 export default function CenterManagerSidebar() {
+  const { centerName, loading: settingsLoading, error: settingsError } = useCenterSettings();
   return (
     <aside className="sidebar" id="sidebar">
       <div className="sidebar-header">
@@ -24,7 +26,7 @@ export default function CenterManagerSidebar() {
           <i className="bi bi-buildings-fill" />
         </span>
         <div className="center-info">
-          <span className="center-name">EduTrack Center</span>
+          <span className="center-name">{centerName || (settingsLoading ? "Đang tải..." : settingsError ? "Không tải được tên trung tâm" : "Chưa cấu hình tên trung tâm")}</span>
           <small>Learning Center</small>
         </div>
       </div>

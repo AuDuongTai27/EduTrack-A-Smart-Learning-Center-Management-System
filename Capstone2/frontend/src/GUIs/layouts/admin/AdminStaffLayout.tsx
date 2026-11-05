@@ -2,11 +2,13 @@ import { Outlet } from "react-router-dom";
 import "../../../assets/css/admin-shared.css";
 import "../../../assets/css/admin-staff.css";
 import AdminTopBar from "./AdminTopBar";
+import { CenterSettingsProvider } from "../../../contexts/CenterSettingsContext";
 import AdminStaffSidebar from "./AdminStaffSidebar";
 
 export default function StaffLayout() {
   return (
-    <div className="admin-scope">
+    <CenterSettingsProvider>
+      <div className="admin-scope">
       <div className="app-shell">
         {/* Sidebar */}
         <AdminStaffSidebar />
@@ -23,6 +25,7 @@ export default function StaffLayout() {
         </div>
       </div>
       <div className="sidebar-overlay" id="sidebarOverlay" />
-    </div>
+      </div>
+    </CenterSettingsProvider>
   );
 }

@@ -3,10 +3,12 @@ import "../../../assets/css/admin-shared.css";
 import "../../../assets/css/center-manager.css";
 import CenterManagerSidebar from "./CenterManagerSidebar";
 import AdminTopBar from "./AdminTopBar";
+import { CenterSettingsProvider } from "../../../contexts/CenterSettingsContext";
 
 export default function CenterManagerLayout() {
   return (
-    <div className="admin-scope">
+    <CenterSettingsProvider>
+      <div className="admin-scope">
       <div className="app-shell">
         {/* Sidebar */}
         <CenterManagerSidebar />
@@ -23,6 +25,7 @@ export default function CenterManagerLayout() {
         </div>
       </div>
       <div className="sidebar-overlay" id="sidebarOverlay" />
-    </div>
+      </div>
+    </CenterSettingsProvider>
   );
 }

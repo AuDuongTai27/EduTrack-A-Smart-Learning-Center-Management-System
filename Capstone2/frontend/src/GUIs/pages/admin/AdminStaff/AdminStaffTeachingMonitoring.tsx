@@ -1,258 +1,236 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
-import StatusBadge from "../../../components/Common/StatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
-import classDAL from "../../../../DAL/classDAL";
-import scheduleDAL from "../../../../DAL/scheduleDAL";
-import userDAL from "../../../../DAL/userDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { ClassScheduleDto } from "../../../../BLL/models/ClassScheduleDto";
-import type { UserDto } from "../../../../BLL/models/UserDto";
+import {
+  teachingMonitoringApi,
+  type TeachingMonitoringData,
+  type MonitoringSessionDto,
+  type TeacherClassAssignmentDto,
+} from "../../../../api/teachingMonitoringApi";
+import type { AttendanceDto } from "../../../../BLL/models/ProgressDto";
 
 interface MonitoringRow {
+  teacherClassId: number;
   teacherId: number;
   teacherName: string;
   className: string;
   subjectName: string;
+  assignedStatus: string;
   scheduled: number;
   completed: number;
   attendanceRate: string;
-  status: "Good" | "Needs Attention" | "Critical";
+  attendanceSample: number;
   room: string;
 }
 
-export default function AdminStaffTeachingMonitoring() {
-  const [activeTab, setActiveTab] = useState<"teacher" | "class" | "progress">("teacher");
-  const [classes, setClasses] = useState<ClassDto[]>([]);
-  const [schedules, setSchedules] = useState<ClassScheduleDto[]>([]);
-  const [teachers, setTeachers] = useState<UserDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+const EMPTY_DATA: TeachingMonitoringData = {
+  classes: [],
+  schedules: [],
+  assignments: [],
+  sessions: [],
+  attendances: [],
+};
 
-  // Detail Modal state
+const norm = (value: string | null | undefined) => (value ?? "").trim().toLowerCase();
+const isCompleted = (session: MonitoringSessionDto) => norm(session.status) === "completed";
+const isCancelled = (session: MonitoringSessionDto) => norm(session.status) === "cancelled";
+const markedStatuses = new Set(["present", "late", "absent", "excused"]);
+
+function attendanceForSessions(
+  sessions: MonitoringSessionDto[],
+  attendances: AttendanceDto[],
+): { rate: string; count: number } {
+  const completedSessionIds = new Set(sessions.filter(isCompleted).map((s) => s.sessionId));
+  const recorded = attendances.filter(
+    (attendance) => completedSessionIds.has(attendance.sessionId) && markedStatuses.has(norm(attendance.status)),
+  );
+  if (!recorded.length) return { rate: "—", count: 0 };
+  const present = recorded.filter((a) => ["present", "late"].includes(norm(a.status))).length;
+  return { rate: `${((present / recorded.length) * 100).toFixed(1)}%`, count: recorded.length };
+}
+
+function makeRows(data: TeachingMonitoringData): MonitoringRow[] {
+  const classesById = new Map(data.classes.map((cls) => [cls.classId, cls]));
+  const sessionsByClass = new Map<number, MonitoringSessionDto[]>();
+  for (const session of data.sessions) {
+    const list = sessionsByClass.get(session.classId) ?? [];
+    list.push(session);
+    sessionsByClass.set(session.classId, list);
+  }
+
+  return data.assignments
+    .filter((item: TeacherClassAssignmentDto) => norm(item.status) === "active")
+    .map((assignment) => {
+      const cls = classesById.get(assignment.classId);
+      const sessions = sessionsByClass.get(assignment.classId) ?? [];
+      const validSessions = sessions.filter((s) => !isCancelled(s));
+      const attendance = attendanceForSessions(sessions, data.attendances);
+      const room = cls?.room || sessions.find((s) => s.room)?.room || "—";
+      return {
+        teacherClassId: assignment.teacherClassId,
+        teacherId: assignment.teacherId,
+        teacherName: assignment.teacherName || `Giáo viên #${assignment.teacherId}`,
+        className: cls?.className || assignment.className || `Lớp #${assignment.classId}`,
+        subjectName: cls?.subjectName || "Chưa có môn học",
+        assignedStatus: assignment.status,
+        scheduled: validSessions.length,
+        completed: validSessions.filter(isCompleted).length,
+        attendanceRate: attendance.rate,
+        attendanceSample: attendance.count,
+        room,
+      };
+    })
+    .sort((a, b) => a.teacherName.localeCompare(b.teacherName, "vi"));
+}
+
+export default function AdminStaffTeachingMonitoring() {
+  const [activeTab, setActiveTab] = useState<"teacher" | "class">("teacher");
+  const [data, setData] = useState<TeachingMonitoringData>(EMPTY_DATA);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<MonitoringRow | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      try {
-        setLoading(true);
-        const [clsRes, schRes, usersRes] = await Promise.all([
-          classDAL.getAllClasses(),
-          scheduleDAL.getAllClassSchedules(),
-          userDAL.getAllUsers(),
-        ]);
-        if (isMounted) {
-          if (clsRes.data) setClasses(clsRes.data);
-          if (schRes.data) setSchedules(schRes.data);
-          if (usersRes.data) {
-            const teacherList = usersRes.data.filter((u) => u.roles?.includes("teacher") || u.userCode.startsWith("TC"));
-            setTeachers(teacherList);
-          }
-        }
-      } catch (err) {
-        console.warn("Lỗi nạp dữ liệu giám sát giảng dạy:", err);
-      } finally {
-        if (isMounted) setLoading(false);
+  const refresh = useCallback(async (isMounted: () => boolean = () => true) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const next = await teachingMonitoringApi.getDashboardData();
+      if (isMounted()) setData(next);
+    } catch (cause) {
+      if (isMounted()) {
+        setData(EMPTY_DATA);
+        setError(cause instanceof Error ? cause.message : "Không thể tải dữ liệu giám sát.");
       }
+    } finally {
+      if (isMounted()) setLoading(false);
     }
-    loadData();
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
-  const monitoringRows: MonitoringRow[] = [
-    {
-      teacherId: 3,
-      teacherName: "ThS. Hoàng Quốc Việt",
-      className: classes[0]?.className || "Toán 12 Chuyên Sâu",
-      subjectName: "Toán học",
-      scheduled: 16,
-      completed: 14,
-      attendanceRate: "96.5%",
-      status: "Good",
-      room: "Phòng P.301",
-    },
-    {
-      teacherId: 4,
-      teacherName: "ThS. Huỳnh Khánh Duy",
-      className: classes[1]?.className || "Vật Lý 12 Nâng Cao",
-      subjectName: "Vật lý",
-      scheduled: 16,
-      completed: 15,
-      attendanceRate: "94.0%",
-      status: "Good",
-      room: "Phòng P.202",
-    },
-    {
-      teacherId: 105,
-      teacherName: "ThS. Lê Thu Trang",
-      className: "Tiếng Anh Chuyên Cấp Tốc",
-      subjectName: "Tiếng Anh",
-      scheduled: 12,
-      completed: 10,
-      attendanceRate: "88.2%",
-      status: "Needs Attention",
-      room: "Phòng P.104",
-    },
-    {
-      teacherId: 106,
-      teacherName: "ThS. Phạm Minh Đức",
-      className: "Hóa Học 11 Cơ Bản",
-      subjectName: "Hóa học",
-      scheduled: 12,
-      completed: 11,
-      attendanceRate: "92.0%",
-      status: "Good",
-      room: "Phòng P.102",
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
+    void refresh(() => mounted);
+    return () => { mounted = false; };
+  }, [refresh]);
+
+  const rows = useMemo(() => makeRows(data), [data]);
+  const sessionsBySchedule = useMemo(() => {
+    const byId = new Map<number, MonitoringSessionDto[]>();
+    for (const session of data.sessions) {
+      if (session.scheduleId == null) continue;
+      const records = byId.get(session.scheduleId) ?? [];
+      records.push(session);
+      byId.set(session.scheduleId, records);
+    }
+    return byId;
+  }, [data.sessions]);
 
   return (
     <>
-      {/* Breadcrumb and Quick Access */}
       <PageHeader
-        title="Giám Sát Giảng Dạy &amp; Lớp Học (Teaching Monitoring)"
+        title="Giám Sát Giảng Dạy & Lớp Học (Teaching Monitoring)"
         breadcrumbItems={[
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Teaching Monitoring" },
         ]}
+        action={
+          <button type="button" className="btn btn-outline-primary" disabled={loading} onClick={() => void refresh()}>
+            <i className="bi bi-arrow-clockwise me-1" /> Tải lại dữ liệu
+          </button>
+        }
       />
 
       {loading && (
-        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
-          <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang đối soát lịch dạy của giáo viên và phòng học...</span>
+        <div className="alert alert-info d-flex align-items-center gap-2" role="status">
+          <span className="spinner-border spinner-border-sm" /> Đang tải dữ liệu giảng dạy từ Backend...
+        </div>
+      )}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          <i className="bi bi-exclamation-triangle me-2" />
+          {error} Không hiển thị dữ liệu mẫu khi API lỗi.
+        </div>
+      )}
+      {!error && !loading && (
+        <div className="alert alert-secondary small" role="note">
+          Số buổi là số liệu theo <strong>lớp đã phân công</strong>, không xác nhận giáo viên nào trực tiếp đứng lớp.
+          Tỷ lệ có mặt = (Present + Late) / tổng bản ghi Present, Late, Absent, Excused trong các buổi đã hoàn thành.
+          Khi chưa có bản ghi, hiển thị — thay vì tự tạo tỷ lệ.
         </div>
       )}
 
-      {/* Monitoring Tabs */}
       <div className="card monitoring-card border-0 mb-4">
         <div className="monitoring-tabs">
           <ul className="nav nav-tabs">
             <li className="nav-item">
-              <button
-                className={`nav-link ${activeTab === "teacher" ? "active" : ""}`}
-                type="button"
-                onClick={() => setActiveTab("teacher")}
-              >
-                <i className="bi bi-person-workspace me-1.5" />
-                Theo Giáo Viên (By Teacher)
+              <button className={`nav-link ${activeTab === "teacher" ? "active" : ""}`}
+                type="button" onClick={() => setActiveTab("teacher")}>
+                <i className="bi bi-person-workspace me-2" /> Theo Giáo Viên (By Teacher)
               </button>
             </li>
             <li className="nav-item">
-              <button
-                className={`nav-link ${activeTab === "class" ? "active" : ""}`}
-                type="button"
-                onClick={() => setActiveTab("class")}
-              >
-                <i className="bi bi-collection me-1.5" />
-                Theo Lớp &amp; Ca Trực (By Class &amp; Schedule)
+              <button className={`nav-link ${activeTab === "class" ? "active" : ""}`}
+                type="button" onClick={() => setActiveTab("class")}>
+                <i className="bi bi-collection me-2" /> Theo Lớp & Lịch Học (By Class)
               </button>
             </li>
           </ul>
         </div>
-
         <div className="card-body p-0">
-          {activeTab === "teacher" && (
+          {activeTab === "teacher" ? (
             <div className="table-responsive">
               <table className="table user-table align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th className="fw-bold">STT</th>
-                    <th className="fw-bold">Giáo Viên Giảng Dạy</th>
-                    <th className="fw-bold">Lớp Phụ Trách</th>
-                    <th className="fw-bold">Số Ca Đã Xếp</th>
-                    <th className="fw-bold">Đã Hoàn Thành</th>
-                    <th className="fw-bold">Tỷ Lệ Điểm Danh</th>
-                    <th className="fw-bold">Đánh Giá Giám Sát</th>
-                    <th className="text-center fw-bold">Thao Tác</th>
-                  </tr>
-                </thead>
+                <thead><tr>
+                  <th>STT</th><th>Giáo viên được phân công</th><th>Lớp phụ trách</th>
+                  <th>Số buổi đã xếp</th><th>Đã hoàn thành</th><th>Tỷ lệ có mặt (đã ghi)</th>
+                  <th>Trạng thái phân công</th><th className="text-center">Thao tác</th>
+                </tr></thead>
                 <tbody>
-                  {monitoringRows.map((row, idx) => (
-                    <tr key={idx}>
+                  {!loading && !error && rows.map((row, idx) => (
+                    <tr key={row.teacherClassId}>
                       <td>{idx + 1}</td>
-                      <td>
-                        <strong className="text-dark d-block">{row.teacherName}</strong>
-                        <small className="text-muted">Chuyên môn: {row.subjectName}</small>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center gap-1.5">
-                          <SubjectBadge subject={row.subjectName} />
-                          <span className="small text-dark">{row.className}</span>
-                        </div>
-                      </td>
+                      <td><strong className="text-dark d-block">{row.teacherName}</strong>
+                        <small className="text-muted">ID: #{row.teacherId}</small></td>
+                      <td><div className="d-flex align-items-center gap-2">
+                        {row.subjectName !== "Chưa có môn học" && <SubjectBadge subject={row.subjectName} />}
+                        <span>{row.className}</span></div></td>
                       <td>{row.scheduled} buổi</td>
-                      <td>
-                        <span className="fw-semibold text-primary">{row.completed} buổi</span>
-                      </td>
-                      <td>
-                        <span className="fw-bold text-dark">{row.attendanceRate}</span>
-                      </td>
-                      <td>
-                        <StatusBadge status={row.status} />
-                      </td>
+                      <td><span className="fw-semibold text-primary">{row.completed} buổi</span></td>
+                      <td><strong>{row.attendanceRate}</strong>
+                        {row.attendanceSample > 0 && <small className="text-muted d-block">{row.attendanceSample} lượt điểm danh</small>}</td>
+                      <td><span className="badge bg-success bg-opacity-10 text-success">Đang phân công</span></td>
                       <td className="text-center">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                          onClick={() => setSelectedRow(row)}
-                        >
-                          <i className="bi bi-eye" /> Chi tiết
+                        <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setSelectedRow(row)}>
+                          <i className="bi bi-eye me-1" /> Chi tiết
                         </button>
                       </td>
                     </tr>
                   ))}
+                  {!loading && !error && rows.length === 0 &&
+                    <tr><td colSpan={8} className="text-center text-muted py-4">Chưa có phân công giảng dạy đang hoạt động.</td></tr>}
                 </tbody>
               </table>
             </div>
-          )}
-
-          {activeTab === "class" && (
+          ) : (
             <div className="table-responsive">
               <table className="table user-table align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th className="fw-bold">Mã Lịch</th>
-                    <th className="fw-bold">Tên Lớp Học</th>
-                    <th className="fw-bold">Thứ Trong Tuần</th>
-                    <th className="fw-bold">Khung Giờ</th>
-                    <th className="fw-bold">Phòng Học</th>
-                    <th className="fw-bold">Trạng Thái Buổi Học</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Mã lịch</th><th>Lớp học</th><th>Thứ</th><th>Khung giờ</th><th>Phòng học</th><th>Buổi thực tế</th></tr></thead>
                 <tbody>
-                  {schedules.length > 0 ? (
-                    schedules.map((s, idx) => (
-                      <tr key={s.scheduleId || idx}>
-                        <td>
-                          <span className="badge bg-secondary bg-opacity-10 text-dark">
-                            #{s.scheduleId || idx + 1}
-                          </span>
-                        </td>
-                        <td>
-                          <strong className="text-dark">{s.className || `Lớp học #${s.classId}`}</strong>
-                        </td>
-                        <td>{s.dayOfWeek ? `Mỗi ${s.dayOfWeek}` : "Thứ 2, Thứ 4"}</td>
-                        <td>
-                          <span className="badge bg-primary bg-opacity-10 text-primary">
-                            {s.startTime ? s.startTime.substring(0, 5) : "08:00"} - {s.endTime ? s.endTime.substring(0, 5) : "09:30"}
-                          </span>
-                        </td>
-                        <td>{s.room || "Phòng P.301"}</td>
-                        <td>
-                          <span className="badge bg-success bg-opacity-10 text-success">Đang hoạt động tốt</span>
-                        </td>
+                  {!loading && !error && data.schedules.map((schedule) => {
+                    const sessions = (sessionsBySchedule.get(schedule.scheduleId) ?? []).filter((s) => !isCancelled(s));
+                    const completeCount = sessions.filter(isCompleted).length;
+                    return (
+                      <tr key={schedule.scheduleId}>
+                        <td>#{schedule.scheduleId}</td>
+                        <td><strong>{schedule.className || `Lớp #${schedule.classId}`}</strong></td>
+                        <td>{schedule.dayOfWeek || "—"}</td>
+                        <td>{schedule.startTime ? schedule.startTime.slice(0, 5) : "—"} - {schedule.endTime ? schedule.endTime.slice(0, 5) : "—"}</td>
+                        <td>{schedule.room || "—"}</td>
+                        <td>{completeCount}/{sessions.length} buổi hoàn thành</td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="text-center py-4 text-muted">
-                        Chưa có lịch giảng dạy nào.
-                      </td>
-                    </tr>
-                  )}
+                    );
+                  })}
+                  {!loading && !error && data.schedules.length === 0 &&
+                    <tr><td colSpan={6} className="text-center text-muted py-4">Chưa có lịch giảng dạy được ghi nhận.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -260,55 +238,26 @@ export default function AdminStaffTeachingMonitoring() {
         </div>
       </div>
 
-      {/* DETAIL MODAL (GetById) */}
       {selectedRow && (
         <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content shadow border-0">
               <div className="modal-header bg-light">
-                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                  <i className="bi bi-activity text-primary" />
-                  Báo Cáo Hoạt Động Giảng Dạy: {selectedRow.teacherName}
-                </h5>
-                <button type="button" className="btn-close" onClick={() => setSelectedRow(null)} />
+                <h5 className="modal-title fw-bold text-dark">Chi tiết lớp phụ trách — {selectedRow.teacherName}</h5>
+                <button type="button" className="btn-close" onClick={() => setSelectedRow(null)} aria-label="Đóng" />
               </div>
               <div className="modal-body p-4">
                 <div className="row g-3">
-                  <div className="col-12">
-                    <label className="text-muted small d-block">Giáo viên</label>
-                    <span className="fw-bold text-dark fs-6">{selectedRow.teacherName}</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Lớp phụ trách</label>
-                    <span className="fw-semibold text-dark">{selectedRow.className}</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Môn học</label>
-                    <span className="badge bg-info bg-opacity-10 text-info">{selectedRow.subjectName}</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Phòng giảng dạy</label>
-                    <span className="fw-semibold text-dark">{selectedRow.room}</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Tỷ lệ chuyên cần học sinh</label>
-                    <span className="fw-bold text-success">{selectedRow.attendanceRate}</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Tiến độ ca học</label>
-                    <span>{selectedRow.completed} / {selectedRow.scheduled} buổi hoàn thành</span>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="text-muted small d-block">Đánh giá chung</label>
-                    <StatusBadge status={selectedRow.status} />
-                  </div>
+                  <div className="col-md-6"><small className="text-muted d-block">Giáo viên</small><strong>{selectedRow.teacherName}</strong></div>
+                  <div className="col-md-6"><small className="text-muted d-block">Lớp</small><strong>{selectedRow.className}</strong></div>
+                  <div className="col-md-6"><small className="text-muted d-block">Môn</small>{selectedRow.subjectName}</div>
+                  <div className="col-md-6"><small className="text-muted d-block">Phòng</small>{selectedRow.room}</div>
+                  <div className="col-md-6"><small className="text-muted d-block">Buổi học hoàn thành</small>{selectedRow.completed}/{selectedRow.scheduled}</div>
+                  <div className="col-md-6"><small className="text-muted d-block">Tỷ lệ có mặt (lớp)</small>{selectedRow.attendanceRate}</div>
+                  <div className="col-12"><small className="text-muted">Chỉ thống kê các buổi và điểm danh đã được Backend ghi nhận. Không xác định giáo viên đứng lớp theo buổi.</small></div>
                 </div>
               </div>
-              <div className="modal-footer bg-light">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedRow(null)}>
-                  Đóng
-                </button>
-              </div>
+              <div className="modal-footer bg-light"><button type="button" className="btn btn-secondary" onClick={() => setSelectedRow(null)}>Đóng</button></div>
             </div>
           </div>
         </div>
