@@ -310,11 +310,11 @@ export const teachingApi = {
   },
 
   /**
-   * GET /api/teaching/profile?userId={userId}
+   * GET /api/teaching/profile/{userId}
    * Lấy thông tin hồ sơ cá nhân của Giáo viên hoặc Trợ giảng
    */
   async getProfile(userId: number): Promise<TeacherProfileDto> {
-    const res = await fetch(`${API_BASE_URL}/teaching/profile?userId=${userId}`, {
+    const res = await fetch(`${API_BASE_URL}/teaching/profile/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -334,7 +334,7 @@ export const teachingApi = {
    * Cập nhật thông tin hồ sơ cá nhân GV/TA
    */
   async changePassword(userId: number, payload: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(`${API_BASE_URL}/teaching/profile/change-password?userId=${userId}`, {
+    const res = await fetch(`${API_BASE_URL}/teaching/profile/${userId}/change-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -351,7 +351,7 @@ export const teachingApi = {
   },
 
   async updateProfile(userId: number, payload: UpdateTeacherProfilePayload): Promise<TeacherProfileDto> {
-    const res = await fetch(`${API_BASE_URL}/teaching/profile?userId=${userId}`, {
+    const res = await fetch(`${API_BASE_URL}/teaching/profile/${userId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

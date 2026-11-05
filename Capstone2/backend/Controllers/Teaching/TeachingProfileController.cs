@@ -24,9 +24,10 @@ namespace EduTrack.API.Controllers.Teaching
 
         /// <summary>
         /// Lấy thông tin hồ sơ chi tiết của Giáo viên hoặc Trợ giảng theo userId
+        /// GET: api/teaching/profile/{userId}
         /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetProfile([FromQuery] int userId)
+        [HttpGet("{userId:int}")]
+        public async Task<IActionResult> GetProfile(int userId)
         {
             if (userId <= 0)
             {
@@ -43,19 +44,11 @@ namespace EduTrack.API.Controllers.Teaching
         }
 
         /// <summary>
-        /// Lấy thông tin hồ sơ theo route param /api/teaching/profile/{userId}
-        /// </summary>
-        [HttpGet("{userId:int}")]
-        public async Task<IActionResult> GetProfileById(int userId)
-        {
-            return await GetProfile(userId);
-        }
-
-        /// <summary>
         /// Cập nhật thông tin hồ sơ cá nhân của Giáo viên hoặc Trợ giảng
+        /// PUT: api/teaching/profile/{userId}
         /// </summary>
-        [HttpPut]
-        public async Task<IActionResult> UpdateProfile([FromQuery] int userId, [FromBody] UpdateTeacherProfileRequestDto request)
+        [HttpPut("{userId:int}")]
+        public async Task<IActionResult> UpdateProfile(int userId, [FromBody] UpdateTeacherProfileRequestDto request)
         {
             if (userId <= 0)
             {
@@ -82,19 +75,11 @@ namespace EduTrack.API.Controllers.Teaching
         }
 
         /// <summary>
-        /// Cập nhật hồ sơ theo route param /api/teaching/profile/{userId}
-        /// </summary>
-        [HttpPut("{userId:int}")]
-        public async Task<IActionResult> UpdateProfileById(int userId, [FromBody] UpdateTeacherProfileRequestDto request)
-        {
-            return await UpdateProfile(userId, request);
-        }
-
-        /// <summary>
         /// Đổi mật khẩu tài khoản Giáo viên hoặc Trợ giảng
+        /// POST: api/teaching/profile/{userId}/change-password
         /// </summary>
-        [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword([FromQuery] int userId, [FromBody] ChangePasswordRequestDto request)
+        [HttpPost("{userId:int}/change-password")]
+        public async Task<IActionResult> ChangePassword(int userId, [FromBody] ChangePasswordRequestDto request)
         {
             if (userId <= 0)
             {
@@ -112,15 +97,6 @@ namespace EduTrack.API.Controllers.Teaching
                 success = true,
                 message = result.Message
             });
-        }
-
-        /// <summary>
-        /// Đổi mật khẩu theo route param /api/teaching/profile/{userId}/change-password
-        /// </summary>
-        [HttpPost("{userId:int}/change-password")]
-        public async Task<IActionResult> ChangePasswordById(int userId, [FromBody] ChangePasswordRequestDto request)
-        {
-            return await ChangePassword(userId, request);
         }
     }
 }
