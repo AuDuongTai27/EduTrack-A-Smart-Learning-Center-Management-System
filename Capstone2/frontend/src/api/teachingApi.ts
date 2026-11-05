@@ -1,3 +1,8 @@
+import type {
+  TeachingStudentProgressDetailDto,
+  TeachingStudentEvaluationItemDto,
+  CreateTeachingEvaluationPayload,
+} from '../BLL/models/teaching/TeachingStudentProgressDetailDto';
 import type { ApprovalRequestDto } from '../BLL/models/ApprovalRequestDto';
 import type { TeachingDashboardDto } from '../BLL/models/teaching/TeachingDashboardDto';
 import type { TeachingScheduleItemDto } from '../BLL/models/teaching/TeachingScheduleDto';
@@ -628,6 +633,51 @@ export const teachingApi = {
     }
 
     return await res.json();
+  },
+  /**
+   * GET /api/teaching/classes/{classId}/students/{studentId}/progress-detail
+   * Lấy chi tiết toàn diện tiến độ của một học sinh trong môn học
+   */
+  async getStudentProgressDetail(classId: number, studentId: number): Promise<TeachingStudentProgressDetailDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/classes/${classId}/students/${studentId}/progress-detail`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} khi tải chi tiết tiến độ học sinh #${studentId}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * POST /api/teaching/classes/{classId}/students/{studentId}/evaluations
+   * Tạo đánh giá cá nhân mới cho học sinh
+   */
+  async createStudentEvaluation(
+    classId: number,
+    studentId: number,
+    payload: CreateTeachingEvaluationPayload
+  ): Promise<TeachingStudentEvaluationItemDto> {
+    const res = await fetch(`${API_BASE_URL}/teaching/classes/${classId}/students/${studentId}/evaluations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} khi lưu đánh giá`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
   },
 };
 

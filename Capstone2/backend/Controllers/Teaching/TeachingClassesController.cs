@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Models.DTOs.Teaching;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Teaching.Interfaces;
 
@@ -147,6 +148,49 @@ namespace EduTrack.API.Controllers.Teaching
             }
 
             return Ok(new { success = true, data });
+        }
+
+        /// <summary>
+        /// Lấy chi tiết toàn diện tiến độ của một học sinh trong môn học
+        /// GET: api/teaching/classes/{classId}/students/{studentId}/progress-detail
+        /// </summary>
+        [HttpGet("{classId}/students/{studentId}/progress-detail")]
+        public async Task<IActionResult> GetStudentProgressDetail([FromRoute] int classId, [FromRoute] int studentId)
+        {
+            if (classId <= 0 || studentId <= 0)
+            {
+                return BadRequest(new { success = false, message = "ClassId và StudentId không hợp lệ." });
+            }
+
+            var data = await _learningProgressService.GetStudentProgressDetailAsync(classId, studentId);
+            if (data == null)
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy chi tiết học sinh ID = {studentId} trong lớp ID = {classId}" });
+            }
+
+            return Ok(new { success = true, data });
+        }
+
+        /// <summary>
+        /// Tạo đánh giá cá nhân mới cho học sinh trong lớp (lưu vào progress_notes)
+        /// POST: api/teaching/classes/{classId}/students/{studentId}/evaluations
+        /// </summary>
+        [HttpPost("{classId}/students/{studentId}/evaluations")]
+        public async Task<IActionResult> CreateStudentEvaluation(
+            [FromRoute] int classId,
+            [FromRoute] int studentId,
+            [FromBody] CreateTeachingEvaluationRequest request,
+            [FromQuery] int? authorId)
+        {
+            if (classId <= 0 || studentId <= 0 || request == null || string.IsNullOrWhiteSpace(request.Content))
+            {
+                return BadRequest(new { success = false, message = "Dữ liệu đánh giá không hợp lệ." });
+            }
+
+            int writtenBy = authorId ?? (request.EvaluatorRole == "Trợ giảng" ? 5 : 3);
+            var created = await _learningProgressService.CreateStudentEvaluationAsync(classId, studentId, request, writtenBy);
+
+            return Ok(new { success = true, data = created, message = "Đã lưu đánh giá cá nhân thành công!" });
         }
     }
 }

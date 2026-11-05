@@ -7,6 +7,7 @@ import TeachingAssistantAttendancePage from "../GUIs/pages/teacher/TeachingAssis
 import TeachingAssistantAssignmentPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantAssignmentPage";
 import TeachingAssistantSchedulePage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantSchedulePage";
 import TeachingAssistantLearningProgressPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantLearningProgressPage";
+import TeachingAssistantStudentProgressDetailPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantStudentProgressDetailPage";
 import TeachingAssistantNotificationPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantNotificationPage";
 import TeachingAssistantRequestPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantRequestPage";
 import TeachingAssistantProfilePage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantProfilePage";
@@ -25,6 +26,8 @@ export const teachingAssistantRoutes: RouteObject = {
     { path: "classes/:id/assignment/:id", element: <TeachingAssistantAssignmentPage /> },
     { path: "schedule", element: <TeachingAssistantSchedulePage /> },
     { path: "learning-progress", element: <TeachingAssistantLearningProgressPage /> },
+    { path: "learning-progress/class/:classId/student/:studentId", element: <TeachingAssistantStudentProgressDetailPage /> },
+    { path: "learning-progress/student/:studentId", element: <TeachingAssistantStudentProgressDetailPage /> },
     { path: "notifications", element: <TeachingAssistantNotificationPage /> },
     { path: "request", element: <TeachingAssistantRequestPage /> },
     { path: "profile", element: <TeachingAssistantProfilePage /> },
