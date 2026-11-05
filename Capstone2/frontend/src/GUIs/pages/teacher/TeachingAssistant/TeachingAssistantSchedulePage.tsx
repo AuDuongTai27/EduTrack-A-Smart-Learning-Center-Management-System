@@ -94,24 +94,6 @@ export default function TeachingAssistantSchedulePage() {
 
   const headerActions = (
     <div className="d-flex flex-wrap align-items-center gap-2">
-      {/* View Mode Toggle */}
-      <div className="btn-group btn-group-sm" role="group" aria-label="Chế độ hiển thị">
-        <button
-          type="button"
-          className={`btn ${viewMode === "calendar" ? "btn-primary" : "btn-outline-secondary"}`}
-          onClick={() => setViewMode("calendar")}
-        >
-          <i className="bi bi-calendar3 me-1"></i> Lịch biểu
-        </button>
-        <button
-          type="button"
-          className={`btn ${viewMode === "list" ? "btn-primary" : "btn-outline-secondary"}`}
-          onClick={() => setViewMode("list")}
-        >
-          <i className="bi bi-list-ul me-1"></i> Danh sách
-        </button>
-      </div>
-
       {/* Week Navigator (shown in calendar mode) */}
       {viewMode === "calendar" && (
         <div className="week-navigator-controls d-flex align-items-center gap-2">
@@ -149,6 +131,26 @@ export default function TeachingAssistantSchedulePage() {
           </div>
         </div>
       )}
+
+      {/* View Mode Toggle (Fixed at far right) */}
+      <div className="btn-group btn-group-sm ms-auto" role="group" aria-label="Chế độ hiển thị">
+        <button
+          type="button"
+          className={`btn ${viewMode === "calendar" ? "btn-primary" : "btn-outline-secondary"}`}
+          onClick={() => setViewMode("calendar")}
+          title="Lịch biểu"
+        >
+          <i className="bi bi-calendar3"></i>
+        </button>
+        <button
+          type="button"
+          className={`btn ${viewMode === "list" ? "btn-primary" : "btn-outline-secondary"}`}
+          onClick={() => setViewMode("list")}
+          title="Danh sách"
+        >
+          <i className="bi bi-list-ul"></i>
+        </button>
+      </div>
     </div>
   );
 
