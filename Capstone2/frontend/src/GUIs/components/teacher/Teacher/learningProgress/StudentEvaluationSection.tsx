@@ -47,12 +47,12 @@ export default function StudentEvaluationSection({
                 : "bg-danger-subtle text-danger border border-danger-subtle";
 
             return (
-              <div key={item.id} className="p-3.5 bg-white rounded-3 border shadow-xs">
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 pb-2 border-bottom">
+              <div key={item.id} className="p-3 bg-white rounded-3 border shadow-xs">
+                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
                   <div className="d-flex align-items-center gap-2">
                     <div
                       className="rounded-circle d-flex align-items-center justify-content-center text-primary"
-                      style={{ width: "32px", height: "32px", backgroundColor: "#EFF6FF" }}
+                      style={{ width: "36px", height: "36px", backgroundColor: "#EFF6FF" }}
                     >
                       <i className="bi bi-person-fill fs-6" />
                     </div>
@@ -71,12 +71,12 @@ export default function StudentEvaluationSection({
                   </div>
                 </div>
 
-                <p className="text-dark mb-2" style={{ fontSize: "14px", lineHeight: "1.5" }}>
+                <p className="text-dark mb-0 ps-1" style={{ fontSize: "14px", lineHeight: "1.6" }}>
                   "{item.content}"
                 </p>
 
                 {item.suggestions && (
-                  <div className="p-2 rounded-2 bg-light-subtle border small text-muted d-flex align-items-start gap-1.5">
+                  <div className="mt-3.5 px-3 py-2 rounded-2 bg-light-subtle border small text-muted d-flex align-items-center gap-2" style={{ marginTop: "14px" }}>
                     <i className="bi bi-lightbulb text-warning fs-6" />
                     <div>
                       <strong className="text-secondary">Đề xuất rèn luyện: </strong>
