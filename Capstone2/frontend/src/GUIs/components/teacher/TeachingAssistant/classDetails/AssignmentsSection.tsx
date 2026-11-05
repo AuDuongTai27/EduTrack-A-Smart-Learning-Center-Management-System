@@ -197,7 +197,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       </div>
 
       {/* 2. Global Open all / Close all Controls Bar */}
-      <div className="px-4 py-2.5 bg-light-subtle border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div className="px-4 py-2 bg-light-subtle border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div className="d-flex align-items-center gap-3">
           <button
             type="button"
@@ -273,11 +273,11 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
 
               {/* Week Body (Content when Open) */}
               {isOpen && (
-                <div className="border-top p-3.5 bg-white">
+                <div className="border-top p-3 bg-white">
                   {/* Part A: Study Materials */}
                   <div className="mb-4">
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-1.5">
+                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
                         <i className="bi bi-folder2-open text-primary" /> Tài liệu &amp; Bài giảng trong tuần
                       </span>
                     </div>
@@ -287,7 +287,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                         {week.materials.map((mat) => (
                           <div
                             key={mat.id}
-                            className="d-flex align-items-center justify-content-between p-2.5 rounded-2 border bg-light-subtle"
+                            className="d-flex align-items-center justify-content-between p-2 px-3 rounded-2 border bg-light-subtle"
                             style={{ borderColor: "#F1F5F9" }}
                           >
                             <div className="d-flex align-items-center gap-3 min-w-0">
@@ -306,12 +306,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                               <div className="min-w-0">
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                   <span className="fw-semibold text-dark text-break small">{mat.fileName}</span>
-                                  <span className="badge bg-secondary-subtle text-secondary small py-0.5">
+                                  <span className="badge bg-secondary-subtle text-secondary small py-1">
                                     {mat.type}
                                   </span>
                                 </div>
                                 {mat.description && (
-                                  <p className="text-muted small mb-0 mt-0.5 text-truncate" style={{ maxWidth: "580px" }}>
+                                  <p className="text-muted small mb-0 mt-1 text-truncate" style={{ maxWidth: "580px" }}>
                                     {mat.description}
                                   </p>
                                 )}
@@ -330,7 +330,8 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                     alert(`Đang tải xuống tài liệu: ${mat.fileName}`);
                                   }
                                 }}
-                                className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1"
+                                style={{ height: "32px", fontSize: "13px" }}
                                 title="Tải xuống tài liệu"
                               >
                                 <i className="bi bi-download" /> Tải về
@@ -349,7 +350,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                   {/* Part B: Assignments Table for this week */}
                   <div>
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-1.5">
+                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
                         <i className="bi bi-journal-text text-primary" /> Bài tập &amp; Đề kiểm tra
                       </span>
                     </div>
@@ -429,7 +430,8 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                   <td className="text-end">
                                     <Link
                                       to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId}`}
-                                      className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                                      className="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1"
+                                      style={{ height: "32px", fontSize: "13px" }}
                                     >
                                       <i className="bi bi-eye" /> Hỗ trợ chấm
                                     </Link>

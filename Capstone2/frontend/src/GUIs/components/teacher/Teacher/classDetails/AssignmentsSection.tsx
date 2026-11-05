@@ -259,14 +259,16 @@ export default function AssignmentsSection({
         <div className="d-flex align-items-center gap-2">
           <button
             type="button"
-            className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1 shadow-xs"
+            className="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center gap-1.5 shadow-sm"
+            style={{ height: "36px", fontSize: "13.5px", fontWeight: 500, padding: "0 14px", lineHeight: 1 }}
             onClick={() => setShowUploadModal(true)}
           >
             <i className="bi bi-cloud-upload" /> Thêm tài liệu
           </button>
           <Link
             to={`/teacher/classes/${classId}/assignment/new-assignment`}
-            className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-xs"
+            className="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-1.5 shadow-sm text-decoration-none"
+            style={{ height: "36px", fontSize: "13.5px", fontWeight: 500, padding: "0 14px", lineHeight: 1 }}
           >
             <i className="bi bi-plus-lg" /> Thêm bài tập mới
           </Link>
@@ -274,7 +276,7 @@ export default function AssignmentsSection({
       </div>
 
       {/* 2. Global Open all / Close all Controls Bar */}
-      <div className="px-4 py-2.5 bg-light-subtle border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div className="px-4 py-2 bg-light-subtle border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div className="d-flex align-items-center gap-3">
           <button
             type="button"
@@ -350,23 +352,23 @@ export default function AssignmentsSection({
 
               {/* Week Body (Content when Open) */}
               {isOpen && (
-                <div className="border-top p-3.5 bg-white">
+                <div className="border-top p-3 bg-white">
                   {/* Part A: Study Materials */}
                   <div className="mb-4">
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-1.5">
+                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
                         <i className="bi bi-folder2-open text-primary" /> Tài liệu &amp; Bài giảng trong tuần
                       </span>
                       <button
                         type="button"
-                        className="btn btn-link btn-sm text-decoration-none p-0 text-primary small"
+                        className="btn btn-link btn-sm text-decoration-none p-0 text-primary small d-inline-flex align-items-center gap-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           setTargetWeek(week.weekNumber);
                           setShowUploadModal(true);
                         }}
                       >
-                        <i className="bi bi-plus-circle me-1" /> Thêm file
+                        <i className="bi bi-plus-circle" /> Thêm file
                       </button>
                     </div>
 
@@ -375,7 +377,7 @@ export default function AssignmentsSection({
                         {week.materials.map((mat) => (
                           <div
                             key={mat.id}
-                            className="d-flex align-items-center justify-content-between p-2.5 rounded-2 border bg-light-subtle"
+                            className="d-flex align-items-center justify-content-between p-2 px-3 rounded-2 border bg-light-subtle"
                             style={{ borderColor: "#F1F5F9" }}
                           >
                             <div className="d-flex align-items-center gap-3 min-w-0">
@@ -394,12 +396,12 @@ export default function AssignmentsSection({
                               <div className="min-w-0">
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                   <span className="fw-semibold text-dark text-break small">{mat.fileName}</span>
-                                  <span className="badge bg-secondary-subtle text-secondary small py-0.5">
+                                  <span className="badge bg-secondary-subtle text-secondary small py-1">
                                     {mat.type}
                                   </span>
                                 </div>
                                 {mat.description && (
-                                  <p className="text-muted small mb-0 mt-0.5 text-truncate" style={{ maxWidth: "580px" }}>
+                                  <p className="text-muted small mb-0 mt-1 text-truncate" style={{ maxWidth: "580px" }}>
                                     {mat.description}
                                   </p>
                                 )}
@@ -418,7 +420,8 @@ export default function AssignmentsSection({
                                     alert(`Đang tải xuống tài liệu: ${mat.fileName}`);
                                   }
                                 }}
-                                className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1"
+                                style={{ height: "32px", fontSize: "13px" }}
                                 title="Tải xuống tài liệu"
                               >
                                 <i className="bi bi-download" /> Tải về
@@ -437,14 +440,14 @@ export default function AssignmentsSection({
                   {/* Part B: Assignments Table for this week */}
                   <div>
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-1.5">
+                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
                         <i className="bi bi-journal-text text-primary" /> Bài tập &amp; Đề kiểm tra
                       </span>
                       <Link
                         to={`/teacher/classes/${classId}/assignment/new-assignment`}
-                        className="btn btn-link btn-sm text-decoration-none p-0 text-primary small"
+                        className="btn btn-link btn-sm text-decoration-none p-0 text-primary small d-inline-flex align-items-center gap-1"
                       >
-                        <i className="bi bi-plus-circle me-1" /> Giao bài tập
+                        <i className="bi bi-plus-circle" /> Giao bài tập
                       </Link>
                     </div>
 
@@ -525,13 +528,15 @@ export default function AssignmentsSection({
                                     <div className="d-inline-flex align-items-center gap-1">
                                       <Link
                                         to={`/teacher/classes/${classId}/assignment/${asg.assignmentId}`}
-                                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1"
+                                        style={{ height: "32px", fontSize: "13px" }}
                                       >
                                         <i className="bi bi-eye" /> Chấm bài
                                       </Link>
                                       <button
                                         type="button"
-                                        className="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+                                        className="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center"
+                                        style={{ height: "32px", width: "32px", fontSize: "13px", padding: 0 }}
                                         title="Xóa bài tập"
                                         disabled={deletingId === asg.assignmentId}
                                         onClick={() => handleDelete(asg.assignmentId, asg.title)}
@@ -647,15 +652,20 @@ export default function AssignmentsSection({
                   </div>
                 </div>
 
-                <div className="modal-footer border-top px-4 py-2.5 bg-light-subtle rounded-bottom-4">
+                <div className="modal-footer border-top px-4 py-2 bg-light-subtle rounded-bottom-4">
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
+                    style={{ height: "34px", fontSize: "13.5px" }}
                     onClick={() => setShowUploadModal(false)}
                   >
                     Hủy bỏ
                   </button>
-                  <button type="submit" className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-1"
+                    style={{ height: "34px", fontSize: "13.5px" }}
+                  >
                     <i className="bi bi-check-lg" /> Lưu tài liệu
                   </button>
                 </div>
