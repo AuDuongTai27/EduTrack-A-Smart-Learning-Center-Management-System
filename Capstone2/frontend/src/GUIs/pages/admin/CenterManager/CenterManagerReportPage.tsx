@@ -6,11 +6,13 @@ import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import KpiCard from "../../../components/Common/KpiCard";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
+import { isTuitionOverdue } from "../../../../BLL/services/tuitionPolicyService";
 import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
 
 export default function CenterManagerReportPage() {
   const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Filters state
   const [reportType, setReportType] = useState<string>("Tuition Report");
@@ -36,12 +38,14 @@ export default function CenterManagerReportPage() {
     async function fetchReportData() {
       try {
         setLoading(true);
+        setLoadError(null);
         const res = await tuitionDAL.getAllTuitions();
         if (isMounted && res.data) {
           setTuitions(res.data);
         }
       } catch (err) {
         console.warn("Lỗi tải báo cáo center manager:", err);
+        if (isMounted) setLoadError(err instanceof Error ? err.message : "Không tải được dữ liệu báo cáo.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -96,7 +100,7 @@ export default function CenterManagerReportPage() {
       const remaining = Math.max(0, amount - paid);
       outstanding += remaining;
 
-      if (t.status === "Overdue" || (remaining > 0 && t.dueDate && new Date(t.dueDate) < new Date())) {
+      if (isTuitionOverdue(t, remaining)) {
         overdueCount++;
         overdueAmount += remaining;
       }
@@ -115,6 +119,8 @@ export default function CenterManagerReportPage() {
       remainingPercent,
     };
   }, [tuitions]);
+
+  const currencyReady = !loading && !loadError;
 
   // Handle open detail modal (GetById)
   const handleViewDetails = async (tuition: TuitionDto) => {
@@ -174,6 +180,8 @@ export default function CenterManagerReportPage() {
           </div>
         }
       />
+
+      {loadError && <div className="alert alert-danger mb-3" role="alert">{loadError}</div>}
 
       {/* Success Notification Alert */}
       {exportSuccessMsg && (
@@ -299,7 +307,8 @@ export default function CenterManagerReportPage() {
             type="tuition"
             status="total"
             title="Total Tuition Due"
-            value={`${Math.round(metrics.totalDue / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.totalDue : null}
             footerValue="August 2026"
           />
         </div>
@@ -310,7 +319,8 @@ export default function CenterManagerReportPage() {
             type="tuition"
             status="collected"
             title="Collected"
-            value={`${Math.round(metrics.collected / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.collected : null}
             footerValue={`${metrics.collectedPercent}%`}
             footerLabel="collected"
           />
@@ -322,7 +332,8 @@ export default function CenterManagerReportPage() {
             type="tuition"
             status="outstanding"
             title="Outstanding"
-            value={`${Math.round(metrics.outstanding / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.outstanding : null}
             footerValue={`${metrics.remainingPercent}%`}
             footerLabel="remaining"
           />
@@ -334,7 +345,8 @@ export default function CenterManagerReportPage() {
             type="tuition"
             status="overdue"
             title="Overdue"
-            value={`${Math.round(metrics.overdueAmount / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.overdueAmount : null}
             footerValue={metrics.overdueCount}
             footerLabel="records"
           />

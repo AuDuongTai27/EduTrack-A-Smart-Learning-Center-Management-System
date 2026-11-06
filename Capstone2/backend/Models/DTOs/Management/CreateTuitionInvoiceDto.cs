@@ -20,7 +20,6 @@ namespace EduTrack.API.Models.DTOs.Management
         [Range(typeof(decimal), "0.01", "9999999999")]
         public decimal AmountDue { get; set; }
 
-        [Required]
-        public DateTime DueDate { get; set; }
+        // DueDate is calculated by the server: one calendar month after creation.
     }
 }

@@ -10,6 +10,7 @@ import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import userDAL from "../../../../DAL/userDAL";
 import classDAL from "../../../../DAL/classDAL";
+import { defaultTuitionDueDate, isTuitionOverdue, tuitionPaymentStatus } from "../../../../BLL/services/tuitionPolicyService";
 
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
@@ -61,7 +62,7 @@ export default function CenterManagerTuitionPage() {
     studentId: 0,
     classId: 0,
     amount: 3000000,
-    dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0],
+    dueDate: defaultTuitionDueDate(),
   });
 
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
@@ -124,6 +125,9 @@ export default function CenterManagerTuitionPage() {
         setClasses(classRes.data || []);
       } catch (err) {
         console.warn("Lỗi tải dữ liệu học phí:", err);
+        if (isMounted) {
+          setPaymentDataWarning(err instanceof Error ? err.message : "Không tải được dữ liệu học phí.");
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -272,12 +276,7 @@ export default function CenterManagerTuitionPage() {
           const newPaid = (tuition.paidAmount ?? 0) + amount;
           const due =
             (tuition.amountDue ?? tuition.amount ?? 0) + additionalChargeAmount;
-          const newStatus =
-            newPaid >= due
-              ? "paid"
-              : tuition.dueDate && new Date(tuition.dueDate) < new Date()
-                ? "overdue"
-                : "unpaid";
+          const newStatus = tuitionPaymentStatus(due, newPaid, tuition.dueDate, tuition.status);
           return {
             ...tuition,
             amountDue: due,
@@ -338,10 +337,7 @@ export default function CenterManagerTuitionPage() {
       const remaining = Math.max(0, amount - paid);
       outstanding += remaining;
 
-      if (
-        t.status.toLowerCase() === "overdue" ||
-        (remaining > 0 && t.dueDate && new Date(t.dueDate) < new Date())
-      ) {
+      if (isTuitionOverdue(t, remaining)) {
         overdueCount++;
         overdueAmount += remaining;
       }
@@ -361,6 +357,8 @@ export default function CenterManagerTuitionPage() {
       remainingPercent,
     };
   }, [tuitions]);
+
+  const currencyReady = !loading && !paymentDataWarning;
 
   // Filter & Search logic
   const filteredTuitions = useMemo(() => {
@@ -447,7 +445,6 @@ export default function CenterManagerTuitionPage() {
         periodMonth: now.getMonth() + 1,
         periodYear: now.getFullYear(),
         amountDue: Number(generateForm.amount),
-        dueDate: generateForm.dueDate,
       });
 
       setTuitions((prev) => [res.data, ...prev]);
@@ -458,9 +455,7 @@ export default function CenterManagerTuitionPage() {
         studentId: 0,
         classId: 0,
         amount: 3000000,
-        dueDate: new Date(Date.now() + 15 * 86400000)
-          .toISOString()
-          .split("T")[0],
+        dueDate: defaultTuitionDueDate(),
       });
 
       setActionSuccessMsg(
@@ -486,7 +481,10 @@ export default function CenterManagerTuitionPage() {
           <button
             type="button"
             className="btn btn-primary d-flex align-items-center shadow-sm"
-            onClick={() => setShowGenerateModal(true)}
+            onClick={() => {
+              setGenerateForm(form => ({ ...form, dueDate: defaultTuitionDueDate() }));
+              setShowGenerateModal(true);
+            }}
           >
             <i className="bi bi-plus-square me-2" />
             Generate Tuition
@@ -526,7 +524,8 @@ export default function CenterManagerTuitionPage() {
             type="tuition"
             status="total"
             title="Total Tuition Due"
-            value={`${Math.round(metrics.totalDue / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.totalDue : null}
             footerValue="August 2026"
           />
         </div>
@@ -537,7 +536,8 @@ export default function CenterManagerTuitionPage() {
             type="tuition"
             status="collected"
             title="Collected"
-            value={`${Math.round(metrics.collected / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.collected : null}
             footerValue={`${metrics.collectedPercent}%`}
             footerLabel="collected"
           />
@@ -549,7 +549,8 @@ export default function CenterManagerTuitionPage() {
             type="tuition"
             status="outstanding"
             title="Outstanding"
-            value={`${Math.round(metrics.outstanding / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.outstanding : null}
             footerValue={`${metrics.remainingPercent}%`}
             footerLabel="remaining"
           />
@@ -561,7 +562,8 @@ export default function CenterManagerTuitionPage() {
             type="tuition"
             status="overdue"
             title="Overdue"
-            value={`${Math.round(metrics.overdueAmount / 1000000)}M`}
+            currency="VND"
+            value={currencyReady ? metrics.overdueAmount : null}
             footerValue={metrics.overdueCount}
             footerLabel="records"
           />
@@ -908,13 +910,9 @@ export default function CenterManagerTuitionPage() {
                         type="date"
                         className="form-control"
                         value={generateForm.dueDate}
-                        onChange={(e) =>
-                          setGenerateForm({
-                            ...generateForm,
-                            dueDate: e.target.value,
-                          })
-                        }
+                        readOnly
                       />
+                      <small className="text-muted">Một tháng kể từ ngày tạo; được thanh toán hết ngày đến hạn. Hạn chính thức được xác định khi lưu.</small>
                     </div>
                   </div>
                 </div>

@@ -32,7 +32,6 @@ export interface CreateTuitionInvoiceRequest {
   periodMonth: number;
   periodYear: number;
   amountDue: number;
-  dueDate: string;
 }
 
 export interface UpdateTuitionInvoiceRequest {

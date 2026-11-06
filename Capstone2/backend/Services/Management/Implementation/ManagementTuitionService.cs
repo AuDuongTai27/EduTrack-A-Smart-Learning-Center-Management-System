@@ -74,7 +74,7 @@ namespace EduTrack.API.Services.Management.Implementation
                 PeriodMonth = dto.PeriodMonth,
                 PeriodYear = dto.PeriodYear,
                 AmountDue = dto.AmountDue,
-                DueDate = dto.DueDate,
+                DueDate = TuitionPolicy.DueDateForCreation(DateTimeOffset.UtcNow),
                 Status = "unpaid"
             };
 
@@ -134,11 +134,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 );
             }
 
-            if (totalPaid == dto.AmountDue &&
-                status != "pending_adjustment")
-            {
-                status = "paid";
-            }
+            status = TuitionPolicy.ResolveStatus(
+                dto.AmountDue, totalPaid, dto.DueDate, DateTimeOffset.UtcNow, status);
 
             var updatedInvoice = new TuitionInvoice
             {
@@ -296,12 +293,8 @@ namespace EduTrack.API.Services.Management.Implementation
             // Sau khi payment được lưu, tính trạng thái mới
             var totalPaid = alreadyPaid + dto.Amount;
 
-            var newStatus =
-                totalPaid >= newAmountDue
-                    ? "paid"
-                    : invoice.DueDate.Date < DateTime.UtcNow.Date
-                        ? "overdue"
-                        : "unpaid";
+            var newStatus = TuitionPolicy.ResolveStatus(
+                newAmountDue, totalPaid, invoice.DueDate, DateTimeOffset.UtcNow, invoice.Status);
 
             var updatedInvoice = new TuitionInvoice
             {
@@ -344,7 +337,9 @@ namespace EduTrack.API.Services.Management.Implementation
                 PeriodYear = invoice.PeriodYear,
                 AmountDue = invoice.AmountDue,
                 DueDate = invoice.DueDate,
-                Status = invoice.Status
+                Status = TuitionPolicy.ResolveStatus(
+                    invoice.AmountDue, invoice.Payments.Sum(payment => payment.Amount),
+                    invoice.DueDate, DateTimeOffset.UtcNow, invoice.Status)
             };
         }
         private static PaymentDto MapPaymentToDto(

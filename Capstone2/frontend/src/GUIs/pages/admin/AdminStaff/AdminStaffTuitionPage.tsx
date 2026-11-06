@@ -10,6 +10,7 @@ import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import userDAL from "../../../../DAL/userDAL";
 import classDAL from "../../../../DAL/classDAL";
+import { defaultTuitionDueDate } from "../../../../BLL/services/tuitionPolicyService";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
@@ -41,14 +42,11 @@ export default function AdminStaffTuitionPage() {
   const [genStudentId, setGenStudentId] = useState("");
   const [genClassId, setGenClassId] = useState("");
   const [genAmount, setGenAmount] = useState("");
-  const [genDueDate, setGenDueDate] = useState(() => {
-    const due = new Date();
-    due.setDate(due.getDate() + 15);
-    return due.toISOString().slice(0, 10);
-  });
+  const [genDueDate, setGenDueDate] = useState(() => defaultTuitionDueDate());
 
   useEffect(() => {
     if (!isGenerateModalOpen) return;
+    setGenDueDate(defaultTuitionDueDate());
     let active = true;
     async function loadInvoiceReferences() {
       setLookupsLoading(true);
@@ -134,10 +132,7 @@ export default function AdminStaffTuitionPage() {
     .reduce((sum, t) => sum + (t.amount || 0), 0);
   const overdueCount = tuitions.filter((t) => t.status.toLowerCase() === "overdue").length;
 
-  const formatM = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    return `${num.toLocaleString("vi-VN")} đ`;
-  };
+  const currencyReady = !loading && !loadError;
 
   // View Receipt (GetById)
   const handleViewReceipt = async (tuitionId: number) => {
@@ -165,11 +160,6 @@ export default function AdminStaffTuitionPage() {
       setGenerateError("Invoice amount must be a positive integer (VND).");
       return;
     }
-    if (!genDueDate || Number.isNaN(new Date(genDueDate).getTime())) {
-      setGenerateError("Choose a valid due date.");
-      return;
-    }
-
     setSubmitting(true);
     setGenerateError(null);
     try {
@@ -179,7 +169,6 @@ export default function AdminStaffTuitionPage() {
         periodMonth: now.getMonth() + 1,
         periodYear: now.getFullYear(),
         amountDue,
-        dueDate: genDueDate,
       });
       // Only show a server-confirmed invoice. Never invent an ID on Frontend.
       setTuitions(prev => [result.data, ...prev.filter(t => t.invoiceId !== result.data.invoiceId)]);
@@ -251,7 +240,8 @@ export default function AdminStaffTuitionPage() {
             type="tuition"
             status="total"
             title="Tổng Doanh Thu Niêm Yết"
-            value={formatM(totalDue)}
+            currency="VND"
+            value={currencyReady ? totalDue : null}
             footerValue="Học kỳ hiện tại"
           />
         </div>
@@ -260,7 +250,8 @@ export default function AdminStaffTuitionPage() {
             type="tuition"
             status="collected"
             title="Đã Thu Thực Tế"
-            value={formatM(collected)}
+            currency="VND"
+            value={currencyReady ? collected : null}
             footerValue={totalDue > 0 ? `${Math.round((collected / totalDue) * 100)}%` : "0%"}
             footerLabel="đã hoàn tất"
           />
@@ -270,7 +261,8 @@ export default function AdminStaffTuitionPage() {
             type="tuition"
             status="outstanding"
             title="Công Nợ Cần Thu"
-            value={formatM(outstanding)}
+            currency="VND"
+            value={currencyReady ? outstanding : null}
             footerValue={totalDue > 0 ? `${Math.round((outstanding / totalDue) * 100)}%` : "0%"}
             footerLabel="còn lại"
           />
@@ -373,7 +365,7 @@ export default function AdminStaffTuitionPage() {
                       ? "Paid"
                       : t.status.toLowerCase() === "overdue"
                       ? "Overdue"
-                      : "Pending";
+                      : t.status.toLowerCase() === "unpaid" ? "Unpaid" : t.status;
                   const dueDateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString("vi-VN") : "-";
                   const amountStr = `${(t.amount ?? t.amountDue).toLocaleString("vi-VN")} VND`;
 
@@ -469,7 +461,7 @@ export default function AdminStaffTuitionPage() {
                   </div>
                   <div className="d-flex justify-content-between align-items-center border-top pt-2">
                     <span className="text-muted small">Trạng thái</span>
-                    <DotStatusBadge status={selectedTuition.status === "paid" ? "Paid" : "Pending"} />
+                    <DotStatusBadge status={selectedTuition.status} />
                   </div>
                 </div>
                 <div className="text-center p-3 bg-success bg-opacity-10 rounded">
@@ -546,9 +538,9 @@ export default function AdminStaffTuitionPage() {
                       value={genAmount} onChange={e => setGenAmount(e.target.value)} />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label small fw-bold">Due date *</label>
-                    <input type="date" className="form-control" required
-                      value={genDueDate} onChange={e => setGenDueDate(e.target.value)} />
+                    <label className="form-label small fw-bold">Due date</label>
+                    <input type="date" className="form-control" readOnly value={genDueDate} />
+                    <small className="text-muted">Một tháng kể từ ngày tạo; được thanh toán hết ngày đến hạn. Hạn chính thức được xác định khi lưu.</small>
                   </div>
                 </div>
                 <div className="modal-footer bg-light">

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
 import KpiCard from "../../../components/Common/KpiCard";
+import { formatVND } from "../../../utils/formatCurrency";
 import userDAL from "../../../../DAL/userDAL";
 import classDAL from "../../../../DAL/classDAL";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
@@ -12,6 +13,7 @@ import type { TuitionDto, PaymentDto } from "../../../../BLL/models/TuitionDto";
 import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
 import managementDAL from "../../../../DAL/managementDAL";
+import { isTuitionOverdue } from "../../../../BLL/services/tuitionPolicyService";
 
 export default function CenterManagerDashboardPage() {
   const { centerName, academicYear } = useCenterSettings();
@@ -97,29 +99,24 @@ export default function CenterManagerDashboardPage() {
       const remaining = Math.max(0, due - paid);
       totalBilled += due;
       totalOutstanding += remaining;
-      const overdue = invoice.status?.toLowerCase() === "overdue" ||
-        (invoice.dueDate && new Date(invoice.dueDate).getTime() < Date.now());
-      if (overdue && remaining > 0) totalOverdue += remaining;
+      if (isTuitionOverdue(invoice, remaining)) totalOverdue += remaining;
     }
 
     const totalCollected = payments.reduce((sum, payment) => sum + payment.amount, 0);
-    const formatAmount = (amount: number) =>
-      amount >= 1_000_000
-        ? (amount / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 2 }) + "M"
-        : amount.toLocaleString("vi-VN");
-
     return {
       studentCount,
       staffCount,
       activeClassesCount,
       totalClasses: classes.length,
       totalStudents: users.filter((u) => u.roles?.some((r) => r.toLowerCase() === "student")).length,
-      collectedStr: formatAmount(totalCollected),
-      outstandingStr: formatAmount(totalOutstanding),
-      overdueStr: formatAmount(totalOverdue),
+      totalCollected,
+      totalOutstanding,
+      totalOverdue,
       collectionRate: totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0,
     };
   }, [users, classes, tuitions, payments]);
+
+  const currencyReady = !loading && !loadError;
 
   const handleQuickAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,7 +240,8 @@ export default function CenterManagerDashboardPage() {
           type="tuition"
           status="collected"
           title="Tuition Collected"
-          value={metrics.collectedStr}
+          currency="VND"
+          value={currencyReady ? metrics.totalCollected : null}
           footerValue={`${metrics.collectionRate}%`}
           footerLabel="đã thu trên tổng học phí"
         />
@@ -253,9 +251,10 @@ export default function CenterManagerDashboardPage() {
           type="tuition"
           status="overdue"
           title="Outstanding Tuition"
-          value={metrics.outstandingStr}
+          currency="VND"
+          value={currencyReady ? metrics.totalOutstanding : null}
           footerLabel="Overdue"
-          footerValue={metrics.overdueStr}
+          footerValue={formatVND(currencyReady ? metrics.totalOverdue : null)}
           footerLayout="between"
         />
       </div>
@@ -307,8 +306,8 @@ export default function CenterManagerDashboardPage() {
                 <div className="col-6">
                   <div className="p-3 bg-light rounded-3 border-start border-4 border-success">
                     <small className="text-muted d-block">Đã thu thực tế</small>
-                    <h4 className="fw-bold text-success mb-0">
-                      {metrics.collectedStr} VND
+                    <h4 className="fw-bold text-success mb-0 kpi-currency-value">
+                      {formatVND(currencyReady ? metrics.totalCollected : null)}
                     </h4>
                   </div>
                 </div>
@@ -317,8 +316,8 @@ export default function CenterManagerDashboardPage() {
                     <small className="text-muted d-block">
                       Còn lại cần thu
                     </small>
-                    <h4 className="fw-bold text-danger mb-0">
-                      {metrics.outstandingStr} VND
+                    <h4 className="fw-bold text-danger mb-0 kpi-currency-value">
+                      {formatVND(currencyReady ? metrics.totalOutstanding : null)}
                     </h4>
                   </div>
                 </div>

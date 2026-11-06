@@ -19,6 +19,7 @@ namespace EduTrack.API.Repositories.Implementation
                 .AsNoTracking()
                 .Include(ti => ti.Student)
                 .Include(ti => ti.Class)
+                .Include(ti => ti.Payments)
                 .ToListAsync();
         }
 
@@ -28,6 +29,7 @@ namespace EduTrack.API.Repositories.Implementation
                 .AsNoTracking()
                 .Include(ti => ti.Student)
                 .Include(ti => ti.Class)
+                .Include(ti => ti.Payments)
                 .FirstOrDefaultAsync(x => x.InvoiceId == id);
         }
     }

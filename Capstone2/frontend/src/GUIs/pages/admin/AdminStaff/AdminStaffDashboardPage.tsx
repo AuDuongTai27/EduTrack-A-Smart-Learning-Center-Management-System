@@ -64,11 +64,7 @@ export default function AdminStaffDashboardPage() {
     };
   }, [staffUserId, authLoading, today, refreshKey]);
 
-  const totalOutstanding = dashboard?.tuition.data?.outstanding;
-  const formattedOutstanding =
-    totalOutstanding == null ? "—" : totalOutstanding >= 1000000
-      ? `${(totalOutstanding / 1000000).toFixed(1)}M`
-      : `${totalOutstanding.toLocaleString("vi-VN")} đ`;
+  const totalOutstanding = loading ? null : dashboard?.tuition.data?.outstanding;
   const todayStr = now.toLocaleDateString("vi-VN", {
     timeZone: CENTER_TIME_ZONE,
     weekday: "long",
@@ -148,7 +144,8 @@ export default function AdminStaffDashboardPage() {
               type="tuition"
               status="outstanding"
               title="Công Nợ Học Phí"
-              value={formattedOutstanding}
+              currency="VND"
+              value={totalOutstanding ?? null}
               footerValue={sectionText(dashboard?.tuition.error, "Tổng phải thu trừ các khoản đã thanh toán")}
               footerLabel="Chi tiết"
             />

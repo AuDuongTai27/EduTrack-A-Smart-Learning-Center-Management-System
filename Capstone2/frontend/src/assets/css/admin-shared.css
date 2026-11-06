@@ -904,6 +904,34 @@
     font-size: 13px;
   }
 
+  .dashboard-kpi--currency .kpi-currency-row {
+    gap: 12px;
+  }
+
+  .dashboard-kpi--currency .kpi-currency-copy {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dashboard-kpi--currency .kpi-currency-value,
+  .kpi-currency-value {
+    font-size: clamp(18px, 1.2vw, 28px);
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dashboard-kpi--currency .kpi-icon {
+    flex-shrink: 0;
+  }
+
+  .dashboard-kpi--currency .border-top {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    overflow-wrap: anywhere;
+  }
+
   .kpi-icon {
     width: 46px;
     height: 46px;
