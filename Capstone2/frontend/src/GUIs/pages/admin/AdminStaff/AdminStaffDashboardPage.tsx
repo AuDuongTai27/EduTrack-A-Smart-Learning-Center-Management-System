@@ -4,58 +4,56 @@ import PageHeader from "../../../components/Common/PageHeader";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import KpiCard from "../../../components/Common/KpiCard";
-import userDAL from "../../../../DAL/userDAL";
-import tuitionDAL from "../../../../DAL/tuitionDAL";
-import scheduleDAL from "../../../../DAL/scheduleDAL";
-import notificationDAL from "../../../../DAL/notificationDAL";
-import feedbackDAL from "../../../../DAL/feedbackDAL";
-import type { UserDto } from "../../../../BLL/models/UserDto";
-import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
-import type { ClassScheduleDto } from "../../../../BLL/models/ClassScheduleDto";
-import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
+import { adminStaffDashboardDAL, type AdminStaffDashboardData } from "../../../../DAL/adminStaffDashboardDAL";
+import { CENTER_TIME_ZONE, centerDateKey, getRequestStatus, getSessionStatus, getStaffUserId } from "../../../../BLL/services/adminStaffDashboardService";
+import { useAuthContext } from "../../../../contexts/AuthContext";
+import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("vi-VN", { timeZone: CENTER_TIME_ZONE });
+}
+
 export default function AdminStaffDashboardPage() {
-  const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
-  const [students, setStudents] = useState<UserDto[]>([]);
-  const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
-  const [schedules, setSchedules] = useState<ClassScheduleDto[]>([]);
-  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
-  const [recentRequests, setRecentRequests] = useState<ApprovalRequestDto[]>([]);
+  const { user, permission, loading: authLoading } = useAuthContext();
+  const { refresh: refreshCenterSettings } = useCenterSettings();
+  const staffUserId = getStaffUserId(user, permission);
+  const [data, setData] = useState<AdminStaffDashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [now, setNow] = useState(() => new Date());
+  const today = centerDateKey(now);
+  // Hide the previous account's data immediately when identity changes.
+  const dashboard = !authLoading && data?.userId === staffUserId && data?.today === today ? data : null;
+  const currentUser = dashboard?.staff.data;
+  const schedules = dashboard?.schedule.data ?? [];
+  const notifications = dashboard?.notifications.data ?? [];
+  const requests = dashboard?.requests.data ?? [];
+  const recentRequests = requests.slice(0, 4);
+  const pendingRequests = requests.filter((request) => request.status.trim().toLowerCase() === "pending");
+  const sectionText = (error: string | null | undefined, empty: string) =>
+    loading || !dashboard ? "Đang tải dữ liệu..." : error || empty;
 
   // Detail Modal state
   const [selectedRequest, setSelectedRequest] = useState<ApprovalRequestDto | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-    async function loadDashboardData() {
-      try {
-        setLoading(true);
-        const [userRes, usersRes, tuitionsRes, schedulesRes, notifsRes, requestsRes] = await Promise.all([
-          userDAL.getUserById(2), // ADM001: Trần Thị Nhân Viên
-          userDAL.getAllUsers(),
-          tuitionDAL.getAllTuitions(),
-          scheduleDAL.getAllClassSchedules(),
-          notificationDAL.getAllNotifications(),
-          feedbackDAL.getAllRequests(),
-        ]);
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
-        if (isMounted) {
-          if (userRes) setCurrentUser(userRes);
-          if (usersRes.data) {
-            const studentList = usersRes.data.filter(
-              (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
-            );
-            setStudents(studentList);
-          }
-          if (tuitionsRes.data) setTuitions(tuitionsRes.data);
-          if (schedulesRes.data) setSchedules(schedulesRes.data);
-          if (notifsRes.data) setNotifications(notifsRes.data);
-          if (requestsRes.data) setRecentRequests(requestsRes.data.slice(0, 4));
-        }
-      } catch (err) {
-        console.warn("Lỗi nạp dữ liệu AdminStaffDashboard:", err);
+  useEffect(() => {
+    let isMounted = true;
+    if (authLoading) return;
+    async function loadDashboardData() {
+      setLoading(true);
+      setData(null);
+      setSelectedRequest(null);
+      try {
+        const next = await adminStaffDashboardDAL.getDashboard(staffUserId, today);
+        if (isMounted) setData(next);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -64,21 +62,15 @@ export default function AdminStaffDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [staffUserId, authLoading, today, refreshKey]);
 
-  // KPI Calculations
-  const unpaidTuitions = tuitions.filter(
-    (t) => t.status?.toLowerCase() === "unpaid" || t.status?.toLowerCase() === "pending" || t.status?.toLowerCase() === "overdue"
-  );
-  const totalOutstanding = unpaidTuitions.reduce((sum, t) => sum + (t.amount || 0), 0);
+  const totalOutstanding = dashboard?.tuition.data?.outstanding;
   const formattedOutstanding =
-    totalOutstanding >= 1000000
+    totalOutstanding == null ? "—" : totalOutstanding >= 1000000
       ? `${(totalOutstanding / 1000000).toFixed(1)}M`
       : `${totalOutstanding.toLocaleString("vi-VN")} đ`;
-
-  const pendingRequests = recentRequests.filter((r) => r.status?.toLowerCase() === "pending");
-
-  const todayStr = new Date().toLocaleDateString("vi-VN", {
+  const todayStr = now.toLocaleDateString("vi-VN", {
+    timeZone: CENTER_TIME_ZONE,
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -94,12 +86,28 @@ export default function AdminStaffDashboardPage() {
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Dashboard" },
         ]}
+        action={
+          <button type="button" className="btn btn-outline-primary" disabled={loading || authLoading}
+            onClick={() => {
+              void refreshCenterSettings();
+              setNow(new Date());
+              setRefreshKey((value) => value + 1);
+            }}>
+            <i className="bi bi-arrow-clockwise me-1" /> Tải lại dữ liệu
+          </button>
+        }
       />
 
-      {loading && (
-        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
+      {(loading || authLoading) && (
+        <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2" role="status">
           <div className="spinner-border spinner-border-sm" role="status" />
           <span>Đang nạp dữ liệu thống kê trung tâm...</span>
+        </div>
+      )}
+      {dashboard && [dashboard.students, dashboard.tuition, dashboard.schedule, dashboard.staff,
+        dashboard.notifications, dashboard.requests].some((section) => section.error) && (
+        <div className="alert alert-warning py-2 px-3 mb-3" role="alert">
+          Một số dữ liệu chưa tải được. Vui lòng xem thông báo tại từng mục và thử tải lại.
         </div>
       )}
 
@@ -111,9 +119,9 @@ export default function AdminStaffDashboardPage() {
             <KpiCard
               type="student"
               status="new"
-              title="Tổng Học Viên Đang Học"
-              value={students.length > 0 ? students.length : 128}
-              footerValue="Đang theo học tại trung tâm"
+              title="Tổng Học Viên Hoạt Động"
+              value={dashboard?.students.data ?? "—"}
+              footerValue={sectionText(dashboard?.students.error, "Hồ sơ học viên có trạng thái Active")}
               footerLabel="Xem danh sách"
             />
           </Link>
@@ -126,8 +134,8 @@ export default function AdminStaffDashboardPage() {
               type="student"
               status="unpaid"
               title="Khoản Học Phí Cần Thu"
-              value={unpaidTuitions.length > 0 ? unpaidTuitions.length : 12}
-              footerValue="Cần gửi nhắc nhở học phí"
+              value={dashboard?.tuition.data?.unpaidCount ?? "—"}
+              footerValue={sectionText(dashboard?.tuition.error, "Hóa đơn còn số dư phải thu")}
               footerLabel="Xem sổ thu"
             />
           </Link>
@@ -141,7 +149,7 @@ export default function AdminStaffDashboardPage() {
               status="outstanding"
               title="Công Nợ Học Phí"
               value={formattedOutstanding}
-              footerValue="Học phí chưa thanh toán"
+              footerValue={sectionText(dashboard?.tuition.error, "Tổng phải thu trừ các khoản đã thanh toán")}
               footerLabel="Chi tiết"
             />
           </Link>
@@ -153,8 +161,8 @@ export default function AdminStaffDashboardPage() {
             <KpiCard
               type="request"
               title="Đơn Từ Gửi Giám Đốc"
-              value={recentRequests.length > 0 ? recentRequests.length : 3}
-              footerValue={`${pendingRequests.length} đơn đang chờ duyệt`}
+              value={dashboard?.requests.data == null ? "—" : requests.length}
+              footerValue={sectionText(dashboard?.requests.error, `${pendingRequests.length} đơn chưa có quyết định`)}
               footerLabel="Xem tiến độ"
             />
           </Link>
@@ -168,7 +176,7 @@ export default function AdminStaffDashboardPage() {
             <div>
               <p className="welcome-subtitle mb-1">Xin chào,</p>
               <h3 className="welcome-title mb-2">
-                {currentUser?.fullName || "Trần Thị Nhân Viên"} (Nhân viên Giáo vụ)
+                {currentUser?.fullName ? `${currentUser.fullName} (Nhân viên Giáo vụ)` : "Nhân viên Giáo vụ"}
               </h3>
               <p className="welcome-text mb-0">
                 Chúc bạn một ngày làm việc hiệu quả và quản lý học vụ suôn sẻ tại EduTrack!
@@ -190,7 +198,7 @@ export default function AdminStaffDashboardPage() {
             <div className="dashboard-card-header d-flex justify-content-between align-items-center">
               <div>
                 <h5 className="mb-0">Lịch Học &amp; Ca Giảng Hôm Nay</h5>
-                <small className="text-muted">Giám sát lớp học trong ngày</small>
+                <small className="text-muted">Buổi học trong ngày; giáo viên theo phân công lớp</small>
               </div>
               <Link to="/admin-staff/teaching-monitoring" className="dashboard-view-link">
                 Giám sát chi tiết
@@ -200,11 +208,11 @@ export default function AdminStaffDashboardPage() {
             <div className="dashboard-card-body p-0">
               <div className="schedule-list">
                 {schedules.length > 0 ? (
-                  schedules.slice(0, 4).map((s, idx) => (
-                    <div key={s.scheduleId || idx} className="schedule-item">
+                  schedules.slice(0, 4).map((s) => (
+                    <div key={s.sessionId} className="schedule-item">
                       <div className="schedule-time">
-                        <strong>{s.startTime ? s.startTime.substring(0, 5) : "08:00"}</strong>
-                        <span>{s.endTime ? s.endTime.substring(0, 5) : "09:30"}</span>
+                        <strong>{s.startTime ? s.startTime.substring(0, 5) : "—"}</strong>
+                        <span>{s.endTime ? s.endTime.substring(0, 5) : "—"}</span>
                       </div>
                       <div className="schedule-line" />
                       <div className="schedule-info">
@@ -212,50 +220,22 @@ export default function AdminStaffDashboardPage() {
                         <div className="schedule-meta">
                           <span>
                             <i className="bi bi-person me-1" />
-                            {idx % 2 === 0 ? "ThS. Hoàng Quốc Việt" : "ThS. Huỳnh Khánh Duy"}
+                            {s.teacherNames || "Chưa có giáo viên được phân công"}
                           </span>
                           <span>
                             <i className="bi bi-geo-alt me-1" />
-                            {s.room || "Phòng P.301"}
+                            {s.room || "Chưa có phòng"}
                           </span>
                         </div>
                       </div>
-                      <StatusBadge status={idx === 0 ? "Ongoing" : "Upcoming"} />
+                      <StatusBadge status={getSessionStatus(s, now)} />
                     </div>
                   ))
                 ) : (
-                  <>
-                    <div className="schedule-item">
-                      <div className="schedule-time">
-                        <strong>08:00</strong>
-                        <span>09:30</span>
-                      </div>
-                      <div className="schedule-line" />
-                      <div className="schedule-info">
-                        <h6>[FE-Mock] Toán 12 Chuyên Sâu</h6>
-                        <div className="schedule-meta">
-                          <span><i className="bi bi-person me-1" /> ThS. Hoàng Quốc Việt</span>
-                          <span><i className="bi bi-geo-alt me-1" /> Phòng 201</span>
-                        </div>
-                      </div>
-                      <StatusBadge status="Ongoing" />
-                    </div>
-                    <div className="schedule-item">
-                      <div className="schedule-time">
-                        <strong>10:00</strong>
-                        <span>11:30</span>
-                      </div>
-                      <div className="schedule-line" />
-                      <div className="schedule-info">
-                        <h6>[FE-Mock] Vật Lý 12 Nâng Cao</h6>
-                        <div className="schedule-meta">
-                          <span><i className="bi bi-person me-1" /> ThS. Huỳnh Khánh Duy</span>
-                          <span><i className="bi bi-geo-alt me-1" /> Phòng 305</span>
-                        </div>
-                      </div>
-                      <StatusBadge status="Upcoming" />
-                    </div>
-                  </>
+                  <div className={`p-4 text-center ${dashboard?.schedule.error ? "text-danger" : "text-muted"}`}
+                    role={dashboard?.schedule.error ? "alert" : "status"}>
+                    {sectionText(dashboard?.schedule.error, "Không có buổi học nào được xếp hôm nay.")}
+                  </div>
                 )}
               </div>
             </div>
@@ -268,7 +248,7 @@ export default function AdminStaffDashboardPage() {
             <div className="dashboard-card-header d-flex justify-content-between align-items-center">
               <div>
                 <h5 className="mb-0">Thông Báo Mới Nhất</h5>
-                <small className="text-muted">Cập nhật toàn trung tâm</small>
+                <small className="text-muted">Thông báo gửi đến bạn</small>
               </div>
               <Link to="/admin-staff/notifications" className="dashboard-view-link">
                 Xem tất cả
@@ -278,43 +258,25 @@ export default function AdminStaffDashboardPage() {
             <div className="dashboard-card-body p-0">
               <div className="staff-notification-list">
                 {notifications.length > 0 ? (
-                  notifications.slice(0, 4).map((n, idx) => (
-                    <div key={n.notificationId || idx} className="staff-notification-item">
+                  notifications.slice(0, 4).map((n) => (
+                    <div key={n.notificationId} className="staff-notification-item">
                       <div className="staff-notification-icon">
-                        <i className={idx % 2 === 0 ? "bi bi-cash-stack" : "bi bi-calendar-event"} />
+                        <i className="bi bi-bell" />
                       </div>
                       <div className="staff-notification-content">
                         <h6>{n.title}</h6>
                         <p className="text-truncate" style={{ maxWidth: 260 }}>{n.content}</p>
                         <small className="text-muted">
-                          {n.createdAt ? new Date(n.createdAt).toLocaleDateString("vi-VN") : "Hôm nay"}
+                          {formatDate(n.createdAt)}
                         </small>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <>
-                    <div className="staff-notification-item">
-                      <div className="staff-notification-icon">
-                        <i className="bi bi-cash-stack" />
-                      </div>
-                      <div className="staff-notification-content">
-                        <h6>[FE-Mock] Nhắc nhở nộp học phí tháng</h6>
-                        <p>Hệ thống tự động đã phát thông báo đóng phí đến phụ huynh.</p>
-                        <small>30 phút trước</small>
-                      </div>
-                    </div>
-                    <div className="staff-notification-item">
-                      <div className="staff-notification-icon">
-                        <i className="bi bi-calendar-event" />
-                      </div>
-                      <div className="staff-notification-content">
-                        <h6>[FE-Mock] Cập nhật lịch học Toán 12</h6>
-                        <p>Lớp Toán 12 Chuyên sâu đổi phòng học sang P.301.</p>
-                        <small>2 giờ trước</small>
-                      </div>
-                    </div>
-                  </>
+                  <div className={`p-4 text-center ${dashboard?.notifications.error ? "text-danger" : "text-muted"}`}
+                    role={dashboard?.notifications.error ? "alert" : "status"}>
+                    {sectionText(dashboard?.notifications.error, "Bạn chưa nhận được thông báo nào.")}
+                  </div>
                 )}
               </div>
             </div>
@@ -351,9 +313,8 @@ export default function AdminStaffDashboardPage() {
             <tbody>
               {recentRequests.length > 0 ? (
                 recentRequests.map((req, idx) => {
-                  const reqCode = `#AR${String(req.requestId).padStart(4, "0")}`;
-                  const priority = idx % 3 === 0 ? "High" : idx % 3 === 1 ? "Medium" : "Low";
-                  const reqDate = req.createdAt ? new Date(req.createdAt).toLocaleDateString("vi-VN") : "16/08/2026";
+                  const reqCode = req.requestCode || `#${req.requestId}`;
+                  const reqDate = formatDate(req.createdAt);
                   return (
                     <tr key={req.requestId || idx}>
                       <td>{idx + 1}</td>
@@ -361,13 +322,13 @@ export default function AdminStaffDashboardPage() {
                         <strong>{reqCode}</strong>
                       </td>
                       <td>{req.title || req.requestType}</td>
-                      <td>{req.studentName || "Nguyễn Minh An"}</td>
+                      <td>{req.studentName || req.className || "—"}</td>
                       <td>{reqDate}</td>
                       <td>
-                        <StatusBadge status={priority} />
+                        <StatusBadge status={req.priority || "—"} />
                       </td>
                       <td>
-                        <DotStatusBadge status={req.status} />
+                        <DotStatusBadge status={getRequestStatus(req)} />
                       </td>
                       <td className="text-center">
                         <button
@@ -383,8 +344,9 @@ export default function AdminStaffDashboardPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="text-center py-3 text-muted">
-                    Không có đơn từ nào gần đây.
+                  <td colSpan={8} className={`text-center py-3 ${dashboard?.requests.error ? "text-danger" : "text-muted"}`}
+                    role={dashboard?.requests.error ? "alert" : "status"}>
+                    {sectionText(dashboard?.requests.error, "Bạn chưa gửi đơn từ nào.")}
                   </td>
                 </tr>
               )}
@@ -393,8 +355,8 @@ export default function AdminStaffDashboardPage() {
         </div>
       </div>
 
-      {/* DETAIL MODAL (GetById) */}
-      {selectedRequest && (
+      {/* Details of an API record already loaded for the current account. */}
+      {dashboard && selectedRequest && (
         <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content shadow border-0">
@@ -423,11 +385,11 @@ export default function AdminStaffDashboardPage() {
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <label className="text-muted small d-block">Trạng thái</label>
-                    <DotStatusBadge status={selectedRequest.status} />
+                    <DotStatusBadge status={getRequestStatus(selectedRequest)} />
                   </div>
                   <div>
                     <label className="text-muted small d-block">Ngày gửi</label>
-                    <span className="small">{selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleDateString("vi-VN") : "Hôm nay"}</span>
+                    <span className="small">{formatDate(selectedRequest.createdAt)}</span>
                   </div>
                 </div>
               </div>
