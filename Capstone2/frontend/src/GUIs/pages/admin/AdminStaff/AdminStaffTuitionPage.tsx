@@ -6,6 +6,7 @@ import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
 import TuitionOverview from "../../../components/Common/TuitionOverview";
+import MoneyInput from "../../../components/Common/MoneyInput";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import userDAL from "../../../../DAL/userDAL";
@@ -460,9 +461,9 @@ export default function AdminStaffTuitionPage() {
                     </select>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label small fw-bold">Invoice amount (VND) *</label>
-                    <input type="number" className="form-control" min="1" step="1" required
-                      value={genAmount} onChange={e => setGenAmount(e.target.value)} />
+                    <label className="form-label small fw-bold" htmlFor="staff-invoice-amount">Invoice amount *</label>
+                    <MoneyInput id="staff-invoice-amount" name="amountDue" required
+                      value={genAmount} onValueChange={setGenAmount} />
                   </div>
                   <div className="mb-3">
                     <label className="form-label small fw-bold">Due date</label>

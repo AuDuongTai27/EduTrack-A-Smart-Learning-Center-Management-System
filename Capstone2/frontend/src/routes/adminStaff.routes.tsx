@@ -5,6 +5,7 @@ import AdminStaffNotificationPage from "../GUIs/pages/admin/AdminStaff/AdminStaf
 import AdminStaffStudentPage from "../GUIs/pages/admin/AdminStaff/AdminStaffStudentPage";
 import AdminStaffTeachingMonitoring from "../GUIs/pages/admin/AdminStaff/AdminStaffTeachingMonitoring";
 import AdminStaffClassPage from "../GUIs/pages/admin/AdminStaff/AdminStaffClassPage";
+import ClassDetailsPage from "../GUIs/pages/admin/shared/ClassDetailsPage";
 import AdminStaffTuitionPage from "../GUIs/pages/admin/AdminStaff/AdminStaffTuitionPage";
 import AdminStaffApprovalRequestPage from "../GUIs/pages/admin/AdminStaff/AdminStaffApprovalRequestPage";
 import AdminStaffFeedbackPage from "../GUIs/pages/admin/AdminStaff/AdminStaffFeedbackPage";
@@ -29,6 +30,10 @@ export const adminStaffRoutes: RouteObject = {
     {
       path: "classes",
       element: <AdminStaffClassPage />,
+    },
+    {
+      path: "classes/:id",
+      element: <ClassDetailsPage role="admin-staff" />,
     },
     {
       path: "teaching-monitoring",

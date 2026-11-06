@@ -5,6 +5,7 @@ import CenterManagerUserAccountPage from "../GUIs/pages/admin/CenterManager/Cent
 import CenterManagerStudentPage from "../GUIs/pages/admin/CenterManager/CenterManagerStudentPage";
 import CenterManagerSubjectPage from "../GUIs/pages/admin/CenterManager/CenterManagerSubjectPage";
 import CenterManagerClassPage from "../GUIs/pages/admin/CenterManager/CenterManagerClassPage";
+import ClassDetailsPage from "../GUIs/pages/admin/shared/ClassDetailsPage";
 import CenterManagerTuitionPage from "../GUIs/pages/admin/CenterManager/CenterManagerTuition";
 import CenterManagerApprovalRequestPage from "../GUIs/pages/admin/CenterManager/CenterManagerApprovalRequestPage";
 import CenterManagerNotificationPage from "../GUIs/pages/admin/CenterManager/CenterManagerNotificationPage";
@@ -38,6 +39,10 @@ export const centerManagerRoutes: RouteObject = {
     {
       path: "classes",
       element: <CenterManagerClassPage />,
+    },
+    {
+      path: "classes/:id",
+      element: <ClassDetailsPage role="center-manager" />,
     },
     {
       path: "tuition",

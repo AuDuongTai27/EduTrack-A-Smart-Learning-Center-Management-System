@@ -6,6 +6,7 @@ import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
 import TuitionOverview from "../../../components/Common/TuitionOverview";
+import MoneyInput from "../../../components/Common/MoneyInput";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import userDAL from "../../../../DAL/userDAL";
@@ -46,7 +47,7 @@ export default function CenterManagerTuitionPage() {
   const [generateForm, setGenerateForm] = useState({
     studentId: 0,
     classId: 0,
-    amount: 3000000,
+    amount: "3000000",
     dueDate: defaultTuitionDueDate(),
   });
 
@@ -55,7 +56,7 @@ export default function CenterManagerTuitionPage() {
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentForm, setPaymentForm] = useState({
-    amount: 0,
+    amount: "",
     paymentMethod: "cash",
     transactionCode: "",
     note: "",
@@ -66,10 +67,12 @@ export default function CenterManagerTuitionPage() {
   const [editForm, setEditForm] = useState({
     periodMonth: new Date().getMonth() + 1,
     periodYear: new Date().getFullYear(),
-    amountDue: 0,
+    amountDue: "",
     dueDate: "",
     status: "unpaid",
   });
+
+  const paymentAmount = Number(paymentForm.amount);
 
   useEffect(() => {
     let active = true;
@@ -92,7 +95,7 @@ export default function CenterManagerTuitionPage() {
         {
           periodMonth: editForm.periodMonth,
           periodYear: editForm.periodYear,
-          amountDue: editForm.amountDue,
+          amountDue: Number(editForm.amountDue),
           dueDate: editForm.dueDate,
           status: editForm.status,
         },
@@ -131,7 +134,7 @@ export default function CenterManagerTuitionPage() {
     setEditForm({
       periodMonth: tuition.periodMonth ?? new Date().getMonth() + 1,
       periodYear: tuition.periodYear ?? new Date().getFullYear(),
-      amountDue: tuition.amountDue || tuition.amount || 0,
+      amountDue: String(tuition.amountDue || tuition.amount || 0),
       dueDate: tuition.dueDate ? tuition.dueDate.split("T")[0] : "",
       status: validStatus,
     });
@@ -146,7 +149,7 @@ export default function CenterManagerTuitionPage() {
 
     setPayingTuition(tuition);
     setPaymentForm({
-      amount: remaining,
+      amount: String(remaining),
       paymentMethod: "cash",
       transactionCode: "",
       note: "",
@@ -163,7 +166,7 @@ export default function CenterManagerTuitionPage() {
     const remaining = Math.max(0, amountDue - (payingTuition.paidAmount ?? 0));
     const amount = Number(paymentForm.amount);
 
-    if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
       setPaymentError("Số tiền thanh toán phải là số nguyên VND lớn hơn 0.");
       return;
     }
@@ -310,7 +313,7 @@ export default function CenterManagerTuitionPage() {
       setGenerateForm({
         studentId: 0,
         classId: 0,
-        amount: 3000000,
+        amount: "3000000",
         dueDate: defaultTuitionDueDate(),
       });
 
@@ -696,20 +699,15 @@ export default function CenterManagerTuitionPage() {
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">
-                        Số tiền học phí (VND){" "}
+                      <label className="form-label fw-bold" htmlFor="manager-create-amount">
+                        Số tiền học phí{" "}
                         <span className="text-danger">*</span>
                       </label>
-                      <input
-                        type="number"
-                        className="form-control"
+                      <MoneyInput
+                        id="manager-create-amount"
+                        name="amountDue"
                         value={generateForm.amount}
-                        onChange={(e) =>
-                          setGenerateForm({
-                            ...generateForm,
-                            amount: Number(e.target.value),
-                          })
-                        }
+                        onValueChange={amount => setGenerateForm({...generateForm, amount})}
                         required
                       />
                     </div>
@@ -833,36 +831,18 @@ export default function CenterManagerTuitionPage() {
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">
+                      <label className="form-label fw-bold" htmlFor="manager-edit-amount">
                         Số tiền học phí
                       </label>
 
-                      <div className="input-group">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          className="form-control"
-                          value={
-                            editForm.amountDue
-                              ? editForm.amountDue.toLocaleString("vi-VN")
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const digits = e.target.value.replace(/\D/g, "");
-                            const amount = digits ? Number(digits) : 0;
-
-                            if (!Number.isSafeInteger(amount)) return;
-
-                            setEditForm({
-                              ...editForm,
-                              amountDue: amount,
-                            });
-                          }}
-                          placeholder="Nhập số tiền học phí"
-                          required
-                        />
-                        <span className="input-group-text">VND</span>
-                      </div>
+                      <MoneyInput
+                        id="manager-edit-amount"
+                        name="amountDue"
+                        value={editForm.amountDue}
+                        onValueChange={amountDue => setEditForm({...editForm, amountDue})}
+                        placeholder="Nhập số tiền học phí"
+                        required
+                      />
                     </div>
 
                     <div className="col-md-6">
@@ -1001,33 +981,17 @@ export default function CenterManagerTuitionPage() {
                   )}
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">
-                        Số tiền thanh toán (VND) *
+                      <label className="form-label fw-bold" htmlFor="manager-payment-amount">
+                        Số tiền thanh toán *
                       </label>
-                      <div className="input-group">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9. ]*"
-                          className="form-control"
-                          value={
-                            paymentForm.amount
-                              ? paymentForm.amount.toLocaleString("vi-VN")
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const digits = e.target.value.replace(/\D/g, "");
-                            const amount = digits ? Number(digits) : 0;
-                            setPaymentForm({
-                              ...paymentForm,
-                              amount: Number.isSafeInteger(amount) ? amount : 0,
-                            });
-                          }}
-                          placeholder="Nhập số tiền thanh toán"
-                          required
-                        />
-                        <span className="input-group-text">VND</span>
-                      </div>
+                      <MoneyInput
+                        id="manager-payment-amount"
+                        name="amount"
+                        value={paymentForm.amount}
+                        onValueChange={amount => setPaymentForm({...paymentForm, amount})}
+                        placeholder="Nhập số tiền thanh toán"
+                        required
+                      />
                       <small className="text-muted">
                         Mặc định là công nợ còn lại. Bạn có thể sửa số tiền, kể
                         cả trường hợp thu thêm phí tài liệu.
@@ -1056,7 +1020,7 @@ export default function CenterManagerTuitionPage() {
                         <option value="vnpay">VNPay</option>
                       </select>
                     </div>
-                    {paymentForm.amount >
+                    {paymentAmount >
                       Math.max(
                         0,
                         (payingTuition.amountDue ?? payingTuition.amount ?? 0) -
@@ -1066,7 +1030,7 @@ export default function CenterManagerTuitionPage() {
                         <div className="alert alert-info py-2 mb-2">
                           <strong>Phí bổ sung: </strong>
                           {(
-                            paymentForm.amount -
+                            paymentAmount -
                             Math.max(
                               0,
                               (payingTuition.amountDue ??
@@ -1144,7 +1108,7 @@ export default function CenterManagerTuitionPage() {
                   <button
                     type="submit"
                     className="btn btn-success px-4"
-                    disabled={paymentSubmitting || paymentForm.amount <= 0}
+                    disabled={paymentSubmitting || !Number.isSafeInteger(paymentAmount) || paymentAmount <= 0}
                   >
                     {paymentSubmitting
                       ? "Đang ghi nhận..."

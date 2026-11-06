@@ -3,6 +3,8 @@ import type { ClassDto } from "../BLL/models/ClassDto";
 import type { SubjectDto } from "../BLL/models/SubjectDto";
 import type { TuitionDto, PaymentDto } from "../BLL/models/TuitionDto";
 import type { ParentStudentDto } from "./parentStudentApi";
+import { apiError } from "./apiError";
+import { readClassResponse } from "./classApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -252,10 +254,9 @@ export const managementApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(err.message || `Lỗi khi tạo lớp học: ${res.status}`);
+      throw await apiError(res, "Không thể tạo lớp học.");
     }
-    return await res.json();
+    return readClassResponse(await res.json());
   },
 
   async updateClass(id: number, data: UpdateClassRequest): Promise<ClassDto> {
@@ -265,10 +266,11 @@ export const managementApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(err.message || `Lỗi khi cập nhật lớp học: ${res.status}`);
+      throw await apiError(res, "Không thể cập nhật lớp học.");
     }
-    return await res.json();
+    const item = readClassResponse(await res.json());
+    if (item.classId !== id) throw new Error("Phản hồi cập nhật không đúng lớp. Hãy tải lại danh sách để kiểm tra.");
+    return item;
   },
 
   async deleteClass(id: number): Promise<{ message: string }> {
@@ -277,9 +279,9 @@ export const managementApi = {
       headers: { "Content-Type": "application/json" },
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(err.message || `Lỗi khi xóa lớp học: ${res.status}`);
+      throw await apiError(res, "Không thể xóa lớp học.");
     }
+    if (res.status === 204) return {message: "Đã xóa lớp học."};
     return await res.json();
   },
 

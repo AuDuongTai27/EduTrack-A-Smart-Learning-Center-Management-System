@@ -11,14 +11,19 @@ namespace EduTrack.API.Services.Management.Implementation
     public class ManagementClassService : IManagementClassService
     {
         private readonly IClassRepository _repository;
+        private readonly ISubjectRepository _subjects;
 
-        public ManagementClassService(IClassRepository repository)
+        public ManagementClassService(IClassRepository repository, ISubjectRepository subjects)
         {
             _repository = repository;
+            _subjects = subjects;
         }
 
         public async Task<ClassDto> CreateClassAsync(CreateClassDto dto)
         {
+            ClassValidation.EnsureValid(dto.ClassName, dto.SubjectId, dto.Room, dto.TuitionFee, dto.StartDate, dto.EndDate, dto.Status, creating: true);
+            if (await _subjects.GetByIdAsync(dto.SubjectId) == null)
+                throw new ArgumentException("Môn học đã chọn không tồn tại. Vui lòng tải lại danh sách môn học.");
             var newClass = new Class
             {
                 ClassName = dto.ClassName.Trim(),
@@ -39,6 +44,10 @@ namespace EduTrack.API.Services.Management.Implementation
         {
             var existing = await _repository.GetByIdAsync(id);
             if (existing == null) return null;
+
+            ClassValidation.EnsureValid(dto.ClassName, dto.SubjectId, dto.Room, dto.TuitionFee, dto.StartDate, dto.EndDate, dto.Status);
+            if (await _subjects.GetByIdAsync(dto.SubjectId) == null)
+                throw new ArgumentException("Môn học đã chọn không tồn tại. Vui lòng tải lại danh sách môn học.");
 
             existing.ClassName = dto.ClassName.Trim();
             existing.SubjectId = dto.SubjectId;
