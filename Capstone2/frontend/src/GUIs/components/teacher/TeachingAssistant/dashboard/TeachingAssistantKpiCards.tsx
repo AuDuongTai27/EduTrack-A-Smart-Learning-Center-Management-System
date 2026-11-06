@@ -1,3 +1,5 @@
+import React from "react";
+
 export interface TeachingAssistantKpiCardsProps {
   /** Count of currently active assignments */
   activeAssignments?: number;
@@ -7,6 +9,10 @@ export interface TeachingAssistantKpiCardsProps {
   activeClasses?: number;
   /** Count of classes scheduled for today */
   classesToday?: number;
+  /** Total students across assigned classes */
+  totalStudents?: number;
+  /** Pending attendance sessions count */
+  pendingAttendance?: number;
 }
 
 export function TeachingAssistantKpiCards({
@@ -14,15 +20,17 @@ export function TeachingAssistantKpiCards({
   assignmentsDueToday = 4,
   activeClasses = 6,
   classesToday = 3,
+  totalStudents = 50,
+  pendingAttendance = 2,
 }: TeachingAssistantKpiCardsProps = {}) {
   return (
     <div className="dashboard-kpis teacher-kpis mb-4">
-      {/* Active Assignments */}
+      {/* 1. Active Assignments */}
       <div className="card dashboard-kpi border-0">
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between">
             <div>
-              <p className="text-muted mb-1">Bài tập đang mở</p>
+              <p className="text-muted mb-1">Active Assignments</p>
               <h3 className="mb-0">{activeAssignments}</h3>
             </div>
             <div className="kpi-icon bg-primary-subtle text-primary">
@@ -30,17 +38,17 @@ export function TeachingAssistantKpiCards({
             </div>
           </div>
           <div className="border-top mt-3 pt-3">
-            <span className="text-muted ms-1">{assignmentsDueToday} bài cần chấm / hỗ trợ hôm nay</span>
+            <span className="text-muted ms-1">{assignmentsDueToday} assignments due today</span>
           </div>
         </div>
       </div>
 
-      {/* Active Classes */}
+      {/* 2. Active Classes */}
       <div className="card dashboard-kpi border-0">
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between">
             <div>
-              <p className="text-muted mb-1">Lớp học phụ trách</p>
+              <p className="text-muted mb-1">Active Classes</p>
               <h3 className="mb-0">{activeClasses}</h3>
             </div>
             <div className="kpi-icon bg-info-subtle text-info">
@@ -48,7 +56,45 @@ export function TeachingAssistantKpiCards({
             </div>
           </div>
           <div className="border-top mt-3 pt-3">
-            <span className="text-muted">{classesToday} ca trực lớp hôm nay</span>
+            <span className="text-muted">{classesToday} classes today</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. My Students */}
+      <div className="card dashboard-kpi border-0">
+        <div className="card-body">
+          <div className="d-flex align-items-center justify-content-between">
+            <div>
+              <p className="text-muted mb-1">My Students</p>
+              <h3 className="mb-0">{totalStudents}</h3>
+            </div>
+            <div className="kpi-icon bg-success-subtle text-success">
+              <i className="bi bi-people-fill" />
+            </div>
+          </div>
+          <div className="border-top mt-3 pt-3">
+            <span className="text-muted">across assigned classes</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Pending Attendance */}
+      <div className="card dashboard-kpi border-0">
+        <div className="card-body">
+          <div className="d-flex align-items-center justify-content-between">
+            <div>
+              <p className="text-muted mb-1">Pending Attendance</p>
+              <h3 className="mb-0 text-warning">{pendingAttendance}</h3>
+            </div>
+            <div className="kpi-icon bg-warning-subtle text-warning">
+              <i className="bi bi-calendar-check-fill" />
+            </div>
+          </div>
+          <div className="border-top mt-3 pt-3">
+            <span className="text-muted">
+              {pendingAttendance} session{pendingAttendance > 1 ? "s" : ""} needs attendance
+            </span>
           </div>
         </div>
       </div>

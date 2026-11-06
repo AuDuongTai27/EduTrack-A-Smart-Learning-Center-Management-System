@@ -95,6 +95,7 @@ export const teachingDAL = {
         activeClasses: 6,
         classesToday: isTa ? 3 : 2,
         totalStudents: isTa ? 50 : 45,
+        pendingAttendance: isTa ? 2 : 1,
       },
       todayClasses: isTa
         ? [

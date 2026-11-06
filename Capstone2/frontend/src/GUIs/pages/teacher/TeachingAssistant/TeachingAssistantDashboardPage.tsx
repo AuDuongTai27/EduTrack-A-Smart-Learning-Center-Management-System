@@ -79,10 +79,14 @@ export default function TeachingAssistantDashboardPage() {
   const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
   const roleTitle = profile?.roleTitle || "Trợ giảng chuyên môn";
 
-  const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || []).map((cls) => ({
+  const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || []).map((cls, idx) => ({
     id: cls.classId,
     className: cls.className,
     timePeriod: cls.timePeriod,
+    room: cls.room || `Room ${201 + idx}`,
+    studentsCount: idx === 0 ? 15 : 18,
+    status: "Upcoming",
+    attendanceTaken: idx === 0 ? false : true,
   }));
 
   return (
@@ -107,38 +111,42 @@ export default function TeachingAssistantDashboardPage() {
           <p className="text-muted mt-2">Đang tải thông tin bảng điều khiển...</p>
         </div>
       ) : (
-        <div className="row">
-          <div className="col-xxl-6 col-xl-12">
-            {/* Teaching Assistant profile */}
-            <TeachingAssistantProfileCard
-              id={userCode}
-              name={taName}
-              avatar={avatar}
-              role={roleTitle}
-              subject={specialty}
-              profileUrl="/teaching-assistant/profile"
-            />
+        <>
+          {/* Dashboard KPI Cards - Chiếm toàn bộ chiều ngang */}
+          <TeachingAssistantKpiCards
+            activeAssignments={kpis?.activeAssignments}
+            assignmentsDueToday={kpis?.assignmentsDueToday}
+            activeClasses={kpis?.activeClasses}
+            classesToday={kpis?.classesToday ?? mappedTodayClasses.length}
+            totalStudents={kpis?.totalStudents}
+            pendingAttendance={kpis?.pendingAttendance}
+          />
 
-            {/* Dashboard KPI Cards */}
-            <TeachingAssistantKpiCards
-              activeAssignments={kpis?.activeAssignments ?? 10}
-              assignmentsDueToday={kpis?.assignmentsDueToday ?? 4}
-              activeClasses={kpis?.activeClasses ?? 6}
-              classesToday={kpis?.classesToday ?? (mappedTodayClasses.length > 0 ? mappedTodayClasses.length : 3)}
-            />
+          <div className="row">
+            <div className="col-xxl-6 col-xl-12">
+              {/* Teaching Assistant profile */}
+              <TeachingAssistantProfileCard
+                id={userCode}
+                name={taName}
+                avatar={avatar}
+                role={roleTitle}
+                subject={specialty}
+                profileUrl="/teaching-assistant/profile"
+              />
 
-            {/* Today's class */}
-            <TodayClassesSection classes={mappedTodayClasses} />
+              {/* Today's class */}
+              <TodayClassesSection classes={mappedTodayClasses} />
+            </div>
+
+            <div className="col-xxl-6 col-xl-12 align-self-start">
+              {/* Notifications */}
+              <NotificationsSection
+                notifications={dashboardNotifications}
+                viewAllUrl="/teaching-assistant/notifications"
+              />
+            </div>
           </div>
-
-          <div className="col-xxl-6 col-xl-12 d-flex flex-column">
-            {/* Notifications */}
-            <NotificationsSection
-              notifications={dashboardNotifications}
-              viewAllUrl="/teaching-assistant/notifications"
-            />
-          </div>
-        </div>
+        </>
       )}
     </>
   );

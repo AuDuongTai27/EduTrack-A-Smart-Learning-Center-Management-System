@@ -34,6 +34,7 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public int ActiveClasses { get; set; }
         public int ClassesToday { get; set; }
         public int TotalStudents { get; set; }
+        public int PendingAttendance { get; set; }
     }
 
     public class TodayClassSessionItemDto

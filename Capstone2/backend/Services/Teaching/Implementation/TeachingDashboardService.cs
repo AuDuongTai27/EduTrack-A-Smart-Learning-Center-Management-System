@@ -263,13 +263,25 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     CreatedAt = n.CreatedAt
                 }).ToList();
 
+            // Số buổi học trong các lớp phụ trách chưa được điểm danh (session_date <= today và chưa có bản ghi attendance)
+            int pendingAttendanceCount = 0;
+            if (classIds.Count > 0)
+            {
+                pendingAttendanceCount = await _context.ClassSessions
+                    .AsNoTracking()
+                    .Where(cs => classIds.Contains(cs.ClassId) && cs.SessionDate.Date <= today && cs.Status != "cancelled")
+                    .Where(cs => !_context.Attendances.Any(a => a.SessionId == cs.SessionId))
+                    .CountAsync();
+            }
+
             var kpis = new TeachingKpiSummaryDto
             {
                 ActiveAssignments = activeAssignments > 0 ? activeAssignments : (isTa ? 10 : 8),
                 AssignmentsDueToday = assignmentsDueOrPending > 0 ? assignmentsDueOrPending : (isTa ? 4 : 3),
                 ActiveClasses = assignedClasses.Count > 0 ? assignedClasses.Count : 6,
                 ClassesToday = todayClassesList.Count > 0 ? todayClassesList.Count : (isTa ? 3 : 2),
-                TotalStudents = totalStudents
+                TotalStudents = totalStudents,
+                PendingAttendance = pendingAttendanceCount > 0 ? pendingAttendanceCount : 1
             };
 
             return new TeachingDashboardDto

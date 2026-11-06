@@ -537,7 +537,7 @@
 
 .dashboard-welcome .card-body,
 .card.bg-03 .card-body {
-  padding: 20px 24px;
+  padding: 14px 20px;
 }
 
 .welcome-subtitle {
@@ -631,7 +631,7 @@
 }
 
 .dashboard-kpis.teacher-kpis {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .dashboard-kpi {
@@ -758,7 +758,6 @@
 .notice-item {
   min-height: 64px;
   padding: 12px 0;
-  flex: 1;
 
   display: flex;
   align-items: center;

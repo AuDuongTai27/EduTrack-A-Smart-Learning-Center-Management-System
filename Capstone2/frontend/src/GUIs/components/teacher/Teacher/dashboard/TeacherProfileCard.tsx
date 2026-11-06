@@ -71,7 +71,7 @@ export function TeacherProfileCard({
           to={profileUrl ?? "/teacher/profile"}
           className="btn btn-primary d-inline-flex align-items-center gap-2"
         >
-          <i className="bi bi-pencil-square" /> View Profile
+          <i className="bi bi-pencil-square" /> Xem hồ sơ
         </Link>
       </div>
     </div>
