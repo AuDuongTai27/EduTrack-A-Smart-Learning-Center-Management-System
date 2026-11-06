@@ -5,7 +5,7 @@ import StatusBadge from "../../../components/Common/StatusBadge";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import KpiCard from "../../../components/Common/KpiCard";
 import { adminStaffDashboardDAL, type AdminStaffDashboardData } from "../../../../DAL/adminStaffDashboardDAL";
-import { CENTER_TIME_ZONE, centerDateKey, getRequestStatus, getSessionStatus, getStaffUserId } from "../../../../BLL/services/adminStaffDashboardService";
+import { CENTER_TIME_ZONE, centerDateKey, getRequestStatus, getSessionStatus, getStaffUserId, type DashboardSection } from "../../../../BLL/services/adminStaffDashboardService";
 import { useAuthContext } from "../../../../contexts/AuthContext";
 import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
@@ -33,8 +33,8 @@ export default function AdminStaffDashboardPage() {
   const requests = dashboard?.requests.data ?? [];
   const recentRequests = requests.slice(0, 4);
   const pendingRequests = requests.filter((request) => request.status.trim().toLowerCase() === "pending");
-  const sectionText = (error: string | null | undefined, empty: string) =>
-    loading || !dashboard ? "Đang tải dữ liệu..." : error || empty;
+  const sectionText = (section: DashboardSection<unknown> | undefined, empty: string) =>
+    section?.error || (section?.data == null ? "Đang tải dữ liệu..." : empty);
 
   // Detail Modal state
   const [selectedRequest, setSelectedRequest] = useState<ApprovalRequestDto | null>(null);
@@ -52,7 +52,9 @@ export default function AdminStaffDashboardPage() {
       setData(null);
       setSelectedRequest(null);
       try {
-        const next = await adminStaffDashboardDAL.getDashboard(staffUserId, today);
+        const next = await adminStaffDashboardDAL.getDashboard(staffUserId, today, partial => {
+          if (isMounted) setData(partial);
+        });
         if (isMounted) setData(next);
       } finally {
         if (isMounted) setLoading(false);
@@ -64,7 +66,7 @@ export default function AdminStaffDashboardPage() {
     };
   }, [staffUserId, authLoading, today, refreshKey]);
 
-  const totalOutstanding = loading ? null : dashboard?.tuition.data?.outstanding;
+  const totalOutstanding = dashboard?.tuition.data?.outstanding;
   const todayStr = now.toLocaleDateString("vi-VN", {
     timeZone: CENTER_TIME_ZONE,
     weekday: "long",
@@ -117,7 +119,7 @@ export default function AdminStaffDashboardPage() {
               status="new"
               title="Tổng Học Viên Hoạt Động"
               value={dashboard?.students.data ?? "—"}
-              footerValue={sectionText(dashboard?.students.error, "Hồ sơ học viên có trạng thái Active")}
+              footerValue={sectionText(dashboard?.students, "Hồ sơ học viên có trạng thái Active")}
               footerLabel="Xem danh sách"
             />
           </Link>
@@ -131,7 +133,7 @@ export default function AdminStaffDashboardPage() {
               status="unpaid"
               title="Khoản Học Phí Cần Thu"
               value={dashboard?.tuition.data?.unpaidCount ?? "—"}
-              footerValue={sectionText(dashboard?.tuition.error, "Hóa đơn còn số dư phải thu")}
+              footerValue={sectionText(dashboard?.tuition, "Hóa đơn còn nợ • Tất cả kỳ")}
               footerLabel="Xem sổ thu"
             />
           </Link>
@@ -146,7 +148,7 @@ export default function AdminStaffDashboardPage() {
               title="Công Nợ Học Phí"
               currency="VND"
               value={totalOutstanding ?? null}
-              footerValue={sectionText(dashboard?.tuition.error, "Tổng phải thu trừ các khoản đã thanh toán")}
+              footerValue={sectionText(dashboard?.tuition, "Tổng công nợ hiện tại • Tất cả kỳ hóa đơn")}
               footerLabel="Chi tiết"
             />
           </Link>
@@ -159,7 +161,7 @@ export default function AdminStaffDashboardPage() {
               type="request"
               title="Đơn Từ Gửi Giám Đốc"
               value={dashboard?.requests.data == null ? "—" : requests.length}
-              footerValue={sectionText(dashboard?.requests.error, `${pendingRequests.length} đơn chưa có quyết định`)}
+              footerValue={sectionText(dashboard?.requests, `${pendingRequests.length} đơn chưa có quyết định`)}
               footerLabel="Xem tiến độ"
             />
           </Link>
@@ -231,7 +233,7 @@ export default function AdminStaffDashboardPage() {
                 ) : (
                   <div className={`p-4 text-center ${dashboard?.schedule.error ? "text-danger" : "text-muted"}`}
                     role={dashboard?.schedule.error ? "alert" : "status"}>
-                    {sectionText(dashboard?.schedule.error, "Không có buổi học nào được xếp hôm nay.")}
+                    {sectionText(dashboard?.schedule, "Không có buổi học nào được xếp hôm nay.")}
                   </div>
                 )}
               </div>
@@ -272,7 +274,7 @@ export default function AdminStaffDashboardPage() {
                 ) : (
                   <div className={`p-4 text-center ${dashboard?.notifications.error ? "text-danger" : "text-muted"}`}
                     role={dashboard?.notifications.error ? "alert" : "status"}>
-                    {sectionText(dashboard?.notifications.error, "Bạn chưa nhận được thông báo nào.")}
+                    {sectionText(dashboard?.notifications, "Bạn chưa nhận được thông báo nào.")}
                   </div>
                 )}
               </div>
@@ -343,7 +345,7 @@ export default function AdminStaffDashboardPage() {
                 <tr>
                   <td colSpan={8} className={`text-center py-3 ${dashboard?.requests.error ? "text-danger" : "text-muted"}`}
                     role={dashboard?.requests.error ? "alert" : "status"}>
-                    {sectionText(dashboard?.requests.error, "Bạn chưa gửi đơn từ nào.")}
+                    {sectionText(dashboard?.requests, "Bạn chưa gửi đơn từ nào.")}
                   </td>
                 </tr>
               )}

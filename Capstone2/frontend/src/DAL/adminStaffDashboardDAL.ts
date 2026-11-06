@@ -8,6 +8,7 @@ import {
   getTodaySessions,
   loadDashboardSection,
   summarizeTuition,
+  type DashboardSection,
 } from "../BLL/services/adminStaffDashboardService";
 import type { MonitoringSessionDto, TeacherClassAssignmentDto } from "../api/teachingMonitoringApi";
 
@@ -33,27 +34,50 @@ async function getCurrentStaff(userId: number | null) {
   return user;
 }
 
+interface DashboardSections {
+  students: DashboardSection<number>;
+  tuition: DashboardSection<ReturnType<typeof summarizeTuition>>;
+  schedule: DashboardSection<ReturnType<typeof getTodaySessions>>;
+  staff: DashboardSection<Awaited<ReturnType<typeof getCurrentStaff>>>;
+  notifications: DashboardSection<Awaited<ReturnType<typeof notificationDAL.getInbox>>>;
+  requests: DashboardSection<ReturnType<typeof getMyRequests>>;
+}
+
+export interface AdminStaffDashboardData extends DashboardSections {
+  userId: number | null;
+  today: string;
+}
+
 export const adminStaffDashboardDAL = {
-  async getDashboard(userId: number | null, today: string) {
+  async getDashboard(userId: number | null, today: string, onUpdate?: (data: AdminStaffDashboardData) => void): Promise<AdminStaffDashboardData> {
+    const empty = () => ({ data: null, error: null });
+    const data: AdminStaffDashboardData = {
+      userId, today, students: empty(), tuition: empty(), schedule: empty(),
+      staff: empty(), notifications: empty(), requests: empty(),
+    };
+    const sections: DashboardSections = data;
+    // Publish each section as it resolves so a slow Payments request cannot hide student data.
+    const update = <K extends keyof DashboardSections>(key: K) => (section: DashboardSections[K]) => {
+      sections[key] = section;
+      onUpdate?.({ ...data });
+    };
     const currentStaff = getCurrentStaff(userId);
-    const [students, tuition, schedule, staff, notifications, requests] = await Promise.all([
-      loadDashboardSection(userDAL.getAllUsers().then((result) => countActiveStudents(result.data))),
+    await Promise.all([
+      loadDashboardSection(userDAL.getAllUsers().then((result) => countActiveStudents(result.data))).then(update("students")),
       loadDashboardSection(Promise.all([tuitionDAL.getAllInvoices(), tuitionDAL.getAllPayments()])
-        .then(([invoices, payments]) => summarizeTuition(invoices.data, payments.data))),
+        .then(([invoices, payments]) => summarizeTuition(invoices.data, payments.data))).then(update("tuition")),
       loadDashboardSection(Promise.all([
         getList<MonitoringSessionDto>("classsessions"),
         getList<TeacherClassAssignmentDto>("teacherclasses"),
-      ]).then(([sessions, assignments]) => getTodaySessions(sessions, assignments, today))),
-      loadDashboardSection(currentStaff),
+      ]).then(([sessions, assignments]) => getTodaySessions(sessions, assignments, today))).then(update("schedule")),
+      loadDashboardSection(currentStaff).then(update("staff")),
       loadDashboardSection(currentStaff.then((user) => notificationDAL.getInbox(user.userId))
-        .then((items) => [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.notificationId - a.notificationId))),
+        .then((items) => [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.notificationId - a.notificationId))).then(update("notifications")),
       loadDashboardSection(currentStaff.then(async (user) => {
         const result = await feedbackDAL.getAllRequests();
         return getMyRequests(result.data, user.userId);
-      })),
+      })).then(update("requests")),
     ]);
-    return { userId, today, students, tuition, schedule, staff, notifications, requests };
+    return data;
   },
 };
-
-export type AdminStaffDashboardData = Awaited<ReturnType<typeof adminStaffDashboardDAL.getDashboard>>;

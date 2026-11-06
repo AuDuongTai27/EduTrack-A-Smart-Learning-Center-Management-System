@@ -24,7 +24,7 @@ function serve(responses) {
     const path = url.pathname.replace(/^\/api/, "") + url.search;
     calls.push(path);
     if (!Object.hasOwn(responses, path)) throw new Error(`Unexpected request: ${path}`);
-    const value = responses[path];
+    const value = await responses[path];
     if (value instanceof Error) throw value;
     if (value instanceof Response) return value;
     return Response.json(value);
@@ -34,6 +34,30 @@ function serve(responses) {
 
 const common = () => ({
   "/users": [], "/tuitioninvoices": [], "/payments": [], "/classsessions": [], "/teacherclasses": [],
+});
+
+test("student data is published while the independent Payments request is still loading", {timeout: 3000}, async () => {
+  let finishPayments;
+  const waitingPayments = new Promise(resolve => { finishPayments = resolve; });
+  serve({
+    ...common(),
+    "/users": [{userId: 6, status: "active", roles: ["student"]}],
+    "/payments": waitingPayments,
+  });
+  let publishStudents;
+  const studentUpdate = new Promise(resolve => { publishStudents = resolve; });
+  const dashboard = dashboardDAL.getDashboard(null, "2026-11-06", partial => {
+    if (partial.students.data === 1) publishStudents(partial);
+  });
+  try {
+    const partial = await studentUpdate;
+    assert.equal(partial.students.data, 1);
+    assert.equal(partial.tuition.data, null);
+    assert.equal(partial.tuition.error, null);
+  } finally {
+    finishPayments([]);
+    await dashboard;
+  }
 });
 
 test("without staff identity the DAL loads public metrics but never another user's inbox or requests", async () => {

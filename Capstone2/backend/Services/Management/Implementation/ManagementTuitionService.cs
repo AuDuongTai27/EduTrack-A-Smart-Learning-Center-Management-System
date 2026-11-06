@@ -354,7 +354,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 AdditionalChargeNote = payment.AdditionalChargeNote,
                 PaymentMethod = payment.PaymentMethod,
                 TransactionCode = payment.TransactionCode,
-                PaidAt = payment.PaidAt,
+                // Keep the response timezone explicit, including after a MySQL reload.
+                PaidAt = DateTime.SpecifyKind(payment.PaidAt, DateTimeKind.Utc),
                 PaidByUserId = payment.PaidByUserId,
                 PayerName = payment.Payer?.FullName,
                 RecordedBy = payment.RecordedBy,

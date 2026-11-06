@@ -5,24 +5,26 @@ import KpiCard from "../../../components/Common/KpiCard";
 import { formatVND } from "../../../utils/formatCurrency";
 import userDAL from "../../../../DAL/userDAL";
 import classDAL from "../../../../DAL/classDAL";
-import tuitionDAL from "../../../../DAL/tuitionDAL";
 import notificationDAL from "../../../../DAL/notificationDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { TuitionDto, PaymentDto } from "../../../../BLL/models/TuitionDto";
 import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
 import managementDAL from "../../../../DAL/managementDAL";
-import { isTuitionOverdue } from "../../../../BLL/services/tuitionPolicyService";
+import { useTuitionData } from "../../../hooks/useTuitionData";
+import { calculateTuitionMetrics } from "../../../../BLL/services/tuitionMetricsService";
+import { useAuthContext } from "../../../../contexts/AuthContext";
 
 export default function CenterManagerDashboardPage() {
   const { centerName, academicYear } = useCenterSettings();
-  const [manager, setManager] = useState<UserDto | null>(null);
+  const { user, permission } = useAuthContext();
+  const manager = permission?.includes("center_manager") ? user : undefined;
   const [users, setUsers] = useState<UserDto[]>([]);
   const [classes, setClasses] = useState<ClassDto[]>([]);
-  const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
-  const [payments, setPayments] = useState<PaymentDto[]>([]);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { rows: tuitions, payments, now, paymentReady, balanceReady, monthlyCollected, collectionLabel, error: financeError, monthlyError } = useTuitionData();
+  const [otherError, setOtherError] = useState<string | null>(null);
+  const [usersReady, setUsersReady] = useState(false);
+  const [classesReady, setClassesReady] = useState(false);
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -35,33 +37,19 @@ export default function CenterManagerDashboardPage() {
   useEffect(() => {
     let isMounted = true;
     async function fetchDashboardData() {
-      try {
-        setLoading(true);
-        setLoadError(null);
-        const [mgrRes, userRes, classRes, tuiRes, paymentRes, notifRes] = await Promise.all(
-          [
-            userDAL.getUserById(1), // Nguyễn Văn Quản Lý
-            userDAL.getAllUsers(),
-            classDAL.getAllClasses(),
-            tuitionDAL.getAllTuitions(),
-            tuitionDAL.getAllPayments(),
-            notificationDAL.getAllNotifications(),
-          ],
-        );
-
-        if (isMounted) {
-          setManager(mgrRes);
-          if (userRes.data) setUsers(userRes.data);
-          if (classRes.data) setClasses(classRes.data);
-          if (tuiRes.data) setTuitions(tuiRes.data);
-          if (paymentRes.data) setPayments(paymentRes.data);
-          if (notifRes.data) setNotifications(notifRes.data);
-        }
-      } catch (err) {
-        console.warn("Lỗi tải dữ liệu dashboard center manager:", err);
-        if (isMounted) setLoadError(err instanceof Error ? err.message : "Không thể tải dữ liệu từ Backend.");
-      } finally {
-        if (isMounted) setLoading(false);
+      setLoading(true);
+      const [userRes, classRes, notifRes] = await Promise.allSettled([
+        userDAL.getAllUsers(),
+        classDAL.getAllClasses(),
+        notificationDAL.getAllNotifications(),
+      ]);
+      if (isMounted) {
+        if (userRes.status === "fulfilled") { setUsers(userRes.value.data); setUsersReady(true); }
+        if (classRes.status === "fulfilled") { setClasses(classRes.value.data); setClassesReady(true); }
+        if (notifRes.status === "fulfilled") setNotifications(notifRes.value.data);
+        setOtherError([userRes, classRes, notifRes].filter(result => result.status === "rejected")
+          .map(result => String(result.reason instanceof Error ? result.reason.message : result.reason)).join(" ") || null);
+        setLoading(false);
       }
     }
     fetchDashboardData();
@@ -82,41 +70,16 @@ export default function CenterManagerDashboardPage() {
     ).length;
     const activeClassesCount = classes.filter((c) => c.status?.toLowerCase() === "active").length;
 
-    const paidByInvoice = new Map<number, number>();
-    for (const payment of payments) {
-      paidByInvoice.set(
-        payment.invoiceId,
-        (paidByInvoice.get(payment.invoiceId) ?? 0) + payment.amount,
-      );
-    }
-
-    let totalBilled = 0;
-    let totalOutstanding = 0;
-    let totalOverdue = 0;
-    for (const invoice of tuitions) {
-      const due = invoice.amountDue ?? invoice.amount ?? 0;
-      const paid = paidByInvoice.get(invoice.invoiceId) ?? 0;
-      const remaining = Math.max(0, due - paid);
-      totalBilled += due;
-      totalOutstanding += remaining;
-      if (isTuitionOverdue(invoice, remaining)) totalOverdue += remaining;
-    }
-
-    const totalCollected = payments.reduce((sum, payment) => sum + payment.amount, 0);
     return {
       studentCount,
       staffCount,
       activeClassesCount,
       totalClasses: classes.length,
       totalStudents: users.filter((u) => u.roles?.some((r) => r.toLowerCase() === "student")).length,
-      totalCollected,
-      totalOutstanding,
-      totalOverdue,
-      collectionRate: totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0,
     };
-  }, [users, classes, tuitions, payments]);
-
-  const currencyReady = !loading && !loadError;
+  }, [users, classes]);
+  const tuitionMetrics = useMemo(() => balanceReady ? calculateTuitionMetrics(tuitions, payments.data!, now) : null, [tuitions, payments.data, balanceReady, now]);
+  const loadError = [otherError, financeError, monthlyError].filter(Boolean).join(" ") || null;
 
   const handleQuickAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,8 +176,8 @@ export default function CenterManagerDashboardPage() {
           type="student"
           status="active"
           title="Active Students"
-          value={metrics.studentCount}
-          footerValue={metrics.totalStudents}
+          value={usersReady ? metrics.studentCount : "—"}
+          footerValue={usersReady ? metrics.totalStudents : "—"}
           footerLabel="tổng hồ sơ học sinh"
         />
 
@@ -222,8 +185,8 @@ export default function CenterManagerDashboardPage() {
         <KpiCard
           type="class"
           title="Active Classes"
-          value={metrics.activeClassesCount}
-          footerValue={metrics.totalClasses}
+          value={classesReady ? metrics.activeClassesCount : "—"}
+          footerValue={classesReady ? metrics.totalClasses : "—"}
           footerLabel="tổng số lớp"
         />
 
@@ -231,7 +194,7 @@ export default function CenterManagerDashboardPage() {
         <KpiCard
           type="staff"
           title="Active Staff"
-          value={metrics.staffCount}
+          value={usersReady ? metrics.staffCount : "—"}
           footerValue="Teachers, TAs & Staff"
         />
 
@@ -241,9 +204,9 @@ export default function CenterManagerDashboardPage() {
           status="collected"
           title="Tuition Collected"
           currency="VND"
-          value={currencyReady ? metrics.totalCollected : null}
-          footerValue={`${metrics.collectionRate}%`}
-          footerLabel="đã thu trên tổng học phí"
+          value={monthlyCollected}
+          hideIcon
+          footerLabel={collectionLabel}
         />
 
         {/* Outstanding Tuition */}
@@ -252,9 +215,9 @@ export default function CenterManagerDashboardPage() {
           status="overdue"
           title="Outstanding Tuition"
           currency="VND"
-          value={currencyReady ? metrics.totalOutstanding : null}
+          value={tuitionMetrics?.outstanding ?? null}
           footerLabel="Overdue"
-          footerValue={formatVND(currencyReady ? metrics.totalOverdue : null)}
+          footerValue={formatVND(tuitionMetrics?.overdueAmount)}
           footerLayout="between"
         />
       </div>
@@ -291,7 +254,7 @@ export default function CenterManagerDashboardPage() {
               <div>
                 <h5 className="mb-1 fw-bold text-dark">Tuition Overview</h5>
                 <small className="text-muted">
-                  Collected and outstanding tuition
+                  Thực thu tháng hiện tại và tổng công nợ tất cả kỳ
                 </small>
               </div>
               <Link
@@ -305,26 +268,26 @@ export default function CenterManagerDashboardPage() {
               <div className="row g-3 mb-4">
                 <div className="col-6">
                   <div className="p-3 bg-light rounded-3 border-start border-4 border-success">
-                    <small className="text-muted d-block">Đã thu thực tế</small>
+                    <small className="text-muted d-block">Đã thu thực tế • {collectionLabel}</small>
                     <h4 className="fw-bold text-success mb-0 kpi-currency-value">
-                      {formatVND(currencyReady ? metrics.totalCollected : null)}
+                      {formatVND(monthlyCollected)}
                     </h4>
                   </div>
                 </div>
                 <div className="col-6">
                   <div className="p-3 bg-light rounded-3 border-start border-4 border-danger">
                     <small className="text-muted d-block">
-                      Còn lại cần thu
+                      Tổng công nợ hiện tại • Tất cả kỳ
                     </small>
                     <h4 className="fw-bold text-danger mb-0 kpi-currency-value">
-                      {formatVND(currencyReady ? metrics.totalOutstanding : null)}
+                      {formatVND(tuitionMetrics?.outstanding)}
                     </h4>
                   </div>
                 </div>
               </div>
               <div className="p-3 bg-light rounded-3 border text-secondary small">
                 <i className="bi bi-info-circle me-2 text-primary" />
-                Đã ghi nhận <strong>{payments.length}</strong> khoản thanh toán từ hệ thống.
+                Đã ghi nhận <strong>{paymentReady ? payments.data!.length : "—"}</strong> khoản thanh toán từ hệ thống (tất cả kỳ).
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import type { UserDto } from "../models/UserDto";
 import type { TuitionDto, PaymentDto } from "../models/TuitionDto";
+import { calculateTuitionMetrics } from "./tuitionMetricsService.ts";
 import type { ApprovalRequestDto } from "../models/ApprovalRequestDto";
 import type {
   MonitoringSessionDto,
@@ -37,19 +38,7 @@ export function countActiveStudents(users: UserDto[]): number {
 }
 
 export function summarizeTuition(invoices: TuitionDto[], payments: PaymentDto[]) {
-  const paidByInvoice = new Map<number, number>();
-  for (const payment of payments) {
-    paidByInvoice.set(payment.invoiceId, (paidByInvoice.get(payment.invoiceId) ?? 0) + payment.amount);
-  }
-
-  let unpaidCount = 0;
-  let outstanding = 0;
-  for (const invoice of invoices) {
-    // AmountDue already includes additional charges recorded by ManagementTuitionService.
-    const remaining = Math.max(0, invoice.amountDue - (paidByInvoice.get(invoice.invoiceId) ?? 0));
-    if (remaining > 0) unpaidCount++;
-    outstanding += remaining;
-  }
+  const { unpaidCount, outstanding } = calculateTuitionMetrics(invoices, payments);
   return { unpaidCount, outstanding };
 }
 

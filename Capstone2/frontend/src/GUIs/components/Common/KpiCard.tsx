@@ -46,6 +46,8 @@ interface KpiCardProps {
   title: string;
   value: string | number | null;
   currency?: "VND";
+  currencyUnitOnNewLine?: boolean;
+  hideIcon?: boolean;
 
   footerValue?: string | number;
   footerLabel?: string;
@@ -61,6 +63,8 @@ export default function KpiCard({
   title,
   value,
   currency,
+  currencyUnitOnNewLine = false,
+  hideIcon = false,
   footerValue,
   footerLabel,
   trend,
@@ -148,6 +152,11 @@ export default function KpiCard({
     return footerClass;
   };
 
+  const formattedValue = currency ? formatVND(typeof value === "number" ? value : null) : value;
+  const displayedValue = currency && currencyUnitOnNewLine && formattedValue !== "—" ? (
+    <>{String(formattedValue).slice(0, -4)} <span className="d-block kpi-currency-unit">VND</span></>
+  ) : formattedValue;
+
   return (
     <div className={`card dashboard-kpi h-100${currency ? " dashboard-kpi--currency" : ""}`}>
       <div className="card-body">
@@ -155,13 +164,15 @@ export default function KpiCard({
           <div className={currency ? "kpi-currency-copy" : undefined}>
             <p className="text-muted mb-1">{title}</p>
             <h3 className={`mb-0${currency ? " kpi-currency-value" : ""}`}>
-              {currency ? formatVND(typeof value === "number" ? value : null) : value}
+              {displayedValue}
             </h3>
           </div>
 
-          <div className={`kpi-icon ${iconClass}`}>
-            <i className={`bi ${icon}`} />
-          </div>
+          {!hideIcon && (
+            <div className={`kpi-icon ${iconClass}`}>
+              <i className={`bi ${icon}`} />
+            </div>
+          )}
         </div>
 
         {(footerValue !== undefined || footerLabel) && (

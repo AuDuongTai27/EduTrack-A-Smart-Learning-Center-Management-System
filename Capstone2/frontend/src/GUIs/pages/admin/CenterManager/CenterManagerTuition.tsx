@@ -5,38 +5,23 @@ import SubjectBadge from "../../../components/Common/SubjectBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
-import KpiCard from "../../../components/Common/KpiCard";
+import TuitionOverview from "../../../components/Common/TuitionOverview";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import userDAL from "../../../../DAL/userDAL";
 import classDAL from "../../../../DAL/classDAL";
-import { defaultTuitionDueDate, isTuitionOverdue, tuitionPaymentStatus } from "../../../../BLL/services/tuitionPolicyService";
+import { defaultTuitionDueDate } from "../../../../BLL/services/tuitionPolicyService";
+import { useTuitionData } from "../../../hooks/useTuitionData";
+import { calculateTuitionMetrics, invoiceTotal, invoicePeriodLabel, matchesTuitionStatus } from "../../../../BLL/services/tuitionMetricsService";
+import { formatVND } from "../../../utils/formatCurrency";
 
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { TuitionDto, PaymentDto } from "../../../../BLL/models/TuitionDto";
-
-// TuitionInvoiceDto không có paidAmount: tính từ lịch sử thanh toán thực tế.
-function attachPaidAmounts(
-  invoices: TuitionDto[],
-  payments: PaymentDto[],
-): TuitionDto[] {
-  const paidByInvoice = new Map<number, number>();
-  for (const payment of payments) {
-    paidByInvoice.set(
-      payment.invoiceId,
-      (paidByInvoice.get(payment.invoiceId) ?? 0) + payment.amount,
-    );
-  }
-  return invoices.map((invoice) => ({
-    ...invoice,
-    paidAmount: paidByInvoice.get(invoice.invoiceId) ?? 0,
-  }));
-}
+import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
 
 export default function CenterManagerTuitionPage() {
-  const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { rows: tuitions, payments, now, collectionLabel, invoiceReady, paymentReady, balanceReady, loading, error: paymentDataWarning, refresh, upsertInvoice } = useTuitionData();
+  const [lookupError, setLookupError] = useState<string | null>(null);
   const [students, setStudents] = useState<UserDto[]>([]);
   const [classes, setClasses] = useState<ClassDto[]>([]);
 
@@ -66,9 +51,6 @@ export default function CenterManagerTuitionPage() {
   });
 
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
-  const [paymentDataWarning, setPaymentDataWarning] = useState<string | null>(
-    null,
-  );
   const [payingTuition, setPayingTuition] = useState<TuitionDto | null>(null);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -90,54 +72,13 @@ export default function CenterManagerTuitionPage() {
   });
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function fetchData() {
-      try {
-        setLoading(true);
-
-        const [tuitionRes, userRes, classRes, paymentRes] = await Promise.all([
-          tuitionDAL.getAllTuitions(),
-          userDAL.getAllUsers(),
-          classDAL.getAllClasses(),
-          tuitionDAL.getAllPayments(),
-        ]);
-
-        if (!isMounted) return;
-
-        if (tuitionRes.isLiveApi && paymentRes.isLiveApi) {
-          setTuitions(
-            attachPaidAmounts(tuitionRes.data || [], paymentRes.data || []),
-          );
-          setPaymentDataWarning(null);
-        } else {
-          setTuitions(tuitionRes.data || []);
-          setPaymentDataWarning(
-            "Chưa tải được dữ liệu thật của hóa đơn hoặc lịch sử thanh toán. Số tiền đã đóng/còn nợ có thể không chính xác.",
-          );
-        }
-
-        const studentUsers = userRes.data.filter((u) =>
-          u.roles?.some((role) => role.toLowerCase() === "student"),
-        );
-
-        setStudents(studentUsers);
-        setClasses(classRes.data || []);
-      } catch (err) {
-        console.warn("Lỗi tải dữ liệu học phí:", err);
-        if (isMounted) {
-          setPaymentDataWarning(err instanceof Error ? err.message : "Không tải được dữ liệu học phí.");
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
+    let active = true;
+    Promise.all([userDAL.getAllUsers(), classDAL.getAllClasses()]).then(([userRes, classRes]) => {
+      if (!active) return;
+      setStudents(userRes.data.filter(user => user.roles?.some(role => role.toLowerCase() === "student")));
+      setClasses(classRes.data);
+    }).catch(cause => { if (active) setLookupError(cause instanceof Error ? cause.message : "Không tải được học viên hoặc lớp học."); });
+    return () => { active = false; };
   }, []);
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
@@ -157,18 +98,9 @@ export default function CenterManagerTuitionPage() {
         },
       );
 
-      setTuitions((prev) =>
-        prev.map((t) =>
-          t.invoiceId === editingTuition.invoiceId
-            ? {
-                ...t,
-                ...res.data,
+      upsertInvoice(res.data);
 
-                amount: res.data.amountDue,
-              }
-            : t,
-        ),
-      );
+      await refresh();
 
       setEditingTuition(null);
 
@@ -210,7 +142,7 @@ export default function CenterManagerTuitionPage() {
     const amountDue = tuition.amountDue ?? tuition.amount ?? 0;
     const remaining = Math.max(0, amountDue - (tuition.paidAmount ?? 0));
     // Không mở phiếu thu với dữ liệu giả hoặc chưa tải được công nợ thực.
-    if (paymentDataWarning || !tuition.invoiceId) return;
+    if (!balanceReady || paymentDataWarning || !tuition.invoiceId) return;
 
     setPayingTuition(tuition);
     setPaymentForm({
@@ -269,44 +201,7 @@ export default function CenterManagerTuitionPage() {
         `Đã ghi nhận thanh toán ${amount.toLocaleString("vi-VN")} VND cho hóa đơn #${invoiceId}.`,
       );
 
-      // Cập nhật tạm thời từ response POST, không dựa vào mock.
-      setTuitions((prev) =>
-        prev.map((tuition) => {
-          if (tuition.invoiceId !== invoiceId) return tuition;
-          const newPaid = (tuition.paidAmount ?? 0) + amount;
-          const due =
-            (tuition.amountDue ?? tuition.amount ?? 0) + additionalChargeAmount;
-          const newStatus = tuitionPaymentStatus(due, newPaid, tuition.dueDate, tuition.status);
-          return {
-            ...tuition,
-            amountDue: due,
-            amount: due,
-            paidAmount: newPaid,
-            status: newStatus,
-          };
-        }),
-      );
-
-      // Đọc lại MySQL để cả thanh toán một phần và KPI được hiển thị chính xác.
-      try {
-        const [invoiceRes, paymentRes] = await Promise.all([
-          tuitionDAL.getAllTuitions(),
-          tuitionDAL.getAllPayments(),
-        ]);
-        if (!invoiceRes.isLiveApi || !paymentRes.isLiveApi) {
-          throw new Error("API GET đã fallback sang mock.");
-        }
-        setTuitions(attachPaidAmounts(invoiceRes.data, paymentRes.data));
-        setPaymentDataWarning(null);
-      } catch (refreshError) {
-        console.warn(
-          "Đã ghi nhận thanh toán nhưng không đọc lại được dữ liệu:",
-          refreshError,
-        );
-        setPaymentDataWarning(
-          "Thanh toán đã được API xác nhận, nhưng chưa đọc lại được lịch sử thanh toán. Hãy kiểm tra kết nối backend trước khi đối chiếu số liệu.",
-        );
-      }
+      await refresh();
     } catch (error) {
       console.error("Lỗi ghi nhận thanh toán:", error);
       setPaymentError(
@@ -318,47 +213,6 @@ export default function CenterManagerTuitionPage() {
       setPaymentSubmitting(false);
     }
   };
-
-  // Summary Metrics calculations
-  const metrics = useMemo(() => {
-    let totalDue = 0;
-    let collected = 0;
-    let outstanding = 0;
-    let overdueAmount = 0;
-    let overdueCount = 0;
-
-    tuitions.forEach((t) => {
-      const amount = t.amount || t.amountDue || 0;
-      const paid =
-        t.paidAmount ?? (t.status.toLowerCase() === "paid" ? amount : 0);
-      totalDue += amount;
-      collected += paid;
-
-      const remaining = Math.max(0, amount - paid);
-      outstanding += remaining;
-
-      if (isTuitionOverdue(t, remaining)) {
-        overdueCount++;
-        overdueAmount += remaining;
-      }
-    });
-
-    const collectedPercent =
-      totalDue > 0 ? Math.round((collected / totalDue) * 100) : 0;
-    const remainingPercent = 100 - collectedPercent;
-
-    return {
-      totalDue,
-      collected,
-      outstanding,
-      overdueCount,
-      overdueAmount,
-      collectedPercent,
-      remainingPercent,
-    };
-  }, [tuitions]);
-
-  const currencyReady = !loading && !paymentDataWarning;
 
   // Filter & Search logic
   const filteredTuitions = useMemo(() => {
@@ -373,14 +227,11 @@ export default function CenterManagerTuitionPage() {
           (t.invoiceCode &&
             t.invoiceCode.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        const matchClass =
-          selectedClass === "All" ||
-          (t.className &&
-            t.className.toLowerCase().includes(selectedClass.toLowerCase()));
+        const matchClass = selectedClass === "All" || String(t.classId) === selectedClass;
 
         const matchStatus =
           selectedStatus === "All" ||
-          (t.status && t.status.toLowerCase() === selectedStatus.toLowerCase());
+          matchesTuitionStatus(t, selectedStatus);
 
         return matchSearch && matchClass && matchStatus;
       })
@@ -406,6 +257,9 @@ export default function CenterManagerTuitionPage() {
         return 0;
       });
   }, [tuitions, searchTerm, selectedClass, selectedStatus, selectedSort]);
+
+  const metrics = useMemo(() => balanceReady ? calculateTuitionMetrics(filteredTuitions, payments.data!, now) : null, [filteredTuitions, payments.data, balanceReady, now]);
+  const invoiceScopeReady = invoiceReady && (selectedStatus !== "Partially Paid" || paymentReady);
 
   // Paginated list
   const paginatedTuitions = useMemo(() => {
@@ -447,7 +301,9 @@ export default function CenterManagerTuitionPage() {
         amountDue: Number(generateForm.amount),
       });
 
-      setTuitions((prev) => [res.data, ...prev]);
+      upsertInvoice(res.data);
+
+      await refresh();
 
       setShowGenerateModal(false);
 
@@ -509,6 +365,7 @@ export default function CenterManagerTuitionPage() {
         </div>
       )}
 
+      {lookupError && <div className="alert alert-warning mb-3" role="alert">{lookupError}</div>}
       {paymentDataWarning && (
         <div className="alert alert-warning" role="alert">
           <i className="bi bi-exclamation-triangle me-2" />
@@ -516,59 +373,16 @@ export default function CenterManagerTuitionPage() {
         </div>
       )}
 
-      {/* Tuition Summary KPIs */}
-      <div className="row g-3 mb-4">
-        {/* Total Tuition Due */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="total"
-            title="Total Tuition Due"
-            currency="VND"
-            value={currencyReady ? metrics.totalDue : null}
-            footerValue="August 2026"
-          />
-        </div>
-
-        {/* Collected */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="collected"
-            title="Collected"
-            currency="VND"
-            value={currencyReady ? metrics.collected : null}
-            footerValue={`${metrics.collectedPercent}%`}
-            footerLabel="collected"
-          />
-        </div>
-
-        {/* Outstanding */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="outstanding"
-            title="Outstanding"
-            currency="VND"
-            value={currencyReady ? metrics.outstanding : null}
-            footerValue={`${metrics.remainingPercent}%`}
-            footerLabel="remaining"
-          />
-        </div>
-
-        {/* Overdue */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="overdue"
-            title="Overdue"
-            currency="VND"
-            value={currencyReady ? metrics.overdueAmount : null}
-            footerValue={metrics.overdueCount}
-            footerLabel="records"
-          />
-        </div>
-      </div>
+      <TuitionOverview
+        totalDue={invoiceScopeReady ? invoiceTotal(filteredTuitions) : null}
+        collected={metrics?.monthlyCollected ?? null}
+        collectionLabel={collectionLabel}
+        collectionError={metrics?.monthlyCollectionError}
+        outstanding={metrics?.outstanding ?? null}
+        overdueAmount={metrics?.overdueAmount ?? null}
+        overdueCount={metrics?.overdueCount ?? null}
+        filtered={searchTerm.trim() !== "" || selectedClass !== "All" || selectedStatus !== "All"}
+      />
 
       {/* Tuition List */}
       <div className="card user-list-card border-0 shadow-sm">
@@ -600,10 +414,7 @@ export default function CenterManagerTuitionPage() {
                 }}
               >
                 <option value="All">All Classes</option>
-                <option value="7">Class 7</option>
-                <option value="8">Class 8</option>
-                <option value="9">Class 9</option>
-                <option value="12">Class 12</option>
+                {classes.map(cls => <option key={cls.classId} value={String(cls.classId)}>{cls.className}</option>)}
               </select>
             </div>
             <div className="col-xl-2 col-lg-3 col-md-6">
@@ -745,7 +556,7 @@ export default function CenterManagerTuitionPage() {
                             type="button"
                             className="btn btn-sm btn-outline-success"
                             onClick={() => handleOpenPayment(t)}
-                            disabled={!!paymentDataWarning || !t.invoiceId}
+                            disabled={!balanceReady || !t.invoiceId}
                             title={
                               paymentDataWarning
                                 ? "Chưa tải được dữ liệu thật: kiểm tra kết nối backend"
@@ -1395,7 +1206,7 @@ export default function CenterManagerTuitionPage() {
                           <span>
                             Kỳ:{" "}
                             <strong>
-                              {selectedTuition.period || "August 2026"}
+                              {invoicePeriodLabel(selectedTuition)}
                             </strong>
                           </span>
                         </div>
@@ -1427,13 +1238,7 @@ export default function CenterManagerTuitionPage() {
                             Đã đóng
                           </small>
                           <h6 className="fw-bold text-success mb-0">
-                            {(
-                              selectedTuition.paidAmount ??
-                              (selectedTuition.status.toLowerCase() === "paid"
-                                ? selectedTuition.amountDue
-                                : 0)
-                            ).toLocaleString("vi-VN")}{" "}
-                            VND
+                            {formatVND(paymentReady ? selectedTuition.paidAmount : null)}
                           </h6>
                         </div>
                       </div>
@@ -1443,18 +1248,7 @@ export default function CenterManagerTuitionPage() {
                             Còn nợ
                           </small>
                           <h6 className="fw-bold text-danger mb-0">
-                            {Math.max(
-                              0,
-                              (selectedTuition.amount ||
-                                selectedTuition.amountDue ||
-                                0) -
-                                (selectedTuition.paidAmount ??
-                                  (selectedTuition.status.toLowerCase() ===
-                                  "paid"
-                                    ? selectedTuition.amountDue
-                                    : 0)),
-                            ).toLocaleString("vi-VN")}{" "}
-                            VND
+                            {formatVND(paymentReady && selectedTuition.paidAmount != null ? Math.max(0, selectedTuition.amountDue - selectedTuition.paidAmount) : null)}
                           </h6>
                         </div>
                       </div>

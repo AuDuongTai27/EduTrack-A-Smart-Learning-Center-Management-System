@@ -37,7 +37,7 @@ test("a future due date does not become overdue because of an old status flag", 
 test("fully settled invoices remain paid even after their due date", () => {
   const now = new Date("2026-12-07T00:00:00+07:00");
   assert.equal(tuitionPaymentStatus(1_000_000, 1_000_000, "2026-12-06", "overdue", now), "paid");
-  assert.equal(isTuitionOverdue({ dueDate: "2026-12-06", status: "paid" }, 1_000_000, now), false);
+  assert.equal(isTuitionOverdue({ dueDate: "2026-12-06", status: "paid" }, 0, now), false);
   assert.equal(isTuitionOverdue({ dueDate: "2026-12-06", status: "unpaid" }, 0, now), false);
 });
 
@@ -45,4 +45,5 @@ test("partial payment before the deadline remains unpaid and adjustments retain 
   const now = new Date("2026-12-06T10:00:00+07:00");
   assert.equal(tuitionPaymentStatus(1_000_000, 400_000, "2026-12-06", "unpaid", now), "unpaid");
   assert.equal(tuitionPaymentStatus(1_000_000, 0, "2026-11-06", "pending_adjustment", now), "pending_adjustment");
+  assert.equal(isTuitionOverdue({ dueDate: "2026-11-06", status: "pending_adjustment" }, 1_000_000, now), false);
 });

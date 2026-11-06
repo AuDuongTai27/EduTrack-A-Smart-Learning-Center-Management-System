@@ -5,19 +5,20 @@ import SubjectBadge from "../../../components/Common/SubjectBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import UserAvatar from "../../../components/Common/UserAvatar";
-import KpiCard from "../../../components/Common/KpiCard";
+import TuitionOverview from "../../../components/Common/TuitionOverview";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import userDAL from "../../../../DAL/userDAL";
 import classDAL from "../../../../DAL/classDAL";
 import { defaultTuitionDueDate } from "../../../../BLL/services/tuitionPolicyService";
+import { useTuitionData } from "../../../hooks/useTuitionData";
+import { calculateTuitionMetrics, invoiceTotal, matchesTuitionStatus } from "../../../../BLL/services/tuitionMetricsService";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
 
 export default function AdminStaffTuitionPage() {
-  const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { rows: tuitions, payments, now, collectionLabel, invoiceReady, balanceReady, loading, error: loadError, refresh, upsertInvoice } = useTuitionData();
 
   // Filters
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -31,7 +32,6 @@ export default function AdminStaffTuitionPage() {
   const [selectedTuition, setSelectedTuition] = useState<TuitionDto | null>(null);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState<boolean>(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [lookupsLoading, setLookupsLoading] = useState(false);
@@ -75,27 +75,6 @@ export default function AdminStaffTuitionPage() {
     void loadInvoiceReferences();
     return () => { active = false; };
   }, [isGenerateModalOpen]);
-  useEffect(() => {
-    let isMounted = true;
-    async function loadTuitionData() {
-      try {
-        setLoading(true);
-        setLoadError(null);
-        const res = await tuitionDAL.getAllTuitions();
-        if (isMounted) setTuitions(res.data);
-      } catch (error) {
-        if (isMounted) {
-          setTuitions([]);
-          setLoadError(error instanceof Error ? error.message : "Unable to load invoices from Backend.");
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }    loadTuitionData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Filter
   const filteredTuitions = useMemo(() => {
@@ -106,9 +85,7 @@ export default function AdminStaffTuitionPage() {
         (t.invoiceCode && t.invoiceCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (t.className && t.className.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchStatus =
-        selectedStatus === "All" ||
-        t.status.toLowerCase() === selectedStatus.toLowerCase();
+      const matchStatus = matchesTuitionStatus(t, selectedStatus);
 
       return matchSearch && matchStatus;
     });
@@ -122,17 +99,8 @@ export default function AdminStaffTuitionPage() {
     return filteredTuitions.slice(start, start + entriesPerPage);
   }, [filteredTuitions, currentPage, entriesPerPage]);
 
-  // KPI Calculations
-  const totalDue = tuitions.reduce((sum, t) => sum + (t.amount || 0), 0);
-  const collected = tuitions
-    .filter((t) => t.status.toLowerCase() === "paid")
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-  const outstanding = tuitions
-    .filter((t) => t.status.toLowerCase() === "pending" || t.status.toLowerCase() === "unpaid")
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-  const overdueCount = tuitions.filter((t) => t.status.toLowerCase() === "overdue").length;
-
-  const currencyReady = !loading && !loadError;
+  const metrics = useMemo(() => balanceReady ? calculateTuitionMetrics(filteredTuitions, payments.data!, now) : null, [filteredTuitions, payments.data, balanceReady, now]);
+  const totalDue = invoiceReady ? invoiceTotal(filteredTuitions) : null;
 
   // View Receipt (GetById)
   const handleViewReceipt = async (tuitionId: number) => {
@@ -171,20 +139,13 @@ export default function AdminStaffTuitionPage() {
         amountDue,
       });
       // Only show a server-confirmed invoice. Never invent an ID on Frontend.
-      setTuitions(prev => [result.data, ...prev.filter(t => t.invoiceId !== result.data.invoiceId)]);
+      upsertInvoice(result.data);
       setIsGenerateModalOpen(false);
       setGenStudentId("");
       setGenClassId("");
       setGenAmount("");
       setActionSuccessMsg(`Invoice #${result.data.invoiceId} saved successfully.`);
-      try {
-        const fresh = await tuitionDAL.getAllTuitions();
-        setTuitions(fresh.data);
-        setLoadError(null);
-      } catch (refreshError) {
-        setLoadError("Invoice was saved but list refresh failed. Reload once Backend is available.");
-        console.warn("Invoice refresh failed after successful POST", refreshError);
-      }
+      await refresh();
     } catch (error) {
       setGenerateError(error instanceof Error ? error.message : "Could not create invoice.");
     } finally {
@@ -233,51 +194,16 @@ export default function AdminStaffTuitionPage() {
         <div className="alert alert-danger mb-3" role="alert">{loadError}</div>
       )}
 
-      {/* Tuition Summary KPIs */}
-      <div className="row g-3 mb-4">
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="total"
-            title="Tổng Doanh Thu Niêm Yết"
-            currency="VND"
-            value={currencyReady ? totalDue : null}
-            footerValue="Học kỳ hiện tại"
-          />
-        </div>
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="collected"
-            title="Đã Thu Thực Tế"
-            currency="VND"
-            value={currencyReady ? collected : null}
-            footerValue={totalDue > 0 ? `${Math.round((collected / totalDue) * 100)}%` : "0%"}
-            footerLabel="đã hoàn tất"
-          />
-        </div>
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="outstanding"
-            title="Công Nợ Cần Thu"
-            currency="VND"
-            value={currencyReady ? outstanding : null}
-            footerValue={totalDue > 0 ? `${Math.round((outstanding / totalDue) * 100)}%` : "0%"}
-            footerLabel="còn lại"
-          />
-        </div>
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="overdue"
-            title="Hóa Đơn Quá Hạn"
-            value={overdueCount}
-            footerValue={overdueCount}
-            footerLabel="học viên cần nhắc phí"
-          />
-        </div>
-      </div>
+      <TuitionOverview
+        totalDue={totalDue}
+        collected={metrics?.monthlyCollected ?? null}
+        collectionLabel={collectionLabel}
+        collectionError={metrics?.monthlyCollectionError}
+        outstanding={metrics?.outstanding ?? null}
+        overdueAmount={metrics?.overdueAmount ?? null}
+        overdueCount={metrics?.overdueCount ?? null}
+        filtered={searchTerm.trim() !== "" || selectedStatus !== "All"}
+      />
 
       {/* Tuition List */}
       <div className="card user-list-card border-0 mb-4">
@@ -312,7 +238,8 @@ export default function AdminStaffTuitionPage() {
               >
                 <option value="All">Tất cả trạng thái thanh toán</option>
                 <option value="paid">Đã thanh toán (Paid)</option>
-                <option value="pending">Chờ thanh toán (Pending)</option>
+                <option value="unpaid">Chưa thanh toán (Unpaid)</option>
+                <option value="pending_adjustment">Chờ điều chỉnh (Pending adjustment)</option>
                 <option value="overdue">Quá hạn (Overdue)</option>
               </select>
             </div>
