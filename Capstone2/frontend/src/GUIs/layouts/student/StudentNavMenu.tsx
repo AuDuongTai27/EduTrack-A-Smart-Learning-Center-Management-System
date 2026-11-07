@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { NavLink, Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
+import { useAuthContext } from "../../../contexts/AuthContext";
 
 interface StudentNavMenuProps {
   onLinkClick?: () => void;
@@ -8,6 +9,10 @@ interface StudentNavMenuProps {
 
 export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { dispatch } = useAuthContext();
 
   useEffect(() => {
     let isMounted = true;
@@ -33,6 +38,32 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
       window.removeEventListener("notifications-updated", handleUpdate);
     };
   }, []);
+
+  // Đóng dropup khi click bên ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (footerRef.current && !footerRef.current.contains(event.target as Node)) {
+        setIsDropupOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleGoProfile = () => {
+    setIsDropupOpen(false);
+    onLinkClick?.();
+    navigate("/student/profile");
+  };
+
+  const handleLogout = () => {
+    setIsDropupOpen(false);
+    onLinkClick?.();
+    dispatch({ type: "logout" });
+    navigate("/");
+  };
   return (
     <>
       <nav className="sidebar-nav">
@@ -126,18 +157,56 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
         </ul>
       </nav>
 
-      <div className="sidebar-footer mt-auto">
-        <Link
-          to="/student/profile"
-          className="student-chip"
-          onClick={onLinkClick}
+      <div className="sidebar-footer mt-auto" ref={footerRef}>
+        {/* Dropup Menu */}
+        {isDropupOpen && (
+          <div className="sidebar-user-dropup">
+            <div className="px-3 py-2 border-bottom mb-1">
+              <div className="fw-bold text-dark text-truncate" style={{ fontSize: "13px" }}>
+                Lê Văn An
+              </div>
+              <div className="text-muted text-truncate" style={{ fontSize: "11px" }}>
+                Học sinh · Lớp 9
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="sidebar-dropup-item"
+              onClick={handleGoProfile}
+            >
+              <i className="bi bi-person-gear text-primary fs-6" />
+              <span>Chỉnh sửa hồ sơ</span>
+            </button>
+
+            <div className="my-1 border-top" style={{ borderColor: "var(--et-border-subtle)" }} />
+
+            <button
+              type="button"
+              className="sidebar-dropup-item text-danger"
+              onClick={handleLogout}
+            >
+              <i className="bi bi-box-arrow-right fs-6" />
+              <span>Đăng xuất</span>
+            </button>
+          </div>
+        )}
+
+        {/* Clickable Avatar Chip */}
+        <button
+          type="button"
+          className={`student-chip-btn ${isDropupOpen ? "active" : ""}`}
+          onClick={() => setIsDropupOpen(!isDropupOpen)}
+          title="Tài khoản học sinh"
+          aria-expanded={isDropupOpen}
         >
           <div className="student-avatar">VA</div>
           <div className="student-info">
             <div className="student-name" title="Lê Văn An">Lê Văn An</div>
             <div className="student-grade">Học sinh · Lớp 9</div>
           </div>
-        </Link>
+          <i className="bi bi-three-dots-vertical text-muted ms-auto small" />
+        </button>
       </div>
     </>
   );
