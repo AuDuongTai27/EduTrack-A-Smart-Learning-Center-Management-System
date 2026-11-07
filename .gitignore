@@ -101,6 +101,10 @@ obj/
 !/Capstone2/backend.Tests/
 !/Capstone2/backend.Tests/*.cs
 !/Capstone2/backend.Tests/*.csproj
+!/Capstone2/backend.Tests/StudentEnrollment/
+!/Capstone2/backend.Tests/StudentEnrollment/*.cs
+!/Capstone2/backend.Tests/StudentEnrollment/*.csproj
+!/Capstone2/backend.Tests/StudentEnrollment/*.ps1
 
 # Operating System Files
 .DS_Store

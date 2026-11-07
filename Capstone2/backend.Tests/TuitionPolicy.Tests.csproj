@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="StudentEnrollment/**/*.cs" />
     <Compile Include="../backend/Services/Management/TuitionPolicy.cs" Link="TuitionPolicy.cs" />
   </ItemGroup>
 </Project>

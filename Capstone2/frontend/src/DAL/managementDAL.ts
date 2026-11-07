@@ -1,6 +1,7 @@
 import {
   managementApi,
   type CreateClassRequest,
+  type CreateStudentRequest,
   type UpdateClassRequest,
   type CreateTuitionInvoiceRequest,
   type UpdateTuitionInvoiceRequest,
@@ -27,6 +28,9 @@ export interface ClassActionResult {
  * No fabricated IDs, mock entities, or local-only success responses.
  */
 export const managementDAL = {
+  async createStudent(dto: CreateStudentRequest): Promise<{ data: UserDto; isLiveApi: boolean }> {
+    return { data: await managementApi.createStudent(dto), isLiveApi: true };
+  },
   // Users
   async createUser(dto: {
     userCode?: string;
@@ -49,6 +53,7 @@ export const managementDAL = {
       phone?: string;
       role?: string;
       specialty?: string;
+      gradeId?: number | null;
       gender?: string;
       status?: string;
     },
@@ -78,6 +83,7 @@ export const managementDAL = {
     studentId: number;
     relationship?: string;
     isPrimaryContact?: boolean;
+    updateExisting?: boolean;
   }): Promise<{ data: ParentStudentDto; isLiveApi: boolean }> {
     const created = await managementApi.assignParentStudent(dto);
     return { data: created, isLiveApi: true };

@@ -69,6 +69,8 @@ public class GradeRepository(EduTrackDbContext context) : IGradeRepository
         if (entity == null) return false;
         if (await context.Classes.AnyAsync(c => c.GradeId == id))
             throw new InvalidOperationException("Không thể xóa khối lớp đang có Class liên kết, kể cả lớp Inactive hoặc Completed. Hãy giữ khối để bảo toàn lịch sử.");
+        if (await context.Users.AnyAsync(u => u.GradeId == id))
+            throw new InvalidOperationException("Không thể xóa khối lớp đang được hồ sơ học sinh sử dụng. Hãy giữ khối để bảo toàn dữ liệu.");
         context.Grades.Remove(entity);
         await context.SaveChangesAsync();
         await transaction.CommitAsync();

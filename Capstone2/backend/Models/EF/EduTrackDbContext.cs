@@ -77,6 +77,8 @@ namespace EduTrack.API.Models.EF
             {
                 entity.HasIndex(u => u.UserCode).IsUnique();
                 entity.HasIndex(u => u.Email).IsUnique();
+                entity.HasOne(u => u.Grade).WithMany().HasForeignKey(u => u.GradeId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // 4. Classes & Academic Relationships

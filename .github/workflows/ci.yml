@@ -92,6 +92,9 @@ jobs:
       - name: Restore policy checks
         run: dotnet restore backend.Tests/TuitionPolicy.Tests.csproj
 
+      - name: Restore student enrollment checks
+        run: dotnet restore backend.Tests/StudentEnrollment/StudentEnrollment.Tests.csproj
+
       - name: Build API (Release)
         run: dotnet build backend/EduTrack.API.csproj --configuration Release --no-restore
 
@@ -103,3 +106,10 @@ jobs:
       # There is currently no Microsoft.NET.Test.Sdk / xUnit / NUnit / MSTest project.
       - name: Run Tuition Policy checks (console harness)
         run: dotnet run --project backend.Tests/TuitionPolicy.Tests.csproj --configuration Release --no-build --no-restore
+
+      - name: Build student enrollment checks (Release)
+        run: dotnet build backend.Tests/StudentEnrollment/StudentEnrollment.Tests.csproj --configuration Release --no-restore
+
+      # No --mysql: policy assertions only, no API host, configuration or database access.
+      - name: Run Student Enrollment policy checks (console harness)
+        run: dotnet run --project backend.Tests/StudentEnrollment/StudentEnrollment.Tests.csproj --configuration Release --no-build --no-restore

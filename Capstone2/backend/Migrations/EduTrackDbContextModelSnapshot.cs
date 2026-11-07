@@ -1162,6 +1162,10 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("varchar(20)")
                         .HasColumnName("gender");
 
+                    b.Property<int?>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -1194,6 +1198,8 @@ namespace EduTrack.API.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("GradeId");
 
                     b.HasIndex("UserCode")
                         .IsUnique();
@@ -1626,6 +1632,16 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Class");
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.User", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Grade", "Grade")
+                        .WithMany()
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Grade");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.UserRole", b =>
