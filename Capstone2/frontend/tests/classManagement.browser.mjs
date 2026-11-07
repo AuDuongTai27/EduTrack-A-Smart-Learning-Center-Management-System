@@ -52,8 +52,10 @@ const summary=[];
 const writes=[];
 const waiting=new Map();
 const subjects=[{subjectId:42,subjectName:'Toán 7',subjectCode:'MATH7'},{subjectId:57,subjectName:'Tiếng Anh 7',subjectCode:'ENG7'}];
+const grades=Array.from({length:12},(_,index)=>({gradeId:index+1,gradeName:`Khối ${index+1}`}));
 function freshClasses(count=24) {
   return Array.from({length:count},(_,index)=>({classId:100+index,className:`Lớp ${String(index+1).padStart(2,'0')}`,
+    gradeId:index%3===0?null:index%3===1?7:8,gradeName:index%3===0?null:index%3===1?'Khối 7':'Khối 8',
     subjectId:index%2?57:42,subjectName:index%2?'Tiếng Anh 7':'Toán 7',subjectCode:index%2?'ENG7':'MATH7',room:null,
     tuitionFee:1_250_000,startDate:'2026-11-06',endDate:null,status:index%2?'inactive':'active'}));
 }
@@ -61,6 +63,7 @@ const reset=(mode='ready',count=24)=>{state={mode,classes:freshClasses(count)};}
 function fixture(endpoint) {
   if(endpoint==='/api/classes')return state.classes;
   if(endpoint==='/api/subjects')return subjects;
+  if(endpoint==='/api/grades')return grades;
   if(endpoint==='/api/centersettings')return [{settingId:1,settingKey:'center_name',settingValue:'EduTrack Class QA'}];
   if(/^\/api\/classes\/\d+$/.test(endpoint)){
     const item=state.classes.find(c=>c.classId===Number(endpoint.split('/').at(-1)));
@@ -86,17 +89,17 @@ async function paused(event) {
       if((method==='POST'&&state.mode==='post400')||(method==='PUT'&&state.mode==='put400'))return fulfill(JSON.stringify({errors:{ClassName:['Tên lớp không được chấp nhận trong kiểm thử.']}}),'application/json',400);
       if(method==='DELETE'&&state.mode==='delete400')return fulfill(JSON.stringify({message:'Không thể xóa lớp vì có học viên đăng ký.'}),'application/json',400);
       if(method==='POST'){
-        const item={...data,classId:900+writes.length,subjectName:subjects.find(s=>s.subjectId===data.subjectId)?.subjectName};
+        const item={...data,classId:900+writes.length,gradeName:grades.find(g=>g.gradeId===data.gradeId)?.gradeName??null,subjectName:subjects.find(s=>s.subjectId===data.subjectId)?.subjectName};
         state.classes=[item,...state.classes];return fulfill(JSON.stringify(item),'application/json',201);
       }
       const id=Number(endpoint.split('/').at(-1));
       if(method==='PUT'){
-        const item={...state.classes.find(c=>c.classId===id),...data};state.classes=state.classes.map(c=>c.classId===id?item:c);
+        const item={...state.classes.find(c=>c.classId===id),...data,gradeName:grades.find(g=>g.gradeId===data.gradeId)?.gradeName??null};state.classes=state.classes.map(c=>c.classId===id?item:c);
         return fulfill(JSON.stringify(item));
       }
       state.classes=state.classes.filter(c=>c.classId!==id);return fulfill(JSON.stringify({message:'Đã xóa lớp học.'}));
     }
-    if((state.mode==='classes503'&&endpoint==='/api/classes')||(state.mode==='subjects503'&&endpoint==='/api/subjects')
+    if((state.mode==='classes503'&&endpoint==='/api/classes')||(state.mode==='subjects503'&&endpoint==='/api/subjects')||(state.mode==='grades503'&&endpoint==='/api/grades')
       ||(state.mode==='detail503'&&/^\/api\/classes\/\d+$/.test(endpoint))||(state.mode==='teacher503'&&endpoint==='/api/teacherclasses'))
       return fulfill(JSON.stringify({message:'Class QA unavailable'}),'application/json',503);
     if(state.mode==='hold-classes'&&endpoint==='/api/classes'){waiting.set(event.requestId,{event,body:fixture(endpoint)});return;}
@@ -127,10 +130,10 @@ async function value(selector,text){
 async function navigate(route){await send('Page.navigate',{url:origin+route});await until("!!document.querySelector('.page-title')",route+' header');}
 const table="document.querySelector('table[aria-label=\"Danh sách lớp học\"]')";
 const rows=`[...${table}.querySelectorAll('tbody tr')].filter(r=>!r.querySelector('td[colspan]'))`;
-async function listReady(count=10){await until(`${rows}.length===${count}`,'class list '+count);}
+async function listReady(count=10){await clickText('Tất cả lớp');await until(`${rows}.length===${count}`,'class list '+count);}
 async function action(title){await evaluate(`document.querySelector('button[title='+${JSON.stringify(JSON.stringify(title))}+']').click()`);}
 async function fillValid(name='QA New Class'){
-  await value('[name="className"]',name);await value('[name="subjectId"]','42');await value('[name="tuitionFee"]','0');
+  await value('[name="className"]',name);await value('[name="gradeId"]','7');await value('[name="subjectId"]','42');await value('[name="tuitionFee"]','0');
   await value('[name="startDate"]','2026-11-06');await value('[name="endDate"]','2026-12-06');
 }
 async function checkModalFits(label){
@@ -141,6 +144,31 @@ async function scenario(role,viewport){
   const route=`/${role}/classes`,label=viewport+' '+role;
   reset();await navigate(route);await listReady();
   assert.equal(await evaluate(`${rows}[0].querySelectorAll('td')[2].textContent.trim()`),'Lớp 01');
+  assert.equal(await evaluate(`${rows}[0].textContent.includes('Chưa phân loại')`),true);
+  await clickText('Theo khối lớp');
+  await until("document.querySelectorAll('[aria-label=\"Lớp học theo khối\"] details').length===3",'three real grade groups');
+  assert.deepEqual(await evaluate("[...document.querySelectorAll('details summary')].map(n=>n.firstChild.textContent.trim())"),['Khối 7','Khối 8','Chưa phân loại']);
+  assert.equal(await evaluate("document.querySelectorAll('[aria-label=\"Lớp học theo khối\"] a.btn').length"),24,'grouping includes all filtered classes across table pages');
+  await evaluate("document.querySelector('details summary').click()");
+  assert.equal(await evaluate("document.querySelector('details').open"),false,'group collapses');
+  await evaluate("document.querySelector('details summary').click()");
+  assert.equal(await evaluate("document.querySelector('details').open"),true,'group expands');
+  assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth+1"),true,label+' grouped view fits viewport');
+  const groupShot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+  fs.writeFileSync(path.join(output,viewport+'-'+role+'-groups.png'),Buffer.from(groupShot.data,'base64'));
+  await value('[aria-label="Lọc khối lớp"]','7');
+  await until("document.querySelectorAll('details').length===1&&document.querySelectorAll('details a.btn').length===8",'grade filter in grouped view');
+  await clickText('Tất cả lớp');await listReady(8);
+  assert.equal(await evaluate(`${rows}.every(r=>r.textContent.includes('Khối 7'))`),true,'view switch keeps grade filter');
+  await value('[aria-label="Lọc khối lớp"]','unclassified');await listReady(8);
+  assert.equal(await evaluate(`${rows}.every(r=>r.textContent.includes('Chưa phân loại'))`),true);
+  await value('[aria-label="Lọc khối lớp"]','All');await listReady();
+  await clickText('Theo khối lớp');await until("document.querySelectorAll('details').length===3",'group links');
+  await evaluate("document.querySelector('details a.btn').click()");
+  await until("!!document.querySelector('[aria-label=\"Chi tiết lớp học\"]')",'group link opens existing details');
+  assert.equal(await evaluate("document.querySelector('[role=tabpanel]').textContent.includes('Khối 7')"),true,'details displays the explicit grade');
+  await navigate(route);await listReady();
+  summary.push(label+' grade tabs, all-page grouping, collapse/expand, grade/legacy filters and details link');
   await value('[aria-label="Tìm tên lớp"]','  Lớp 23 ');await listReady(1);
   await value('[aria-label="Tìm tên lớp"]','');await value('[aria-label="Lọc môn học"]','42');await value('[aria-label="Lọc trạng thái"]','active');await listReady();
   assert.equal(await evaluate(`${rows}.every(r=>r.textContent.includes('Toán 7')&&r.querySelectorAll('td')[7].textContent.trim().toLowerCase()==='active')`),true);
@@ -171,7 +199,7 @@ async function scenario(role,viewport){
   assert.equal(await evaluate("document.querySelector('[name=className]').value"),'QA New Class');
   state.mode='ready';await evaluate("(()=>{const b=document.querySelector('.modal-footer button[type=submit]');b.click();b.click();})()");
   await until("!document.querySelector('.modal')",'POST success');assert.equal(writes.length,before+2,'one failed POST and one successful POST');
-  assert.deepEqual(writes.at(-1).data,{className:'QA New Class',subjectId:42,room:null,tuitionFee:0,startDate:'2026-11-06',endDate:'2026-12-10',status:'upcoming'});
+  assert.deepEqual(writes.at(-1).data,{className:'QA New Class',gradeId:7,subjectId:42,room:null,tuitionFee:0,startDate:'2026-11-06',endDate:'2026-12-10',status:'upcoming'});
   await value('[aria-label="Tìm tên lớp"]','QA New Class');await listReady(1);
   assert.equal(await evaluate(`${rows}[0].textContent.includes('QA New Class')`),true);
   summary.push(label+' search/filter/sort/pagination and create validation/API failure/success');
@@ -192,6 +220,25 @@ async function scenario(role,viewport){
   assert.equal(writes.at(-1).endpoint,'/api/classes/100');
   assert.equal(writes.at(-1).data.tuitionFee,4321000,'formatted class fee is submitted as a number');
   summary.push(label+' edit fresh GET, GET/PUT failure and retained draft');
+
+  reset();await navigate(route);await listReady();await action('Sửa Lớp 01');
+  await until("!!document.querySelector('[name=gradeId]')",'legacy edit');
+  assert.equal(await evaluate("document.querySelector('[name=gradeId]').value"),'','legacy stays unclassified');
+  await value('[name="className"]','Legacy retained');await clickText('Lưu thay đổi');
+  await until("!document.querySelector('.modal')",'legacy save');assert.equal(writes.at(-1).data.gradeId,null);
+  await action('Sửa Legacy retained');await until("!!document.querySelector('[name=gradeId]')",'classify legacy');
+  await value('[name="gradeId"]','8');await clickText('Lưu thay đổi');
+  await until("!document.querySelector('.modal')",'grade edit save');assert.equal(writes.at(-1).data.gradeId,8);
+  await value('[aria-label="Lọc khối lớp"]','8');await listReady(9);
+  assert.equal(await evaluate(`${rows}.some(r=>r.textContent.includes('Legacy retained'))`),true);
+  reset('grades503');await navigate(route);await listReady();await clickText('Theo khối lớp');
+  await until("document.querySelectorAll('details').length===3",'groups survive grade catalogue failure');
+  await clickText('Add Class');await until("!!document.querySelector('[name=gradeId]')",'catalogue error in form');
+  assert.equal(await evaluate("document.querySelector('.modal-footer button[type=submit]').disabled"),true);
+  state.mode='ready';await clickText('Tải lại khối lớp',"document.querySelector('.modal')");
+  await until("!document.querySelector('.modal-footer button[type=submit]').disabled",'grade catalogue retry');
+  await clickText('Hủy bỏ');
+  summary.push(label+' legacy scalar edit, grade reassignment and independent grade-catalogue error/retry');
 
   reset('ready',21);await navigate(route);await listReady();await clickText('3',"document.querySelector('nav .pagination')");await listReady(1);
   await action('Xóa Lớp 21');state.mode='delete400';await clickText('Xác nhận xóa');
@@ -240,7 +287,7 @@ async function scenario(role,viewport){
 }
 try {
   const ws = await new Promise((resolve,reject) => {
-    chrome = spawn(process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', ['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'], {windowsHide:true,stdio:['ignore','ignore','pipe']});
+    chrome = spawn(process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', ['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--remote-debugging-port=0','--user-data-dir='+profile,...JSON.parse(process.env.CHROME_ARGS_JSON || '[]'),'about:blank'], {windowsHide:true,stdio:['ignore','ignore','pipe']});
     const timer = setTimeout(()=>reject(new Error('Chrome startup timed out')),10000);
     chrome.on('error',reject);
     chrome.stderr.on('data', chunk => { const match = chunk.toString().match(/DevTools listening on (ws:\/\/\S+)/); if(match) {clearTimeout(timer); resolve(match[1]);} });

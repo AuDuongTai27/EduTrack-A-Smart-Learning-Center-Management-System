@@ -6,6 +6,8 @@ import { classError } from "../../BLL/services/classManagementService";
 import type { ClassQuery, ClassDetailData } from "../../BLL/models/ClassManagement";
 import type { ClassDto } from "../../BLL/models/ClassDto";
 import type { SubjectDto } from "../../BLL/models/SubjectDto";
+import type { GradeDto } from "../../BLL/models/GradeDto";
+import { gradeApi } from "../../api/gradeApi";
 
 const initial = <T>(): ClassQuery<T> => ({data: null, loading: true, error: null});
 async function read<T>(request: () => Promise<T>): Promise<ClassQuery<T>> {
@@ -15,11 +17,13 @@ async function read<T>(request: () => Promise<T>): Promise<ClassQuery<T>> {
 export function useClassManagement() {
   const [classes, setClasses] = useState<ClassQuery<ClassDto[]>>(initial);
   const [subjects, setSubjects] = useState<ClassQuery<SubjectDto[]>>(initial);
+  const [grades, setGrades] = useState<ClassQuery<GradeDto[]>>(initial);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision(value => value + 1), []);
   useEffect(() => {
     let active = true;
-    setClasses(initial()); setSubjects(initial());
+    setClasses(initial()); setSubjects(initial()); setGrades(initial());
+    void read(() => gradeApi.getAll()).then(result => {if (active) setGrades(result);});
     void read(async () => (await classDAL.getAllClasses()).data).then(result => {if (active) setClasses(result);});
     void read(async () => {
       const result = await subjectDAL.getAllSubjects();
@@ -28,7 +32,7 @@ export function useClassManagement() {
     }).then(result => {if (active) setSubjects(result);});
     return () => {active = false;};
   }, [revision]);
-  return {classes, subjects, refresh};
+  return {classes, subjects, grades, refresh};
 }
 
 type DetailState = {[K in keyof ClassDetailData]: ClassQuery<ClassDetailData[K]>};

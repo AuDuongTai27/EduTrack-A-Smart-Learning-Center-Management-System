@@ -4,6 +4,7 @@ import type { ClassScheduleDto } from "./ClassScheduleDto";
 export type ManagementRole = "center-manager" | "admin-staff";
 export interface ClassFormValues {
   className: string;
+  gradeId: string;
   subjectId: string;
   room: string;
   tuitionFee: string;

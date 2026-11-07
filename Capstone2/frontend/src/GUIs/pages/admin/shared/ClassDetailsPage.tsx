@@ -5,7 +5,7 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
 import { useClassDetails } from "../../../hooks/useClassManagement";
 import type { ClassQuery, ManagementRole } from "../../../../BLL/models/ClassManagement";
-import { classDate } from "../../../../BLL/services/classManagementService";
+import { classDate, classGradeLabel } from "../../../../BLL/services/classManagementService";
 import { formatVND } from "../../../utils/formatCurrency";
 import ClassStaffAssignments from "../../../components/management/classes/ClassStaffAssignments";
 
@@ -34,7 +34,7 @@ export default function ClassDetailsPage({role}: {role: ManagementRole}) {
         : sections.overview.error ? <div className="alert alert-danger" role="alert">{sections.overview.error} <button type="button" className="btn btn-sm btn-outline-danger" onClick={refresh}>Thử lại</button></div>
           : item && <>
             <div className="card border-0 shadow-sm mb-4"><div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
-              <div><span className="badge bg-light text-primary border mb-2">#CLS{item.classId}</span><h4 className="fw-bold text-dark mb-0 text-break">{item.className}</h4></div>
+              <div><span className="badge bg-light text-primary border mb-2">#CLS{item.classId}</span><span className="badge bg-light text-secondary border ms-2">{classGradeLabel(item)}</span><h4 className="fw-bold text-dark mb-0 text-break">{item.className}</h4></div>
               <DotStatusBadge status={item.status} />
             </div></div>
             <div className="card border-0 shadow-sm mb-4">
@@ -44,7 +44,7 @@ export default function ClassDetailsPage({role}: {role: ManagementRole}) {
               </div></div>
               <div className="card-body p-4" role="tabpanel" aria-label={tab}>
                 {tab === "Overview" && <div className="row g-3">
-                  {[["Tên lớp học", item.className], ["Trạng thái", item.status], ["Ngày khai giảng", classDate(item.startDate)],
+                  {[["Tên lớp học", item.className], ["Khối lớp (Grade)", classGradeLabel(item)], ["Trạng thái", item.status], ["Ngày khai giảng", classDate(item.startDate)],
                     ["Kết thúc dự kiến", item.endDate ? classDate(item.endDate) : "Chưa xác định"], ["Phòng học", item.room || "Chưa xếp phòng"],
                     ["Học phí/tháng của lớp", formatVND(item.tuitionFee)]].map(([label, value]) => <div className="col-md-6" key={label}><div className="bg-light rounded-3 p-3 h-100">
                       <small className="text-muted d-block mb-1">{label}</small><strong className="text-break">{value}</strong>

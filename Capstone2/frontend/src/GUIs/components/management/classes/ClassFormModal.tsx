@@ -5,11 +5,13 @@ import MoneyInput from "../../Common/MoneyInput";
 import type { ClassFormValues, ClassQuery } from "../../../../BLL/models/ClassManagement";
 import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import type { GradeDto } from "../../../../BLL/models/GradeDto";
 import { CLASS_STATUSES, CREATE_CLASS_STATUSES, classError, classFormPayload, classToForm, emptyClassForm, suggestedClassEndDate, validateClassForm } from "../../../../BLL/services/classManagementService";
 
 interface Props {
   classId?: number;
   subjects: ClassQuery<SubjectDto[]>;
+  grades: ClassQuery<GradeDto[]>;
   onRetrySubjects: () => void;
   onClose: () => void;
   onSaved: (item: ClassDto) => void;
@@ -19,7 +21,7 @@ const FIELD_PLACEHOLDERS: Partial<Record<keyof ClassFormValues, string>> = {
   tuitionFee: "VD: 1.700.000",
   room: "VD: Phòng A101",
 };
-export default function ClassFormModal({classId, subjects, onRetrySubjects, onClose, onSaved}: Props) {
+export default function ClassFormModal({classId, subjects, grades, onRetrySubjects, onClose, onSaved}: Props) {
   const statusOptions = classId ? CLASS_STATUSES : CREATE_CLASS_STATUSES;
   const [form, setForm] = useState<ClassFormValues | null>(() => classId ? null : emptyClassForm());
   const [loading, setLoading] = useState(!!classId);
@@ -27,6 +29,7 @@ export default function ClassFormModal({classId, subjects, onRetrySubjects, onCl
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [retry, setRetry] = useState(0);
+  const [allowUnclassified, setAllowUnclassified] = useState(false);
   const mounted = useRef(false);
   const savingRef = useRef(false);
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function ClassFormModal({classId, subjects, onRetrySubjects, onCl
       setForm(null); setLoading(true); setError(null);
       classDAL.getClassById(classId).then(item => {
         if (!item) throw new Error("Không tìm thấy lớp học.");
-        if (active) setForm(classToForm(item));
+        if (active) {setForm(classToForm(item)); setAllowUnclassified(item.gradeId == null);}
       }).catch(cause => {if (active) setError(classError(cause));})
         .finally(() => {if (active) setLoading(false);});
     }
@@ -67,8 +70,8 @@ export default function ClassFormModal({classId, subjects, onRetrySubjects, onCl
   );
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form || savingRef.current || subjects.loading || !subjects.data) return;
-    const validation = validateClassForm(form, subjects.data, classId ? "edit" : "create");
+    if (!form || savingRef.current || subjects.loading || !subjects.data || grades.loading || !grades.data) return;
+    const validation = validateClassForm(form, subjects.data, classId ? "edit" : "create", grades.data, allowUnclassified);
     setErrors(validation); setError(null);
     if (Object.keys(validation).length) return;
     savingRef.current = true; setSaving(true);
@@ -99,15 +102,21 @@ export default function ClassFormModal({classId, subjects, onRetrySubjects, onCl
                 <div className="row g-3">
                   {input("className", "Tên lớp học", "text", true, 150)}
                   <div className="col-md-6">
-                    <label className="form-label fw-semibold" htmlFor="class-status">Trạng thái lớp <span className="text-danger">*</span></label>
-                    <select id="class-status" name="status" className="form-select" value={form.status} onChange={event => change("status", event.target.value)}>
-                      {classId && !statusOptions.includes(form.status) && <option value={form.status}>{form.status}</option>}
-                      {statusOptions.map(status => <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>)}
+                    <label className="form-label fw-semibold" htmlFor="class-gradeId">Khối lớp (Grade){!allowUnclassified && <span className="text-danger"> *</span>}</label>
+                    <select id="class-gradeId" name="gradeId" className={`form-select${errors.gradeId ? " is-invalid" : ""}`}
+                      value={form.gradeId} disabled={grades.loading || !grades.data?.length} required={!allowUnclassified}
+                      aria-invalid={!!errors.gradeId} aria-describedby={errors.gradeId ? "error-gradeId" : undefined}
+                      onChange={event => change("gradeId", event.target.value)}>
+                      <option value="" disabled={!allowUnclassified}>{allowUnclassified ? "Chưa phân loại" : "Chọn khối lớp"}</option>
+                      {form.gradeId && !grades.data?.some(grade => String(grade.gradeId) === form.gradeId)
+                        && <option value={form.gradeId} disabled>Khối hiện tại #{form.gradeId} chưa có trong danh mục</option>}
+                      {grades.data?.map(grade => <option key={grade.gradeId} value={String(grade.gradeId)}>{grade.gradeName}</option>)}
                     </select>
-                    {errors.status && <div className="text-danger small">{errors.status}</div>}
+                    {errors.gradeId && <div id="error-gradeId" className="invalid-feedback">{errors.gradeId}</div>}
+                    {grades.loading ? <div className="small text-muted" role="status">Đang tải khối lớp...</div>
+                      : grades.error ? <div className="alert alert-warning mt-2" role="alert">{grades.error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onRetrySubjects}>Tải lại khối lớp</button></div>
+                        : grades.data?.length === 0 && <div className="alert alert-warning mt-2">Chưa có danh mục khối lớp. Vui lòng tải lại sau.</div>}
                   </div>
-                  {input("startDate", "Ngày khai giảng", "date", true)}
-                  {input("endDate", "Ngày kết thúc dự kiến", "date")}
                 </div>
                 <h6 className="fw-bold mt-4 mb-3">B. Môn học và học phí</h6>
                 {subjects.loading ? <div className="text-muted small" role="status">Đang tải danh sách môn học...</div>
@@ -128,12 +137,24 @@ export default function ClassFormModal({classId, subjects, onRetrySubjects, onCl
                   {input("tuitionFee", "Học phí/tháng", "text", true)}
                 </div>
                 <h6 className="fw-bold mt-4 mb-3">C. Phòng học và lịch học</h6>
-                <div className="row g-3">{input("room", "Phòng học (tùy chọn)", "text", false, 50)}</div>
+                <div className="row g-3">
+                  {input("startDate", "Ngày khai giảng", "date", true)}
+                  {input("endDate", "Ngày kết thúc dự kiến", "date")}
+                  {input("room", "Phòng học (tùy chọn)", "text", false, 50)}
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold" htmlFor="class-status">Trạng thái lớp <span className="text-danger">*</span></label>
+                    <select id="class-status" name="status" className="form-select" value={form.status} onChange={event => change("status", event.target.value)}>
+                      {classId && !statusOptions.includes(form.status) && <option value={form.status}>{form.status}</option>}
+                      {statusOptions.map(status => <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>)}
+                    </select>
+                    {errors.status && <div className="text-danger small">{errors.status}</div>}
+                  </div>
+                </div>
               </fieldset>}
             </div>
             <div className="modal-footer bg-light">
               <button type="button" className="btn btn-outline-secondary" disabled={saving} onClick={onClose}>Hủy bỏ</button>
-              <button type="submit" className="btn btn-primary" disabled={saving || loading || !form || subjects.loading || !subjects.data?.length}>
+              <button type="submit" className="btn btn-primary" disabled={saving || loading || !form || subjects.loading || !subjects.data?.length || grades.loading || !grades.data?.length}>
                 {saving ? "Đang lưu..." : classId ? "Lưu thay đổi" : "Tạo lớp học"}
               </button>
             </div>

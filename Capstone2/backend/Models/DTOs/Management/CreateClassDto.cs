@@ -14,6 +14,10 @@ namespace EduTrack.API.Models.DTOs.Management
         [Required(ErrorMessage = "Môn học không được để trống")]
         public int SubjectId { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn khối lớp.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn khối lớp hợp lệ.")]
+        public int? GradeId { get; set; }
+
         [StringLength(50)]
         public string? Room { get; set; }
 

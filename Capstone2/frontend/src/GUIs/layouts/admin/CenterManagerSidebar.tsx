@@ -64,6 +64,10 @@ export default function CenterManagerSidebar() {
             <i className="bi bi-journal-bookmark-fill" />
             <span>Subjects</span>
           </NavLink>
+          <NavLink className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} to="/center-manager/grades">
+            <i className="bi bi-layers" />
+            <span>Grades</span>
+          </NavLink>
           <NavLink
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             to="/center-manager/classes"

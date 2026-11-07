@@ -1,0 +1,3 @@
+# Preserve the exact UTF-8/BOM and line-ending bytes of the reviewed migration.
+# Its approved SHA-256 must survive staging, pushing and checkout on any OS.
+Capstone2/db/migrations/AddGradeClassification.review.sql -text

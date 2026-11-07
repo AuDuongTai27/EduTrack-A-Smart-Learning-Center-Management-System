@@ -16,6 +16,7 @@ namespace EduTrack.API.Models.EF
         public virtual DbSet<ParentStudent> ParentStudents { get; set; } = null!;
         public virtual DbSet<Subject> Subjects { get; set; } = null!;
         public virtual DbSet<Class> Classes { get; set; } = null!;
+        public virtual DbSet<Grade> Grades { get; set; } = null!;
         public virtual DbSet<TeacherClass> TeacherClasses { get; set; } = null!;
         public virtual DbSet<TaClass> TaClasses { get; set; } = null!;
         public virtual DbSet<StudentClass> StudentClasses { get; set; } = null!;
@@ -79,6 +80,17 @@ namespace EduTrack.API.Models.EF
             });
 
             // 4. Classes & Academic Relationships
+            modelBuilder.Entity<Grade>(entity =>
+            {
+                entity.Property(g => g.GradeId).ValueGeneratedNever();
+                entity.HasData(Enumerable.Range(1, 12)
+                    .Select(id => new Grade { GradeId = id, GradeName = $"Khối {id}" }));
+            });
+
+            modelBuilder.Entity<Class>()
+                .HasOne(c => c.Grade).WithMany(g => g.Classes)
+                .HasForeignKey(c => c.GradeId).OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<TeacherClass>(entity =>
             {
                 entity.HasIndex(tc => new { tc.TeacherId, tc.ClassId }).IsUnique();

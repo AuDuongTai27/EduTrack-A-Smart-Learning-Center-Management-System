@@ -93,6 +93,15 @@ obj/
 !.vscode/extensions.json
 *.code-workspace
 
+# Local database backups and restore-test evidence contain real application data.
+/Capstone2/db/backups/
+
+# Keep the existing database-free policy checks available to CI, even when a
+# developer's local .git/info/exclude hides the backend.Tests directory.
+!/Capstone2/backend.Tests/
+!/Capstone2/backend.Tests/*.cs
+!/Capstone2/backend.Tests/*.csproj
+
 # Operating System Files
 .DS_Store
 Thumbs.db

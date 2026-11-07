@@ -338,6 +338,10 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("end_date");
 
+                    b.Property<int?>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
                     b.Property<string>("Room")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)")
@@ -362,6 +366,8 @@ namespace EduTrack.API.Migrations
                         .HasColumnName("tuition_fee");
 
                     b.HasKey("ClassId");
+
+                    b.HasIndex("GradeId");
 
                     b.HasIndex("SubjectId");
 
@@ -500,6 +506,85 @@ namespace EduTrack.API.Migrations
                     b.HasIndex("ParentUnitId");
 
                     b.ToTable("content_units");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.Grade", b =>
+                {
+                    b.Property<int>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
+                    b.Property<string>("GradeName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("grade_name");
+
+                    b.HasKey("GradeId");
+
+                    b.ToTable("grades");
+
+                    b.HasData(
+                        new
+                        {
+                            GradeId = 1,
+                            GradeName = "Khối 1"
+                        },
+                        new
+                        {
+                            GradeId = 2,
+                            GradeName = "Khối 2"
+                        },
+                        new
+                        {
+                            GradeId = 3,
+                            GradeName = "Khối 3"
+                        },
+                        new
+                        {
+                            GradeId = 4,
+                            GradeName = "Khối 4"
+                        },
+                        new
+                        {
+                            GradeId = 5,
+                            GradeName = "Khối 5"
+                        },
+                        new
+                        {
+                            GradeId = 6,
+                            GradeName = "Khối 6"
+                        },
+                        new
+                        {
+                            GradeId = 7,
+                            GradeName = "Khối 7"
+                        },
+                        new
+                        {
+                            GradeId = 8,
+                            GradeName = "Khối 8"
+                        },
+                        new
+                        {
+                            GradeId = 9,
+                            GradeName = "Khối 9"
+                        },
+                        new
+                        {
+                            GradeId = 10,
+                            GradeName = "Khối 10"
+                        },
+                        new
+                        {
+                            GradeId = 11,
+                            GradeName = "Khối 11"
+                        },
+                        new
+                        {
+                            GradeId = 12,
+                            GradeName = "Khối 12"
+                        });
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>
@@ -1265,11 +1350,18 @@ namespace EduTrack.API.Migrations
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Class", b =>
                 {
+                    b.HasOne("EduTrack.API.Models.Entities.Grade", "Grade")
+                        .WithMany("Classes")
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("EduTrack.API.Models.Entities.Subject", "Subject")
                         .WithMany("Classes")
                         .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Grade");
 
                     b.Navigation("Subject");
                 });
@@ -1600,6 +1692,11 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Assignments");
 
                     b.Navigation("SubUnits");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.Grade", b =>
+                {
+                    b.Navigation("Classes");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>

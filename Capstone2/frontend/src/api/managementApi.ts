@@ -10,6 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 export interface CreateClassRequest {
   className: string;
+  gradeId: number | null;
   subjectId: number;
   room?: string | null;
   tuitionFee: number;
@@ -20,6 +21,7 @@ export interface CreateClassRequest {
 
 export interface UpdateClassRequest {
   className: string;
+  gradeId: number | null;
   subjectId: number;
   room?: string | null;
   tuitionFee: number;

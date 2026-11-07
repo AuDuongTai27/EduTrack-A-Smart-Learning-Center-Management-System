@@ -12,21 +12,25 @@ namespace EduTrack.API.Services.Management.Implementation
     {
         private readonly IClassRepository _repository;
         private readonly ISubjectRepository _subjects;
+        private readonly IGenericRepository<Grade> _grades;
 
-        public ManagementClassService(IClassRepository repository, ISubjectRepository subjects)
+        public ManagementClassService(IClassRepository repository, ISubjectRepository subjects, IGenericRepository<Grade> grades)
         {
             _repository = repository;
             _subjects = subjects;
+            _grades = grades;
         }
 
         public async Task<ClassDto> CreateClassAsync(CreateClassDto dto)
         {
+            await EnsureGradeAsync(dto.GradeId);
             ClassValidation.EnsureValid(dto.ClassName, dto.SubjectId, dto.Room, dto.TuitionFee, dto.StartDate, dto.EndDate, dto.Status, creating: true);
             if (await _subjects.GetByIdAsync(dto.SubjectId) == null)
                 throw new ArgumentException("Môn học đã chọn không tồn tại. Vui lòng tải lại danh sách môn học.");
             var newClass = new Class
             {
                 ClassName = dto.ClassName.Trim(),
+                GradeId = dto.GradeId,
                 SubjectId = dto.SubjectId,
                 Room = string.IsNullOrWhiteSpace(dto.Room) ? null : dto.Room.Trim(),
                 TuitionFee = dto.TuitionFee,
@@ -45,11 +49,15 @@ namespace EduTrack.API.Services.Management.Implementation
             var existing = await _repository.GetByIdAsync(id);
             if (existing == null) return null;
 
+            // Legacy classes may stay unclassified; a classified class cannot lose its grade.
+            await EnsureGradeAsync(dto.GradeId, allowUnclassified: existing.GradeId == null);
+
             ClassValidation.EnsureValid(dto.ClassName, dto.SubjectId, dto.Room, dto.TuitionFee, dto.StartDate, dto.EndDate, dto.Status);
             if (await _subjects.GetByIdAsync(dto.SubjectId) == null)
                 throw new ArgumentException("Môn học đã chọn không tồn tại. Vui lòng tải lại danh sách môn học.");
 
             existing.ClassName = dto.ClassName.Trim();
+            existing.GradeId = dto.GradeId;
             existing.SubjectId = dto.SubjectId;
             existing.Room = string.IsNullOrWhiteSpace(dto.Room) ? null : dto.Room.Trim();
             existing.TuitionFee = dto.TuitionFee;
@@ -83,12 +91,21 @@ namespace EduTrack.API.Services.Management.Implementation
             }
         }
 
+        private async Task EnsureGradeAsync(int? gradeId, bool allowUnclassified = false)
+        {
+            if (gradeId == null && allowUnclassified) return;
+            if (gradeId is null or <= 0 || await _grades.GetByIdAsync(gradeId.Value) == null)
+                throw new ArgumentException("Vui lòng chọn khối lớp hợp lệ từ danh mục hiện tại.");
+        }
+
         private static ClassDto MapToDto(Class x)
         {
             return new ClassDto
             {
                 ClassId = x.ClassId,
                 ClassName = x.ClassName,
+                GradeId = x.GradeId,
+                GradeName = x.Grade?.GradeName,
                 SubjectId = x.SubjectId,
                 SubjectName = x.Subject?.SubjectName ?? string.Empty,
                 SubjectCode = x.Subject?.SubjectCode ?? string.Empty,

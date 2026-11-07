@@ -1,14 +1,15 @@
 import type { ClassDto } from "../models/ClassDto";
 import type { SubjectDto } from "../models/SubjectDto";
 import type { ClassFormValues } from "../models/ClassManagement";
+import type { GradeDto } from "../models/GradeDto";
 
 export const CLASS_STATUSES = ["active", "upcoming", "completed", "inactive"];
 export const CREATE_CLASS_STATUSES = ["active", "upcoming"];
 export function emptyClassForm(): ClassFormValues {
-  return {className: "", subjectId: "", room: "", tuitionFee: "", startDate: "", endDate: "", status: "active"};
+  return {className: "", gradeId: "", subjectId: "", room: "", tuitionFee: "", startDate: "", endDate: "", status: "active"};
 }
 export function classToForm(item: ClassDto): ClassFormValues {
-  return {className: item.className, subjectId: String(item.subjectId), room: item.room ?? "",
+  return {className: item.className, gradeId: item.gradeId == null ? "" : String(item.gradeId), subjectId: String(item.subjectId), room: item.room ?? "",
     tuitionFee: String(item.tuitionFee), startDate: item.startDate?.slice(0, 10) ?? "",
     endDate: item.endDate?.slice(0, 10) ?? "", status: item.status};
 }
@@ -24,11 +25,16 @@ export function suggestedClassEndDate(startDate: string): string {
   const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   return new Date(Date.UTC(year, month, Math.min(day, lastDay))).toISOString().slice(0, 10);
 }
-export function validateClassForm(form: ClassFormValues, subjects: SubjectDto[], mode: "create" | "edit" = "create"): Record<string, string> {
+export function validateClassForm(form: ClassFormValues, subjects: SubjectDto[], mode: "create" | "edit" = "create",
+  grades: GradeDto[] = [], allowUnclassified = false): Record<string, string> {
   const errors: Record<string, string> = {};
   if (!form.className.trim()) errors.className = "Vui lòng nhập tên lớp học.";
   else if (form.className.trim().length > 150) errors.className = "Tên lớp tối đa 150 ký tự.";
   const subjectId = Number(form.subjectId);
+  const gradeId = Number(form.gradeId);
+  if (!(mode === "edit" && allowUnclassified && form.gradeId === "")
+    && (!Number.isSafeInteger(gradeId) || !grades.some(grade => grade.gradeId === gradeId)))
+    errors.gradeId = "Vui lòng chọn khối lớp hợp lệ từ danh sách.";
   if (!Number.isSafeInteger(subjectId) || subjectId <= 0 || !subjects.some(s => s.subjectId === subjectId))
     errors.subjectId = "Vui lòng chọn môn học hợp lệ từ danh sách.";
   if (form.room.trim().length > 50) errors.room = "Phòng học tối đa 50 ký tự.";
@@ -45,16 +51,29 @@ export function validateClassForm(form: ClassFormValues, subjects: SubjectDto[],
   return errors;
 }
 export function classFormPayload(form: ClassFormValues) {
-  return {className: form.className.trim(), subjectId: Number(form.subjectId), room: form.room.trim() || null,
+  return {className: form.className.trim(), gradeId: form.gradeId === "" ? null : Number(form.gradeId), subjectId: Number(form.subjectId), room: form.room.trim() || null,
     tuitionFee: Number(form.tuitionFee), startDate: form.startDate, endDate: form.endDate || null, status: form.status};
 }
-export function filterClasses(items: ClassDto[], search: string, subject: string, status: string, sort: string) {
+export function filterClasses(items: ClassDto[], search: string, subject: string, status: string, sort: string, grade = "All") {
   const query = search.trim().toLocaleLowerCase("vi-VN");
   return items.filter(item => (!query || item.className.toLocaleLowerCase("vi-VN").includes(query))
     && (subject === "All" || String(item.subjectId) === subject)
+    && (grade === "All" || (grade === "unclassified" ? item.gradeId == null : String(item.gradeId) === grade))
     && (status === "All" || item.status.toLowerCase() === status.toLowerCase()))
     .sort((a, b) => sort === "newest" ? b.classId - a.classId : sort === "oldest" ? a.classId - b.classId
       : (sort === "za" ? -1 : 1) * a.className.localeCompare(b.className, "vi", {numeric: true}));
+}
+export function classGradeLabel(item: Pick<ClassDto, "gradeId" | "gradeName">): string {
+  return item.gradeId == null ? "Chưa phân loại" : item.gradeName || `Khối #${item.gradeId}`;
+}
+export function groupClassesByGrade(items: ClassDto[]) {
+  const groups = new Map<number | null, {gradeId: number | null; label: string; classes: ClassDto[]}>();
+  for (const item of items) {
+    const key = item.gradeId ?? null;
+    if (!groups.has(key)) groups.set(key, {gradeId: key, label: classGradeLabel(item), classes: []});
+    groups.get(key)!.classes.push(item);
+  }
+  return [...groups.values()].sort((a, b) => (a.gradeId ?? Infinity) - (b.gradeId ?? Infinity));
 }
 export function classError(cause: unknown): string {
   const message = cause instanceof Error ? cause.message : "Không thể xử lý yêu cầu. Vui lòng thử lại.";

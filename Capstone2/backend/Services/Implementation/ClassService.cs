@@ -35,6 +35,8 @@ namespace EduTrack.API.Services.Implementation
             {
                 ClassId = x.ClassId,
                 ClassName = x.ClassName,
+                GradeId = x.GradeId,
+                GradeName = x.Grade?.GradeName,
                 SubjectId = x.SubjectId,
                 SubjectName = x.Subject?.SubjectName ?? string.Empty,
                 SubjectCode = x.Subject?.SubjectCode ?? string.Empty,
