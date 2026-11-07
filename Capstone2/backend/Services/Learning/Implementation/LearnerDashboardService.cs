@@ -689,7 +689,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     var (statusType, statusIcon, statusLabel) = MapProgressNoteStatus(note.NoteType);
                     feedbacks.Add(new StudentProgressFeedbackDto
                     {
-                        AssignmentTitle = $"Nhận xét định kỳ ({note.CreatedAt:dd/MM/yyyy})",
+                        AssignmentTitle = $"[Đánh giá định kỳ] Nhận xét ngày {note.CreatedAt:dd/MM/yyyy}",
                         Quote = note.Content,
                         TeacherName = note.Author?.FullName ?? teacherName,
                         StatusType = statusType,
@@ -730,7 +730,7 @@ namespace EduTrack.API.Services.Learning.Implementation
 
                         feedbacks.Add(new StudentProgressFeedbackDto
                         {
-                            AssignmentTitle = asg.Title,
+                            AssignmentTitle = $"[Bài tập] {asg.Title}",
                             Quote = quote,
                             TeacherName = teacherName,
                             StatusType = statusType,
@@ -742,7 +742,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     {
                         feedbacks.Add(new StudentProgressFeedbackDto
                         {
-                            AssignmentTitle = asg.Title,
+                            AssignmentTitle = $"[Bài tập] {asg.Title}",
                             Quote = $"Hạn nộp: {asg.DueDate:dd/MM/yyyy}. Học sinh cần hoàn thành và nộp bài tập đúng thời hạn.",
                             TeacherName = teacherName,
                             StatusType = "chuacham",
@@ -1633,8 +1633,9 @@ namespace EduTrack.API.Services.Learning.Implementation
             var normalized = (noteType ?? string.Empty).Trim().ToLowerInvariant();
             return normalized switch
             {
-                "warning" => ("canluuy", "bi-exclamation-triangle-fill", "Cần lưu ý"),
-                "praise" => ("dat", "bi-check2-all", "Khen ngợi"),
+                "warning" or "concern" => ("canluuy", "bi-exclamation-triangle-fill", "Cần lưu ý"),
+                "needs_improvement" => ("canluuy", "bi-exclamation-circle-fill", "Cần cải thiện"),
+                "praise" or "excellent" => ("dat", "bi-check2-all", "Khen ngợi"),
                 _ => ("dat", "bi-check2-all", "Đạt")
             };
         }

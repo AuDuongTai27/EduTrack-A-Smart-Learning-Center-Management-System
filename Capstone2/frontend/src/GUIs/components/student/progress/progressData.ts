@@ -209,13 +209,15 @@ export function mapNotesAndAttendancesToClasses(
       });
     }
     const record = classMap.get(cid)!;
+    const isWarning = note.noteType === 'warning' || note.noteType === 'concern' || note.noteType === 'needs_improvement';
+    const isPraise = note.noteType === 'praise' || note.noteType === 'excellent';
     record.feedbacks.push({
-      assignmentTitle: `Ghi chú tiến độ: ${note.noteType}`,
+      assignmentTitle: `[Đánh giá định kỳ] Ghi chú tiến độ`,
       quote: note.content,
       teacherName: note.authorName || 'Giáo viên',
-      statusType: note.noteType === 'praise' ? 'dat' : note.noteType === 'warning' ? 'canluuy' : 'dat',
-      statusIcon: note.noteType === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-check2-all',
-      statusLabel: note.noteType === 'praise' ? 'Khen ngợi' : note.noteType === 'warning' ? 'Cần lưu ý' : 'Đạt',
+      statusType: isWarning ? 'canluuy' : 'dat',
+      statusIcon: isWarning ? 'bi-exclamation-triangle-fill' : 'bi-check2-all',
+      statusLabel: isPraise ? 'Khen ngợi' : isWarning ? 'Cần lưu ý' : 'Đạt',
     });
   });
 
