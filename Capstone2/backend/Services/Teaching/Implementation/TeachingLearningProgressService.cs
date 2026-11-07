@@ -351,7 +351,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
             var evaluationItems = new List<TeachingStudentEvaluationItemDto>();
             foreach (var n in notes)
             {
-                var (typeLabel, rating, ratingLabel) = MapEvaluationMeta(n.NoteType);
+                var (metaTypeLabel, rating, ratingLabel) = MapEvaluationMeta(n.NoteType);
                 string content = n.Content;
                 string? suggestions = null;
                 if (content.Contains(" | Đề xuất: "))
@@ -359,6 +359,14 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     var split = content.Split(" | Đề xuất: ", 2);
                     content = split[0];
                     suggestions = split[1];
+                }
+
+                string typeLabel = metaTypeLabel;
+                if (content.StartsWith("[") && content.Contains("] "))
+                {
+                    var endIdx = content.IndexOf("] ");
+                    typeLabel = content.Substring(1, endIdx - 1);
+                    content = content.Substring(endIdx + 2);
                 }
 
                 evaluationItems.Add(new TeachingStudentEvaluationItemDto
@@ -403,13 +411,54 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
         public async Task<TeachingStudentEvaluationItemDto?> CreateStudentEvaluationAsync(int classId, int studentId, CreateTeachingEvaluationRequest request, int authorId)
         {
+            var rating = (request.Rating ?? string.Empty).Trim().ToLowerInvariant();
+            var evalType = (request.EvaluationType ?? string.Empty).Trim().ToLowerInvariant();
+
+            string noteType;
+            if (rating is "concern" or "warning" || evalType is "warning" or "concern")
+            {
+                noteType = "warning";
+            }
+            else if (rating is "needs_improvement")
+            {
+                noteType = "needs_improvement";
+            }
+            else if (rating is "excellent" or "praise" || evalType is "praise")
+            {
+                noteType = "praise";
+            }
+            else
+            {
+                noteType = "feedback";
+            }
+
+            string typeLabel = !string.IsNullOrWhiteSpace(request.TypeLabel)
+                ? request.TypeLabel.Trim()
+                : evalType switch
+                {
+                    "academic" => "Tư duy & Năng lực chuyên môn",
+                    "progress" => "Sự tiến bộ theo giai đoạn",
+                    "parent_note" => "Nhận xét gửi Phụ huynh",
+                    _ => "Thái độ & Tinh thần học tập"
+                };
+
+            string rawContent = request.Content?.Trim() ?? string.Empty;
+            string formattedContent = rawContent.StartsWith("[") && rawContent.Contains("]")
+                ? rawContent
+                : $"[{typeLabel}] {rawContent}";
+
+            if (!string.IsNullOrWhiteSpace(request.Suggestions))
+            {
+                formattedContent += $" | Đề xuất: {request.Suggestions.Trim()}";
+            }
+
             var entity = new ProgressNote
             {
                 StudentId = studentId,
                 ClassId = classId,
                 WrittenBy = authorId > 0 ? authorId : 3,
-                Content = request.Content + (string.IsNullOrWhiteSpace(request.Suggestions) ? "" : $" | Đề xuất: {request.Suggestions}"),
-                NoteType = string.IsNullOrWhiteSpace(request.EvaluationType) ? "attitude" : request.EvaluationType,
+                Content = formattedContent,
+                NoteType = noteType,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -424,10 +473,10 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 EvaluatorName = author?.FullName ?? request.EvaluatorName ?? "Giáo viên",
                 EvaluatorRole = request.EvaluatorRole ?? (entity.WrittenBy == 5 ? "Trợ giảng" : "Giáo viên"),
                 EvaluationType = entity.NoteType,
-                TypeLabel = request.TypeLabel ?? "Thái độ & Tinh thần học tập",
-                Rating = request.Rating ?? "good",
-                RatingLabel = request.RatingLabel ?? "Tốt / Đạt yêu cầu",
-                Content = request.Content,
+                TypeLabel = typeLabel,
+                Rating = string.IsNullOrWhiteSpace(request.Rating) ? "good" : request.Rating,
+                RatingLabel = string.IsNullOrWhiteSpace(request.RatingLabel) ? "Tốt / Đạt yêu cầu" : request.RatingLabel,
+                Content = rawContent,
                 Suggestions = request.Suggestions,
                 CreatedAt = entity.CreatedAt.ToString("dd/MM/yyyy")
             };
@@ -439,9 +488,12 @@ namespace EduTrack.API.Services.Teaching.Implementation
             {
                 "academic" => ("Tư duy & Năng lực chuyên môn", "good", "Tốt / Đạt yêu cầu"),
                 "progress" => ("Sự tiến bộ theo giai đoạn", "good", "Tiến bộ tốt"),
-                "warning" => ("Cần lưu ý / Nhắc nhở", "concern", "Cần lưu ý"),
-                "praise" => ("Khen ngợi & Động viên", "excellent", "Xuất sắc / Rất tích cực"),
-                _ => ("Thái độ & Tinh thần học tập", "excellent", "Xuất sắc / Rất tích cực")
+                "attitude" => ("Thái độ & Tinh thần học tập", "good", "Tốt / Đạt yêu cầu"),
+                "needs_improvement" => ("Cần cải thiện thêm", "needs_improvement", "Cần cải thiện"),
+                "warning" or "concern" => ("Cần lưu ý / Nhắc nhở", "concern", "Cần lưu ý"),
+                "praise" or "excellent" => ("Khen ngợi & Động viên", "excellent", "Xuất sắc / Rất tích cực"),
+                "feedback" or "good" => ("Nhận xét chung", "good", "Tốt / Đạt yêu cầu"),
+                _ => ("Đánh giá chung", "good", "Tốt / Đạt yêu cầu")
             };
         }
 
