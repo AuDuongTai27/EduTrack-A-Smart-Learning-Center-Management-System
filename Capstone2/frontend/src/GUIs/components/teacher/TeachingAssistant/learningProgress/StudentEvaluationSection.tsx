@@ -90,7 +90,7 @@ export default function StudentEvaluationSection({
         ) : (
           <div className="p-4 text-center text-muted bg-white rounded-3 border">
             <i className="bi bi-chat-left-text fs-3 d-block mb-1 text-secondary" />
-            Chưa có đánh giá cá nhân nào cho học sinh này. Nhấn{" "}
+            Chưa có đánh giá cá nhân nào cho học viên này. Nhấn{" "}
             <strong>"Tạo đánh giá mới"</strong> ở góc phải để thêm nhận xét.
           </div>
         )}

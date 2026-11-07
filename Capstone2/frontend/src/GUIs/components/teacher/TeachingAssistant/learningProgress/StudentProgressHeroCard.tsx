@@ -56,16 +56,6 @@ export default function StudentProgressHeroCard({
               </div>
             </div>
           </div>
-
-          <div className="d-flex align-items-center gap-2">
-            <button
-              type="button"
-              className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-xs"
-              onClick={onOpenEvaluationModal}
-            >
-              <i className="bi bi-pencil-square" /> Viết nhận xét trợ giảng
-            </button>
-          </div>
         </div>
       </div>
 

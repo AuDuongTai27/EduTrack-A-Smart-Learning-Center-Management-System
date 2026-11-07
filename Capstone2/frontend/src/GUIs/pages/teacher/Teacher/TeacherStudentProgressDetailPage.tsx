@@ -133,13 +133,6 @@ export default function TeacherStudentProgressDetailPage() {
             >
               <i className="bi bi-arrow-left" /> Quay lại danh sách
             </Link>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-xs"
-              onClick={() => setShowModal(true)}
-            >
-              <i className="bi bi-pencil-square" /> Tạo đánh giá mới
-            </button>
           </div>
         }
       />

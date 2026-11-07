@@ -76,7 +76,7 @@ export default function StudentAssignmentsSection({
                           rel="noreferrer"
                           className="small text-primary text-decoration-none d-inline-flex align-items-center gap-1 mt-1"
                         >
-                          <i className="bi bi-paperclip" /> Xem bài nộp của học sinh
+                          <i className="bi bi-paperclip" /> Xem bài nộp của học viên
                         </a>
                       )}
                     </td>

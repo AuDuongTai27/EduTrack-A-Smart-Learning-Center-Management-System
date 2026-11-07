@@ -179,7 +179,7 @@ export default function CreateEvaluationModal({
                 <textarea
                   className="form-control form-control-sm"
                   rows={4}
-                  placeholder="Ghi nhận cụ thể về sự tập trung, khả năng tiếp thu, tinh thần phát biểu, làm việc nhóm hoặc điểm cần khắc phục của học sinh..."
+                  placeholder="Ghi nhận cụ thể về sự tập trung, khả năng tiếp thu, tinh thần phát biểu, làm việc nhóm hoặc điểm cần khắc phục của học viên..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   required
