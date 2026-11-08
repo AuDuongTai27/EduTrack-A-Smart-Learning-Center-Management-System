@@ -5,6 +5,8 @@ import {
   ScheduleListToolbar,
   ScheduleTable,
   ScheduleListPagination,
+  type SortField,
+  type SortOrder,
 } from "../../../components/teacher/TeachingAssistant/schedule";
 import { ScheduleTimetableCard } from "../../../components/student/schedule/ScheduleTimetableCard";
 import { ScheduleLegendStrip } from "../../../components/student/schedule/ScheduleLegendStrip";
@@ -24,11 +26,14 @@ export default function TeachingAssistantSchedulePage() {
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [weekOffset, setWeekOffset] = useState<number>(0);
 
-  // Search, Day Filter & Pagination states (for List view)
+  // Search, Day Filter, Status Filter & Sorting states (for List view)
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [dayFilter, setDayFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortField, setSortField] = useState<SortField>("dayOfWeek");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const rowsPerPage = 10;
 
   useEffect(() => {
     let isMounted = true;
@@ -52,7 +57,7 @@ export default function TeachingAssistantSchedulePage() {
   }, []);
 
   // Calendar dates computation
-  const todayDate = new Date("2026-08-15T15:20:00");
+  const todayDate = new Date();
   const todayRef = new Date(todayDate.toDateString());
 
   const monday = addDays(getMonday(todayRef), weekOffset * 7);
@@ -69,23 +74,73 @@ export default function TeachingAssistantSchedulePage() {
     return schedules.map((s, idx) => mapTeachingScheduleDtoToSessionItem(s, true, idx));
   }, [schedules]);
 
-  // Filtered schedules for List view
+  // Handle Sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder((prev: SortOrder) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const DAY_ORDER: Record<string, number> = {
+    monday: 0,
+    tuesday: 1,
+    wednesday: 2,
+    thursday: 3,
+    friday: 4,
+    saturday: 5,
+    sunday: 6,
+  };
+
+  // Filtered and Sorted schedules for List view
   const filteredSchedules = useMemo(() => {
     let result = schedules;
+
+    // Filter by day
     if (dayFilter !== "all") {
       result = result.filter((s) => s.dayOfWeek?.toLowerCase() === dayFilter.toLowerCase());
     }
+
+    // Filter by status (all / active / inactive)
+    if (statusFilter !== "all") {
+      result = result.filter(
+        (s) => (s.status || "active").toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    // Filter by search term
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (s) =>
           s.className.toLowerCase().includes(term) ||
+          (s.subjectName && s.subjectName.toLowerCase().includes(term)) ||
           (s.room && s.room.toLowerCase().includes(term)) ||
           (s.teacherName && s.teacherName.toLowerCase().includes(term))
       );
     }
-    return result;
-  }, [schedules, dayFilter, searchTerm]);
+
+    // Sorting
+    return [...result].sort((a: any, b: any) => {
+      let comparison = 0;
+      if (sortField === "className") {
+        comparison = (a.className || "").localeCompare(b.className || "");
+      } else if (sortField === "dayOfWeek") {
+        const orderA = DAY_ORDER[(a.dayOfWeek || "").toLowerCase()] ?? 99;
+        const orderB = DAY_ORDER[(b.dayOfWeek || "").toLowerCase()] ?? 99;
+        comparison = orderA - orderB;
+      } else if (sortField === "time") {
+        comparison = (a.startTime || "").localeCompare(b.startTime || "");
+      } else if (sortField === "studentCount") {
+        const countA = a.studentCount ?? 0;
+        const countB = b.studentCount ?? 0;
+        comparison = countA - countB;
+      }
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+  }, [schedules, dayFilter, statusFilter, searchTerm, sortField, sortOrder]);
 
   const paginatedSchedules = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
@@ -219,17 +274,20 @@ export default function TeachingAssistantSchedulePage() {
               setDayFilter(val);
               setCurrentPage(1);
             }}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(val) => {
-              setRowsPerPage(val);
+            statusFilter={statusFilter}
+            onStatusFilterChange={(val) => {
+              setStatusFilter(val);
               setCurrentPage(1);
             }}
-            totalFiltered={filteredSchedules.length}
-            totalAll={schedules.length}
           />
 
           {/* Table */}
-          <ScheduleTable schedules={paginatedSchedules} />
+          <ScheduleTable
+            schedules={paginatedSchedules}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
 
           {/* Footer Pagination */}
           <ScheduleListPagination

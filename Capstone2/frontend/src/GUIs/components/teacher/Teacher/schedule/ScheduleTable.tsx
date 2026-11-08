@@ -1,35 +1,62 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import type { ClassScheduleDto } from "../../../../../BLL/models/ClassScheduleDto";
 import type { TeachingScheduleItemDto } from "../../../../../BLL/models/teaching/TeachingScheduleDto";
 
+export type SortField = "className" | "dayOfWeek" | "time" | "studentCount";
+export type SortOrder = "asc" | "desc";
+
 export interface ScheduleTableProps {
   schedules?: (ClassScheduleDto | TeachingScheduleItemDto)[];
+  sortField?: SortField;
+  sortOrder?: SortOrder;
+  onSort?: (field: SortField) => void;
 }
 
-export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
+export default function ScheduleTable({
+  schedules = [],
+  sortField,
+  sortOrder,
+  onSort,
+}: ScheduleTableProps) {
+  const renderSortIcon = (field: SortField) => {
+    let iconClass = "bi bi-arrow-down-up text-muted";
+    if (sortField === field) {
+      iconClass = sortOrder === "asc" ? "bi bi-arrow-up text-primary" : "bi bi-arrow-down text-primary";
+    }
+    return (
+      <span
+        role="button"
+        className="ms-1 cursor-pointer select-none"
+        onClick={() => onSort && onSort(field)}
+        title="Sắp xếp"
+      >
+        <i className={`${iconClass} table-sort-icon`} />
+      </span>
+    );
+  };
+
   return (
     <div className="table-responsive-container">
       <table className="table custom-table align-middle mb-0" id="scheduleTable">
         <thead>
           <tr>
-            <th className="th-checkbox">
-              <div className="form-check m-0">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="selectAllSchedule"
-                />
-              </div>
+            <th>
+              Lớp Học {renderSortIcon("className")}
             </th>
-            <th>Lớp Học <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Môn Học <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Phòng Học <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Thứ / Ngày <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Giờ Bắt Đầu <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Giờ Kết Thúc <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Sĩ Số <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Trợ Giảng (TA) <i className="bi bi-arrow-down-up table-sort-icon" /></th>
-            <th>Trạng Thái <i className="bi bi-arrow-down-up table-sort-icon" /></th>
+            <th>Môn Học</th>
+            <th>Phòng Học</th>
+            <th>
+              Thứ / Ngày {renderSortIcon("dayOfWeek")}
+            </th>
+            <th>
+              Thời Gian {renderSortIcon("time")}
+            </th>
+            <th>
+              Sĩ Số {renderSortIcon("studentCount")}
+            </th>
+            <th>Trợ Giảng (TA)</th>
+            <th>Trạng Thái</th>
             <th>Thao Tác</th>
           </tr>
         </thead>
@@ -52,13 +79,11 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                 .toUpperCase()
                 .slice(-2) || "TA";
 
+              const startTimeFormatted = s.startTime ? s.startTime.substring(0, 5) : "18:00";
+              const endTimeFormatted = s.endTime ? s.endTime.substring(0, 5) : "20:00";
+
               return (
                 <tr key={s.scheduleId || idx}>
-                  <td>
-                    <div className="form-check m-0">
-                      <input className="form-check-input row-checkbox" type="checkbox" />
-                    </div>
-                  </td>
                   <td>
                     <Link to={`/teacher/classes/${s.classId}`} className="class-id-link fw-bold text-dark text-decoration-none">
                       {s.className}
@@ -80,8 +105,11 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
                       {s.dayOfWeek ? `Mỗi ${s.dayOfWeek}` : "Thứ Hai"}
                     </span>
                   </td>
-                  <td>{s.startTime ? s.startTime.substring(0, 5) : "18:00"}</td>
-                  <td>{s.endTime ? s.endTime.substring(0, 5) : "20:00"}</td>
+                  <td>
+                    <span className="fw-medium text-dark">
+                      {startTimeFormatted} - {endTimeFormatted}
+                    </span>
+                  </td>
                   <td>
                     <span className="badge bg-light text-dark border px-2 py-1">
                       {studentCount} học viên
@@ -113,7 +141,7 @@ export default function ScheduleTable({ schedules = [] }: ScheduleTableProps) {
             })
           ) : (
             <tr>
-              <td colSpan={11} className="text-center py-4 text-muted">
+              <td colSpan={9} className="text-center py-4 text-muted">
                 <i className="bi bi-calendar-x fs-3 d-block mb-1 text-secondary" />
                 Không tìm thấy ca dạy nào phù hợp với bộ lọc tìm kiếm.
               </td>

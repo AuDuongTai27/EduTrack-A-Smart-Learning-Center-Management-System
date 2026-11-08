@@ -213,12 +213,35 @@ export function mapTeachingScheduleDtoToSessionItem(
 
   const stLower = (dto.status || '').toLowerCase();
   let status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled' = 'upcoming';
-  if (stLower.includes('cancel') || stLower.includes('hủy')) {
+
+  if (stLower.includes('cancel') || stLower.includes('hủy') || stLower === 'inactive') {
     status = 'cancelled';
   } else if (stLower.includes('ongoing') || stLower.includes('diễn ra')) {
     status = 'ongoing';
   } else if (stLower.includes('completed') || stLower.includes('hoàn thành')) {
     status = 'completed';
+  } else {
+    // So sánh thời gian động với thời điểm hiện tại:
+    // Kiểm tra xem session có diễn ra vào hôm nay không
+    const now = new Date();
+    const currentDay = (now.getDay() + 6) % 7; // 0 = Mon, 6 = Sun
+    if (day === currentDay) {
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+
+      if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+        status = 'ongoing';
+      } else if (currentMinutes >= endMinutes) {
+        status = 'completed';
+      } else {
+        status = 'upcoming';
+      }
+    } else if (day < currentDay) {
+      status = 'completed';
+    } else {
+      status = 'upcoming';
+    }
   }
 
   return {
