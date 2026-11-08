@@ -38,7 +38,7 @@ export function TeachingAssistantKpiCards({
             </div>
           </div>
           <div className="border-top mt-3 pt-3">
-            <span className="text-muted ms-1">{assignmentsDueToday} assignments due today</span>
+            <span className="text-muted ms-1">{assignmentsDueToday} assignments need grading</span>
           </div>
         </div>
       </div>

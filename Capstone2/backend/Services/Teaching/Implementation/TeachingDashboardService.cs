@@ -147,14 +147,15 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .Include(a => a.Submissions)
                 .ToListAsync();
 
-            int activeAssignments = assignments.Count;
-            var today = DateTime.UtcNow.Date;
-            int assignmentsDueToday = assignments.Count(a => a.DueDate.Date == today);
-            int pendingSubmissionsToGrade = assignments
-                .SelectMany(a => a.Submissions)
-                .Count(s => s.Status == "submitted" || s.Score == null);
+            var now = DateTime.UtcNow;
+            var today = now.Date;
+            // 1. Số bài tập chưa hết hạn (DueDate > now)
+            int activeAssignments = assignments.Count(a => a.DueDate > now);
 
-            int assignmentsDueOrPending = assignmentsDueToday > 0 ? assignmentsDueToday : pendingSubmissionsToGrade;
+            // 2. Số bài tập đã hết hạn nộp đang chờ chấm bài (có bài nộp chưa có điểm hoặc status != graded)
+            int assignmentsNeedGrading = assignments
+                .Where(a => a.DueDate <= now)
+                .Count(a => a.Submissions.Any(s => s.Score == null || s.Status == "submitted" || s.Status == "late"));
 
             // Lớp học hôm nay
             string todayDayOfWeek = DateTime.UtcNow.DayOfWeek.ToString().ToLower();
@@ -276,12 +277,12 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             var kpis = new TeachingKpiSummaryDto
             {
-                ActiveAssignments = activeAssignments > 0 ? activeAssignments : (isTa ? 10 : 8),
-                AssignmentsDueToday = assignmentsDueOrPending > 0 ? assignmentsDueOrPending : (isTa ? 4 : 3),
+                ActiveAssignments = activeAssignments,
+                AssignmentsDueToday = assignmentsNeedGrading,
                 ActiveClasses = assignedClasses.Count > 0 ? assignedClasses.Count : 6,
                 ClassesToday = todayClassesList.Count > 0 ? todayClassesList.Count : (isTa ? 3 : 2),
                 TotalStudents = totalStudents,
-                PendingAttendance = pendingAttendanceCount > 0 ? pendingAttendanceCount : 1
+                PendingAttendance = pendingAttendanceCount
             };
 
             return new TeachingDashboardDto

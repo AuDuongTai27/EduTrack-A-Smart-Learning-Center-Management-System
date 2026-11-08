@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
   GreetingSection,
-  TeacherProfileCard,
   TeacherKpiCards,
   TodayClassesSection,
   NotificationsSection,
@@ -124,16 +123,6 @@ export default function TeacherDashboardPage() {
 
           <div className="row">
             <div className="col-xxl-6 col-xl-12">
-              {/* Teacher profile */}
-              <TeacherProfileCard
-                id={userCode}
-                name={teacherName}
-                avatar={avatar}
-                role={roleTitle}
-                subject={specialty}
-                profileUrl="/teacher/profile"
-              />
-
               {/* Today's class */}
               <TodayClassesSection classes={mappedTodayClasses} />
             </div>
