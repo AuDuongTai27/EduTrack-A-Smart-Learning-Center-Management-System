@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Remove="StudentEnrollment/**/*.cs" />
     <Compile Remove="TuitionIntegration/**/*.cs" />
+    <Compile Remove="ScheduleRead/**/*.cs" />
     <Compile Include="../backend/Services/Management/TuitionPolicy.cs" Link="TuitionPolicy.cs" />
   </ItemGroup>
 </Project>

@@ -123,3 +123,13 @@ jobs:
       # Default mode is offline policy only. Never initializes a database in CI.
       - name: Run Tuition generation policy checks
         run: dotnet run --project backend.Tests/TuitionIntegration/TuitionIntegration.Tests.csproj --configuration Release --no-build --no-restore
+
+      - name: Restore Schedule read checks
+        run: dotnet restore backend.Tests/ScheduleRead/ScheduleRead.Tests.csproj
+
+      - name: Build Schedule read checks
+        run: dotnet build backend.Tests/ScheduleRead/ScheduleRead.Tests.csproj --configuration Release --no-restore
+
+      # No database, test principal host, seeder or migrations in default mode.
+      - name: Run Schedule identity and range checks
+        run: dotnet run --project backend.Tests/ScheduleRead/ScheduleRead.Tests.csproj --configuration Release --no-build --no-restore
