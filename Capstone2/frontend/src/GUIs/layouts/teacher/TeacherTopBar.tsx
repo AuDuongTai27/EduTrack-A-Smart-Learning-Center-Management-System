@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { userDAL } from "../../../DAL/userDAL";
 import { notificationDAL } from "../../../DAL/notificationDAL";
+import { useAuthContext } from "../../../contexts/AuthContext";
 import type { UserDto } from "../../../BLL/models/UserDto";
 import type { NotificationDto } from "../../../BLL/models/NotificationDto";
 
 export function TeacherTopBar() {
   const [teacher, setTeacher] = useState<UserDto | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { dispatch } = useAuthContext();
 
   useEffect(() => {
     let isMounted = true;
@@ -34,6 +39,25 @@ export function TeacherTopBar() {
     };
   }, []);
 
+  // Đóng dropdown khi click bên ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    setIsDropdownOpen(false);
+    dispatch({ type: "logout" });
+    navigate("/");
+  };
+
   const initials = teacher?.fullName
     ? teacher.fullName
         .split(" ")
@@ -42,6 +66,12 @@ export function TeacherTopBar() {
         .map((w) => w[0]?.toUpperCase())
         .join("")
     : "TC";
+
+  const userCode = teacher?.userCode || "TC001";
+  const displayName = teacher?.fullName || "ThS. Hoàng Quốc Việt";
+  const avatarSrc =
+    teacher?.avatarUrl ||
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=viet";
 
   return (
     <header className="topbar">
@@ -54,10 +84,6 @@ export function TeacherTopBar() {
         >
           <i className="bi bi-list" />
         </button>
-        <div className="search-box">
-          <i className="bi bi-search" />
-          <input type="text" placeholder="Tìm kiếm lớp học, học sinh, bài tập..." />
-        </div>
       </div>
       <div className="topbar-actions">
         <button className="academic-year-btn" type="button">
@@ -75,21 +101,101 @@ export function TeacherTopBar() {
           <i className="bi bi-bell" />
           {unreadCount > 0 && <span className="status-dot" />}
         </Link>
-        <Link className="profile-btn text-decoration-none" to="/teacher/profile" title={teacher?.fullName || "Hồ sơ giáo viên"}>
-          {teacher?.avatarUrl ? (
-            <img
-              src={teacher.avatarUrl}
-              alt={teacher.fullName}
-              className="rounded-circle"
-              style={{ width: "32px", height: "32px", objectFit: "cover" }}
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = "none";
+
+        {/* User Info & Avatar with Dropdown */}
+        <div className="position-relative ms-1" ref={dropdownRef}>
+          <button
+            type="button"
+            className="btn p-1 d-flex align-items-center gap-2 border-0 bg-transparent text-start shadow-none"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            title={displayName}
+            aria-expanded={isDropdownOpen}
+            style={{ width: "190px" }}
+          >
+            {/* Avatar bên trái */}
+            <div className="flex-shrink-0">
+              <img
+                src={avatarSrc}
+                alt={displayName}
+                className="rounded-circle border"
+                style={{ width: "36px", height: "36px", objectFit: "cover" }}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (target.src !== "/assets/img/profiles/avatar-27.jpg") {
+                    target.src = "/assets/img/profiles/avatar-27.jpg";
+                  }
+                }}
+              />
+            </div>
+
+            {/* Thông tin: Tên bên phải avatar và user code bên dưới tên, độ rộng cố định và text-truncate */}
+            <div className="flex-grow-1 overflow-hidden" style={{ lineHeight: 1.2, minWidth: 0 }}>
+              <span className="fw-semibold text-dark text-truncate d-block" style={{ fontSize: "13.5px" }} title={displayName}>
+                {displayName}
+              </span>
+              <span className="text-muted text-truncate d-block" style={{ fontSize: "11.5px", fontWeight: 500 }}>
+                #{userCode}
+              </span>
+            </div>
+
+            <i className="bi bi-chevron-down text-muted flex-shrink-0" style={{ fontSize: "11px" }} />
+          </button>
+
+          {isDropdownOpen && (
+            <div
+              className="dropdown-menu dropdown-menu-end show shadow-lg border rounded-3 py-2 position-absolute"
+              style={{
+                top: "calc(100% + 8px)",
+                right: 0,
+                minWidth: "230px",
+                zIndex: 1050,
               }}
-            />
-          ) : (
-            <span className="profile-avatar">{initials}</span>
+            >
+              {/* Header Dropdown: Thông tin người dùng */}
+              <div className="px-3 py-2 border-bottom">
+                <div className="fw-bold text-dark text-truncate" style={{ fontSize: "14px" }}>
+                  {displayName}
+                </div>
+                <small className="text-muted d-block text-truncate mb-1">
+                  {teacher?.email || "viet.hoang@edutrack.edu.vn"}
+                </small>
+                <div className="d-flex align-items-center gap-1.5 mb-2">
+                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: "11px" }}>
+                    #{userCode}
+                  </span>
+                  <span className="badge bg-light text-secondary border" style={{ fontSize: "11px" }}>
+                    Giáo viên
+                  </span>
+                </div>
+
+                {/* Dòng chữ nhỏ màu xanh Xem hồ sơ kèm mũi tên */}
+                <div>
+                  <Link
+                    to="/teacher/profile"
+                    className="text-primary text-decoration-none small fw-semibold d-inline-flex align-items-center gap-1"
+                    style={{ fontSize: "12px" }}
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <span>Xem hồ sơ</span>
+                    <i className="bi bi-arrow-right" style={{ fontSize: "11px" }} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Nút Đăng xuất */}
+              <div className="pt-1">
+                <button
+                  type="button"
+                  className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                  onClick={handleLogout}
+                >
+                  <i className="bi bi-box-arrow-right fs-6" />
+                  <span>Đăng xuất</span>
+                </button>
+              </div>
+            </div>
           )}
-        </Link>
+        </div>
       </div>
     </header>
   );

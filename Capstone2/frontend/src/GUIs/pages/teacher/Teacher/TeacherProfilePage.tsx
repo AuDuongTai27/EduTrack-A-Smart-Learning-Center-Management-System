@@ -6,6 +6,7 @@ import {
   TeacherProfileBottomAction,
   TeacherProfileEditCard,
 } from "../../../components/teacher/Teacher/profile";
+import ChangePasswordModal from "../../../components/teacher/ChangePasswordModal";
 import {
   teachingDAL,
   DEFAULT_TEACHER_ID,
@@ -18,6 +19,7 @@ export default function TeacherProfilePage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "danger" } | null>(null);
 
   useEffect(() => {
@@ -130,10 +132,21 @@ export default function TeacherProfilePage() {
             <TeacherProfileDetails profile={profile} />
 
             {/* Bottom Action */}
-            <TeacherProfileBottomAction onEdit={() => setIsEditing(true)} />
+            <TeacherProfileBottomAction
+              onEdit={() => setIsEditing(true)}
+              onChangePassword={() => setIsPasswordModalOpen(true)}
+            />
           </div>
         </div>
       )}
+
+      {/* Modal Đổi mật khẩu */}
+      <ChangePasswordModal
+        userId={DEFAULT_TEACHER_ID}
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        onSuccess={(msg) => showToast(msg, "success")}
+      />
     </>
   );
 }

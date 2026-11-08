@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
+import { useAuthContext } from '../../../contexts/AuthContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
@@ -12,6 +13,10 @@ interface ParentNavMenuProps {
 export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const { selectedChild } = useParent();
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { dispatch } = useAuthContext();
 
   useEffect(() => {
     let isMounted = true;
@@ -40,6 +45,32 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
       window.removeEventListener('notifications-updated', handleUpdate);
     };
   }, [selectedChild?.id]);
+
+  // Đóng dropup khi click bên ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (footerRef.current && !footerRef.current.contains(event.target as Node)) {
+        setIsDropupOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleGoProfile = () => {
+    setIsDropupOpen(false);
+    onLinkClick?.();
+    navigate('/parent/profile');
+  };
+
+  const handleLogout = () => {
+    setIsDropupOpen(false);
+    onLinkClick?.();
+    dispatch({ type: 'logout' });
+    navigate('/');
+  };
 
   return (
     <>
@@ -142,12 +173,48 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
       </nav>
 
       {/* FOOTER PROFILE PHỤ HUYNH */}
-      <div className="sidebar-footer mt-auto">
-        <Link
-          to="/parent/profile"
-          className="student-chip"
-          onClick={onLinkClick}
-          title="Xem thông tin tài khoản phụ huynh"
+      <div className="sidebar-footer mt-auto" ref={footerRef}>
+        {/* Dropup Menu */}
+        {isDropupOpen && (
+          <div className="sidebar-user-dropup">
+            <div className="px-3 py-2 border-bottom mb-1">
+              <div className="fw-bold text-dark text-truncate" style={{ fontSize: '13px' }}>
+                Lê Văn Nam
+              </div>
+              <div className="text-muted text-truncate" style={{ fontSize: '11px' }}>
+                {selectedChild ? `Phụ huynh em ${selectedChild.name}` : 'Phụ huynh học sinh'}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="sidebar-dropup-item"
+              onClick={handleGoProfile}
+            >
+              <i className="bi bi-person-gear text-primary fs-6" />
+              <span>Chỉnh sửa hồ sơ</span>
+            </button>
+
+            <div className="my-1 border-top" style={{ borderColor: 'var(--et-border-subtle)' }} />
+
+            <button
+              type="button"
+              className="sidebar-dropup-item text-danger"
+              onClick={handleLogout}
+            >
+              <i className="bi bi-box-arrow-right fs-6" />
+              <span>Đăng xuất</span>
+            </button>
+          </div>
+        )}
+
+        {/* Clickable Avatar Chip */}
+        <button
+          type="button"
+          className={`student-chip-btn ${isDropupOpen ? 'active' : ''}`}
+          onClick={() => setIsDropupOpen(!isDropupOpen)}
+          title="Tài khoản phụ huynh"
+          aria-expanded={isDropupOpen}
         >
           <div
             className="student-avatar"
@@ -157,9 +224,12 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
           </div>
           <div className="student-info">
             <div className="student-name">Lê Văn Nam</div>
-            <div className="student-grade">Phụ huynh em Lê Văn An</div>
+            <div className="student-grade">
+              {selectedChild ? `Phụ huynh em ${selectedChild.name}` : 'Phụ huynh học sinh'}
+            </div>
           </div>
-        </Link>
+          <i className="bi bi-three-dots-vertical text-muted ms-auto small" />
+        </button>
       </div>
     </>
   );

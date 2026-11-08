@@ -24,6 +24,8 @@ export interface TeachingAssignmentItemDto {
   assignmentId: number;
   classId: number;
   className: string;
+  contentUnitId?: number;
+  contentUnitTitle?: string;
   title: string;
   description?: string;
   fileUrl?: string;

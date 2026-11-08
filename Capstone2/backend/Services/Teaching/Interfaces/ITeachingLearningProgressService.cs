@@ -9,6 +9,7 @@ namespace EduTrack.API.Services.Teaching.Interfaces
     public interface ITeachingLearningProgressService
     {
         Task<TeachingClassProgressDto?> GetClassLearningProgressAsync(int classId, int? userId = null);
+        Task<TeachingStudentProgressDetailDto?> GetStudentProgressDetailAsync(int classId, int studentId);
+        Task<TeachingStudentEvaluationItemDto?> CreateStudentEvaluationAsync(int classId, int studentId, CreateTeachingEvaluationRequest request, int authorId);
     }
 }
-

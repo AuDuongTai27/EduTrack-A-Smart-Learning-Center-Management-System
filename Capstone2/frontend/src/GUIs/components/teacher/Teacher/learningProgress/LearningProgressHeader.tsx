@@ -23,7 +23,6 @@ export default function LearningProgressHeader({
         </h4>
         <small className="text-muted">
           Theo dõi chuyên cần, tỉ lệ điểm danh và tình hình làm bài tập theo từng lớp
-          {totalStudents !== undefined && ` (${totalStudents} học viên)`}
         </small>
       </div>
       <div className="d-flex align-items-center gap-3 flex-wrap">

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import type { ApprovalRequestDto } from "../../../../../BLL/models/ApprovalRequestDto";
 import EditRequestModal from "../../Teacher/request/EditRequestModal";
+import RequestPagination from "./RequestPagination";
 
 export interface RequestTableProps {
   requests?: ApprovalRequestDto[];
@@ -241,6 +242,14 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
           </tbody>
         </table>
       </div>
+
+      {/* Footer Pagination */}
+      <RequestPagination
+        totalItems={filteredRequests.length}
+        currentPage={currentPage}
+        rowsPerPage={rowsPerPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
       {/* Modal chỉnh sửa đơn từ */}
       <EditRequestModal

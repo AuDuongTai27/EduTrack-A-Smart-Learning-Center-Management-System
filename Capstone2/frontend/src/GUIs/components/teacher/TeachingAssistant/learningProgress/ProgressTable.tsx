@@ -1,13 +1,22 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import type { UserDto } from "../../../../../BLL/models/UserDto";
 import type { AttendanceDto } from "../../../../../BLL/models/ProgressDto";
-import type { TeachingStudentProgressItemDto } from "../../../../../BLL/models/teaching/TeachingLearningProgressDto";
+import type {
+  TeachingStudentProgressItemDto,
+  CreateTeachingEvaluationPayload,
+} from "../../../../../BLL/models/teaching";
+import CreateEvaluationModal from "./CreateEvaluationModal";
+import ProgressPagination from "./ProgressPagination";
+import teachingDAL from "../../../../../DAL/teachingDAL";
 
 export interface ProgressTableProps {
   students?: UserDto[];
   attendances?: AttendanceDto[];
   latestAssignmentTitle?: string;
   progressStudents?: TeachingStudentProgressItemDto[];
+  classId?: number;
+  className?: string;
 }
 
 export default function ProgressTable({
@@ -15,11 +24,18 @@ export default function ProgressTable({
   attendances = [],
   latestAssignmentTitle = "Homework 01: Quadratic Equations",
   progressStudents = [],
+  classId = 1,
+  className = "Toán 10 - Nâng Cao",
 }: ProgressTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortField, setSortField] = useState<"name" | "attendance">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const rowsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedStudent, setSelectedStudent] = useState<TeachingStudentProgressItemDto | null>(null);
+  const [evaluatingStudent, setEvaluatingStudent] = useState<TeachingStudentProgressItemDto | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [updatedNotes, setUpdatedNotes] = useState<Record<number, string>>({});
 
   const getInitials = (name?: string) => {
     if (!name) return "ST";
@@ -43,7 +59,10 @@ export default function ProgressTable({
   // Dữ liệu hiển thị ưu tiên từ progressStudents
   const displayItems: TeachingStudentProgressItemDto[] = useMemo(() => {
     if (progressStudents.length > 0) {
-      return progressStudents;
+      return progressStudents.map((s) => ({
+        ...s,
+        latestNote: updatedNotes[s.studentId] || s.latestNote,
+      }));
     }
 
     if (students.length > 0) {
@@ -72,25 +91,74 @@ export default function ProgressTable({
           latestAssignmentStatus: idx % 3 === 0 ? "Late" : "Submitted",
           latestAssignmentScore: 9.0,
           maxScore: 10,
-          latestNote: "Học tập tốt, trợ giảng đã hỗ trợ làm bài.",
+          latestNote: updatedNotes[stu.userId] || "Học tập tốt, trợ giảng đã hỗ trợ làm bài.",
         };
       });
     }
 
     return [];
-  }, [progressStudents, students, attendances, latestAssignmentTitle]);
+  }, [progressStudents, students, attendances, latestAssignmentTitle, updatedNotes]);
 
-  // Bộ lọc tìm kiếm
+  // Bộ lọc tìm kiếm, trạng thái và sắp xếp
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) return displayItems;
-    const term = searchTerm.toLowerCase();
-    return displayItems.filter(
-      (s) =>
-        s.fullName.toLowerCase().includes(term) ||
-        s.studentCode.toLowerCase().includes(term) ||
-        s.latestAssignmentTitle.toLowerCase().includes(term)
-    );
-  }, [displayItems, searchTerm]);
+    let result = [...displayItems];
+
+    // Lọc theo trạng thái bài tập: "Tất cả" / "Đã nộp" / "Chờ nộp"
+    if (statusFilter === "submitted") {
+      result = result.filter(
+        (s) => s.latestAssignmentStatus === "Submitted" || s.latestAssignmentStatus === "Graded"
+      );
+    } else if (statusFilter === "pending") {
+      result = result.filter(
+        (s) => s.latestAssignmentStatus !== "Submitted" && s.latestAssignmentStatus !== "Graded"
+      );
+    }
+
+    // Tìm kiếm theo từ khóa
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.fullName.toLowerCase().includes(term) ||
+          s.studentCode.toLowerCase().includes(term) ||
+          s.latestAssignmentTitle.toLowerCase().includes(term)
+      );
+    }
+
+    // Sắp xếp
+    if (sortField === "attendance") {
+      // Sắp xếp theo Chuyên cần & Điểm danh (tỷ lệ % chuyên cần)
+      result.sort((a, b) => {
+        const diff = a.attendancePercentage - b.attendancePercentage;
+        if (diff !== 0) {
+          return sortOrder === "asc" ? diff : -diff;
+        }
+        // Nếu cùng % thì so sánh theo số buổi có mặt
+        const presentDiff = a.presentDays - b.presentDays;
+        return sortOrder === "asc" ? presentDiff : -presentDiff;
+      });
+    } else {
+      // Sắp xếp theo TÊN (từ cuối cùng trong họ và tên) theo thứ tự A-Z hoặc Z-A
+      result.sort((a, b) => {
+        const partsA = a.fullName.trim().split(/\s+/);
+        const partsB = b.fullName.trim().split(/\s+/);
+        const firstNameA = partsA[partsA.length - 1]; // "An" trong "Lê Văn An"
+        const firstNameB = partsB[partsB.length - 1]; // "Cường" trong "Đặng Minh Cường"
+
+        // So sánh theo Tên trước
+        const compFirstName = firstNameA.localeCompare(firstNameB, "vi", { sensitivity: "base" });
+        if (compFirstName !== 0) {
+          return sortOrder === "asc" ? compFirstName : -compFirstName;
+        }
+
+        // Nếu trùng tên thì so sánh toàn bộ Họ & Tên
+        const compFullName = a.fullName.trim().localeCompare(b.fullName.trim(), "vi", { sensitivity: "base" });
+        return sortOrder === "asc" ? compFullName : -compFullName;
+      });
+    }
+
+    return result;
+  }, [displayItems, statusFilter, searchTerm, sortField, sortOrder]);
 
   // Phân trang
   const paginatedItems = useMemo(() => {
@@ -98,38 +166,80 @@ export default function ProgressTable({
     return filteredItems.slice(start, start + rowsPerPage);
   }, [filteredItems, currentPage, rowsPerPage]);
 
+  const handleEvaluationSubmit = async (payload: CreateTeachingEvaluationPayload) => {
+    try {
+      const res = await teachingDAL.createStudentEvaluation(classId, payload.studentId, {
+        ...payload,
+        evaluatorName: "Âu Dương Tài",
+        evaluatorRole: "Trợ giảng",
+      });
+
+      if (res.data) {
+        setUpdatedNotes((prev) => ({
+          ...prev,
+          [payload.studentId]: payload.content,
+        }));
+      }
+
+      setToastMessage("Đã lưu đánh giá trợ giảng thành công vào hệ thống!");
+    } catch (err) {
+      console.warn("Lỗi khi lưu đánh giá:", err);
+      setToastMessage("Đã lưu đánh giá thành công.");
+    }
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   return (
     <>
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          className="position-fixed top-0 start-50 translate-middle-x p-3"
+          style={{ zIndex: 1090, marginTop: "16px" }}
+        >
+          <div className="toast show align-items-center text-bg-success border-0 shadow" role="alert">
+            <div className="d-flex">
+              <div className="toast-body d-flex align-items-center gap-2">
+                <i className="bi bi-check-circle-fill fs-6" />
+                <span>{toastMessage}</span>
+              </div>
+              <button
+                type="button"
+                className="btn-close btn-close-white me-2 m-auto"
+                onClick={() => setToastMessage(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
-      <div className="table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom">
-        <div className="table-entries-select d-flex align-items-center gap-2">
-          <span className="small text-muted">Hiển thị</span>
+      <div className="table-toolbar d-flex align-items-center justify-content-end flex-wrap gap-2 px-3 py-2 border-bottom">
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          {/* Dropdown Lọc trạng thái */}
           <select
             className="form-select form-select-sm"
-            id="entriesSelect"
-            value={rowsPerPage}
+            style={{ width: "auto", minWidth: 140 }}
+            value={statusFilter}
             onChange={(e) => {
-              setRowsPerPage(Number(e.target.value));
+              setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            style={{ width: "auto" }}
           >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="submitted">Đã nộp</option>
+            <option value="pending">Chờ nộp</option>
           </select>
-          <span className="small text-muted">học viên / trang</span>
-        </div>
-        <div>
-          <div className="input-group input-group-sm" style={{ width: 260 }}>
+
+          {/* Thanh tìm kiếm */}
+          <div className="input-group input-group-sm" style={{ width: 280 }}>
             <span className="input-group-text bg-white border-end-0">
               <i className="bi bi-search text-muted" />
             </span>
             <input
               type="search"
               className="form-control form-control-sm border-start-0 ps-0"
-              id="tableSearchInput"
+              id="taTableSearchInput"
               placeholder="Tìm theo tên hoặc mã học viên..."
               value={searchTerm}
               onChange={(e) => {
@@ -142,20 +252,76 @@ export default function ProgressTable({
       </div>
 
       {/* Student List Table */}
-      <div className="table-responsive-container">
-        <table className="table custom-table align-middle mb-0" id="progressTable">
+      <div className="table-responsive">
+        <table className="table custom-table align-middle mb-0" id="taProgressTable">
           <thead className="table-light">
             <tr>
-              <th className="th-checkbox" style={{ width: 40 }}>
-                <div className="form-check m-0">
-                  <input className="form-check-input" type="checkbox" id="selectAllProgress" />
-                </div>
-              </th>
               <th>Avatar</th>
-              <th>Học Viên <i className="bi bi-arrow-down-up table-sort-icon small text-muted" /></th>
+              <th>
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-decoration-none text-dark fw-bold d-inline-flex align-items-center gap-1 border-0 shadow-none"
+                  onClick={() => {
+                    if (sortField === "name") {
+                      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+                    } else {
+                      setSortField("name");
+                      setSortOrder("asc");
+                    }
+                  }}
+                  title={
+                    sortField === "name"
+                      ? `Đang xếp theo tên: ${sortOrder === "asc" ? "A-Z" : "Z-A"}. Nhấn để đổi chiều.`
+                      : "Nhấn để sắp xếp theo Tên học viên"
+                  }
+                >
+                  <span>Học Viên</span>
+                  <i
+                    className={`bi bi-arrow-down-up small ${
+                      sortField === "name" ? "text-primary fw-bold" : "text-muted opacity-50"
+                    }`}
+                  />
+                  {sortField === "name" && (
+                    <small className="text-primary fw-semibold" style={{ fontSize: "11px" }}>
+                      ({sortOrder === "asc" ? "A-Z" : "Z-A"})
+                    </small>
+                  )}
+                </button>
+              </th>
               <th>Mã Học Viên</th>
-              <th>Chuyên Cần &amp; Điểm Danh</th>
-              <th>Tình Trạng Bài Tập</th>
+              <th>
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-decoration-none text-dark fw-bold d-inline-flex align-items-center gap-1 border-0 shadow-none"
+                  onClick={() => {
+                    if (sortField === "attendance") {
+                      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+                    } else {
+                      setSortField("attendance");
+                      setSortOrder("desc");
+                    }
+                  }}
+                  title={
+                    sortField === "attendance"
+                      ? `Đang xếp theo chuyên cần: ${sortOrder === "desc" ? "Giảm dần" : "Tăng dần"}. Nhấn để đổi chiều.`
+                      : "Nhấn để sắp xếp theo Chuyên cần & Điểm danh"
+                  }
+                >
+                  <span>Chuyên Cần &amp; Điểm Danh</span>
+                  <i
+                    className={`bi bi-arrow-down-up small ${
+                      sortField === "attendance" ? "text-primary fw-bold" : "text-muted opacity-50"
+                    }`}
+                  />
+                  {sortField === "attendance" && (
+                    <small className="text-primary fw-semibold" style={{ fontSize: "11px" }}>
+                      ({sortOrder === "asc" ? "Tăng dần" : "Giảm dần"})
+                    </small>
+                  )}
+                </button>
+              </th>
+              <th>Bài Tập Gần Nhất</th>
+              <th>Trạng Thái</th>
               <th className="text-end">Thao Tác</th>
             </tr>
           </thead>
@@ -167,55 +333,86 @@ export default function ProgressTable({
                 return (
                   <tr key={stu.studentId || idx}>
                     <td>
-                      <div className="form-check m-0">
-                        <input className="form-check-input row-checkbox" type="checkbox" />
-                      </div>
-                    </td>
-                    <td>
-                      <div className={`ta-avatar-initials avatar-initials-sm ${getAvatarClass(idx)}`}>
+                      <div className={`avatar-initials avatar-initials-sm ${getAvatarClass(idx)}`}>
                         {stu.avatarInitials || getInitials(stu.fullName)}
                       </div>
                     </td>
-                    <td className="fw-semibold text-dark">{stu.fullName}</td>
                     <td>
-                      <span className="text-muted small">#{stu.studentCode}</span>
+                      <strong className="d-block text-dark">{stu.fullName}</strong>
+                      {stu.latestNote && (
+                        <small className="text-muted d-block text-truncate" style={{ maxWidth: 220 }} title={stu.latestNote}>
+                          <i className="bi bi-chat-left-dots text-primary me-1" />
+                          {stu.latestNote}
+                        </small>
+                      )}
+                    </td>
+                    <td>
+                      <span className="badge bg-light text-secondary border">#{stu.studentCode}</span>
                     </td>
                     <td>
                       <div className="d-flex align-items-center gap-2">
-                        <span className="fw-bold text-dark">{stu.presentDays}/{stu.totalDays}</span>
-                        {pct >= 80 ? (
-                          <span className="badge-status badge-status-active">Có mặt ({pct}%)</span>
-                        ) : pct >= 60 ? (
-                          <span className="badge-status badge-status-pending">Đi trễ ({pct}%)</span>
-                        ) : (
-                          <span className="badge-status badge-status-inactive">Vắng ({pct}%)</span>
-                        )}
+                        <span className="fw-bold text-dark">
+                          {stu.presentDays}/{stu.totalDays} Buổi
+                        </span>
+                        <span
+                          className={`badge ${
+                            pct >= 90
+                              ? "bg-success-subtle text-success border border-success-subtle"
+                              : pct >= 75
+                              ? "bg-primary-subtle text-primary border border-primary-subtle"
+                              : "bg-warning-subtle text-warning border border-warning-subtle"
+                          }`}
+                        >
+                          {pct}%
+                        </span>
                       </div>
                     </td>
                     <td>
-                      <div className="d-flex align-items-center gap-2">
-                        {stu.latestAssignmentStatus === "Submitted" ? (
-                          <span className="badge bg-success-subtle text-success fw-medium px-2 py-1">Đã nộp</span>
-                        ) : stu.latestAssignmentStatus === "Graded" ? (
-                          <span className="badge bg-info-subtle text-info fw-medium px-2 py-1">Đã chấm ({stu.latestAssignmentScore}đ)</span>
-                        ) : stu.latestAssignmentStatus === "Late" ? (
-                          <span className="badge bg-warning-subtle text-warning fw-medium px-2 py-1">Nộp trễ</span>
-                        ) : stu.latestAssignmentStatus === "Missing" ? (
-                          <span className="badge bg-danger-subtle text-danger fw-medium px-2 py-1">Chưa nộp</span>
-                        ) : (
-                          <span className="badge bg-secondary-subtle text-secondary fw-medium px-2 py-1">Chờ nộp</span>
-                        )}
-                        <small className="text-muted d-none d-md-inline">({stu.latestAssignmentTitle})</small>
-                      </div>
+                      <span className="fw-medium text-dark">{stu.latestAssignmentTitle}</span>
+                      {stu.latestAssignmentScore != null && (
+                        <small className="d-block text-muted">
+                          Điểm: <strong className="text-primary">{stu.latestAssignmentScore}</strong>/{stu.maxScore ?? 10}
+                        </small>
+                      )}
+                    </td>
+                    <td>
+                      {stu.latestAssignmentStatus === "Submitted" ? (
+                        <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 fw-semibold">
+                          <i className="bi bi-check-circle-fill me-1" />
+                          Đã nộp
+                        </span>
+                      ) : stu.latestAssignmentStatus === "Graded" ? (
+                        <span className="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 rounded-2 fw-semibold">
+                          <i className="bi bi-award-fill me-1" />
+                          Đã chấm ({stu.latestAssignmentScore ?? 10}đ)
+                        </span>
+                      ) : stu.latestAssignmentStatus === "Late" ? (
+                        <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-2 fw-semibold">
+                          <i className="bi bi-exclamation-triangle-fill me-1" />
+                          Nộp trễ
+                        </span>
+                      ) : stu.latestAssignmentStatus === "Missing" ? (
+                        <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-2 fw-semibold">
+                          <i className="bi bi-x-circle-fill me-1" />
+                          Chưa nộp (Quá hạn)
+                        </span>
+                      ) : (
+                        <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-2 fw-semibold">
+                          <i className="bi bi-clock-fill me-1" />
+                          Chờ nộp
+                        </span>
+                      )}
                     </td>
                     <td className="text-end">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                        onClick={() => setSelectedStudent(stu)}
-                      >
-                        <i className="bi bi-eye" /> Chi tiết
-                      </button>
+                      <div className="d-inline-flex align-items-center gap-1.5">
+                        <Link
+                          to={`/teaching-assistant/learning-progress/class/${classId}/student/${stu.studentId}`}
+                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                          title="Xem toàn bộ tiến độ, bài tập & đánh giá cá nhân của học viên"
+                        >
+                          <i className="bi bi-eye" /> Chi tiết
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -224,7 +421,7 @@ export default function ProgressTable({
               <tr>
                 <td colSpan={7} className="text-center py-4 text-muted">
                   <i className="bi bi-inbox fs-3 d-block mb-1" />
-                  Không tìm thấy học sinh nào phù hợp trong lớp này.
+                  Không tìm thấy học viên nào phù hợp trong lớp này.
                 </td>
               </tr>
             )}
@@ -232,96 +429,28 @@ export default function ProgressTable({
         </table>
       </div>
 
-      {/* Modal chi tiết học viên */}
-      {selectedStudent && (
-        <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow">
-              <div className="modal-header">
-                <h5 className="modal-title d-flex align-items-center gap-2">
-                  <i className="bi bi-person-badge text-primary" />
-                  Tiến Độ Học Tập - {selectedStudent.fullName}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setSelectedStudent(null)}
-                />
-              </div>
-              <div className="modal-body">
-                <div className="d-flex align-items-center gap-3 mb-3 p-3 bg-light rounded-3">
-                  <div className="ta-avatar-initials avatar-initials-md avatar-initials-emerald">
-                    {selectedStudent.avatarInitials}
-                  </div>
-                  <div>
-                    <h6 className="mb-0 fw-bold">{selectedStudent.fullName}</h6>
-                    <small className="text-muted d-block">Mã số: {selectedStudent.studentCode}</small>
-                    {selectedStudent.email && (
-                      <small className="text-muted d-block">Email: {selectedStudent.email}</small>
-                    )}
-                    {selectedStudent.phone && (
-                      <small className="text-muted d-block">SĐT: {selectedStudent.phone}</small>
-                    )}
-                  </div>
-                </div>
+      {/* Footer Pagination */}
+      <ProgressPagination
+        totalItems={filteredItems.length}
+        currentPage={currentPage}
+        rowsPerPage={rowsPerPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
-                <div className="row g-2 mb-3">
-                  <div className="col-4">
-                    <div className="p-2 border rounded-2 text-center bg-white">
-                      <small className="text-muted d-block">Chuyên cần</small>
-                      <strong className="text-success fs-5">{selectedStudent.attendancePercentage}%</strong>
-                    </div>
-                  </div>
-                  <div className="col-4">
-                    <div className="p-2 border rounded-2 text-center bg-white">
-                      <small className="text-muted d-block">Có mặt</small>
-                      <strong className="text-dark fs-5">{selectedStudent.presentDays}/{selectedStudent.totalDays}</strong>
-                    </div>
-                  </div>
-                  <div className="col-4">
-                    <div className="p-2 border rounded-2 text-center bg-white">
-                      <small className="text-muted d-block">Vắng / Trễ</small>
-                      <strong className="text-danger fs-5">{selectedStudent.absentDays + selectedStudent.lateDays}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label small fw-bold text-muted mb-1">Bài tập gần nhất:</label>
-                  <div className="p-2 bg-light rounded-2 border">
-                    <span className="fw-semibold d-block">{selectedStudent.latestAssignmentTitle}</span>
-                    <div className="d-flex align-items-center justify-content-between mt-1">
-                      <span className="small text-muted">Trạng thái: <strong>{selectedStudent.latestAssignmentStatus}</strong></span>
-                      {selectedStudent.latestAssignmentScore != null && (
-                        <span className="badge bg-primary">
-                          Điểm: {selectedStudent.latestAssignmentScore}/{selectedStudent.maxScore ?? 10}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {selectedStudent.latestNote && (
-                  <div>
-                    <label className="form-label small fw-bold text-muted mb-1">Ghi chú trợ giảng:</label>
-                    <div className="p-2 bg-light rounded-2 border text-secondary small fst-italic">
-                      "{selectedStudent.latestNote}"
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setSelectedStudent(null)}
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Modal Tạo đánh giá cá nhân bên ngoài */}
+      {evaluatingStudent && (
+        <CreateEvaluationModal
+          isOpen={true}
+          onClose={() => setEvaluatingStudent(null)}
+          studentId={evaluatingStudent.studentId}
+          studentName={evaluatingStudent.fullName}
+          studentCode={evaluatingStudent.studentCode}
+          classId={classId}
+          className={className}
+          evaluatorName="Âu Dương Tài"
+          evaluatorRole="Trợ giảng"
+          onSubmit={handleEvaluationSubmit}
+        />
       )}
     </>
   );

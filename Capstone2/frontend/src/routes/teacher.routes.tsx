@@ -8,6 +8,7 @@ import TeacherAssignmentPage from "../GUIs/pages/teacher/Teacher/TeacherAssignme
 import TeacherNewAssignmentPage from "../GUIs/pages/teacher/Teacher/TeacherNewAssignmentPage";
 import TeacherSchedulePage from "../GUIs/pages/teacher/Teacher/TeacherSchedulePage";
 import TeacherLearningProgressPage from "../GUIs/pages/teacher/Teacher/TeacherLearningProgressPage";
+import TeacherStudentProgressDetailPage from "../GUIs/pages/teacher/Teacher/TeacherStudentProgressDetailPage";
 import TeacherNotificationPage from "../GUIs/pages/teacher/Teacher/TeacherNotificationPage";
 import TeacherRequestPage from "../GUIs/pages/teacher/Teacher/TeacherRequestPage";
 import TeacherProfilePage from "../GUIs/pages/teacher/Teacher/TeacherProfilePage";
@@ -28,6 +29,8 @@ export const teacherRoutes: RouteObject = {
     { path: "classes/:classId/assignment/new-assignment", element: <TeacherNewAssignmentPage /> },
     { path: "schedule", element: <TeacherSchedulePage /> },
     { path: "learning-progress", element: <TeacherLearningProgressPage /> },
+    { path: "learning-progress/class/:classId/student/:studentId", element: <TeacherStudentProgressDetailPage /> },
+    { path: "learning-progress/student/:studentId", element: <TeacherStudentProgressDetailPage /> },
     { path: "notifications", element: <TeacherNotificationPage /> },
     { path: "request", element: <TeacherRequestPage /> },
     { path: "profile", element: <TeacherProfilePage /> },

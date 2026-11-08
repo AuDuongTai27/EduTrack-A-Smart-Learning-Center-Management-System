@@ -22,8 +22,7 @@ export default function LearningProgressHeader({
           {classNameTitle ? `Tiến Độ: ${classNameTitle}` : "Tiến Độ Học Tập & Chuyên Cần"}
         </h4>
         <small className="text-muted">
-          Theo dõi sát sao tình hình làm bài và hỗ trợ học sinh theo lớp
-          {totalStudents !== undefined && ` (${totalStudents} học sinh)`}
+          Theo dõi sát sao tình hình làm bài và hỗ trợ học viên theo lớp
         </small>
       </div>
       <div className="d-flex align-items-center gap-3 flex-wrap">
