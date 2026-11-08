@@ -241,7 +241,7 @@ try {
       if(route==='/admin-staff/tuition') {
         await evaluate(`(()=>{const input=document.querySelector('.user-search input');const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(input,'Current Student');input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
       } else {
-        await evaluate(`(()=>{const select=[...document.querySelectorAll('select')].find(s=>[...s.options].some(o=>o.value==='12'));select.value='12';select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+        await evaluate(`(()=>{const select=document.querySelector('[aria-label="Lọc Class"]')||[...document.querySelectorAll('select')].find(s=>[...s.options].some(o=>o.value==='12'));select.value='12';select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
       }
       await checkValues(route,filtered,name+' '+route+' filtered cohort');
       summary.push({viewport:name,route,case:'filtered-cohort',values:await evaluate(cardValues)});

@@ -65,12 +65,13 @@ export interface UpdateTuitionInvoiceRequest {
   periodYear: number;
   amountDue: number;
   dueDate: string;
-  status: string;
+  status?: string;
 }
 
 export interface RecordPaymentRequest {
   amount: number;
   paymentMethod: string;
+  externalPaymentVerified?: boolean;
   transactionCode?: string;
   paidByUserId?: number;
   recordedBy?: number;

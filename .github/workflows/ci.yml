@@ -113,3 +113,13 @@ jobs:
       # No --mysql: policy assertions only, no API host, configuration or database access.
       - name: Run Student Enrollment policy checks (console harness)
         run: dotnet run --project backend.Tests/StudentEnrollment/StudentEnrollment.Tests.csproj --configuration Release --no-build --no-restore
+
+      - name: Restore Tuition generation checks
+        run: dotnet restore backend.Tests/TuitionIntegration/TuitionIntegration.Tests.csproj
+
+      - name: Build Tuition generation checks
+        run: dotnet build backend.Tests/TuitionIntegration/TuitionIntegration.Tests.csproj --configuration Release --no-restore
+
+      # Default mode is offline policy only. Never initializes a database in CI.
+      - name: Run Tuition generation policy checks
+        run: dotnet run --project backend.Tests/TuitionIntegration/TuitionIntegration.Tests.csproj --configuration Release --no-build --no-restore

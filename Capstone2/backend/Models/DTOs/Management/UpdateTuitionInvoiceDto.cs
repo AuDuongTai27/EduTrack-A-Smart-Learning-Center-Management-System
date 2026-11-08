@@ -17,7 +17,7 @@ namespace EduTrack.API.Models.DTOs.Management
         [Required]
         public DateTime DueDate { get; set; }
 
-        [Required]
-        public string Status { get; set; } = "unpaid";
+        // Compatibility only: callers cannot change the system/approval status.
+        public string? Status { get; set; }
     }
 }

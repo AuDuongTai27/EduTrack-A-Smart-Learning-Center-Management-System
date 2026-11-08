@@ -3,6 +3,11 @@ import { isTuitionOverdue, tuitionMonthKey, tuitionPaymentStatus } from "./tuiti
 
 export const ALL_INVOICE_PERIODS = "Tất cả kỳ hóa đơn • Theo bộ lọc";
 
+// Match decimal(12,2) storage: avoid binary floating point leaving phantom debt
+// or displaying 0.30000000000000004 after summing valid legacy decimal amounts.
+const units = (amount: number) => Math.round(amount * 100);
+const sumMoney = (amounts: number[]) => amounts.reduce((sum, amount) => sum + units(amount), 0) / 100;
+
 export interface BillingPeriod {
   month: number;
   year: number;
@@ -33,24 +38,25 @@ export function paymentInstant(paidAt: string): Date {
 export function collectedInMonth(payments: PaymentDto[], now = new Date()): number {
   const month = tuitionMonthKey(now);
   return payments.reduce((sum, payment) =>
-    sum + (tuitionMonthKey(paymentInstant(payment.paidAt)) === month ? payment.amount : 0), 0);
+    sum + (tuitionMonthKey(paymentInstant(payment.paidAt)) === month ? units(payment.amount) : 0), 0) / 100;
 }
 
 export function invoiceTotal(invoices: TuitionDto[]): number {
-  return invoices.reduce((sum, invoice) => sum + invoice.amountDue, 0);
+  return sumMoney(invoices.map(invoice => invoice.amountDue));
 }
 
 export function withInvoiceBalances(invoices: TuitionDto[], payments: PaymentDto[], now = new Date()): InvoiceBalance[] {
   const paidByInvoice = new Map<number, number>();
   for (const payment of payments) {
-    paidByInvoice.set(payment.invoiceId, (paidByInvoice.get(payment.invoiceId) ?? 0) + payment.amount);
+    paidByInvoice.set(payment.invoiceId, (paidByInvoice.get(payment.invoiceId) ?? 0) + units(payment.amount));
   }
   return invoices.map(invoice => {
-    const paidAmount = paidByInvoice.get(invoice.invoiceId) ?? 0;
+    const paidUnits = paidByInvoice.get(invoice.invoiceId) ?? 0;
+    const paidAmount = paidUnits / 100;
     return {
       ...invoice,
       paidAmount,
-      remainingAmount: Math.max(0, invoice.amountDue - paidAmount),
+      remainingAmount: Math.max(0, units(invoice.amountDue) - paidUnits) / 100,
       status: tuitionPaymentStatus(invoice.amountDue, paidAmount, invoice.dueDate, invoice.status, now),
     };
   });
@@ -63,8 +69,8 @@ export function calculateTuitionMetrics(
   const scoped = period ? invoices.filter(invoice => invoice.periodMonth === period.month && invoice.periodYear === period.year) : invoices;
   const rows = withInvoiceBalances(scoped, payments, now);
   const totalDue = invoiceTotal(rows);
-  const collected = rows.reduce((sum, invoice) => sum + invoice.paidAmount, 0);
-  const outstanding = rows.reduce((sum, invoice) => sum + invoice.remainingAmount, 0);
+  const collected = sumMoney(rows.map(invoice => invoice.paidAmount));
+  const outstanding = sumMoney(rows.map(invoice => invoice.remainingAmount));
   const overdue = rows.filter(invoice => isTuitionOverdue(invoice, invoice.remainingAmount, now));
   let monthlyCollected: number | null = null;
   let monthlyCollectionError: string | null = null;
@@ -80,7 +86,7 @@ export function calculateTuitionMetrics(
     monthlyCollected,
     monthlyCollectionError,
     outstanding,
-    overdueAmount: overdue.reduce((sum, invoice) => sum + invoice.remainingAmount, 0),
+    overdueAmount: sumMoney(overdue.map(invoice => invoice.remainingAmount)),
     overdueCount: overdue.length,
     unpaidCount: rows.filter(invoice => invoice.remainingAmount > 0).length,
     collectedPercent: totalDue > 0 ? Math.round(100 * collected / totalDue) : null,

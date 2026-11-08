@@ -147,6 +147,10 @@ namespace EduTrack.API.Controllers.Management
 
                 return Ok(new { success = true, message = $"Đã xóa người dùng có ID = {id} thành công." });
             }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi khi xóa người dùng: " + ex.Message });

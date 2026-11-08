@@ -37,6 +37,12 @@ foreach (var (now, paid, stored, expected) in statusCases)
 {
     Equal(expected, TuitionPolicy.ResolveStatus(1_000_000m, paid, due, At(now), stored));
 }
+foreach (var invalidDue in new[] { 0m, -1m, 0.001m, 10000000000m })
+{
+    Equal("unpaid", TuitionPolicy.ResolveStatus(invalidDue, 20000000000m, due, At("2026-12-01T00:00:00Z"), "paid"));
+    Equal("unpaid", TuitionPolicy.ResolveStatus(invalidDue, 20000000000m, due, At("2026-12-07T00:00:00Z"), "paid"));
+}
+Equal("unpaid", TuitionPolicy.ResolveStatus(1_000_000, 600_000, due, At("2026-12-01T00:00:00Z"), "paid"));
 
 Console.WriteLine($"PASS: {passed} tuition policy checks; no database access.");
 

@@ -20,6 +20,7 @@ namespace EduTrack.API.Models.DTOs.Management
         [Range(typeof(decimal), "0.01", "9999999999")]
         public decimal AmountDue { get; set; }
 
-        // DueDate is calculated by the server: one calendar month after creation.
+        // DueDate uses tuition_due_day in the billing period; the existing
+        // creation + one calendar month fallback applies only when unset.
     }
 }

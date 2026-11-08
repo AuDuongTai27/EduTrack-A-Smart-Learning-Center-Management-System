@@ -14,6 +14,15 @@ const payment = (amount, overrides = {}) => ({
   paymentId: 1, invoiceId: 10, amount, paidAt: "2026-11-03T08:00:00Z", ...overrides,
 });
 
+test("decimal(12,2) receipts sum exactly without phantom outstanding or overdue balances", () => {
+  for (const [due, first, second] of [[0.3, 0.1, 0.2], [0.8, 0.1, 0.7]]) {
+    const metrics = calculateTuitionMetrics([invoice({ amountDue: due, dueDate: '2026-10-01' })], [payment(first), payment(second, { paymentId: 2 })], now);
+    assert.equal(metrics.collected, due); assert.equal(metrics.monthlyCollected, due);
+    assert.equal(metrics.outstanding, 0); assert.equal(metrics.overdueCount, 0); assert.equal(metrics.unpaidCount, 0);
+  }
+  assert.equal(invoiceTotal([invoice({ amountDue: 0.1 }), invoice({ invoiceId: 11, amountDue: 0.2 })]), 0.3);
+});
+
 test("unpaid invoices have zero real receipts and their full outstanding balance", () => {
   const metrics = calculateTuitionMetrics([invoice()], [], now);
   assert.equal(metrics.totalDue, 3_000_000);

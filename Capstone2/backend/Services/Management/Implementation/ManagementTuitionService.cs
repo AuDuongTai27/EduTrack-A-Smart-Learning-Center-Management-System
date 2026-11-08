@@ -37,54 +37,21 @@ namespace EduTrack.API.Services.Management.Implementation
         public async Task<TuitionInvoiceDto> CreateTuitionInvoiceAsync(
             CreateTuitionInvoiceDto dto)
         {
-            var student = await _userRepository.GetByIdAsync(dto.StudentId);
-
-            if (student == null)
-            {
-                throw new InvalidOperationException(
-                    $"Không tìm thấy học viên có ID = {dto.StudentId}"
-                );
-            }
-
-            var isStudent = student.UserRoles.Any(
-                ur => ur.Role != null &&
-                      ur.Role.RoleName.ToLower() == "student"
-            );
-
-            if (!isStudent)
-            {
-                throw new InvalidOperationException(
-                    $"User ID = {dto.StudentId} không phải học viên."
-                );
-            }
-
-            var classItem = await _classRepository.GetByIdAsync(dto.ClassId);
-
-            if (classItem == null)
-            {
-                throw new InvalidOperationException(
-                    $"Không tìm thấy lớp học có ID = {dto.ClassId}"
-                );
-            }
-
-            var invoice = new TuitionInvoice
-            {
-                StudentId = dto.StudentId,
-                ClassId = dto.ClassId,
-                PeriodMonth = dto.PeriodMonth,
-                PeriodYear = dto.PeriodYear,
-                AmountDue = dto.AmountDue,
-                DueDate = TuitionPolicy.DueDateForCreation(DateTimeOffset.UtcNow),
-                Status = "unpaid"
-            };
-
-            var added = await _tuitionRepository.AddAsync(invoice);
-
-            var loaded =
-                await _tuitionRepository.GetByIdAsync(added.InvoiceId);
-
-            return MapToDto(loaded ?? added);
+            var grade = await _context.Classes.AsNoTracking().Where(c => c.ClassId == dto.ClassId).Select(c => c.GradeId).SingleOrDefaultAsync();
+            if (grade == null) throw new ArgumentException("Class không tồn tại hoặc chưa phân Grade; cần kiểm tra trước khi lập hóa đơn.");
+            var request = new GenerateTuitionDto { Mode = "individual", GradeId = grade.Value, ClassId = dto.ClassId, StudentId = dto.StudentId,
+                PeriodMonth = dto.PeriodMonth, PeriodYear = dto.PeriodYear, AmountDue = dto.AmountDue };
+            var generator = new TuitionGenerationService(_context);
+            var preview = await generator.Preview(request);
+            if (preview.Rows.Single().Outcome is not ("eligible" or "already_exists")) throw new ArgumentException(preview.Rows.Single().Reason);
+            request.PreviewToken = preview.PreviewToken;
+            var result = await generator.Confirm(request);
+            var id = result.Rows.Single().InvoiceId ?? throw new InvalidOperationException("Chưa xác nhận được hóa đơn.");
+            return MapToDto((await _tuitionRepository.GetByIdAsync(id))!);
         }
+
+        public Task<GenerationPreview> PreviewAsync(GenerateTuitionDto dto) => new TuitionGenerationService(_context).Preview(dto);
+        public Task<GenerationPreview> GenerateAsync(GenerateTuitionDto dto) => new TuitionGenerationService(_context).Confirm(dto);
 
         public async Task<TuitionInvoiceDto?> UpdateTuitionInvoiceAsync(
     int id,
@@ -97,45 +64,29 @@ namespace EduTrack.API.Services.Management.Implementation
                 return null;
             }
 
-            var status = dto.Status.Trim().ToLowerInvariant();
-
-            var validStatuses = new[]
+            await using var editTransaction = await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+            await TuitionGenerationService.LockClass(_context, existing.ClassId);
+            // Refresh only after taking the lock, so Payment and Edit cannot use stale balances.
+            existing = (await _tuitionRepository.GetByIdAsync(id))!;
+            if (!TuitionGenerationPolicy.ValidAmount(dto.AmountDue) || dto.PeriodMonth is < 1 or > 12 || dto.PeriodYear is < 2000 or > 2100 || dto.DueDate == default)
+                throw new ArgumentException("Kỳ thu, số tiền hoặc hạn nộp không hợp lệ.");
+            if (await _context.TuitionInvoices.AnyAsync(i => i.InvoiceId != id && i.StudentId == existing.StudentId && i.ClassId == existing.ClassId && i.PeriodMonth == dto.PeriodMonth && i.PeriodYear == dto.PeriodYear))
+                throw new InvalidOperationException("Đã có hóa đơn Student–Class trong kỳ này; không ghi đè hoặc gộp hóa đơn.");
+            var totalPaid = existing.Payments.Sum(p => p.Amount);
+            var currentStatus = TuitionPolicy.ResolveStatus(existing.AmountDue, totalPaid, existing.DueDate, DateTimeOffset.UtcNow, existing.Status);
+            var financialChanged = dto.AmountDue != existing.AmountDue || dto.DueDate.Date != existing.DueDate.Date
+                || dto.PeriodMonth != existing.PeriodMonth || dto.PeriodYear != existing.PeriodYear;
+            if (dto.Status != null && !string.Equals(dto.Status.Trim(), currentStatus, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Trạng thái do hệ thống tính từ thanh toán; không đặt trạng thái hoặc chuyển bước phê duyệt bằng cập nhật trực tiếp.");
+            if (financialChanged && (existing.Payments.Any() || currentStatus is "paid" or "pending_adjustment"))
+                throw new InvalidOperationException("Hóa đơn đã có khoản thu, đã tất toán hoặc đang chờ điều chỉnh: không sửa tiền/kỳ/hạn trực tiếp. Cần xử lý theo quy trình phê duyệt hiện có.");
+            if (!financialChanged)
             {
-        "unpaid",
-        "paid",
-        "overdue",
-        "pending_adjustment"
-    };
-
-            if (!validStatuses.Contains(status))
-            {
-                throw new InvalidOperationException(
-                    "Trạng thái hóa đơn không hợp lệ."
-                );
+                // Return the effective status without rewriting stale historical data.
+                await editTransaction.CommitAsync();
+                return MapToDto(existing);
             }
-
-            var payments = await _paymentRepository.GetAllAsync();
-
-            var totalPaid = payments
-                .Where(p => p.InvoiceId == id)
-                .Sum(p => p.Amount);
-
-            if (dto.AmountDue < totalPaid)
-            {
-                throw new InvalidOperationException(
-                    "Số tiền phải thu không thể nhỏ hơn tổng đã thanh toán."
-                );
-            }
-
-            if (status == "paid" && totalPaid < dto.AmountDue)
-            {
-                throw new InvalidOperationException(
-                    "Không thể đánh dấu Paid khi chưa thanh toán đủ."
-                );
-            }
-
-            status = TuitionPolicy.ResolveStatus(
-                dto.AmountDue, totalPaid, dto.DueDate, DateTimeOffset.UtcNow, status);
+            var status = TuitionPolicy.ResolveStatus(dto.AmountDue, totalPaid, dto.DueDate, DateTimeOffset.UtcNow, existing.Status);
 
             var updatedInvoice = new TuitionInvoice
             {
@@ -156,6 +107,7 @@ namespace EduTrack.API.Services.Management.Implementation
             var updated =
                 await _tuitionRepository.GetByIdAsync(id);
 
+            await editTransaction.CommitAsync();
             return MapToDto(updated ?? updatedInvoice);
         }
         public async Task<PaymentDto> RecordPaymentAsync(
@@ -164,7 +116,7 @@ namespace EduTrack.API.Services.Management.Implementation
         {
             await using var transaction =
             await _context.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable
+                IsolationLevel.ReadCommitted
             );
             var invoice =
                 await _tuitionRepository.GetByIdAsync(invoiceId);
@@ -176,9 +128,18 @@ namespace EduTrack.API.Services.Management.Implementation
                 );
             }
 
+            await TuitionGenerationService.LockClass(_context, invoice.ClassId);
+            invoice = (await _tuitionRepository.GetByIdAsync(invoiceId))!;
+            if (!TuitionPolicy.IsValidAmount(invoice.AmountDue) || invoice.Payments.Any(p => !TuitionPolicy.IsValidAmount(p.Amount)))
+                throw new InvalidOperationException("Dữ liệu tiền hóa đơn hoặc khoản thu cũ không hợp lệ; cần đối soát trước khi thu tiếp.");
+            if (!TuitionGenerationPolicy.ValidAmount(dto.Amount) || dto.AdditionalChargeAmount < 0 || decimal.Round(dto.AdditionalChargeAmount, 2) != dto.AdditionalChargeAmount
+                || invoice.AmountDue + dto.AdditionalChargeAmount > 9999999999.99m)
+                throw new ArgumentException("Số tiền hoặc phụ phí không hợp lệ.");
             var paymentMethod =
                 dto.PaymentMethod.Trim().ToLowerInvariant();
 
+            if (paymentMethod != "cash" && (!dto.ExternalPaymentVerified || string.IsNullOrWhiteSpace(dto.TransactionCode)))
+                throw new ArgumentException("Cần mã giao dịch và xác nhận đối soát khoản thu bên ngoài; không xác nhận cổng online tự động.");
             var validMethods = new[]
             {
                 "cash",
@@ -225,12 +186,7 @@ namespace EduTrack.API.Services.Management.Implementation
             }
 
             // Tổng số tiền đã thanh toán trước đó
-            var payments =
-                await _paymentRepository.GetAllAsync();
-
-            var alreadyPaid = payments
-                .Where(p => p.InvoiceId == invoiceId)
-                .Sum(p => p.Amount);
+            var alreadyPaid = invoice.Payments.Sum(p => p.Amount);
 
             var remaining = invoice.AmountDue - alreadyPaid;
             var extra = dto.AdditionalChargeAmount;
@@ -252,9 +208,9 @@ namespace EduTrack.API.Services.Management.Implementation
                 throw new InvalidOperationException(
                     "Công nợ không hợp lệ, cần kiểm tra lại.");
 
-            if (remaining == 0 && extra == 0)
+            if (remaining == 0)
                 throw new InvalidOperationException(
-                    "Hóa đơn đã thanh toán đầy đủ.");
+                    "Hóa đơn đã tất toán. Không thu tiếp hoặc tăng học phí qua phụ phí Payment; cần xử lý khoản phát sinh theo quy trình hợp lệ riêng.");
 
             if (extra > dto.Amount)
                 throw new InvalidOperationException(
@@ -333,6 +289,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 StudentCode = invoice.Student?.UserCode ?? string.Empty,
                 ClassId = invoice.ClassId,
                 ClassName = invoice.Class?.ClassName ?? string.Empty,
+                ClassGradeId = invoice.Class?.GradeId,
+                ClassGradeName = invoice.Class?.Grade?.GradeName,
                 PeriodMonth = invoice.PeriodMonth,
                 PeriodYear = invoice.PeriodYear,
                 AmountDue = invoice.AmountDue,

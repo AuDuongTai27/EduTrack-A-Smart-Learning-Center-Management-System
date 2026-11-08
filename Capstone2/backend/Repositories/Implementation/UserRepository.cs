@@ -166,15 +166,20 @@ namespace EduTrack.API.Repositories.Implementation
 
         public async Task<bool> DeleteUserAsync(int id)
         {
-            var user = await _dbSet
-                .Include(u => u.UserRoles)
-                .FirstOrDefaultAsync(u => u.UserId == id);
+            // Prevent cascade deletion of invoices/payments and loss of payer/recorder identity.
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+            var user = (await _dbSet.FromSqlInterpolated($"SELECT * FROM users WHERE user_id = {id} FOR UPDATE").ToListAsync()).SingleOrDefault();
 
             if (user == null) return false;
+            if (await _context.TuitionInvoices.AnyAsync(i => i.StudentId == id)
+                || await _context.Payments.AnyAsync(p => p.PaidByUserId == id || p.RecordedBy == id))
+                throw new InvalidOperationException("Không thể xóa hồ sơ có lịch sử hóa đơn/thanh toán. Hãy dùng trạng thái inactive để bảo toàn dữ liệu tài chính.");
+            await _context.Entry(user).Collection(u => u.UserRoles).LoadAsync();
 
             _context.UserRoles.RemoveRange(user.UserRoles);
             _dbSet.Remove(user);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             return true;
         }
     }

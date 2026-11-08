@@ -41,6 +41,8 @@ namespace EduTrack.API.Services.Implementation
                 StudentCode = x.Student?.UserCode ?? string.Empty,
                 ClassId = x.ClassId,
                 ClassName = x.Class?.ClassName ?? string.Empty,
+                ClassGradeId = x.Class?.GradeId,
+                ClassGradeName = x.Class?.Grade?.GradeName,
                 PeriodMonth = x.PeriodMonth,
                 PeriodYear = x.PeriodYear,
                 AmountDue = x.AmountDue,

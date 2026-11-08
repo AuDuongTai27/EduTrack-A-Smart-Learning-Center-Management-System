@@ -2,6 +2,9 @@ import type { TuitionDto } from "../models/TuitionDto";
 
 const CENTER_TIME_ZONE = "Asia/Ho_Chi_Minh";
 
+export const validTuitionAmount = (amount: number) => Number.isFinite(amount) && amount > 0
+  && amount <= 9999999999.99 && Math.abs(amount * 100 - Math.round(amount * 100)) < 0.001;
+
 function centerDate(now: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: CENTER_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit",
@@ -34,6 +37,7 @@ export function tuitionPaymentStatus(
   amountDue: number, paidAmount: number, dueDate: string, existingStatus: string, now = new Date(),
 ): string {
   if (existingStatus?.trim().toLowerCase() === "pending_adjustment") return "pending_adjustment";
+  if (!validTuitionAmount(amountDue)) return "unpaid";
   if (paidAmount >= amountDue) return "paid";
   return isTuitionOverdue({ dueDate, status: "unpaid" }, amountDue - paidAmount, now) ? "overdue" : "unpaid";
 }
