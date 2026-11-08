@@ -7,8 +7,10 @@ export interface TodayClassItem {
   timePeriod: string;
   room?: string;
   studentsCount?: number;
-  status?: "Upcoming" | "In Progress" | "Completed";
+  status?: "Upcoming" | "Ongoing" | "In Progress" | "Completed" | string;
   attendanceTaken?: boolean;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface TodayClassesSectionProps {
@@ -38,9 +40,25 @@ const MOCK_TODAY_CLASSES: TodayClassItem[] = [
 ];
 
 export function TodayClassesSection({
-  classes = MOCK_TODAY_CLASSES,
+  classes = [],
 }: TodayClassesSectionProps = {}) {
-  const displayClasses = classes && classes.length > 0 ? classes : MOCK_TODAY_CLASSES;
+  // Lọc bỏ những lớp đã hoàn thành (hoặc đã quá giờ kết thúc)
+  const activeClasses = classes.filter((cls) => {
+    if (cls.status?.toLowerCase() === "completed") return false;
+    if (cls.startTime && cls.endTime) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const [endH, endM] = cls.endTime.split(":").map(Number);
+      const endMinutes = (endH || 0) * 60 + (endM || 0);
+      if (currentMinutes >= endMinutes) return false;
+    }
+    return true;
+  });
+
+  const displayClasses = activeClasses;
+  const maxDisplay = 3;
+  const displayedClasses = displayClasses.slice(0, maxDisplay);
+  const remainingCount = displayClasses.length - maxDisplay;
 
   const todayFormatted = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -68,15 +86,44 @@ export function TodayClassesSection({
           <p className="text-muted text-center my-3">No classes scheduled for today.</p>
         ) : (
           <div className="d-flex flex-column gap-3">
-            {displayClasses.map((cls, idx) => {
+            {displayedClasses.map((cls, idx) => {
               const roomText = cls.room || `Room ${201 + idx}`;
-              const countText = cls.studentsCount ? `${cls.studentsCount} Students` : `${15 + idx * 3} Students`;
-              const statusText = cls.status || "Upcoming";
-              const isAttendancePending = cls.attendanceTaken === false;
-              const badgeColorClass =
-                idx === 0
-                  ? "bg-success-subtle text-success border-success-subtle"
-                  : "bg-secondary-subtle text-secondary border-secondary-subtle";
+              const countText = `${cls.studentsCount ?? 0} Students`;
+
+              // Xác định trạng thái Ongoing nếu thời gian hiện tại nằm trong khoảng startTime - endTime
+              let isOngoing = false;
+              let isCompleted = false;
+
+              if (cls.status?.toLowerCase() === "ongoing" || cls.status?.toLowerCase() === "in progress") {
+                isOngoing = true;
+              } else if (cls.status?.toLowerCase() === "completed") {
+                isCompleted = true;
+              }
+
+              if (cls.startTime && cls.endTime) {
+                const now = new Date();
+                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                const [startH, startM] = cls.startTime.split(":").map(Number);
+                const [endH, endM] = cls.endTime.split(":").map(Number);
+                const startMinutes = (startH || 0) * 60 + (startM || 0);
+                const endMinutes = (endH || 0) * 60 + (endM || 0);
+
+                if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                  isOngoing = true;
+                  isCompleted = false;
+                } else if (currentMinutes >= endMinutes) {
+                  isCompleted = true;
+                  isOngoing = false;
+                }
+              }
+
+              const statusText = isOngoing ? "Ongoing" : isCompleted ? "Completed" : "Upcoming";
+
+              const badgeColorClass = isOngoing
+                ? "bg-primary-subtle text-primary border-primary-subtle"
+                : isCompleted
+                ? "bg-secondary-subtle text-secondary border-secondary-subtle"
+                : "bg-success-subtle text-success border-success-subtle";
 
               return (
                 <div
@@ -100,7 +147,7 @@ export function TodayClassesSection({
                   </div>
 
                   <div className="pt-2 border-top d-flex align-items-center">
-                    {isAttendancePending ? (
+                    {isOngoing ? (
                       <Link
                         to={`/teaching-assistant/classes/${cls.id}/attendance`}
                         className="text-decoration-none text-primary fw-medium small d-inline-flex align-items-center gap-1.5"
@@ -121,6 +168,17 @@ export function TodayClassesSection({
                 </div>
               );
             })}
+
+            {remainingCount > 0 && (
+              <div className="text-center pt-2 mt-auto border-top">
+                <span
+                  className="fst-italic small select-none"
+                  style={{ color: "#94a3b8", fontSize: "0.82rem" }}
+                >
+                  *Còn {remainingCount} lớp học khác trong ngày...*
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

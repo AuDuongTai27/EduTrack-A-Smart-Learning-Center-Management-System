@@ -78,15 +78,52 @@ export default function TeacherDashboardPage() {
   const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
   const roleTitle = profile?.roleTitle || "Giáo viên chuyên môn";
 
-  const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || []).map((cls, idx) => ({
-    id: cls.classId,
-    className: cls.className,
-    timePeriod: cls.timePeriod,
-    room: cls.room || `Room ${201 + idx}`,
-    studentsCount: idx === 0 ? 15 : 18,
-    status: "Upcoming",
-    attendanceTaken: idx === 0 ? false : true,
-  }));
+  const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || [])
+    .filter((cls) => {
+      // Bỏ qua lớp đã hoàn thành
+      if (cls.status?.toLowerCase() === "completed") return false;
+      if (cls.endTime) {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const [endH, endM] = cls.endTime.split(":").map(Number);
+        const endMinutes = (endH || 0) * 60 + (endM || 0);
+        if (currentMinutes >= endMinutes) return false;
+      }
+      return true;
+    })
+    .map((cls) => {
+      // Xác định trạng thái Ongoing nếu thời gian hiện tại nằm trong khoảng startTime - endTime
+      let computedStatus = cls.status || "Upcoming";
+      if (cls.startTime && cls.endTime) {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const [startH, startM] = cls.startTime.split(":").map(Number);
+        const [endH, endM] = cls.endTime.split(":").map(Number);
+        const startMinutes = (startH || 0) * 60 + (startM || 0);
+        const endMinutes = (endH || 0) * 60 + (endM || 0);
+
+        if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+          computedStatus = "Ongoing";
+        } else {
+          computedStatus = "Upcoming";
+        }
+      } else if (computedStatus.toLowerCase() === "in progress") {
+        computedStatus = "Ongoing";
+      }
+
+      return {
+        id: cls.classId,
+        className: cls.className,
+        timePeriod: cls.timePeriod,
+        room: cls.room || "Room 201",
+        studentsCount: cls.studentsCount ?? 0,
+        status: computedStatus,
+        attendanceTaken: cls.attendanceTaken ?? false,
+        startTime: cls.startTime,
+        endTime: cls.endTime,
+      };
+    });
 
   return (
     <>

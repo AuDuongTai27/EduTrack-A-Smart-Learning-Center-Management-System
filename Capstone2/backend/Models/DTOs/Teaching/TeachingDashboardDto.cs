@@ -39,6 +39,7 @@ namespace EduTrack.API.Models.DTOs.Teaching
 
     public class TodayClassSessionItemDto
     {
+        public int SessionId { get; set; }
         public int ClassId { get; set; }
         public string ClassName { get; set; } = string.Empty;
         public string? SubjectName { get; set; }
@@ -47,6 +48,8 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public string? StartTime { get; set; }
         public string? EndTime { get; set; }
         public string? Status { get; set; }
+        public int StudentsCount { get; set; }
+        public bool AttendanceTaken { get; set; }
     }
 
     public class TeachingNotificationItemDto
