@@ -1461,6 +1461,68 @@ body.sidebar-collapsed & .sidebar .nav-link i {
   cursor: pointer;
 }
 
+.pagination-num-btn-inactive {
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  color: #64748b;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.pagination-num-btn-inactive:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.pagination-ellipsis {
+  width: 24px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.pagination-jump-input {
+  width: 44px;
+  height: 30px;
+  padding: 2px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.pagination-jump-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.pagination-jump-input::-webkit-outer-spin-button,
+.pagination-jump-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pagination-jump-input[type=number] {
+  -moz-appearance: textfield;
+}
+
 /* Teaching Assistant Profile Assets */
 .ta-avatar-img {
   width: 28px;

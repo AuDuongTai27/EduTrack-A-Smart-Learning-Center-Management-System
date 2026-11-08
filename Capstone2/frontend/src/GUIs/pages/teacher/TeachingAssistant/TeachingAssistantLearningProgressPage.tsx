@@ -142,16 +142,13 @@ export default function TeachingAssistantLearningProgressPage() {
           </div>
         ) : (
           <>
-            {/* Toolbar & Table */}
+            {/* Toolbar & Table (bao gồm Pagination nội bộ) */}
             <ProgressTable
               progressStudents={classProgress?.students ?? []}
               latestAssignmentTitle={classProgress?.latestAssignmentTitle}
               classId={selectedClassId}
               className={classProgress?.className}
             />
-
-            {/* Footer Pagination */}
-            <ProgressPagination />
           </>
         )}
       </div>

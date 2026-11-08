@@ -7,6 +7,7 @@ import type {
   CreateTeachingEvaluationPayload,
 } from "../../../../../BLL/models/teaching";
 import CreateEvaluationModal from "./CreateEvaluationModal";
+import ProgressPagination from "./ProgressPagination";
 import teachingDAL from "../../../../../DAL/teachingDAL";
 
 export interface ProgressTableProps {
@@ -427,6 +428,14 @@ export default function ProgressTable({
           </tbody>
         </table>
       </div>
+
+      {/* Footer Pagination */}
+      <ProgressPagination
+        totalItems={filteredItems.length}
+        currentPage={currentPage}
+        rowsPerPage={rowsPerPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
       {/* Modal Tạo đánh giá cá nhân bên ngoài */}
       {evaluatingStudent && (
