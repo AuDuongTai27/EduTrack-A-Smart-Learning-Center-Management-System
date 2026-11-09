@@ -4131,6 +4131,47 @@
   width: 3px;
 }
 
+/* Past Progress Classes Empty State */
+.past-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 24px;
+  text-align: center;
+  background-color: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 16px;
+}
+
+.past-empty-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background-color: #EFF6FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--et-primary);
+  margin-bottom: 12px;
+}
+
+.past-empty-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--et-dark);
+  margin: 0 0 4px;
+}
+
+.past-empty-desc {
+  font-size: 12.5px;
+  color: var(--et-muted);
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.5;
+}
+
 .prog-purple .class-subject-icon-box {
   background-color: #F5F3FF;
   color: #7C3AED;

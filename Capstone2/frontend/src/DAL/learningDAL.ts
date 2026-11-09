@@ -107,6 +107,7 @@ export interface StudentProgressViewModel {
   totalSessionsCount: number;
   enrolledClassesCount: number;
   currentClasses: ProgressClassItem[];
+  pastClasses: ProgressClassItem[];
   source: 'api' | 'mock';
 }
 
@@ -705,6 +706,9 @@ export const learningDAL = {
           }
         );
 
+        const currentClasses = mappedClasses.filter((c) => !c.isCompleted);
+        const pastClasses = mappedClasses.filter((c) => c.isCompleted);
+
         const presentCount = apiData.presentCount ?? 0;
         const absentCount = apiData.absentCount ?? 0;
         const lateCount = apiData.lateCount ?? 0;
@@ -725,7 +729,8 @@ export const learningDAL = {
           lateCount,
           totalSessionsCount,
           enrolledClassesCount: apiData.enrolledClassesCount,
-          currentClasses: mappedClasses,
+          currentClasses,
+          pastClasses,
           source: 'api',
         };
       }
@@ -744,6 +749,7 @@ export const learningDAL = {
       totalSessionsCount: 44,
       enrolledClassesCount: CURRENT_PROGRESS_CLASSES.length,
       currentClasses: CURRENT_PROGRESS_CLASSES,
+      pastClasses: [],
       source: 'mock',
     };
   },
