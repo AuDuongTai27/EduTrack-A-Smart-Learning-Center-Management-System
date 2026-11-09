@@ -60,6 +60,12 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Tự động nạp dữ liệu mẫu (Sample Seed Data) khi khởi chạy ứng dụng
+// Maintenance smoke tests may skip sample data for this process only.
+if (builder.Configuration.GetValue<bool>("Seeding:SkipSampleData"))
+{
+    app.Logger.LogInformation("Sample data seeding skipped for this process (Seeding:SkipSampleData).");
+}
+else
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

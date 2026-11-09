@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Management.Interfaces;
+using EduTrack.API.Services.Management;
 
 namespace EduTrack.API.Controllers.Management
 {
@@ -47,6 +48,35 @@ namespace EduTrack.API.Controllers.Management
             }
         }
 
+        // Atomic Add Student, including optional multi-class enrollment.
+        [HttpPost("students")]
+        public async Task<ActionResult<UserDto>> CreateStudent([FromBody] CreateStudentDto dto)
+        {
+            try
+            {
+                var created = await _userService.CreateStudentAsync(dto);
+                return Created($"/api/users/{created.UserId}", created);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (StudentCreationConflictException ex)
+            {
+                return Conflict(new { message = ex.Message, code = "student_creation_conflict", existingStudentId = ex.StudentId, existingStudentCode = ex.StudentCode });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                // A lost commit response is ambiguous: retry the same userCode, never
+                // claim that only the student was saved or generate a new identity.
+                return StatusCode(503, new { message = "Chưa xác nhận được việc lưu học sinh và đăng ký lớp. Giữ nguyên form và bấm Lưu hồ sơ để thử lại an toàn cùng yêu cầu." });
+            }
+        }
+
         /// <summary>
         /// Cập nhật thông tin tài khoản người dùng
         /// PUT: api/users/{id}
@@ -68,6 +98,10 @@ namespace EduTrack.API.Controllers.Management
                 }
 
                 return Ok(updated);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -113,6 +147,10 @@ namespace EduTrack.API.Controllers.Management
 
                 return Ok(new { success = true, message = $"Đã xóa người dùng có ID = {id} thành công." });
             }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi khi xóa người dùng: " + ex.Message });
@@ -140,6 +178,14 @@ namespace EduTrack.API.Controllers.Management
             {
                 var result = await _userService.AssignParentStudentAsync(dto);
                 return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                return StatusCode(503, new { message = "Chưa lưu được liên kết. Vui lòng tải lại danh sách và thử lại; không tự tạo lại hồ sơ phụ huynh hoặc học sinh." });
             }
             catch (Exception ex)
             {

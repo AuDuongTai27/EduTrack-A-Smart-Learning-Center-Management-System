@@ -3,11 +3,36 @@ import type { ClassDto } from "../BLL/models/ClassDto";
 import type { SubjectDto } from "../BLL/models/SubjectDto";
 import type { TuitionDto, PaymentDto } from "../BLL/models/TuitionDto";
 import type { ParentStudentDto } from "./parentStudentApi";
+import { apiError } from "./apiError";
+import { readClassResponse } from "./classApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
+export interface CreateStudentRequest {
+  userCode: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  role: "student";
+  specialty?: string;
+  gender: string;
+  gradeId: number | null;
+  classIds: number[];
+}
+
+export class StudentCreationConflictError extends Error {
+  readonly studentId: number;
+  readonly studentCode: string;
+  constructor(message: string, studentId: number, studentCode: string) {
+    super(message);
+    this.studentId = studentId;
+    this.studentCode = studentCode;
+  }
+}
+
 export interface CreateClassRequest {
   className: string;
+  gradeId: number | null;
   subjectId: number;
   room?: string | null;
   tuitionFee: number;
@@ -18,6 +43,7 @@ export interface CreateClassRequest {
 
 export interface UpdateClassRequest {
   className: string;
+  gradeId: number | null;
   subjectId: number;
   room?: string | null;
   tuitionFee: number;
@@ -32,7 +58,6 @@ export interface CreateTuitionInvoiceRequest {
   periodMonth: number;
   periodYear: number;
   amountDue: number;
-  dueDate: string;
 }
 
 export interface UpdateTuitionInvoiceRequest {
@@ -40,12 +65,13 @@ export interface UpdateTuitionInvoiceRequest {
   periodYear: number;
   amountDue: number;
   dueDate: string;
-  status: string;
+  status?: string;
 }
 
 export interface RecordPaymentRequest {
   amount: number;
   paymentMethod: string;
+  externalPaymentVerified?: boolean;
   transactionCode?: string;
   paidByUserId?: number;
   recordedBy?: number;
@@ -60,6 +86,31 @@ export interface RecordPaymentRequest {
  * Chứa toàn bộ các thao tác POST / PUT / PATCH / DELETE (và GET nâng cao) của nhánh Management.
  */
 export const managementApi = {
+  async createStudent(data: CreateStudentRequest): Promise<UserDto> {
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}/users/students`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+      });
+    } catch {
+      throw new Error("Mất kết nối khi lưu học sinh và đăng ký lớp. Giữ nguyên form và bấm Lưu hồ sơ để thử lại an toàn cùng yêu cầu.");
+    }
+    if (!response.ok) {
+      if (response.status === 409) {
+        const conflict = await response.clone().json().catch(() => null);
+        if (conflict?.code === "student_creation_conflict" && Number.isSafeInteger(conflict.existingStudentId)
+          && conflict.existingStudentId > 0 && conflict.existingStudentCode === data.userCode)
+          throw new StudentCreationConflictError(conflict.message, conflict.existingStudentId, conflict.existingStudentCode);
+      }
+      throw await apiError(response, "Không thể hoàn tất việc lưu học sinh và đăng ký lớp. Giữ nguyên form và thử lại.");
+    }
+    const result = await response.json().catch(() => null);
+    if (!result || !Number.isSafeInteger(result.userId) || result.userId <= 0
+      || result.userCode !== data.userCode || result.gradeId !== data.gradeId
+      || typeof result.fullName !== "string" || !result.roles?.includes("student"))
+      throw new Error("Máy chủ chưa xác nhận kết quả hợp lệ. Giữ nguyên form và bấm Lưu hồ sơ để kiểm tra lại cùng yêu cầu.");
+    return result;
+  },
   // ==========================================================================
   // 1. QUẢN LÝ NGƯỜI DÙNG & HỌC SINH (USERS)
   // ==========================================================================
@@ -94,6 +145,7 @@ export const managementApi = {
       phone?: string;
       role?: string;
       specialty?: string;
+      gradeId?: number | null;
       gender?: string;
       status?: string;
     },
@@ -103,13 +155,11 @@ export const managementApi = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      throw new Error(
-        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
-      );
-    }
-    return await res.json();
+    if (!res.ok) throw await apiError(res, "Không thể cập nhật hồ sơ.");
+    const updated: UserDto = await res.json();
+    if ("gradeId" in data && updated.gradeId !== data.gradeId)
+      throw new Error("Máy chủ chưa xác nhận khối lớp đã lưu. Vui lòng mở lại hồ sơ để kiểm tra trước khi thử lại.");
+    return updated;
   },
 
   async updateUserStatus(
@@ -152,6 +202,7 @@ export const managementApi = {
     studentId: number;
     relationship?: string;
     isPrimaryContact?: boolean;
+    updateExisting?: boolean;
   }): Promise<ParentStudentDto> {
     const res = await fetch(`${API_BASE_URL}/parentstudents`, {
       method: "POST",
@@ -253,10 +304,9 @@ export const managementApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(err.message || `Lỗi khi tạo lớp học: ${res.status}`);
+      throw await apiError(res, "Không thể tạo lớp học.");
     }
-    return await res.json();
+    return readClassResponse(await res.json());
   },
 
   async updateClass(id: number, data: UpdateClassRequest): Promise<ClassDto> {
@@ -266,10 +316,11 @@ export const managementApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(err.message || `Lỗi khi cập nhật lớp học: ${res.status}`);
+      throw await apiError(res, "Không thể cập nhật lớp học.");
     }
-    return await res.json();
+    const item = readClassResponse(await res.json());
+    if (item.classId !== id) throw new Error("Phản hồi cập nhật không đúng lớp. Hãy tải lại danh sách để kiểm tra.");
+    return item;
   },
 
   async deleteClass(id: number): Promise<{ message: string }> {
@@ -278,9 +329,9 @@ export const managementApi = {
       headers: { "Content-Type": "application/json" },
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(err.message || `Lỗi khi xóa lớp học: ${res.status}`);
+      throw await apiError(res, "Không thể xóa lớp học.");
     }
+    if (res.status === 204) return {message: "Đã xóa lớp học."};
     return await res.json();
   },
 

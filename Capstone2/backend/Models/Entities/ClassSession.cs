@@ -18,6 +18,18 @@ namespace EduTrack.API.Models.Entities
         [Column("schedule_id")]
         public int? ScheduleId { get; set; }
 
+        // Original planned identity. Schedule mutations never change these values.
+        [Column("schedule_version_id")]
+        public int? ScheduleVersionId { get; set; }
+
+        [Column("planned_occurrence_date")]
+        public DateOnly? PlannedOccurrenceDate { get; set; }
+
+        [Column("occurrence_week_start")]
+        public DateOnly? OccurrenceWeekStart { get; private set; }
+
+        public virtual ClassScheduleVersion? ScheduleVersion { get; set; }
+
         [Column("session_date")]
         public DateTime SessionDate { get; set; }
 

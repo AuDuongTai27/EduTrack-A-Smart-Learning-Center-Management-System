@@ -89,7 +89,7 @@ export function TodayClassesSection({
             {displayedClasses.map((cls, idx) => {
               const roomText = cls.room || `Room ${201 + idx}`;
               const countText = `${cls.studentsCount ?? 0} Students`;
-              
+
               // Xác định trạng thái Ongoing nếu thời gian hiện tại nằm trong khoảng startTime - endTime
               let isOngoing = false;
               let isCompleted = false;

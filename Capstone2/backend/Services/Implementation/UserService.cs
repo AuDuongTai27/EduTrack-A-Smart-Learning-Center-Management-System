@@ -42,6 +42,8 @@ namespace EduTrack.API.Services.Implementation
                 DateOfBirth = u.DateOfBirth,
                 Gender = u.Gender,
                 Specialty = u.Specialty,
+                GradeId = u.GradeId,
+                GradeName = u.Grade?.GradeName,
                 EnrolledSince = u.EnrolledSince,
                 Status = u.Status,
                 CreatedAt = u.CreatedAt,

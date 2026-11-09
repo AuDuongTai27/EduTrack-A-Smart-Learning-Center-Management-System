@@ -18,4 +18,3 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
-

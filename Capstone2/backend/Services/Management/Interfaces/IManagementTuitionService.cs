@@ -6,6 +6,9 @@ namespace EduTrack.API.Services.Management.Interfaces
 {
     public interface IManagementTuitionService
     {
+        Task<GenerationPreview> PreviewAsync(GenerateTuitionDto dto);
+        Task<GenerationPreview> GenerateAsync(GenerateTuitionDto dto);
+
         Task<TuitionInvoiceDto> CreateTuitionInvoiceAsync(
             CreateTuitionInvoiceDto dto
         );

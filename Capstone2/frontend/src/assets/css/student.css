@@ -319,75 +319,75 @@
   text-overflow: ellipsis;
 }
 
-.sidebar-footer {
-  position: relative;
-}
-
-.student-chip-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: transparent;
-  border: none;
-  padding: 6px 8px;
-  border-radius: 10px;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.15s ease;
-}
-
-.student-chip-btn:hover,
-.student-chip-btn.active {
-  background-color: #F8FAFC;
-}
-
-.sidebar-user-dropup {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 12px;
-  right: 12px;
-  background: #ffffff;
-  border: 1px solid var(--et-border-light);
-  border-radius: 12px;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
-  padding: 8px;
-  z-index: 1060;
-  animation: dropupFadeIn 0.15s ease-out;
-}
-
-.sidebar-dropup-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border: none;
-  background: transparent;
-  border-radius: 8px;
-  color: var(--et-slate);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background-color 0.12s ease, color 0.12s ease;
-  text-align: left;
-}
-
-.sidebar-dropup-item:hover {
-  background-color: var(--et-border-subtle);
-  color: var(--et-dark);
-}
-
-.sidebar-dropup-item.text-danger {
-  color: #EF4444;
-}
-
-.sidebar-dropup-item.text-danger:hover {
-  background-color: #FEF2F2;
-  color: #DC2626 !important;
-}
-
+.sidebar-footer {
+  position: relative;
+}
+
+.student-chip-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.student-chip-btn:hover,
+.student-chip-btn.active {
+  background-color: #F8FAFC;
+}
+
+.sidebar-user-dropup {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 12px;
+  right: 12px;
+  background: #ffffff;
+  border: 1px solid var(--et-border-light);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+  padding: 8px;
+  z-index: 1060;
+  animation: dropupFadeIn 0.15s ease-out;
+}
+
+.sidebar-dropup-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--et-slate);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+  text-align: left;
+}
+
+.sidebar-dropup-item:hover {
+  background-color: var(--et-border-subtle);
+  color: var(--et-dark);
+}
+
+.sidebar-dropup-item.text-danger {
+  color: #EF4444;
+}
+
+.sidebar-dropup-item.text-danger:hover {
+  background-color: #FEF2F2;
+  color: #DC2626 !important;
+}
+
 /* Mobile Offcanvas Drawer */
 .et-offcanvas {
   width: 260px !important;
@@ -449,18 +449,18 @@
 
 .content-container {
   width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 32px clamp(24px, 2.5vw, 48px) 60px;
-  box-sizing: border-box;
+  max-width: 100%;
+  margin: 0;
+  padding: 32px clamp(24px, 2.5vw, 48px) 60px;
+  box-sizing: border-box;
 }
 
 .content-container.class-detail-container {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0 clamp(24px, 2.5vw, 48px) 60px;
-  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 clamp(24px, 2.5vw, 48px) 60px;
+  box-sizing: border-box;
 }
 
 .content-container.assignment-detail-container,
@@ -469,11 +469,11 @@
 .content-container.notifications-container,
 .content-container.profile-container,
 .content-container.schedule-container {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 32px clamp(24px, 2.5vw, 48px) 60px;
-  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 32px clamp(24px, 2.5vw, 48px) 60px;
+  box-sizing: border-box;
 }
 
 .content-container.profile-container .profile-view-card,
@@ -1860,7 +1860,7 @@
 .schedule-panel-body {
   flex: 1;
   overflow: hidden;
-  padding: 20px clamp(24px, 2.5vw, 48px) 16px;
+  padding: 20px clamp(24px, 2.5vw, 48px) 16px;
   display: flex;
   flex-direction: column;
 }

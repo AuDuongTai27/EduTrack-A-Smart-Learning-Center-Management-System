@@ -21,6 +21,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             services.AddScoped<ISubjectRepository, SubjectRepository>();
             services.AddScoped<IClassRepository, ClassRepository>();
+            services.AddScoped<IGradeRepository, GradeRepository>();
             services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
             services.AddScoped<ITaClassRepository, TaClassRepository>();
             services.AddScoped<IStudentClassRepository, StudentClassRepository>();
@@ -45,6 +46,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
             services.AddScoped<IUserRoleService, UserRoleService>();
             services.AddScoped<ISubjectService, SubjectService>();
             services.AddScoped<IClassService, ClassService>();
+            services.AddScoped<IGradeService, GradeService>();
             services.AddScoped<ITeacherClassService, TeacherClassService>();
             services.AddScoped<ITaClassService, TaClassService>();
             services.AddScoped<IStudentClassService, StudentClassService>();

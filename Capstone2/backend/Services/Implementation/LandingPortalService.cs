@@ -49,9 +49,10 @@ namespace EduTrack.API.Services.Implementation
                 .Where(c => c.Status == "active")
                 .CountAsync();
 
-            int realScheduleCount = await _context.ClassSchedules
+            var scheduleDate = EduTrack.API.Services.Schedule.ScheduleTimeline.Today();
+            int realScheduleCount = await _context.ClassScheduleVersions
                 .AsNoTracking()
-                .CountAsync();
+                .CountAsync(v => v.EffectiveFrom <= scheduleDate && (!v.EffectiveTo.HasValue || scheduleDate < v.EffectiveTo.Value));
 
             int realTrainerCount = await _context.Users
                 .AsNoTracking()

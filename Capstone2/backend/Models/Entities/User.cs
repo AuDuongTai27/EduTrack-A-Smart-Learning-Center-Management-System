@@ -50,6 +50,14 @@ namespace EduTrack.API.Models.Entities
         [Column("specialty")]
         public string? Specialty { get; set; }
 
+        // Student's current school grade, independent of tutoring enrollment.
+        // Nullable for legacy profiles. Specialty is retained as historical text.
+        [Column("grade_id")]
+        public int? GradeId { get; set; }
+
+        [ForeignKey(nameof(GradeId))]
+        public virtual Grade? Grade { get; set; }
+
         [Column("enrolled_since")]
         public DateTime? EnrolledSince { get; set; }
 

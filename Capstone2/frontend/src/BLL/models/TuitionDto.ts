@@ -4,6 +4,8 @@ export interface TuitionInvoiceDto {
   studentName: string;
   studentCode: string;
   classId: number;
+  classGradeId?: number | null;
+  classGradeName?: string | null;
   className: string;
   periodMonth?: number;
   periodYear?: number;
@@ -27,6 +29,8 @@ export interface PaymentDto {
   paymentId: number;
   invoiceId: number;
   amount: number;
+  additionalChargeAmount?: number;
+  additionalChargeNote?: string | null;
   paymentMethod: string;
   transactionCode?: string | null;
   paidAt: string;

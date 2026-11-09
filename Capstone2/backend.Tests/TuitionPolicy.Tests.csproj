@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="StudentEnrollment/**/*.cs" />
+    <Compile Remove="TuitionIntegration/**/*.cs" />
+    <Compile Remove="ScheduleRead/**/*.cs" />
+    <Compile Remove="ScheduleManagement/**/*.cs" />
+    <Compile Include="../backend/Services/Management/TuitionPolicy.cs" Link="TuitionPolicy.cs" />
+  </ItemGroup>
+</Project>

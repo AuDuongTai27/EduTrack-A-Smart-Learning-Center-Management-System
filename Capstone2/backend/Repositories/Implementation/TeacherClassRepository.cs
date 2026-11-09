@@ -13,6 +13,17 @@ namespace EduTrack.API.Repositories.Implementation
         {
         }
 
+        public Task<TeacherClass?> FindAssignmentAsync(int classId, int teacherId) =>
+            _dbSet.FirstOrDefaultAsync(x => x.ClassId == classId && x.TeacherId == teacherId);
+
+        public async Task<TeacherClass?> DeactivateAsync(int classId, int assignmentId)
+        {
+            await _dbSet.Where(x => x.ClassId == classId && x.TeacherClassId == assignmentId && x.Status != "inactive")
+                .ExecuteUpdateAsync(update => update.SetProperty(x => x.Status, "inactive"));
+            var assignment = await GetByIdAsync(assignmentId);
+            return assignment?.ClassId == classId ? assignment : null;
+        }
+
         public override async Task<IEnumerable<TeacherClass>> GetAllAsync()
         {
             return await _dbSet

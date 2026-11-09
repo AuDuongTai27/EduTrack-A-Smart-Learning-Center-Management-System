@@ -40,7 +40,8 @@ namespace EduTrack.API.Services.Implementation
                 AdditionalChargeNote = x.AdditionalChargeNote,
                 PaymentMethod = x.PaymentMethod,
                 TransactionCode = x.TransactionCode,
-                PaidAt = x.PaidAt,
+                // MySQL DATETIME loses DateTime.Kind; payment creation writes UTC.
+                PaidAt = DateTime.SpecifyKind(x.PaidAt, DateTimeKind.Utc),
                 PaidByUserId = x.PaidByUserId,
                 PayerName = x.Payer?.FullName,
                 RecordedBy = x.RecordedBy,

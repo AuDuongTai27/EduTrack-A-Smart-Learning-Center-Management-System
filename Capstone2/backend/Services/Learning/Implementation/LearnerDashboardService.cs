@@ -1,3 +1,4 @@
+using EduTrack.API.Services.Schedule;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +42,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     .ThenInclude(c => c.TeacherClasses)
                         .ThenInclude(tc => tc.Teacher)
                 .Include(sc => sc.Class)
-                    .ThenInclude(c => c.ClassSchedules)
+                    .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                 .Include(sc => sc.Class)
                     .ThenInclude(c => c.ClassSessions)
                         .ThenInclude(cs => cs.Attendances)
@@ -125,7 +126,6 @@ namespace EduTrack.API.Services.Learning.Implementation
                 var student = link.Student;
                 if (student == null) continue;
 
-                await EnsureStudentCurrentTermInvoicesAsync(student.UserId);
 
                 var studentClasses = await _context.StudentClasses
                     .AsNoTracking()
@@ -136,7 +136,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                         .ThenInclude(c => c.TeacherClasses)
                             .ThenInclude(tc => tc.Teacher)
                     .Include(sc => sc.Class)
-                        .ThenInclude(c => c.ClassSchedules)
+                        .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                     .Include(sc => sc.Class)
                         .ThenInclude(c => c.ClassSessions)
                             .ThenInclude(cs => cs.Attendances)
@@ -244,7 +244,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Include(c => c.TeacherClasses)
                     .ThenInclude(tc => tc.Teacher)
                 .Include(c => c.StudentClasses)
-                .Include(c => c.ClassSchedules)
+                .Include(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                 .Include(c => c.ContentUnits)
                 .Include(c => c.Assignments)
                     .ThenInclude(a => a.Submissions)
@@ -545,7 +545,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     .ThenInclude(c => c.TeacherClasses)
                         .ThenInclude(tc => tc.Teacher)
                 .Include(sc => sc.Class)
-                    .ThenInclude(c => c.ClassSchedules)
+                    .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                 .Include(sc => sc.Class)
                     .ThenInclude(c => c.ClassSessions)
                 .ToListAsync();
@@ -564,7 +564,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 string teacherName = mainTeacher?.FullName ?? "Giáo viên phụ trách";
                 string teacherInitials = GetInitials(teacherName);
 
-                foreach (var sched in cls.ClassSchedules)
+                foreach (var sched in ScheduleTimeline.At(cls.ClassSchedules, ScheduleTimeline.ListingDate(cls.StartDate)))
                 {
                     int dayIndex = MapDayIndex(sched.DayOfWeek);
                     var matchingSession = cls.ClassSessions
@@ -798,7 +798,6 @@ namespace EduTrack.API.Services.Learning.Implementation
                 return null;
             }
 
-            await EnsureStudentCurrentTermInvoicesAsync(studentId);
 
             var allInvoices = await _context.TuitionInvoices
                 .AsNoTracking()
@@ -872,80 +871,12 @@ namespace EduTrack.API.Services.Learning.Implementation
             };
         }
 
-        public async Task<StudentTuitionOverviewDto> PayStudentTuitionAsync(PayStudentTuitionRequestDto request)
-        {
-            var unpaidQuery = _context.TuitionInvoices
-                .Where(i => i.StudentId == request.StudentId && (i.Status == "unpaid" || i.Status == "overdue"));
+        // Task04: never fabricate gateway confirmations or reset financial history.
+        public Task<StudentTuitionOverviewDto> PayStudentTuitionAsync(PayStudentTuitionRequestDto request) =>
+            Task.FromException<StudentTuitionOverviewDto>(new NotSupportedException("Online payment requires a verified gateway confirmation; no Payment was recorded."));
 
-            if (request.InvoiceIds != null && request.InvoiceIds.Count > 0)
-            {
-                unpaidQuery = unpaidQuery.Where(i => request.InvoiceIds.Contains(i.InvoiceId));
-            }
-
-            var invoicesToPay = await unpaidQuery.ToListAsync();
-
-            string normalizedMethod = (request.PaymentMethod ?? "bank_transfer").Trim().ToLowerInvariant();
-            if (normalizedMethod == "qr") normalizedMethod = "bank_transfer";
-            else if (normalizedMethod == "atm" || normalizedMethod == "visa") normalizedMethod = "vnpay";
-            else if (normalizedMethod != "momo" && normalizedMethod != "vnpay" && normalizedMethod != "bank_transfer")
-            {
-                normalizedMethod = "bank_transfer";
-            }
-
-            foreach (var inv in invoicesToPay)
-            {
-                inv.Status = "paid";
-
-                var payment = new Payment
-                {
-                    InvoiceId = inv.InvoiceId,
-                    Amount = inv.AmountDue,
-                    PaymentMethod = normalizedMethod,
-                    TransactionCode = $"PAY-{DateTime.UtcNow:MMddHHmmss}-{inv.InvoiceId}",
-                    PaidAt = DateTime.UtcNow,
-                    PaidByUserId = request.ParentId > 0 ? request.ParentId : null,
-                    RecordedBy = 2,
-                    Note = $"Thanh toán trực tuyến qua {normalizedMethod.ToUpperInvariant()} cho hóa đơn #{inv.InvoiceId}"
-                };
-
-                _context.Payments.Add(payment);
-            }
-
-            if (invoicesToPay.Count > 0)
-            {
-                await _context.SaveChangesAsync();
-            }
-
-            var updatedOverview = await GetStudentTuitionOverviewAsync(request.StudentId);
-            return updatedOverview ?? new StudentTuitionOverviewDto { StudentId = request.StudentId };
-        }
-
-        public async Task<StudentTuitionOverviewDto?> ResetDemoUnpaidTuitionAsync(int studentId)
-        {
-            var octInvoices = await _context.TuitionInvoices
-                .Include(i => i.Payments)
-                .Where(i => i.StudentId == studentId && i.PeriodMonth == 10 && i.PeriodYear == 2026)
-                .ToListAsync();
-
-            if (octInvoices.Count == 0)
-            {
-                await EnsureStudentCurrentTermInvoicesAsync(studentId);
-            }
-            else
-            {
-                foreach (var inv in octInvoices)
-                {
-                    inv.Status = "unpaid";
-                    if (inv.Payments.Count > 0)
-                    {
-                        _context.Payments.RemoveRange(inv.Payments);
-                    }
-                }
-                await _context.SaveChangesAsync();
-            }
-
-            return await GetStudentTuitionOverviewAsync(studentId);
-        }
+        public Task<StudentTuitionOverviewDto?> ResetDemoUnpaidTuitionAsync(int studentId) =>
+            Task.FromException<StudentTuitionOverviewDto?>(new NotSupportedException("Financial history cannot be reset for a demo."));
 
         public async Task<List<LearnerFeedbackItemDto>> GetLearnerFeedbacksAsync(int userId, int? studentId = null)
         {
@@ -1650,50 +1581,6 @@ namespace EduTrack.API.Services.Learning.Implementation
             };
         }
 
-        /// <summary>
-        /// Đảm bảo học sinh có hóa đơn học phí kỳ hiện tại (Tháng 10/2026) để đồng bộ 100% giữa Dashboard và trang Học phí
-        /// </summary>
-        private async Task EnsureStudentCurrentTermInvoicesAsync(int studentId)
-        {
-            bool hasOctInvoices = await _context.TuitionInvoices
-                .AnyAsync(i => i.StudentId == studentId && i.PeriodMonth == 10 && i.PeriodYear == 2026);
-
-            if (hasOctInvoices)
-            {
-                return;
-            }
-
-            var enrolledClasses = await _context.StudentClasses
-                .AsNoTracking()
-                .Where(sc => sc.StudentId == studentId && sc.Status != "dropped")
-                .Include(sc => sc.Class)
-                .ToListAsync();
-
-            if (enrolledClasses.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var sc in enrolledClasses)
-            {
-                if (sc.Class == null) continue;
-                decimal fee = sc.Class.TuitionFee > 0 ? sc.Class.TuitionFee : 1500000.00m;
-
-                _context.TuitionInvoices.Add(new TuitionInvoice
-                {
-                    StudentId = studentId,
-                    ClassId = sc.ClassId,
-                    PeriodMonth = 10,
-                    PeriodYear = 2026,
-                    AmountDue = fee,
-                    DueDate = new DateTime(2026, 11, 10),
-                    Status = "unpaid"
-                });
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
         private static (string statusType, string statusIcon, string statusLabel) MapProgressNoteStatus(string? noteType)
         {
             var normalized = (noteType ?? string.Empty).Trim().ToLowerInvariant();
@@ -1783,7 +1670,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                 return $"Khai giảng: {startDate:dd/MM/yyyy}";
             }
 
-            var orderedSchedules = schedules.ToList();
+            var orderedSchedules = ScheduleTimeline.At(schedules, ScheduleTimeline.ListingDate(startDate));
+            if (orderedSchedules.Count == 0) return $"Khai gi?ng: {startDate:dd/MM/yyyy}";
             var days = orderedSchedules
                 .Select(s => MapDayOfWeek(s.DayOfWeek))
                 .Distinct()

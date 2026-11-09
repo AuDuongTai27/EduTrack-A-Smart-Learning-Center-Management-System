@@ -5,6 +5,7 @@ using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.Entities;
 using EduTrack.API.Repositories.Interfaces;
 using EduTrack.API.Services.Interfaces;
+using EduTrack.API.Services.Management;
 
 namespace EduTrack.API.Services.Implementation
 {
@@ -20,16 +21,17 @@ namespace EduTrack.API.Services.Implementation
         public async Task<IEnumerable<TuitionInvoiceDto>> GetAllTuitionInvoicesAsync()
         {
             var list = await _repository.GetAllAsync();
-            return list.Select(MapToDto);
+            var now = DateTimeOffset.UtcNow;
+            return list.Select(invoice => MapToDto(invoice, now));
         }
 
         public async Task<TuitionInvoiceDto?> GetTuitionInvoiceByIdAsync(int id)
         {
             var item = await _repository.GetByIdAsync(id);
-            return item == null ? null : MapToDto(item);
+            return item == null ? null : MapToDto(item, DateTimeOffset.UtcNow);
         }
 
-        private static TuitionInvoiceDto MapToDto(TuitionInvoice x)
+        private static TuitionInvoiceDto MapToDto(TuitionInvoice x, DateTimeOffset now)
         {
             return new TuitionInvoiceDto
             {
@@ -39,11 +41,14 @@ namespace EduTrack.API.Services.Implementation
                 StudentCode = x.Student?.UserCode ?? string.Empty,
                 ClassId = x.ClassId,
                 ClassName = x.Class?.ClassName ?? string.Empty,
+                ClassGradeId = x.Class?.GradeId,
+                ClassGradeName = x.Class?.Grade?.GradeName,
                 PeriodMonth = x.PeriodMonth,
                 PeriodYear = x.PeriodYear,
                 AmountDue = x.AmountDue,
                 DueDate = x.DueDate,
-                Status = x.Status
+                Status = TuitionPolicy.ResolveStatus(
+                    x.AmountDue, x.Payments.Sum(payment => payment.Amount), x.DueDate, now, x.Status)
             };
         }
     }

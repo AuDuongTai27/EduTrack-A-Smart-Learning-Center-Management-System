@@ -43,6 +43,9 @@ export default function AdminStaffSidebar() {
         </div>
         <div className="nav-section">
           <div className="nav-heading">MANAGEMENT</div>
+          <NavLink className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} to="/admin-staff/schedule">
+            <i className="bi bi-calendar-week" /><span>Schedule</span>
+          </NavLink>
           <NavLink
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             to="/admin-staff/students"

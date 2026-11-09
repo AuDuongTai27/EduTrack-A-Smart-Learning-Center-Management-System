@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
+import { schedulePageNumber } from "../../../BLL/services/scheduleViewService";
 
 export interface PaginationProps {
   totalItems?: number;
@@ -18,9 +19,9 @@ function PaginationJumpInput({ totalPages, onPageChange }: JumpInputProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      const pageNum = parseInt(val, 10);
-      if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
-        onPageChange && onPageChange(pageNum);
+      const pageNum = schedulePageNumber(val, totalPages);
+      if (pageNum !== null) {
+        onPageChange?.(pageNum);
         setVal("");
       }
     }
@@ -28,9 +29,9 @@ function PaginationJumpInput({ totalPages, onPageChange }: JumpInputProps) {
 
   const handleBlur = () => {
     if (val.trim()) {
-      const pageNum = parseInt(val, 10);
-      if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
-        onPageChange && onPageChange(pageNum);
+      const pageNum = schedulePageNumber(val, totalPages);
+      if (pageNum !== null) {
+        onPageChange?.(pageNum);
       }
       setVal("");
     }

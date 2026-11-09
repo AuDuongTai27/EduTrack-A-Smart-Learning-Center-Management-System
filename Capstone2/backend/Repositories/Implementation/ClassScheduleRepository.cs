@@ -18,6 +18,7 @@ namespace EduTrack.API.Repositories.Implementation
             return await _dbSet
                 .AsNoTracking()
                 .Include(cs => cs.Class)
+                .Include(cs => cs.Versions)
                 .ToListAsync();
         }
 
@@ -26,6 +27,7 @@ namespace EduTrack.API.Repositories.Implementation
             return await _dbSet
                 .AsNoTracking()
                 .Include(cs => cs.Class)
+                .Include(cs => cs.Versions)
                 .FirstOrDefaultAsync(x => x.ScheduleId == id);
         }
     }

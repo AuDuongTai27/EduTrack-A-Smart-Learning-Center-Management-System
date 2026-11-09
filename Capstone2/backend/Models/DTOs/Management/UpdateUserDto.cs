@@ -4,6 +4,18 @@ namespace EduTrack.API.Models.DTOs.Management
 {
     public class UpdateUserDto
     {
+        private int? _gradeId;
+        [Range(1, int.MaxValue)]
+        public int? GradeId
+        {
+            get => _gradeId;
+            set { _gradeId = value; GradeSpecified = true; }
+        }
+
+        // Older callers omitting gradeId must not clear the saved grade.
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool GradeSpecified { get; private set; }
+
         [Required(ErrorMessage = "FullName là bắt buộc")]
         [StringLength(150, ErrorMessage = "FullName không được vượt quá 150 ký tự")]
         public string FullName { get; set; } = null!;
