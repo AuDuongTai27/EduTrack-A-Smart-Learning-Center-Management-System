@@ -41,14 +41,14 @@ namespace EduTrack.API.Controllers.Teaching
         /// Đánh dấu một thông báo là đã đọc
         /// </summary>
         [HttpPut("{notificationId:int}/read")]
-        public async Task<IActionResult> MarkAsRead(int notificationId)
+        public async Task<IActionResult> MarkAsRead(int notificationId, [FromQuery] int? userId = null)
         {
             if (notificationId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã thông báo không hợp lệ." });
             }
 
-            var success = await _notificationService.MarkAsReadAsync(notificationId);
+            var success = await _notificationService.MarkAsReadAsync(notificationId, userId);
             if (!success)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy thông báo #{notificationId}" });
