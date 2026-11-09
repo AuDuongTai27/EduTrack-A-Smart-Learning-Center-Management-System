@@ -11,6 +11,8 @@
     <Compile Remove="ScheduleRead/**/*.cs" />
     <Compile Remove="ScheduleManagement/**/*.cs" />
     <Compile Remove="ScheduleChanges/**/*.cs" />
+    <Compile Remove="Notifications/**/*.cs" />
+    <Compile Remove="ScheduleCompatibility/**/*.cs" />
     <Compile Include="../backend/Services/Management/TuitionPolicy.cs" Link="TuitionPolicy.cs" />
   </ItemGroup>
 </Project>

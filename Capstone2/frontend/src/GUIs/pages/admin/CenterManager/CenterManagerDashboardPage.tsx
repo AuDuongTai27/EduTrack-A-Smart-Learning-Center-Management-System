@@ -1,3 +1,4 @@
+import { DashboardNotificationsCard } from '../../../components/shared/notifications/NotificationQuickViews';
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
@@ -5,19 +6,17 @@ import KpiCard from "../../../components/Common/KpiCard";
 import { formatVND } from "../../../utils/formatCurrency";
 import userDAL from "../../../../DAL/userDAL";
 import classDAL from "../../../../DAL/classDAL";
-import notificationDAL from "../../../../DAL/notificationDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
-import type { NotificationDto } from "../../../../BLL/models/NotificationDto";
 import managementDAL from "../../../../DAL/managementDAL";
 import { useTuitionData } from "../../../hooks/useTuitionData";
 import { calculateTuitionMetrics } from "../../../../BLL/services/tuitionMetricsService";
-import { useAuthContext } from "../../../../contexts/AuthContext";
+import {useSelectedUser} from '../../../hooks/useSelectedUser';
 
 export default function CenterManagerDashboardPage() {
   const { centerName, academicYear } = useCenterSettings();
-  const { user, permission } = useAuthContext();
+  const { user, permission } = useSelectedUser();
   const manager = permission?.includes("center_manager") ? user : undefined;
   const [users, setUsers] = useState<UserDto[]>([]);
   const [classes, setClasses] = useState<ClassDto[]>([]);
@@ -25,7 +24,6 @@ export default function CenterManagerDashboardPage() {
   const [otherError, setOtherError] = useState<string | null>(null);
   const [usersReady, setUsersReady] = useState(false);
   const [classesReady, setClassesReady] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Quick Action Modal states
@@ -38,16 +36,14 @@ export default function CenterManagerDashboardPage() {
     let isMounted = true;
     async function fetchDashboardData() {
       setLoading(true);
-      const [userRes, classRes, notifRes] = await Promise.allSettled([
+      const [userRes, classRes] = await Promise.allSettled([
         userDAL.getAllUsers(),
         classDAL.getAllClasses(),
-        notificationDAL.getAllNotifications(),
       ]);
       if (isMounted) {
         if (userRes.status === "fulfilled") { setUsers(userRes.value.data); setUsersReady(true); }
         if (classRes.status === "fulfilled") { setClasses(classRes.value.data); setClassesReady(true); }
-        if (notifRes.status === "fulfilled") setNotifications(notifRes.value.data);
-        setOtherError([userRes, classRes, notifRes].filter(result => result.status === "rejected")
+        setOtherError([userRes, classRes].filter(result => result.status === "rejected")
           .map(result => String(result.reason instanceof Error ? result.reason.message : result.reason)).join(" ") || null);
         setLoading(false);
       }
@@ -293,65 +289,7 @@ export default function CenterManagerDashboardPage() {
           </div>
         </div>
 
-        {/* Notice Board */}
-        <div className="col-xl-6 d-flex">
-          <div className="card dashboard-card flex-fill border-0 shadow-sm">
-            <div className="card-header dashboard-card-header d-flex align-items-center justify-content-between bg-white py-3 border-bottom">
-              <div>
-                <h5 className="mb-1 fw-bold text-dark">Notice Board</h5>
-                <small className="text-muted">
-                  Latest announcements and updates
-                </small>
-              </div>
-              <Link
-                to="/center-manager/notifications"
-                className="dashboard-view-all text-primary fw-semibold small"
-              >
-                View All <i className="bi bi-arrow-right" />
-              </Link>
-            </div>
-            <div className="card-body dashboard-card-body p-3">
-              <div className="notice-list">
-                {loading ? (
-                  <div className="text-center py-4 text-muted">
-                    <div
-                      className="spinner-border spinner-border-sm text-primary me-2"
-                      role="status"
-                    />
-                    Đang nạp thông báo...
-                  </div>
-                ) : notifications.length === 0 ? (
-                  <div className="text-center py-4 text-muted">
-                    Không có thông báo mới.
-                  </div>
-                ) : (
-                  notifications.slice(0, 4).map((n) => (
-                    <div
-                      key={n.notificationId}
-                      className="notice-item d-flex align-items-center p-3 mb-2 rounded bg-light border"
-                    >
-                      <div className="notice-icon bg-primary-subtle text-primary p-2 rounded-circle me-3">
-                        <i className="bi bi-megaphone-fill" />
-                      </div>
-                      <div className="notice-content flex-grow-1">
-                        <h6 className="mb-1 fw-bold text-dark">{n.title}</h6>
-                        <p
-                          className="mb-0 text-muted small text-truncate"
-                          style={{ maxWidth: "280px" }}
-                        >
-                          {n.content}
-                        </p>
-                      </div>
-                      <span className="badge bg-white text-secondary border small">
-                        {n.type || "Notice"}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="col-xl-6"><DashboardNotificationsCard /></div>
       </div>
 
       {/* QUICK ADD STUDENT MODAL */}

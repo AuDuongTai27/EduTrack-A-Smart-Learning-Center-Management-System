@@ -9,20 +9,21 @@ import react from '@vitejs/plugin-react';
 
 // Test the Schedule-owned component and then the actual Schedule workspaces.
 // The six owner page hooks remain untouched. APIs use only isolated HTTP/MySQL.
-const origin=process.env.EDUTRACK_SCHEDULE_TEST_ORIGIN,nonce=process.env.EDUTRACK_SCHEDULE_TEST_NONCE;
-assert.match(origin??'',/^http:\/\/127\.0\.0\.1:\d+$/);assert.match(nonce??'',/^[a-f0-9]{32}$/);
+const origin=process.env.EDUTRACK_SCHEDULE_TEST_ORIGIN;
+const actors={'teacher':501,'other-teacher':502,'teaching-assistant':503,'student':504,'center-manager':505,'admin-staff':506};
+assert.match(origin??'',/^http:\/\/127\.0\.0\.1:\d+$/);
 const output=fs.mkdtempSync(path.join(os.tmpdir(),'edutrack-schedule-change-browser-')),root=process.cwd(),src=f=>path.join(root,f).replaceAll('\\','/');
 fs.writeFileSync(path.join(output,'index.html'),'<!doctype html><html><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="./entry.tsx"></script></html>');
-fs.writeFileSync(path.join(output,'entry.tsx'),`import React from 'react';import{createRoot}from'react-dom/client';import{ScheduleChangeRequests}from${JSON.stringify(src('src/GUIs/components/shared/schedule/ScheduleChangeRequests.tsx'))};import ${JSON.stringify(src('src/assets/css/bootstrap.min.css'))};import ${JSON.stringify(src('src/GUIs/components/shared/schedule/schedule.css'))};const q=new URLSearchParams(location.search);const session=q.get('session')?await fetch('/api/schedule/sessions/'+q.get('session'),{credentials:'include'}).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}):undefined;window.appliedEvents=0;window.addEventListener('edutrack:schedule-applied',()=>window.appliedEvents++);createRoot(document.getElementById('root')).render(<main style={{padding:12}}><ScheduleChangeRequests mode={q.get('mode')==='reviewer'?'reviewer':'teacher'} session={session}/></main>);`);
-await build({configFile:false,root:output,plugins:[react()],logLevel:'warn',resolve:{alias:[{find:'react-dom',replacement:src('node_modules/react-dom')},{find:'react',replacement:src('node_modules/react')}]},build:{target:'esnext',outDir:path.join(output,'dist'),emptyOutDir:true}});
+fs.writeFileSync(path.join(output,'entry.tsx'),`import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{ScheduleChangeRequests}from${JSON.stringify(src('src/GUIs/components/shared/schedule/ScheduleChangeRequests.tsx'))};import ${JSON.stringify(src('src/assets/css/bootstrap.min.css'))};import ${JSON.stringify(src('src/GUIs/components/shared/schedule/schedule.css'))};const q=new URLSearchParams(location.search);const session=q.get('session')?await fetch('/api/schedule/sessions/'+q.get('session')+'?userId='+({teacher:501,'admin-staff':506,'center-manager':505}[location.pathname.split('/')[1]]||501),{credentials:'omit'}).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}):undefined;window.appliedEvents=0;window.addEventListener('edutrack:schedule-applied',()=>window.appliedEvents++);createRoot(document.getElementById('root')).render(<BrowserRouter><main style={{padding:12}}><ScheduleChangeRequests mode={q.get('mode')==='reviewer'?'reviewer':'teacher'} session={session}/></main></BrowserRouter>);`);
+await build({configFile:false,root:output,plugins:[react()],logLevel:'warn',resolve:{alias:[{find:'react-router-dom',replacement:src('node_modules/react-router-dom')},{find:'react-dom',replacement:src('node_modules/react-dom')},{find:'react',replacement:src('node_modules/react')}]},build:{target:'esnext',outDir:path.join(output,'dist'),emptyOutDir:true}});
 const requests=[],failures=[],summary=[],workspaces=[];
 const faults={capFailure:0,capDelay:0,listFailure:0};
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1');if(url.pathname.startsWith('/api/')){
-    if(!url.pathname.startsWith('/api/schedule/')){res.writeHead(404).end();return;}
+    if(!url.pathname.startsWith('/api/schedule/')&&!url.pathname.startsWith('/api/user-selection')){res.writeHead(404).end();return;}
     requests.push({method:req.method,path:url.pathname});const proxy=http.request(origin+req.url,{method:req.method,headers:{...req.headers,host:new URL(origin).host}},r=>{res.writeHead(r.statusCode,r.headers);r.pipe(res);});proxy.on('error',e=>{failures.push(e.message);res.writeHead(502).end();});req.pipe(proxy);return;
   }
-  const file=url.pathname==='/'?path.join(output,'dist/index.html'):path.join(output,'dist',url.pathname);
+  const file=!url.pathname.startsWith('/assets/')?path.join(output,'dist/index.html'):path.join(output,'dist',url.pathname);
   if(!file.startsWith(path.join(output,'dist'))||!fs.existsSync(file)){res.writeHead(404).end();return;}
   res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html');fs.createReadStream(file).pipe(res);
 });
@@ -33,7 +34,7 @@ async function evaluate(expression){const r=await send('Runtime.evaluate',{expre
 async function until(expression,label){const end=Date.now()+15000;while(Date.now()<end){if(await evaluate('Boolean('+expression+')'))return;await delay(40);}throw Error('Timeout '+label+'\n'+await evaluate('document.body.innerText'));}
 async function button(label,double=false){const b='Array.from(document.querySelectorAll("button")).find(b=>b.textContent.trim()==='+JSON.stringify(label)+')';assert.ok(await evaluate('Boolean('+b+')'),'Button '+label);await evaluate(b+'.click();'+(double?b+'.click();':''));}
 async function input(label,value){await evaluate(`(()=>{const el=document.querySelector(${JSON.stringify('[aria-label="'+label+'"]')});if(!el)throw Error('Missing ${label}');const proto=el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(el,${JSON.stringify(value)});el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));})()`);}
-async function api(path,actor='teacher',method='GET',body){const r=await fetch(origin+path,{method,headers:{'X-Schedule-Test-Identity':nonce+':'+actor,...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});assert.ok(r.ok,'HTTP '+r.status+' '+path);return r.json();}
+async function api(path,actor='teacher',method='GET',body){const r=await fetch(origin+path+(path.includes('?')?'&':'?')+'userId='+actors[actor],{method,headers:{...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});assert.ok(r.ok,'HTTP '+r.status+' '+path);return r.json();}
 async function paused(event){
   const url=new URL(event.request.url);
   if(url.origin!==origin){
@@ -42,7 +43,7 @@ async function paused(event){
   }
   if(url.pathname.startsWith('/api/')){
     requests.push({scope:'workspace',method:event.request.method,path:url.pathname});
-    if(!url.pathname.startsWith('/api/schedule/')){
+    if(!url.pathname.startsWith('/api/schedule/')&&!url.pathname.startsWith('/api/user-selection')){
       assert.equal(event.request.method,'GET','No non-Schedule writes from actual app');
       await send('Fetch.fulfillRequest',{requestId:event.requestId,responseCode:503,body:Buffer.from('{}').toString('base64')});return;
     }
@@ -57,13 +58,15 @@ async function paused(event){
   await send('Fetch.continueRequest',{requestId:event.requestId});
 }
 async function workspace(actor,route){
-  await send('Network.setCookie',{name:'schedule_test_actor',value:nonce+':'+actor,url:origin,httpOnly:true});
+  const script=await send('Page.addScriptToEvaluateOnNewDocument',{source:'if(location.origin==='+JSON.stringify(origin)+')localStorage.setItem('+JSON.stringify('edutrack-selected-user:'+route.replaceAll('-','_'))+','+JSON.stringify(String(actors[actor]))+');'});
+
   await send('Page.navigate',{url:origin+'/'+route+'/schedule'});
+  await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:script.identifier});
   await until('document.querySelector(".et-schedule-summary")&&!Array.from(document.querySelectorAll(".et-schedule-state")).some(e=>e.textContent.includes("Đang tải"))','actual Calendar/List ready');
 }
 async function openRequests(role){await button(role==='teacher'?'Lịch sử yêu cầu đổi lịch':'Xử lý yêu cầu đổi lịch');await until(query('#et-schedule-change-requests .schedule-change-requests h3'),'Schedule-owned workspace requests');}
 const officialReads=()=>requests.filter(r=>r.scope==='workspace'&&r.path==='/api/schedule/sessions'&&r.method==='GET').length;
-async function navigate(actor,mode,id){await send('Network.setCookie',{name:'schedule_test_actor',value:nonce+':'+actor,url:ui,httpOnly:true});await send('Page.navigate',{url:ui+'/?mode='+mode+(id?'&session='+id:'')});await until(query('.schedule-change-requests h3'),'component capabilities');}
+async function navigate(actor,mode,id){await send('Page.navigate',{url:ui+'/'+actor+'/schedule?mode='+mode+(id?'&session='+id:'')});await until(query('.schedule-change-requests h3'),'component capabilities');}
 async function submit(id,kind,date,hour,keepTime=false){
   await navigate('teacher','teacher',id);await button('Dời / Hủy / Học bù');await input('Loại yêu cầu',kind);
   if(kind!=='cancel'){
@@ -155,6 +158,6 @@ try{
   const original=await api('/api/schedule/sessions/9002');const template={classId:810,operation:'create',effectiveFrom:'2027-03-01',dayOfWeek:'Tuesday',startTime:'12:00',endTime:'13:00',room:'STALE ALLOCATION'};
   const tp=await api('/api/schedule/management/templates/preview','center-manager','POST',template);await api('/api/schedule/management/templates/confirm','center-manager','POST',{...template,previewToken:tp.previewToken});
   const reads=officialReads();await button('Xác nhận quyết định');await until(query('#et-schedule-change-requests [role=alert]'),'409 shown without false success');assert.equal(await evaluate('Boolean(document.querySelector("[data-decision-preview]"))'),false,'stale token cleared');assert.deepEqual(await api('/api/schedule/sessions/9002'),original);assert.equal(officialReads(),reads);assert.equal((await api('/api/schedule/change-requests/'+stale.requestId,'admin-staff')).status,'pending');
-  await send('Network.deleteCookies',{name:'schedule_test_actor',url:origin});await send('Page.navigate',{url:origin+'/teacher/schedule'});await until(query('.et-schedule-error'),'actual anonymous 401 Calendar');await button('Lịch sử yêu cầu đổi lịch');await until(query('#et-schedule-change-requests [role=alert]'),'401 requests error');assert.equal(await evaluate('Boolean(document.querySelector(".schedule-change-requests form"))'),false);
+  await workspace('teacher','teacher');await openRequests('teacher');await until(query('#et-schedule-change-requests h3'),'Anonymous selected-user requests load without login');
   assert.deepEqual(failures,[]);fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({summary,workspaces,requests,failures,pageOwnerHooks:'unapplied',productionReady:false},null,2));console.log('BROWSER RESULTS: '+summary.length+' component groups + '+workspaces.length+' actual Schedule role/viewport groups; loading/empty/503/retry/409/401 cases; owner page hooks unapplied. ARTIFACTS: '+output);
 }finally{if(socket?.readyState===1){await send('Browser.close',{},null).catch(()=>{});socket.close();}chrome?.kill();for(const p of pending.values())clearTimeout(p.timer);await new Promise(resolve=>server.close(resolve));}

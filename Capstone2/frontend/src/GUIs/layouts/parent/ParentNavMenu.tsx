@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
-import { useAuthContext } from '../../../contexts/AuthContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
@@ -16,7 +15,6 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
   const footerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { dispatch } = useAuthContext();
 
   useEffect(() => {
     let isMounted = true;
@@ -65,10 +63,9 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
     navigate('/parent/profile');
   };
 
-  const handleLogout = () => {
+  const handleHome = () => {
     setIsDropupOpen(false);
     onLinkClick?.();
-    dispatch({ type: 'logout' });
     navigate('/');
   };
 
@@ -200,10 +197,10 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
             <button
               type="button"
               className="sidebar-dropup-item text-danger"
-              onClick={handleLogout}
+              onClick={handleHome}
             >
               <i className="bi bi-box-arrow-right fs-6" />
-              <span>Đăng xuất</span>
+              <span>Về trang chủ</span>
             </button>
           </div>
         )}

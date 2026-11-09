@@ -1,3 +1,4 @@
+import {selectedUrl} from '../BLL/services/userSelection.ts';
 import type {ScheduleChangeActual, ScheduleChangeCapabilities, ScheduleChangeInput, ScheduleChangePreview, ScheduleChangeRequest, ScheduleDecisionInput} from '../BLL/models/ScheduleChangeRequest';
 const id = (x: unknown): x is number => typeof x === 'number' && Number.isSafeInteger(x) && x > 0;
 const date = (x: unknown): x is string => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x) && !isNaN(Date.parse(x)) && new Date(x).toISOString().slice(0,10) === x;
@@ -31,10 +32,10 @@ export function readScheduleChangePreview(value: unknown): ScheduleChangePreview
   if (x.request !== null) {const request = readScheduleChange(x.request); if (request.session.sessionId !== x.session.sessionId) throw new Error('Preview không khớp Session.');}
   return x;
 }
-export function createScheduleChangeRequestApi(baseUrl: string) {
+export function createScheduleChangeRequestApi(baseUrl: string, selectedUserId?: number) {
   async function request(path: string, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<unknown> {
     let response: Response;
-    try {response = await fetch(`${baseUrl}/schedule/change-requests${path}`, {method, signal, credentials:'include', cache:'no-store', headers:{Accept:'application/json',...(body === undefined ? {} : {'Content-Type':'application/json'})},...(body === undefined ? {} : {body:JSON.stringify(body)})});}
+    try {response = await fetch(await selectedUrl(`${baseUrl}/schedule/change-requests${path}`, 'userId', selectedUserId), {method, signal, credentials:'omit', cache:'no-store', headers:{Accept:'application/json',...(body === undefined ? {} : {'Content-Type':'application/json'})},...(body === undefined ? {} : {body:JSON.stringify(body)})});}
     catch (cause) {if (signal?.aborted) throw cause; throw new Error(method === 'GET' || path.endsWith('preview') ? 'Không kết nối được máy chủ.' : 'Chưa xác định kết quả lưu. Tải lại request; retry phải dùng cùng key/quyết định.');}
     if (!response.ok) {const data = await response.json().catch(() => null); throw new ScheduleChangeApiError(response.status,data?.message || `Không thực hiện được yêu cầu (HTTP ${response.status}).`);}
     return response.json();

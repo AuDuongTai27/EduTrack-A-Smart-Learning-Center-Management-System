@@ -4,10 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 
-// Only the isolated ScheduleRead test host accepts these per-run test cookies.
-const origin = process.env.EDUTRACK_SCHEDULE_TEST_ORIGIN, nonce = process.env.EDUTRACK_SCHEDULE_TEST_NONCE;
+// Ordinary HTTP using database user selectors; no authentication in this system.
+const origin = process.env.EDUTRACK_SCHEDULE_TEST_ORIGIN;
 assert.match(origin ?? '', /^http:\/\/127\.0\.0\.1:\d+$/);
-assert.match(nonce ?? '', /^[a-f0-9]{32}$/);
 const output = process.env.EDUTRACK_SCHEDULE_SCREENSHOTS || fs.mkdtempSync(path.join(os.tmpdir(), 'edutrack-schedule-browser-'));
 fs.mkdirSync(output, {recursive:true});
 const bootstrap = fs.readFileSync(path.join(process.cwd(), 'src/assets/css/bootstrap.min.css'));
@@ -76,8 +75,9 @@ async function paused(event) {
   if (url.pathname.startsWith('/api/')) {
     requests.push({path: url.pathname, query: url.search, method: event.request.method});
     assert.equal(event.request.method, 'GET', 'Browser must never submit writes');
+    if (url.pathname.startsWith('/api/user-selection')) {await send('Fetch.continueRequest', {requestId:event.requestId});return;}
     if (url.pathname.startsWith('/api/schedule/sessions')) {
-      assert.equal(url.searchParams.has('userId'), false); assert.equal(url.searchParams.has('studentId'), false);
+      assert.ok(Number(url.searchParams.get('userId')) > 0, 'Explicit data selector is sent without authentication'); assert.equal(url.searchParams.has('studentId'), false);
       if (mode === 'held') await delay(400);
       if (mode === 'empty' || mode === 'failure') {
         await send('Fetch.fulfillRequest', {requestId: event.requestId, responseCode: mode === 'failure' ? 503 : 200,
@@ -118,7 +118,6 @@ try {
     await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
     for(const [role,expected] of [['center-manager',19],['admin-staff',19],['teacher',15],['teaching-assistant',2],['student',16]]) {
       mode='live';
-      await send('Network.setCookie',{name:'schedule_test_actor',value:nonce+':'+role,url:origin,httpOnly:true});
       await send('Page.navigate',{url:origin+'/'+role+'/schedule'}); await ready();
       assert.match(await evaluate('document.querySelector(".et-schedule-range").textContent'),/28\/12\/2026.*03\/01\/2027/);
       assert.equal(await count(),expected);
@@ -207,10 +206,8 @@ try {
     }
     if (current === 'held') {await until('document.querySelector(".et-schedule-state")?.textContent.includes("Đang tải")', 'Loading visible'); await ready();}
   }
-  mode='live'; await send('Network.deleteCookies',{name:'schedule_test_actor',url:origin});
-  await send('Page.navigate',{url:origin+'/student/schedule'});
-  await until('document.querySelector(".et-schedule-error")?.textContent.includes("Chưa xác thực")', 'Unauthenticated view fails closed');
-  assert.equal(await count(),0); assert.deepEqual(failures,[]);
+  mode='live'; await send('Page.navigate',{url:origin+'/student/schedule'}); await ready();
+  assert.equal(await count(),16, 'Selected student loads without session or principal'); assert.deepEqual(failures,[]);
   fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({summary,requests,failures},null,2));
   console.log('BROWSER RESULTS: '+summary.length+' role/viewport groups; empty/error/retry/loading/401; no Schedule writes. ARTIFACTS: '+output);
 } finally {

@@ -9,6 +9,12 @@ namespace EduTrack.API.Models.EF
         {
         }
 
+        // Runtime subclasses have their own model cache and typed options. The base
+        // context remains the unchanged Contract model used by EF migrations.
+        protected EduTrackDbContext(DbContextOptions options) : base(options)
+        {
+        }
+
         // 22 DbSets for EduTrack Schema
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Role> Roles { get; set; } = null!;

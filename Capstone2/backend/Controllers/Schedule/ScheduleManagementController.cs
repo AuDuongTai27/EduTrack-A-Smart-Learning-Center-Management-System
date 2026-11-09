@@ -12,8 +12,6 @@ namespace EduTrack.API.Controllers.Schedule;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class ScheduleManagementController(EduTrackDbContext db, TimeProvider? clock = null) : ControllerBase
 {
-    // Auth owner supplies the principal. Every service method fails closed and checks DB roles.
-    // No development identity, actor parameter or production authentication middleware changes.
     private async Task<IActionResult> Execute<T>(Func<ScheduleManagementService, Task<T>> action)
     {
         try { return Ok(await action(new(db, clock))); }
@@ -26,15 +24,15 @@ public sealed class ScheduleManagementController(EduTrackDbContext db, TimeProvi
     }
 
     [HttpGet("capabilities")]
-    public Task<IActionResult> Capabilities(CancellationToken ct) => Execute(s => s.Capabilities(User, ct));
+    public Task<IActionResult> Capabilities([FromQuery] int userId, CancellationToken ct) => Execute(s => s.Capabilities(userId, ct));
     [HttpGet("templates")]
-    public Task<IActionResult> Templates([FromQuery] int classId, CancellationToken ct) => Execute(s => s.Templates(User, classId, ct));
+    public Task<IActionResult> Templates([FromQuery] int classId, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.Templates(userId, classId, ct));
     [HttpPost("templates/preview")]
-    public Task<IActionResult> PreviewTemplate(ScheduleTemplateInput input, CancellationToken ct) => Execute(s => s.PreviewTemplate(User, input, ct));
+    public Task<IActionResult> PreviewTemplate(ScheduleTemplateInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.PreviewTemplate(userId, input, ct));
     [HttpPost("templates/confirm")]
-    public Task<IActionResult> ConfirmTemplate(ScheduleTemplateInput input, CancellationToken ct) => Execute(s => s.ConfirmTemplate(User, input, ct));
+    public Task<IActionResult> ConfirmTemplate(ScheduleTemplateInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.ConfirmTemplate(userId, input, ct));
     [HttpPost("sessions/preview")]
-    public Task<IActionResult> Preview(ScheduleGenerationInput input, CancellationToken ct) => Execute(s => s.Preview(User, input, ct));
+    public Task<IActionResult> Preview(ScheduleGenerationInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.Preview(userId, input, ct));
     [HttpPost("sessions/confirm")]
-    public Task<IActionResult> Confirm(ScheduleGenerationInput input, CancellationToken ct) => Execute(s => s.Confirm(User, input, ct));
+    public Task<IActionResult> Confirm(ScheduleGenerationInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.Confirm(userId, input, ct));
 }

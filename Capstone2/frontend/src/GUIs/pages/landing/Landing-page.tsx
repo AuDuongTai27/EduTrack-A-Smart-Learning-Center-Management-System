@@ -12,12 +12,12 @@ import { landingDAL } from '../../../DAL/landingDAL';
 import type { LandingOverviewDto } from '../../../BLL/models/LandingOverviewDto';
 
 interface LandingOutletContext {
-  onOpenLogin?: () => void;
+  onOpenWorkspace?: () => void;
 }
 
 export function LandingPage() {
   const context = useOutletContext<LandingOutletContext>();
-  const handleOpenLogin = context?.onOpenLogin;
+  const handleOpenWorkspace = context?.onOpenWorkspace;
 
   const [overview, setOverview] = useState<LandingOverviewDto | null>(null);
 
@@ -54,7 +54,7 @@ export function LandingPage() {
       <HeroSection
         centerName={centerInfo?.centerName}
         slogan={centerInfo?.slogan}
-        onOpenLogin={handleOpenLogin}
+        onOpenWorkspace={handleOpenWorkspace}
       />
 
       {/* 2. Counts Section (Chỉ số quy mô trung tâm thực tế từ Database) */}

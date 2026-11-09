@@ -1,71 +1,37 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using EduTrack.API.Models.DTOs;
-using EduTrack.API.Services.Management.Interfaces;
+using EduTrack.API.Models.EF;
+using EduTrack.API.Services.Notifications;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EduTrack.API.Controllers.Management
+namespace EduTrack.API.Controllers.Management;
+[ApiController, Route("api/notifications"), NotificationErrors]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+public sealed class NotificationInboxController(EduTrackDbContext db, TimeProvider? clock = null) : ControllerBase
 {
-    [ApiController]
-    [Route("api/notifications")]
-    [Tags("Notifications - Inbox")]
-    public class NotificationInboxController : ControllerBase
+    private readonly NotificationInboxService inbox = new(db, clock);
+    [HttpGet("inbox/snapshot")]
+    public async Task<IActionResult> Snapshot([FromQuery] int userId) => Ok(await inbox.SnapshotAsync(userId));
+    // userId selects recipient data; this API does not authenticate callers.
+    [HttpGet("inbox")]
+    public async Task<IActionResult> Inbox([FromQuery] int userId) => Ok((await inbox.SnapshotAsync(userId)).Inbox);
+    [HttpGet("inbox/{id:int}")]
+    public async Task<IActionResult> Item(int id, [FromQuery] int userId) => Ok(await inbox.ItemAsync(userId, id));
+    [HttpGet("trash")]
+    public async Task<IActionResult> Trash([FromQuery] int userId)
     {
-        private readonly IManagementNotificationService _service;
-
-        public NotificationInboxController(IManagementNotificationService service)
-        {
-            _service = service;
-        }
-
-        // DEV ONLY: userId must come from auth identity in production.
-        [HttpGet("inbox")]
-        public async Task<ActionResult<IReadOnlyList<NotificationDto>>> Inbox([FromQuery] int userId)
-        {
-            try
-            {
-                return Ok(await _service.GetInboxAsync(userId));
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        // DEV ONLY: userId must come from auth identity in production.
-        [HttpPatch("{id:int}/read")]
-        public async Task<ActionResult<NotificationDto>> MarkRead(
-            int id, [FromQuery] int userId)
-        {
-            try
-            {
-                var result = await _service.MarkReadAsync(id, userId);
-                if (result == null)
-                    return NotFound(new { message = "Thông báo không thuộc hộp thư của tài khoản này." });
-                return Ok(result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        // Chỉ ẩn bản ghi người nhận đã đọc (soft-delete), không xóa thông báo gốc.
-        // DEV ONLY: userId must come from auth identity in production.
-        [HttpDelete("{id:int}/inbox")]
-        public async Task<IActionResult> DeleteReadFromInbox(int id, [FromQuery] int userId)
-        {
-            try
-            {
-                if (!await _service.HideReadAsync(id, userId))
-                    return NotFound(new { message = "Không tìm thấy thông báo trong hộp thư." });
-                return NoContent();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        await inbox.IdentifyAsync(userId, true);
+        return Ok((await inbox.SnapshotAsync(userId)).Trash);
     }
+    [HttpPatch("{id:int}/read")]
+    public async Task<IActionResult> Read(int id, [FromQuery] int userId, [FromQuery] bool snapshot = false)
+    {
+        var state = await inbox.MutateAsync(userId, "read", id);
+        if (snapshot) return Ok(state);
+        return Ok(await inbox.ItemAsync(userId, id));
+    }
+    [HttpPatch("read-all")]
+    public async Task<IActionResult> ReadAll([FromQuery] int userId) => Ok(await inbox.MutateAsync(userId, "read-all"));
+    [HttpDelete("{id:int}/inbox")]
+    public async Task<IActionResult> Delete(int id, [FromQuery] int userId) => Ok(await inbox.MutateAsync(userId, "delete", id));
+    [HttpPost("{id:int}/restore")]
+    public async Task<IActionResult> Restore(int id, [FromQuery] int userId) => Ok(await inbox.MutateAsync(userId, "restore", id));
 }

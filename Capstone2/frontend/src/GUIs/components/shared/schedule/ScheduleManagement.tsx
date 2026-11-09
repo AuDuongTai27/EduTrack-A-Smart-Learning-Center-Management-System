@@ -2,7 +2,7 @@ import {useEffect, useRef, useState, type FormEvent} from 'react';
 import type {ScheduleCapabilities, ScheduleGenerationInput, ScheduleGenerationPreview, ScheduleTemplate, ScheduleTemplateInput, ScheduleTemplatePreview} from '../../../../BLL/models/ScheduleManagement';
 import {scheduleManagementDAL as api} from '../../../../DAL/scheduleManagementDAL';
 import {addScheduleDays, vietnamClock} from '../../../../BLL/services/scheduleViewService';
-import {useAuthContext} from '../../../../contexts/AuthContext';
+import {useSelectedUser} from '../../../hooks/useSelectedUser';
 
 const days = [['Monday','Thứ Hai'],['Tuesday','Thứ Ba'],['Wednesday','Thứ Tư'],['Thursday','Thứ Năm'],['Friday','Thứ Sáu'],['Saturday','Thứ Bảy'],['Sunday','Chủ Nhật']];
 const outcomes = {eligible:'Hợp lệ',existing:'Đã tồn tại',conflict:'Xung đột',outside_class:'Ngoài thời gian Class',created:'Đã tạo'};
@@ -11,7 +11,7 @@ const emptyForm = () => ({dayOfWeek:'Monday',startTime:'',endTime:'',room:'',eff
 const dayLabel = (value: string) => days.find(([key]) => key === value)?.[1] || value;
 
 export function ScheduleManagement({onCreated}: {onCreated: () => void}) {
-  const {user} = useAuthContext();
+  const {user} = useSelectedUser();
   return <ManagementPanel key={user?.userId ?? 'anonymous'} onCreated={onCreated} />;
 }
 function ManagementPanel({onCreated}: {onCreated: () => void}) {

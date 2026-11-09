@@ -4,6 +4,7 @@ namespace EduTrack.API.Models.DTOs.Management
 {
     public class CreateManagementNotificationDto
     {
+        // Data selector only: no authentication or caller identity is inferred.
         [Range(1, int.MaxValue)]
         public int SenderId { get; set; }
 

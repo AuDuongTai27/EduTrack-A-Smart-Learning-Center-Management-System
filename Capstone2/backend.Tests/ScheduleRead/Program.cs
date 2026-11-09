@@ -2,7 +2,6 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -21,14 +20,9 @@ using MySqlConnector;
 
 var checks = 0;
 void Check(bool condition, string label) { if (!condition) throw new Exception("FAIL: " + label); checks++; Console.WriteLine("PASS " + label); }
-ClaimsPrincipal Principal(int id, bool authenticated = true) => new(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id.ToString())], authenticated ? "IsolatedScheduleTest" : null));
-foreach (var principal in new[] { new ClaimsPrincipal(), Principal(501, false), new ClaimsPrincipal(new ClaimsIdentity([new Claim("name", "teacher")], "test")),
-    new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", "501"), new Claim(ClaimTypes.NameIdentifier, "502")], "test")) })
-{
-    try { ScheduleReadService.RequireSubject(principal); throw new Exception("Expected denied identity"); }
-    catch (ScheduleAccessException ex) { Check(ex.StatusCode == 401, "Anonymous/untrusted/ambiguous identity rejected without database"); }
-}
-Check(ScheduleReadService.RequireSubject(Principal(501)) == 501, "Subject comes only from authenticated identity");
+int SelectedUser(int id) => id;
+foreach(var selector in new[]{0,-1}) {try{ScheduleReadService.RequireSelectedUser(selector);throw new Exception("Expected invalid selector");}catch(ScheduleAccessException e){Check(e.StatusCode==400,"Invalid data selector rejected");}}
+Check(ScheduleReadService.RequireSelectedUser(501)==501,"User ID is explicit data selection without authentication");
 foreach (var query in new[] { new ScheduleQuery(), new ScheduleQuery { From = "2026-02-30", ToExclusive = "2026-03-02" },
     new ScheduleQuery { From = "2026-12-28", ToExclusive = "2026-12-28" }, new ScheduleQuery { From = "2026-01-01", ToExclusive = "2027-01-01" },
     new ScheduleQuery { From = "2026-12-28", ToExclusive = "2027-01-04", TeacherId = -1 } })
@@ -55,7 +49,7 @@ var week = new ScheduleQuery {From = "2026-12-28", ToExclusive = "2027-01-04"};
 async Task<List<ScheduleSessionDto>> Read(int userId, ScheduleQuery? query = null)
 {
     await using var db = new EduTrackDbContext(readOptions);
-    return await new ScheduleReadService(db).GetSessions(Principal(userId), query ?? week);
+    return await new ScheduleReadService(db).GetSessions(SelectedUser(userId), query ?? week);
 }
 async Task<string> Snapshot()
 {
@@ -141,8 +135,8 @@ try
     foreach(var id in new[]{512,513,514,515}) Check((await Read(id)).Count==0,"Dropped/unknown/completed/future enrollment without valid time evidence is excluded");
     await using(var db = new EduTrackDbContext(readOptions))
     {
-        var principal=Principal(501); ((ClaimsIdentity)principal.Identity!).AddClaim(new Claim(ClaimTypes.Role,"center_manager"));
-        Check((await new ScheduleReadService(db).GetSessions(principal,week)).All(s=>s.ClassId==801),"Role claim cannot widen privileges beyond active DB role");
+        var principal=SelectedUser(501);
+        Check((await new ScheduleReadService(db).GetSessions(principal,week)).All(s=>s.ClassId==801),"DB assignments determine the selected Teacher timetable");
     }
     foreach (var (key, value, expected) in new[] {("ClassId","801",15),("SubjectId","702",2),("TeacherId","502",2),("TaId","503",2),("Room","QA B",2),("Status","cancelled",1)})
     {
@@ -154,12 +148,12 @@ try
     foreach (var id in new[] {507,508,511})
     {
         try { await Read(id); throw new Exception("Expected forbidden account"); }
-        catch (ScheduleAccessException ex) {Check(ex.StatusCode == 403,"Inactive/Parent/unknown-role account rejected");}
+        catch (ScheduleAccessException ex) {Check(ex.StatusCode == 400,"Inactive/Parent/unknown-role account rejected");}
     }
     await using (var db = new EduTrackDbContext(readOptions))
     {
-        Check(await new ScheduleReadService(db).GetSession(Principal(501),9005) == null, "Out-of-scope session detail is concealed");
-        Check(await new ScheduleReadService(db).GetSession(Principal(505),9009) != null, "Scoped session detail available");
+        Check(await new ScheduleReadService(db).GetSession(SelectedUser(501),9005) == null, "Out-of-scope session detail is concealed");
+        Check(await new ScheduleReadService(db).GetSession(SelectedUser(505),9009) != null, "Scoped session detail available");
     }
     Check(before == await Snapshot(), "All database tables unchanged after read service calls");
     Check(guard.SelectCount > 0 && guard.WriteAttempts == 0,"SELECT-only interceptor saw no write attempts");
@@ -185,16 +179,12 @@ try
     var contentRoot = Path.Combine(Path.GetTempPath(),"edutrack-schedule-host-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(contentRoot);
     var builder = WebApplication.CreateBuilder(new WebApplicationOptions {ContentRootPath=contentRoot, EnvironmentName="ScheduleIsolatedTest", Args=[]});
     builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
-    builder.Services.AddDbContext<EduTrackDbContext>(o => o.UseMySql(cs.ConnectionString,new MySqlServerVersion(new Version(8,0,0))).AddInterceptors(guard));
+    builder.Services.AddDbContext<EduTrackDbContext, EduTrackRuntimeDbContext>(o => o.UseMySql(cs.ConnectionString,new MySqlServerVersion(new Version(8,0,0))).AddInterceptors(guard));
     builder.Services.AddControllers().AddApplicationPart(typeof(ScheduleController).Assembly).ConfigureApplicationPartManager(m => m.FeatureProviders.Add(new OnlyScheduleController()));
     app = builder.Build();
     var nonce = Guid.NewGuid().ToString("N");
     var actors = new Dictionary<string,int> { ["teacher"] = 501, ["teaching-assistant"] = 503, ["student"] = 504, ["center-manager"] = 505, ["admin-staff"] = 506, ["parent"] = 508 };
-    app.Use(async (http,next) => {
-        var token = http.Request.Headers["X-Schedule-Test-Identity"].FirstOrDefault() ?? http.Request.Cookies["schedule_test_actor"];
-        if(token != null && token.StartsWith(nonce+":",StringComparison.Ordinal) && actors.TryGetValue(token[(nonce.Length+1)..],out var id)) http.User=Principal(id);
-        await next();
-    });
+
     app.MapControllers();
     var frontendRoot = Environment.GetEnvironmentVariable("EDUTRACK_TEST_FRONTEND_ROOT");
     if (!string.IsNullOrEmpty(frontendRoot))
@@ -208,21 +198,21 @@ try
     }
     await app.StartAsync(); var origin=app.Urls.Single(); using var client=new HttpClient{BaseAddress=new Uri(origin)};
     const string url="/api/schedule/sessions?from=2026-12-28&toExclusive=2027-01-04";
-    foreach(var extra in new[]{"","&userId=505","&studentId=504","&teacherId=501"})
-        Check((await client.GetAsync(url+extra)).StatusCode==HttpStatusCode.Unauthorized,"HTTP unauthenticated identity parameters do not authenticate");
+    foreach(var extra in new[]{"","&userId=0","&studentId=504","&teacherId=501"})
+        Check((await client.GetAsync(url+extra)).StatusCode==HttpStatusCode.BadRequest,"HTTP missing/invalid data selector is rejected");
     foreach(var actor in actors.Keys)
     {
-        using var request=new HttpRequestMessage(HttpMethod.Get,url); request.Headers.Add("X-Schedule-Test-Identity",nonce+":"+actor);
+        using var request=new HttpRequestMessage(HttpMethod.Get,url+"&userId="+actors[actor]);
         var response=await client.SendAsync(request);
-        if(actor=="parent") {Check(response.StatusCode==HttpStatusCode.Forbidden,"HTTP Parent rejected");continue;}
+        if(actor=="parent") {Check(response.StatusCode==HttpStatusCode.BadRequest,"HTTP Parent rejected");continue;}
         var rows=await response.Content.ReadFromJsonAsync<List<ScheduleSessionDto>>();
-        Check(response.IsSuccessStatusCode && rows!.Count==(await Read(actors[actor])).Count,"HTTP controlled principal scope: "+actor);
+        Check(response.IsSuccessStatusCode && rows!.Count==(await Read(actors[actor])).Count,"HTTP selected-user business scope: "+actor);
         Check(response.Headers.CacheControl?.NoStore==true,"HTTP response cannot be cached across identities");
     }
-    using(var request=new HttpRequestMessage(HttpMethod.Get,"/api/schedule/sessions/9005"))
-    { request.Headers.Add("X-Schedule-Test-Identity",nonce+":teacher"); Check((await client.SendAsync(request)).StatusCode==HttpStatusCode.NotFound,"HTTP detail prevents IDOR"); }
-    using(var request=new HttpRequestMessage(HttpMethod.Get,"/api/schedule/sessions?from=bad&toExclusive=2027-01-04"))
-    { request.Headers.Add("X-Schedule-Test-Identity",nonce+":teacher"); Check((await client.SendAsync(request)).StatusCode==HttpStatusCode.BadRequest,"HTTP rejects invalid dates"); }
+    using(var request=new HttpRequestMessage(HttpMethod.Get,"/api/schedule/sessions/9005?userId=501"))
+    {  Check((await client.SendAsync(request)).StatusCode==HttpStatusCode.NotFound,"HTTP detail prevents IDOR"); }
+    using(var request=new HttpRequestMessage(HttpMethod.Get,"/api/schedule/sessions?from=bad&toExclusive=2027-01-04&userId=501"))
+    {  Check((await client.SendAsync(request)).StatusCode==HttpStatusCode.BadRequest,"HTTP rejects invalid dates"); }
     Check((await client.PostAsJsonAsync(url,new{userId=505})).StatusCode==HttpStatusCode.MethodNotAllowed,"Schedule endpoint exposes no write action");
     if(!string.IsNullOrEmpty(frontendRoot))
     {
@@ -237,6 +227,7 @@ try
     Check(before == await Snapshot(),"All database tables unchanged after HTTP/browser GETs");
     Console.WriteLine($"{checks} schedule assertions; {guard.SelectCount} SELECT commands, {guard.WriteAttempts} write attempts. Synthetic DB: {cs.Database}");
 }
+catch(Exception error){Console.Error.WriteLine(error);Environment.ExitCode=1;}
 finally
 {
     if(app!=null) await app.DisposeAsync();
@@ -248,7 +239,7 @@ finally
 sealed class OnlyScheduleController : IApplicationFeatureProvider<ControllerFeature>
 {
     public void PopulateFeature(IEnumerable<ApplicationPart> parts,ControllerFeature feature)
-    {for(var i=feature.Controllers.Count-1;i>=0;i--)if(feature.Controllers[i].AsType()!=typeof(ScheduleController))feature.Controllers.RemoveAt(i);}
+    {for(var i=feature.Controllers.Count-1;i>=0;i--)if(feature.Controllers[i].AsType()!=typeof(ScheduleController)&&feature.Controllers[i].AsType()!=typeof(EduTrack.API.Controllers.Queries.UserSelectionController))feature.Controllers.RemoveAt(i);}
 }
 sealed class SelectOnlyGuard : DbCommandInterceptor
 {

@@ -1,3 +1,4 @@
+import {selectedUrl} from '../BLL/services/userSelection.ts';
 import type { ScheduleSession } from '../BLL/models/ScheduleSession.ts';
 import { dateOnly } from '../BLL/services/scheduleViewService.ts';
 
@@ -12,14 +13,12 @@ function isSession(value: unknown): value is ScheduleSession {
     typeof row.status === 'string' && typeof row.hasAttendance === 'boolean' && people(row.teachers) && people(row.teachingAssistants);
 }
 
-export function createScheduleSessionApi(baseUrl: string) {
+export function createScheduleSessionApi(baseUrl: string, selectedUserId?: number) {
   return {
     async getWeek(from: string, toExclusive: string, signal?: AbortSignal): Promise<ScheduleSession[]> {
       const query = new URLSearchParams({from: dateOnly(from), toExclusive: dateOnly(toExclusive)});
-      const response = await fetch(`${baseUrl}/schedule/sessions?${query}`, {credentials: 'include', cache: 'no-store', signal, headers: {Accept: 'application/json'}});
+      const response = await fetch(await selectedUrl(`${baseUrl}/schedule/sessions?${query}`, 'userId', selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json'}});
       if (!response.ok) {
-        if (response.status === 401) throw new Error('Chưa xác thực. Vui lòng đăng nhập để xem lịch học.');
-        if (response.status === 403) throw new Error('Tài khoản không có quyền xem lịch học.');
         throw new Error(`Không tải được lịch học (HTTP ${response.status}). Vui lòng thử lại.`);
       }
       const data: unknown = await response.json();
