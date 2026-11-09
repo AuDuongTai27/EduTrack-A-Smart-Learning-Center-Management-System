@@ -45,8 +45,8 @@ export function ParentSchedulePage() {
     };
   }, [selectedChild?.id]);
 
-  // Reference date aligned with prototype
-  const todayDate = new Date('2026-08-15T15:20:00');
+  // Reference date aligned with current date
+  const todayDate = new Date();
   const todayRef = new Date(todayDate.toDateString());
 
   const monday = addDays(getMonday(todayRef), weekOffset * 7);
