@@ -58,7 +58,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     || (
                         n.UserId == null
                         && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value))
-                        && (n.TargetRole == null || n.TargetRole == "all" || n.TargetRole == "teacher" || (isTa && n.TargetRole == "ta"))
+                        && (n.TargetScope == null || n.TargetScope != "user")
+                        && (n.TargetRole == null || n.TargetRole == "all" || n.TargetRole == "teacher" || (isTa && (n.TargetRole == "ta" || n.TargetRole == "teaching_assistant")))
                         && n.TargetRole != "student"
                         && n.TargetRole != "parent"
                     )
@@ -161,7 +162,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     || (
                         n.UserId == null
                         && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value))
-                        && (n.TargetRole == null || n.TargetRole == "all" || n.TargetRole == "teacher" || (isTa && n.TargetRole == "ta"))
+                        && (n.TargetScope == null || n.TargetScope != "user")
+                        && (n.TargetRole == null || n.TargetRole == "all" || n.TargetRole == "teacher" || (isTa && (n.TargetRole == "ta" || n.TargetRole == "teaching_assistant")))
                         && n.TargetRole != "student"
                         && n.TargetRole != "parent"
                     )

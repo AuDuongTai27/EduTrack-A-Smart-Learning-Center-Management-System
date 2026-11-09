@@ -1029,7 +1029,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     n.UserId == studentId ||
                     n.Recipients.Any(r => r.UserId == studentId && r.DeletedAt == null) ||
                     (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null && (n.TargetRole == null || n.TargetRole == "student" || n.TargetRole == "all")))
+                    (n.UserId == null && n.ClassId == null && (n.TargetScope == null || n.TargetScope != "user") && (n.TargetRole == null || n.TargetRole == "student" || n.TargetRole == "all")))
                 .OrderByDescending(n => n.CreatedAt)
                 .ThenByDescending(n => n.NotificationId)
                 .ToListAsync();
@@ -1078,7 +1078,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     (n.UserId.HasValue && childIds.Contains(n.UserId.Value)) ||
                     n.Recipients.Any(r => r.UserId == parentId && r.DeletedAt == null) ||
                     (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null && (n.TargetRole == null || n.TargetRole == "parent" || n.TargetRole == "all")))
+                    (n.UserId == null && n.ClassId == null && (n.TargetScope == null || n.TargetScope != "user") && (n.TargetRole == null || n.TargetRole == "parent" || n.TargetRole == "all")))
                 .OrderByDescending(n => n.CreatedAt)
                 .ThenByDescending(n => n.NotificationId)
                 .ToListAsync();
@@ -1149,8 +1149,9 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Include(n => n.Recipients)
                 .Where(n =>
                     (n.UserId.HasValue && targetUserIds.Contains(n.UserId.Value)) ||
+                    n.Recipients.Any(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null) ||
                     (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null))
+                    (n.UserId == null && n.ClassId == null && (n.TargetScope == null || n.TargetScope != "user") && (n.TargetRole == null || n.TargetRole == "student" || n.TargetRole == "parent" || n.TargetRole == "all")))
                 .ToListAsync();
 
             int updatedCount = 0;

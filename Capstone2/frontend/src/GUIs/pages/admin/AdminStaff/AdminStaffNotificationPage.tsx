@@ -28,6 +28,7 @@ const RECIPIENT_ROLES = [
   { value: "student", label: "Students (Học sinh)" },
   { value: "teacher", label: "Teachers (Giáo viên)" },
   { value: "teaching_assistant", label: "Teaching Assistants (Trợ giảng)" },
+  { value: "parent", label: "Parents (Phụ huynh)" },
   { value: "admin_staff", label: "Admin Staff (Nhân viên giáo vụ)" },
   { value: "center_manager", label: "Center Managers (Quản lý trung tâm)" },
 ];

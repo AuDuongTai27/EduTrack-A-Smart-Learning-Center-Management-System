@@ -14,7 +14,7 @@ namespace EduTrack.API.Services.Management.Implementation
     {
         private static readonly HashSet<string> AllowedRoles = new(StringComparer.Ordinal)
         {
-            "center_manager", "admin_staff", "teacher", "teaching_assistant", "student"
+            "center_manager", "admin_staff", "teacher", "teaching_assistant", "student", "parent"
         };
 
         private static readonly HashSet<string> AllowedTypes = new(StringComparer.Ordinal)
@@ -95,7 +95,7 @@ namespace EduTrack.API.Services.Management.Implementation
             var notification = new Notification
             {
                 SenderId = sender.UserId,
-                UserId = null, // Legacy user_id is not the sender; recipients have their own table.
+                UserId = scope == "user" ? dto.UserId : null,
                 ClassId = scope == "class" ? dto.ClassId : null,
                 Title = title,
                 Content = content,
