@@ -75,7 +75,7 @@ export default function TeachingAssistantStudentProgressDetailPage() {
     return (
       <div className="p-5 text-center">
         <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-        <p className="text-muted mb-0">Đang tải toàn bộ dữ liệu bài tập và đánh giá của học sinh...</p>
+        <p className="text-muted mb-0">Đang tải toàn bộ dữ liệu bài tập và đánh giá của học viên...</p>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default function TeachingAssistantStudentProgressDetailPage() {
     return (
       <div className="p-5 text-center">
         <i className="bi bi-exclamation-triangle fs-1 text-warning d-block mb-2" />
-        <h5>Không tìm thấy thông tin học sinh</h5>
+        <h5>Không tìm thấy thông tin học viên</h5>
         <Link to="/teaching-assistant/learning-progress" className="btn btn-outline-primary btn-sm mt-2">
           Quay lại danh sách
         </Link>
@@ -133,13 +133,6 @@ export default function TeachingAssistantStudentProgressDetailPage() {
             >
               <i className="bi bi-arrow-left" /> Quay lại danh sách
             </Link>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-xs"
-              onClick={() => setShowModal(true)}
-            >
-              <i className="bi bi-pencil-square" /> Tạo đánh giá mới
-            </button>
           </div>
         }
       />
