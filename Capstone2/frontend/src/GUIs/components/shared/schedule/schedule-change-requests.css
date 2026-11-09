@@ -1,0 +1,6 @@
+.schedule-change-requests {min-width:0;overflow-wrap:anywhere;}
+.schedule-change-requests .table-responsive {max-width:100%;}
+.schedule-change-requests .table {min-width:560px;}
+.schedule-change-bookings {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;}
+.schedule-change-bookings p {margin:0 0 12px;padding:12px;border:1px solid #dee2e6;border-radius:8px;min-width:0;}
+.schedule-change-requests textarea {min-height:84px;}
