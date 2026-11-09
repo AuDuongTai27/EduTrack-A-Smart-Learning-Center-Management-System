@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import type { ProgressClassItem } from './progressData';
+import {
+  type ProgressClassItem,
+  type ProgressFeedbackFilter,
+  isEvaluationFeedback,
+  isAssignmentFeedback,
+} from './progressData';
 import { ProgressClassAccordion } from './components/ProgressClassAccordion';
 
 export interface ProgressPastHistorySectionProps {
@@ -8,6 +13,7 @@ export interface ProgressPastHistorySectionProps {
 
 export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistorySectionProps) {
   const [showPast, setShowPast] = useState(true);
+  const [filter, setFilter] = useState<ProgressFeedbackFilter>('all');
   const [openCards, setOpenCards] = useState<Record<string, boolean>>(() => {
     const firstId = classes[0]?.id;
     return firstId ? { [firstId]: true } : {};
@@ -37,10 +43,20 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
       ? Math.round((totalPastAttended / totalPastSessions) * 100)
       : 100;
 
+  const totalFeedbacks = classes.reduce((sum, c) => sum + c.feedbacks.length, 0);
+  const totalEvaluations = classes.reduce(
+    (sum, c) => sum + c.feedbacks.filter(isEvaluationFeedback).length,
+    0
+  );
+  const totalAssignments = classes.reduce(
+    (sum, c) => sum + c.feedbacks.filter(isAssignmentFeedback).length,
+    0
+  );
+
   return (
     <section className="past-progress-section pb-5 mb-4">
       {/* Section Header đồng bộ với Tiến độ hiện tại */}
-      <div className="progress-section-header">
+      <div className="progress-section-header flex-wrap gap-2">
         <div>
           <h2 className="progress-section-title">Lớp đã học xong</h2>
           <div className="progress-section-subtitle">
@@ -52,6 +68,37 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
 
         {classes.length > 0 && (
           <div className="d-flex align-items-center gap-2 flex-wrap">
+            {showPast && totalFeedbacks > 0 && (
+              <div className="progress-filter-tabs">
+                <button
+                  type="button"
+                  className={`progress-filter-btn ${filter === 'all' ? 'active' : ''}`}
+                  onClick={() => setFilter('all')}
+                >
+                  <span>Tất cả</span>
+                  <span className="progress-filter-count">{totalFeedbacks}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`progress-filter-btn ${filter === 'evaluation' ? 'active' : ''}`}
+                  onClick={() => setFilter('evaluation')}
+                >
+                  <i className="bi bi-person-badge-fill me-1"></i>
+                  <span>Đánh giá</span>
+                  <span className="progress-filter-count">{totalEvaluations}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`progress-filter-btn ${filter === 'assignment' ? 'active' : ''}`}
+                  onClick={() => setFilter('assignment')}
+                >
+                  <i className="bi bi-journal-check me-1"></i>
+                  <span>Bài tập</span>
+                  <span className="progress-filter-count">{totalAssignments}</span>
+                </button>
+              </div>
+            )}
+
             <div className="past-completed-summary-badge d-none d-sm-inline-flex">
               <i className="bi bi-award-fill"></i>
               <span>Đã hoàn tất {totalPastAttended}/{totalPastSessions} buổi</span>
@@ -125,6 +172,7 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
                 item={cls}
                 isOpen={!!openCards[cls.id]}
                 onToggle={() => toggleCard(cls.id)}
+                parentFilter={filter}
               />
             ))}
           </div>

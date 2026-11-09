@@ -4325,6 +4325,109 @@
   display: block;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESS & FEEDBACK FILTER TABS (EVALUATIONS & ASSIGNMENTS)
+═══════════════════════════════════════════════════════════════ */
+.progress-filter-tabs {
+  display: inline-flex;
+  align-items: center;
+  background-color: #F1F5F9;
+  padding: 3px;
+  border-radius: 99px;
+  gap: 3px;
+}
+
+.progress-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  color: var(--et-slate, #475569);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.4;
+}
+
+.progress-filter-btn:hover {
+  color: var(--et-primary, #2563EB);
+}
+
+.progress-filter-btn.active {
+  background-color: #ffffff;
+  color: var(--et-primary, #2563EB);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.progress-filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background-color: rgba(15, 23, 42, 0.06);
+  color: inherit;
+}
+
+.progress-filter-btn.active .progress-filter-count {
+  background-color: #EFF6FF;
+  color: #2563EB;
+}
+
+/* Sub-header filter buttons inside class accordion */
+.accordion-feedback-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.accordion-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--et-muted, #64748B);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.accordion-filter-btn:hover {
+  background-color: #F8FAFC;
+  color: var(--et-slate, #334155);
+}
+
+.accordion-filter-btn.active {
+  background-color: #EFF6FF;
+  border-color: #BFDBFE;
+  color: #1D4ED8;
+}
+
+.feedback-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px;
+  text-align: center;
+  color: #64748B;
+  background-color: #F8FAFC;
+  border-radius: 10px;
+  margin: 8px 12px;
+  border: 1px dashed #E2E8F0;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    TUITION BILL CHIP STATUS STYLES (UNPAID vs PAID)

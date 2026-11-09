@@ -704,6 +704,7 @@ export const learningDAL = {
                 statusType: fb.statusType,
                 statusIcon: fb.statusIcon,
                 statusLabel: fb.statusLabel,
+                category: fb.category || (fb.assignmentTitle.includes('[Đánh giá') ? 'evaluation' : 'assignment'),
               })),
             };
           }

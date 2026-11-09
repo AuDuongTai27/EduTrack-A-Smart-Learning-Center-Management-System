@@ -1,18 +1,18 @@
 import React from 'react';
 import type { ProgressFeedback } from '../progressData';
+import { isEvaluationFeedback } from '../progressData';
 
 export interface TeacherFeedbackItemProps {
   feedback: ProgressFeedback;
 }
 
 export function TeacherFeedbackItem({ feedback }: TeacherFeedbackItemProps) {
-  const isEvaluation =
-    feedback.assignmentTitle.includes('[Đánh giá định kỳ]') ||
-    feedback.assignmentTitle.toLowerCase().includes('nhận xét định kỳ') ||
-    feedback.assignmentTitle.toLowerCase().includes('ghi chú tiến độ');
+  const isEvaluation = isEvaluationFeedback(feedback);
 
   const cleanTitle = feedback.assignmentTitle
     .replace(/\[Đánh giá định kỳ\]/g, '')
+    .replace(/\[Đánh giá tổng kết\]/g, '')
+    .replace(/\[Đánh giá\]/g, '')
     .replace(/\[Bài tập\]/g, '')
     .trim();
 
@@ -43,7 +43,11 @@ export function TeacherFeedbackItem({ feedback }: TeacherFeedbackItemProps) {
                 isEvaluation ? 'bi-person-badge-fill' : 'bi-journal-check'
               } me-1`}
             />
-            {isEvaluation ? 'Đánh giá định kỳ' : 'Bài tập'}
+            {isEvaluation
+              ? feedback.assignmentTitle.includes('tổng kết')
+                ? 'Đánh giá tổng kết'
+                : 'Đánh giá định kỳ'
+              : 'Bài tập'}
           </span>
           <h3 className="feedback-asg-title mb-0">{cleanTitle}</h3>
         </div>

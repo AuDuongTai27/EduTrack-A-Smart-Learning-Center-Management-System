@@ -1,3 +1,5 @@
+export type ProgressFeedbackFilter = 'all' | 'evaluation' | 'assignment';
+
 export interface ProgressFeedback {
   assignmentTitle: string;
   quote: string;
@@ -5,6 +7,27 @@ export interface ProgressFeedback {
   statusType: 'dat' | 'chuadat' | 'canluuy' | 'chuacham';
   statusIcon: string;
   statusLabel: string;
+  category?: 'evaluation' | 'assignment';
+}
+
+export function isEvaluationFeedback(fb: ProgressFeedback): boolean {
+  if (fb.category) {
+    return fb.category === 'evaluation';
+  }
+  const title = (fb.assignmentTitle || '').toLowerCase();
+  return (
+    title.includes('[đánh giá') ||
+    title.includes('đánh giá') ||
+    title.includes('nhận xét định kỳ') ||
+    title.includes('ghi chú tiến độ')
+  );
+}
+
+export function isAssignmentFeedback(fb: ProgressFeedback): boolean {
+  if (fb.category) {
+    return fb.category === 'assignment';
+  }
+  return !isEvaluationFeedback(fb);
 }
 
 export interface ProgressClassItem {
@@ -32,12 +55,22 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
     percentage: 75,
     feedbacks: [
       {
+        assignmentTitle: '[Đánh giá định kỳ] Nhận xét giữa kỳ: Nắm chắc kiến thức',
+        quote: 'Em có tinh thần học tập nghiêm túc, phát biểu xây dựng bài sôi nổi.',
+        teacherName: 'Cô Hương',
+        statusType: 'dat',
+        statusIcon: 'bi-check2-all',
+        statusLabel: 'Khen ngợi',
+        category: 'evaluation',
+      },
+      {
         assignmentTitle: 'Bài tập chương 3: Phương trình bậc hai',
         quote: 'Em làm bài khá tốt, cần chú ý phần đặt ẩn phụ hơn ở câu cuối.',
         teacherName: 'Cô Hương',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
         statusLabel: 'Đạt',
+        category: 'assignment',
       },
       {
         assignmentTitle: 'Kiểm tra 15 phút: Bất đẳng thức Cauchy',
@@ -46,6 +79,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
         statusType: 'canluuy',
         statusIcon: 'bi-exclamation-triangle-fill',
         statusLabel: 'Cần lưu ý',
+        category: 'assignment',
       },
       {
         assignmentTitle: 'Bài tập về nhà tuần 6: Hệ thức Vi-ét',
@@ -54,6 +88,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
         statusLabel: 'Đạt',
+        category: 'assignment',
       },
     ],
   },
@@ -68,12 +103,22 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
     percentage: 88,
     feedbacks: [
       {
+        assignmentTitle: '[Đánh giá định kỳ] Kỹ năng thực hành thí nghiệm và làm việc nhóm',
+        quote: 'Hăng hái tham gia bài thí nghiệm chuyển động, cần ghi chép số liệu tỉ mỉ hơn.',
+        teacherName: 'Thầy Hùng',
+        statusType: 'canluuy',
+        statusIcon: 'bi-exclamation-triangle-fill',
+        statusLabel: 'Cần lưu ý',
+        category: 'evaluation',
+      },
+      {
         assignmentTitle: 'Bài tập: Chuyển động thẳng biến đổi đều',
         quote: 'Tính toán chính xác các thông số gia tốc và vận tốc tức thời.',
         teacherName: 'Thầy Hùng',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
         statusLabel: 'Đạt',
+        category: 'assignment',
       },
       {
         assignmentTitle: 'Báo cáo thực hành: Rơi tự do',
@@ -82,6 +127,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
         statusType: 'canluuy',
         statusIcon: 'bi-exclamation-triangle-fill',
         statusLabel: 'Cần lưu ý',
+        category: 'assignment',
       },
     ],
   },
@@ -96,12 +142,22 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
     percentage: 63,
     feedbacks: [
       {
+        assignmentTitle: '[Đánh giá định kỳ] Đánh giá phản xạ giao tiếp và tự tin',
+        quote: 'Khả năng phát âm cải thiện rõ rệt, tích cực tham gia các buổi debate trên lớp.',
+        teacherName: 'Thầy David',
+        statusType: 'dat',
+        statusIcon: 'bi-check2-all',
+        statusLabel: 'Tiến bộ tốt',
+        category: 'evaluation',
+      },
+      {
         assignmentTitle: 'Essay: The Impact of Technology on Education',
         quote: 'Good vocabulary and coherent arguments. Watch out for grammatical tenses.',
         teacherName: 'Thầy David',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
         statusLabel: 'Đạt',
+        category: 'assignment',
       },
       {
         assignmentTitle: 'Listening Test: Cambridge Preliminary Exam',
@@ -110,6 +166,7 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
         statusType: 'chuadat',
         statusIcon: 'bi-x-circle-fill',
         statusLabel: 'Chưa đạt',
+        category: 'assignment',
       },
     ],
   },
@@ -128,12 +185,22 @@ export const PAST_PROGRESS_CLASSES: ProgressClassItem[] = [
     isCompleted: true,
     feedbacks: [
       {
+        assignmentTitle: '[Đánh giá tổng kết] Nhận xét hoàn thành khóa học Hóa 9',
+        quote: 'Học sinh đạt danh hiệu học viên xuất sắc của bộ môn Hóa học năm học vừa qua.',
+        teacherName: 'Cô Lan',
+        statusType: 'dat',
+        statusIcon: 'bi-check2-all',
+        statusLabel: 'Khen ngợi',
+        category: 'evaluation',
+      },
+      {
         assignmentTitle: 'Kiểm tra học kỳ 2: Axit và Bazơ',
         quote: 'Hoàn thành xuất sắc toàn bộ bài tập và phần lý thuyết mở rộng.',
         teacherName: 'Cô Lan',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
         statusLabel: 'Đạt',
+        category: 'assignment',
       },
       {
         assignmentTitle: 'Bài thu hoạch: Chuỗi phản ứng Hóa vô cơ',
@@ -142,6 +209,7 @@ export const PAST_PROGRESS_CLASSES: ProgressClassItem[] = [
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
         statusLabel: 'Đạt',
+        category: 'assignment',
       },
     ],
   },
@@ -218,6 +286,7 @@ export function mapNotesAndAttendancesToClasses(
       statusType: isWarning ? 'canluuy' : 'dat',
       statusIcon: isWarning ? 'bi-exclamation-triangle-fill' : 'bi-check2-all',
       statusLabel: isPraise ? 'Khen ngợi' : isWarning ? 'Cần lưu ý' : 'Đạt',
+      category: 'evaluation',
     });
   });
 

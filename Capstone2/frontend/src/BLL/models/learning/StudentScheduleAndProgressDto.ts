@@ -22,6 +22,7 @@ export interface StudentProgressFeedbackApiDto {
   statusType: 'dat' | 'chuadat' | 'canluuy' | 'chuacham';
   statusIcon: string;
   statusLabel: string;
+  category?: 'evaluation' | 'assignment';
 }
 
 export interface StudentProgressClassApiDto {

@@ -56,5 +56,6 @@ namespace EduTrack.API.Models.DTOs.Learning
         public string StatusType { get; set; } = "dat"; // dat, chuadat, canluuy, chuacham
         public string StatusIcon { get; set; } = "bi-check2-all";
         public string StatusLabel { get; set; } = "Đạt";
+        public string Category { get; set; } = "assignment"; // "evaluation" | "assignment"
     }
 }

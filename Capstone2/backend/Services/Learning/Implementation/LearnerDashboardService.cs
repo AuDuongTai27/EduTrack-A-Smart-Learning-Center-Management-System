@@ -694,7 +694,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                         TeacherName = note.Author?.FullName ?? teacherName,
                         StatusType = statusType,
                         StatusIcon = statusIcon,
-                        StatusLabel = statusLabel
+                        StatusLabel = statusLabel,
+                        Category = "evaluation"
                     });
                 }
 
@@ -735,7 +736,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                             TeacherName = teacherName,
                             StatusType = statusType,
                             StatusIcon = statusIcon,
-                            StatusLabel = statusLabel
+                            StatusLabel = statusLabel,
+                            Category = "assignment"
                         });
                     }
                     else
@@ -747,7 +749,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                             TeacherName = teacherName,
                             StatusType = "chuacham",
                             StatusIcon = "bi-hourglass-split",
-                            StatusLabel = "Chưa nộp"
+                            StatusLabel = "Chưa nộp",
+                            Category = "assignment"
                         });
                     }
                 }
