@@ -104,12 +104,12 @@ namespace EduTrack.API.Controllers.Learning
         }
 
         /// <summary>
-        /// Đánh dấu một thông báo là đã đọc (Lưu trạng thái is_read = true vào CSDL)
+        /// Đánh dấu một thông báo là đã đọc (Lưu trạng thái is_read = true vào CSDL theo từng người nhận)
         /// </summary>
         [HttpPut("notifications/{notificationId:int}/read")]
-        public async Task<IActionResult> MarkNotificationAsRead(int notificationId)
+        public async Task<IActionResult> MarkNotificationAsRead(int notificationId, [FromQuery] int? userId = null)
         {
-            var ok = await _dashboardService.MarkNotificationAsReadAsync(notificationId);
+            var ok = await _dashboardService.MarkNotificationAsReadAsync(notificationId, userId);
             if (!ok)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy thông báo #{notificationId}" });

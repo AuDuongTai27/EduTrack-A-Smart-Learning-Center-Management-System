@@ -648,12 +648,12 @@ namespace EduTrack.API.Models.EF
             {
                 var notifications = new List<Notification>
                 {
-                    new Notification { NotificationId = 1, UserId = null, ClassId = null, Title = "EduTrack System Welcome", Content = "Welcome to EduTrack! Please complete your profile information.", Type = "system", IsRead = false, CreatedAt = DateTime.UtcNow },
-                    new Notification { NotificationId = 2, UserId = 6, ClassId = 1, Title = "Homework 01 Graded", Content = "Your submission for Homework 01 has been graded: 9.5/10.0", Type = "homework", IsRead = true, CreatedAt = DateTime.UtcNow },
-                    new Notification { NotificationId = 3, UserId = 7, ClassId = 1, Title = "Leave Request Approved", Content = "Your leave request for Session 2 has been approved by the Center Manager.", Type = "class", IsRead = false, CreatedAt = DateTime.UtcNow },
-                    new Notification { NotificationId = 4, UserId = 8, ClassId = 1, Title = "Tuition Due Reminder", Content = "Tuition invoice for Class 9 Advanced Mathematics is overdue. Please settle promptly.", Type = "tuition", IsRead = false, CreatedAt = DateTime.UtcNow },
-                    new Notification { NotificationId = 5, UserId = null, ClassId = 1, Title = "Class Room Update", Content = "Session on 2026-09-15 will start 15 mins earlier for test review.", Type = "schedule", IsRead = false, CreatedAt = DateTime.UtcNow },
-                    new Notification { NotificationId = 6, UserId = 9, ClassId = 1, Title = "Tuition Receipt Acknowledged", Content = "Tuition for Le Van An (Class 9 Advanced Math) has been successfully recorded.", Type = "tuition", IsRead = true, CreatedAt = DateTime.UtcNow }
+                    new Notification { NotificationId = 1, UserId = null, ClassId = null, Title = "Chào mừng bạn đến với Hệ thống EduTrack", Content = "Chào mừng bạn đến với EduTrack! Vui lòng kiểm tra và cập nhật đầy đủ thông tin cá nhân của mình.", Type = "system", TargetRole = "all", IsRead = false, CreatedAt = DateTime.UtcNow },
+                    new Notification { NotificationId = 2, UserId = 6, ClassId = 1, Title = "Đã chấm điểm Bài tập về nhà 01", Content = "Bài nộp Bài tập về nhà 01 của bạn đã được giáo viên chấm: 9.5/10.0.", Type = "homework", TargetRole = "student", IsRead = true, CreatedAt = DateTime.UtcNow },
+                    new Notification { NotificationId = 3, UserId = 7, ClassId = 1, Title = "Đơn xin nghỉ học đã được phê duyệt", Content = "Đơn xin nghỉ buổi 2 của bạn đã được Quản lý phê duyệt.", Type = "class", TargetRole = "student", IsRead = false, CreatedAt = DateTime.UtcNow },
+                    new Notification { NotificationId = 4, UserId = 8, ClassId = 1, Title = "Nhắc nhở hạn nộp học phí", Content = "Hóa đơn học phí lớp Toán Nâng Cao 9 sắp đến hạn. Quý phụ huynh vui lòng thanh toán đúng hạn.", Type = "tuition", TargetRole = "parent", IsRead = false, CreatedAt = DateTime.UtcNow },
+                    new Notification { NotificationId = 5, UserId = null, ClassId = 1, Title = "Thông báo phòng học & giờ học lớp Toán", Content = "Buổi học ngày 15/09/2026 sẽ bắt đầu sớm hơn 15 phút để ôn tập bài kiểm tra định kỳ.", Type = "schedule", TargetRole = "all", IsRead = false, CreatedAt = DateTime.UtcNow },
+                    new Notification { NotificationId = 6, UserId = 9, ClassId = 1, Title = "Xác nhận đã đóng học phí thành công", Content = "Học phí của học sinh Lê Văn An (Lớp Toán Nâng Cao 9) đã được ghi nhận thanh toán thành công.", Type = "tuition", TargetRole = "parent", IsRead = true, CreatedAt = DateTime.UtcNow }
                 };
                 await context.Notifications.AddRangeAsync(notifications);
                 await context.SaveChangesAsync();

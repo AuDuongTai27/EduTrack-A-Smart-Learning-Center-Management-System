@@ -24,7 +24,14 @@ namespace EduTrack.API.Services.Teaching.Implementation
             // Đảm bảo dữ liệu thông báo thật được lưu trong Database cho GV/TA
             await EnsureUserNotificationsSeededAsync(userId);
 
-            // 1. Lấy danh sách ID các lớp mà GV/TA này phụ trách
+            // 1. Xác định vai trò của user (teacher vs ta)
+            bool isTa = await _context.UserRoles
+                .AsNoTracking()
+                .Include(ur => ur.Role)
+                .AnyAsync(ur => ur.UserId == userId && (ur.Role.RoleName == "teaching_assistant" || ur.Role.RoleName == "ta"))
+                || userId == 5;
+
+            // 2. Lấy danh sách ID các lớp mà GV/TA này phụ trách
             var teacherClasses = await _context.TeacherClasses
                 .AsNoTracking()
                 .Where(tc => tc.TeacherId == userId)
@@ -39,49 +46,100 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             var assignedClassIds = teacherClasses.Concat(taClasses).Distinct().ToList();
 
-            // 2. Query thông báo dành riêng cho user này HOẶC thông báo chung hệ thống / theo lớp phụ trách
-            // Loại trừ hoàn toàn thông báo đích danh của học sinh/phụ huynh khác (n.UserId != userId)
+            // 3. Query thông báo dành riêng cho user này HOẶC thông báo chung lớp/hệ thống
+            // Loại trừ hoàn toàn thông báo dành cho học sinh/phụ huynh (TargetRole == 'student' hoặc 'parent')
             var query = _context.Notifications
                 .AsNoTracking()
                 .Include(n => n.Class)
-                .Where(n => n.UserId == userId
-                         || (n.UserId == null && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value))));
+                .Include(n => n.Recipients)
+                .Where(n =>
+                    n.UserId == userId
+                    || n.Recipients.Any(r => r.UserId == userId && r.DeletedAt == null)
+                    || (
+                        n.UserId == null
+                        && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value))
+                        && (n.TargetScope == null || n.TargetScope != "user")
+                        && (n.TargetRole == null || n.TargetRole == "all" || n.TargetRole == "teacher" || (isTa && (n.TargetRole == "ta" || n.TargetRole == "teaching_assistant")))
+                        && n.TargetRole != "student"
+                        && n.TargetRole != "parent"
+                    )
+                );
+
+            var notifications = await query
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+
+            var dtoList = notifications.Select(n => MapToDto(n, userId)).ToList();
 
             // Lọc theo trạng thái đọc
             if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "all")
             {
                 if (status.ToLower() == "unread")
                 {
-                    query = query.Where(n => !n.IsRead);
+                    dtoList = dtoList.Where(n => !n.IsRead).ToList();
                 }
                 else if (status.ToLower() == "read")
                 {
-                    query = query.Where(n => n.IsRead);
+                    dtoList = dtoList.Where(n => n.IsRead).ToList();
                 }
             }
 
-            var notifications = await query
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-
-            return notifications.Select(MapToDto).ToList();
+            return dtoList;
         }
 
-        public async Task<bool> MarkAsReadAsync(int notificationId)
+        public async Task<bool> MarkAsReadAsync(int notificationId, int? userId = null)
         {
-            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == notificationId);
+            var notif = await _context.Notifications
+                .Include(n => n.Recipients)
+                .FirstOrDefaultAsync(n => n.NotificationId == notificationId);
+
             if (notif == null)
             {
                 return false;
             }
 
-            notif.IsRead = true;
+            if (userId.HasValue && userId.Value > 0)
+            {
+                int uid = userId.Value;
+                var recipient = notif.Recipients.FirstOrDefault(r => r.UserId == uid);
+                if (recipient == null)
+                {
+                    await _context.NotificationRecipients.AddAsync(new NotificationRecipient
+                    {
+                        NotificationId = notificationId,
+                        UserId = uid,
+                        IsRead = true,
+                        ReadAt = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    recipient.IsRead = true;
+                    recipient.ReadAt = DateTime.UtcNow;
+                }
+
+                if (notif.UserId == uid)
+                {
+                    notif.IsRead = true;
+                }
+            }
+            else
+            {
+                notif.IsRead = true;
+            }
+
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<int> MarkAllAsReadAsync(int userId)
         {
+            bool isTa = await _context.UserRoles
+                .AsNoTracking()
+                .Include(ur => ur.Role)
+                .AnyAsync(ur => ur.UserId == userId && (ur.Role.RoleName == "teaching_assistant" || ur.Role.RoleName == "ta"))
+                || userId == 5;
+
             var teacherClasses = await _context.TeacherClasses
                 .AsNoTracking()
                 .Where(tc => tc.TeacherId == userId)
@@ -96,16 +154,52 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             var assignedClassIds = teacherClasses.Concat(taClasses).Distinct().ToList();
 
-            var unreadList = await _context.Notifications
-                .Where(n => !n.IsRead && (n.UserId == userId || (n.UserId == null && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value)))))
+            var visibleNotifs = await _context.Notifications
+                .Include(n => n.Recipients)
+                .Where(n =>
+                    n.UserId == userId
+                    || n.Recipients.Any(r => r.UserId == userId && r.DeletedAt == null)
+                    || (
+                        n.UserId == null
+                        && (n.ClassId == null || assignedClassIds.Contains(n.ClassId.Value))
+                        && (n.TargetScope == null || n.TargetScope != "user")
+                        && (n.TargetRole == null || n.TargetRole == "all" || n.TargetRole == "teacher" || (isTa && (n.TargetRole == "ta" || n.TargetRole == "teaching_assistant")))
+                        && n.TargetRole != "student"
+                        && n.TargetRole != "parent"
+                    )
+                )
                 .ToListAsync();
 
-            foreach (var n in unreadList)
+            int updatedCount = 0;
+            foreach (var n in visibleNotifs)
             {
-                n.IsRead = true;
+                var recipient = n.Recipients.FirstOrDefault(r => r.UserId == userId);
+                if (recipient == null)
+                {
+                    await _context.NotificationRecipients.AddAsync(new NotificationRecipient
+                    {
+                        NotificationId = n.NotificationId,
+                        UserId = userId,
+                        IsRead = true,
+                        ReadAt = DateTime.UtcNow
+                    });
+                    updatedCount++;
+                }
+                else if (!recipient.IsRead)
+                {
+                    recipient.IsRead = true;
+                    recipient.ReadAt = DateTime.UtcNow;
+                    updatedCount++;
+                }
+
+                if (n.UserId == userId && !n.IsRead)
+                {
+                    n.IsRead = true;
+                }
             }
 
-            return await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+            return updatedCount;
         }
 
         private async Task EnsureUserNotificationsSeededAsync(int userId)
@@ -127,6 +221,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Phân công Lịch trực & Hỗ trợ Lớp Toán 9A1",
                         Content = "Bạn đã được phân công trợ giảng cho Lớp Toán 9A1 (ThS. Hoàng Quốc Việt phụ trách). Vui lòng kiểm tra lịch trực chi tiết.",
                         Type = "schedule",
+                        TargetRole = "ta",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow.AddMinutes(-20)
                     },
@@ -137,6 +232,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Thông báo kiểm tra bài tập tuần 1 của Lớp 9A1",
                         Content = "Vui lòng phối hợp với ThS. Hoàng Quốc Việt kiểm tra bài làm của các học sinh nộp bù trước ngày Thứ Sáu.",
                         Type = "homework",
+                        TargetRole = "ta",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow.AddHours(-2)
                     },
@@ -147,6 +243,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Đơn xin nghỉ trực ca tối đã được tiếp nhận",
                         Content = "Đơn xin phép vắng mặt buổi trực tối 25/08 đã được ban giáo vụ tiếp nhận và duyệt.",
                         Type = "leave",
+                        TargetRole = "ta",
                         IsRead = true,
                         CreatedAt = DateTime.UtcNow.AddDays(-1)
                     },
@@ -157,6 +254,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Họp Hội đồng chuyên môn & Đào tạo trợ giảng",
                         Content = "Kính mời quý trợ giảng tham dự buổi hướng dẫn sử dụng công cụ hỗ trợ chấm bài tập trực tuyến.",
                         Type = "system",
+                        TargetRole = "ta",
                         IsRead = true,
                         CreatedAt = DateTime.UtcNow.AddDays(-3)
                     }
@@ -170,6 +268,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Cập nhật Lịch giảng dạy Học kỳ mới 2026/2027",
                         Content = "Thời khóa biểu chính thức học kỳ mới đã được cập nhật. Thầy/Cô vui lòng kiểm tra phòng học và thời gian bắt đầu từ tuần tới.",
                         Type = "schedule",
+                        TargetRole = "teacher",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow.AddMinutes(-30)
                     },
@@ -180,6 +279,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Đã phân công Trợ giảng mới cho Lớp Toán 9A1",
                         Content = "Trợ giảng Âu Dương Tài đã được phân công phối hợp hỗ trợ các buổi học và điểm danh lớp của bạn.",
                         Type = "system",
+                        TargetRole = "teacher",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow.AddHours(-2)
                     },
@@ -190,6 +290,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Đơn kiến nghị cơ sở vật chất đã được phê duyệt",
                         Content = "Yêu cầu thay pin micro và kiểm tra máy chiếu Phòng 201 của bạn đã được đội ngũ IT xử lý hoàn tất.",
                         Type = "leave",
+                        TargetRole = "teacher",
                         IsRead = true,
                         CreatedAt = DateTime.UtcNow.AddDays(-1)
                     },
@@ -200,6 +301,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Title = "Nhắc nhở hoàn tất nhập điểm kiểm tra định kỳ",
                         Content = "Hạn chót cập nhật kết quả bài tập Homework 01 cho các lớp 9A1 và 9B1 là 17:00 ngày Thứ Sáu tuần này.",
                         Type = "system",
+                        TargetRole = "teacher",
                         IsRead = true,
                         CreatedAt = DateTime.UtcNow.AddDays(-2)
                     }
@@ -209,8 +311,30 @@ namespace EduTrack.API.Services.Teaching.Implementation
             await _context.SaveChangesAsync();
         }
 
-        private static TeachingNotificationDto MapToDto(Notification n)
+        private static TeachingNotificationDto MapToDto(Notification n, int? currentUserId = null)
         {
+            bool isRead = false;
+            if (currentUserId.HasValue)
+            {
+                var recipient = n.Recipients?.FirstOrDefault(r => r.UserId == currentUserId.Value);
+                if (recipient != null)
+                {
+                    isRead = recipient.IsRead;
+                }
+                else if (n.UserId == currentUserId.Value)
+                {
+                    isRead = n.IsRead;
+                }
+                else
+                {
+                    isRead = false;
+                }
+            }
+            else
+            {
+                isRead = n.IsRead;
+            }
+
             string sender = n.Type switch
             {
                 "leave" => "Phòng Hành Chính & Đào Tạo",
@@ -256,8 +380,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 InitialsBgClass = bgClass,
                 InitialsColorClass = colorClass,
                 Type = n.Type ?? "system",
-                IsNew = !n.IsRead,
-                IsRead = n.IsRead,
+                IsNew = !isRead,
+                IsRead = isRead,
                 TimeAgo = FormatTimeAgo(n.CreatedAt),
                 CreatedAt = n.CreatedAt
             };

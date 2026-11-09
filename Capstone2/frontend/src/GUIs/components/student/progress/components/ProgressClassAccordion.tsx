@@ -1,18 +1,37 @@
-import React from 'react';
-import type { ProgressClassItem } from '../progressData';
+import React, { useState, useEffect } from 'react';
+import type { ProgressClassItem, ProgressFeedbackFilter } from '../progressData';
+import { isEvaluationFeedback, isAssignmentFeedback } from '../progressData';
 import { TeacherFeedbackItem } from './TeacherFeedbackItem';
 
 export interface ProgressClassAccordionProps {
   item: ProgressClassItem;
   isOpen: boolean;
   onToggle: () => void;
+  parentFilter?: ProgressFeedbackFilter;
 }
 
 export function ProgressClassAccordion({
   item,
   isOpen,
   onToggle,
+  parentFilter = 'all',
 }: ProgressClassAccordionProps) {
+  const [localFilter, setLocalFilter] = useState<ProgressFeedbackFilter>(parentFilter);
+
+  useEffect(() => {
+    setLocalFilter(parentFilter);
+  }, [parentFilter]);
+
+  const totalCount = item.feedbacks.length;
+  const evalCount = item.feedbacks.filter(isEvaluationFeedback).length;
+  const asgCount = item.feedbacks.filter(isAssignmentFeedback).length;
+
+  const filteredFeedbacks = item.feedbacks.filter((fb) => {
+    if (localFilter === 'evaluation') return isEvaluationFeedback(fb);
+    if (localFilter === 'assignment') return isAssignmentFeedback(fb);
+    return true;
+  });
+
   return (
     <div
       className={`class-accordion-card ${item.colorTheme} ${
@@ -67,19 +86,72 @@ export function ProgressClassAccordion({
       </button>
 
       <div className="class-accordion-body">
-        <div className="accordion-sub-header">
-          <div className="accordion-sub-dot"></div>
-          <span className="accordion-sub-title">
-            {item.isCompleted
-              ? `Đánh giá tổng kết khóa học (${item.feedbacks.length})`
-              : `Nhận xét từ giáo viên (${item.feedbacks.length})`}
-          </span>
+        <div className="accordion-sub-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div className="d-flex align-items-center gap-2">
+            <div className="accordion-sub-dot"></div>
+            <span className="accordion-sub-title">
+              {item.isCompleted
+                ? `Đánh giá tổng kết (${filteredFeedbacks.length}/${totalCount})`
+                : `Nhận xét & Tiến độ (${filteredFeedbacks.length}/${totalCount})`}
+            </span>
+          </div>
+
+          <div className="accordion-feedback-filter-group">
+            <button
+              type="button"
+              className={`accordion-filter-btn ${localFilter === 'all' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocalFilter('all');
+              }}
+            >
+              Tất cả ({totalCount})
+            </button>
+            <button
+              type="button"
+              className={`accordion-filter-btn ${localFilter === 'evaluation' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocalFilter('evaluation');
+              }}
+            >
+              <i className="bi bi-person-badge-fill me-1"></i>
+              Đánh giá ({evalCount})
+            </button>
+            <button
+              type="button"
+              className={`accordion-filter-btn ${localFilter === 'assignment' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocalFilter('assignment');
+              }}
+            >
+              <i className="bi bi-journal-check me-1"></i>
+              Bài tập ({asgCount})
+            </button>
+          </div>
         </div>
-        <div className="feedback-list">
-          {item.feedbacks.map((fb, idx) => (
-            <TeacherFeedbackItem key={idx} feedback={fb} />
-          ))}
-        </div>
+
+        {filteredFeedbacks.length === 0 ? (
+          <div className="feedback-empty-state">
+            <i
+              className={`bi ${
+                localFilter === 'evaluation' ? 'bi-person-badge' : 'bi-journal-x'
+              } fs-3 mb-2 text-secondary`}
+            ></i>
+            <p className="mb-0 small fw-medium">
+              {localFilter === 'evaluation'
+                ? 'Chưa có nhận xét hoặc đánh giá định kỳ nào từ giáo viên trong lớp này.'
+                : 'Chưa có bài tập hoặc báo cáo nào được ghi nhận trong lớp này.'}
+            </p>
+          </div>
+        ) : (
+          <div className="feedback-list">
+            {filteredFeedbacks.map((fb, idx) => (
+              <TeacherFeedbackItem key={idx} feedback={fb} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

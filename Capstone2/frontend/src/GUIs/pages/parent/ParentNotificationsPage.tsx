@@ -154,7 +154,7 @@ export function ParentNotificationsPage() {
         DEFAULT_PARENT_ID,
         targetStudentId
       );
-      const localReads = learningDAL.getLocalReadIds();
+      const localReads = learningDAL.getLocalReadIds(DEFAULT_PARENT_ID);
       setReadIds(localReads);
       const mapped = (list || []).map(mapLearnerDtoToParentItem);
       setNotifications(mapped);
@@ -198,7 +198,7 @@ export function ParentNotificationsPage() {
       setSelectedNotification((prev) =>
         prev && prev.id === id ? { ...prev, unread: false } : prev
       );
-      await learningDAL.markNotificationRead(id);
+      await learningDAL.markNotificationRead(id, DEFAULT_PARENT_ID);
       setSuccessMsg("Đã đánh dấu thông báo là đã đọc.");
     } finally {
       setMarkingRead(false);

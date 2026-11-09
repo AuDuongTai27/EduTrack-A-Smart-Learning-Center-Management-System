@@ -132,7 +132,7 @@ export default function TeacherNotificationPage() {
     if (notification.isRead || markingRead) return;
     setMarkingRead(true);
     try {
-      await teachingDAL.markNotificationAsRead(notification.notificationId);
+      await teachingDAL.markNotificationAsRead(notification.notificationId, DEFAULT_TEACHER_ID);
       const updated: TeachingNotificationDto = {
         ...notification,
         isRead: true,

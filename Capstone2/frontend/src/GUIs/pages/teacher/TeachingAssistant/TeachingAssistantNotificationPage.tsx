@@ -132,7 +132,7 @@ export default function TeachingAssistantNotificationPage() {
     if (notification.isRead || markingRead) return;
     setMarkingRead(true);
     try {
-      await teachingDAL.markNotificationAsRead(notification.notificationId);
+      await teachingDAL.markNotificationAsRead(notification.notificationId, DEFAULT_TA_ID);
       const updated: TeachingNotificationDto = {
         ...notification,
         isRead: true,

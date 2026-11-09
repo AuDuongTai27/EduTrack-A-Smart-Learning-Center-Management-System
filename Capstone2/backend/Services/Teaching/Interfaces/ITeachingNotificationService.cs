@@ -10,7 +10,7 @@ namespace EduTrack.API.Services.Teaching.Interfaces
     public interface ITeachingNotificationService
     {
         Task<List<TeachingNotificationDto>> GetNotificationsAsync(int userId, string? status = null);
-        Task<bool> MarkAsReadAsync(int notificationId);
+        Task<bool> MarkAsReadAsync(int notificationId, int? userId = null);
         Task<int> MarkAllAsReadAsync(int userId);
     }
 }

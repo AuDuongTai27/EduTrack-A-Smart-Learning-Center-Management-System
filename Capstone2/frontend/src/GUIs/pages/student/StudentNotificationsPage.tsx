@@ -101,7 +101,7 @@ export function StudentNotificationsPage() {
       const items = await learningDAL.getStudentNotifications(
         DEFAULT_STUDENT_ID
       );
-      const localReads = learningDAL.getLocalReadIds();
+      const localReads = learningDAL.getLocalReadIds(DEFAULT_STUDENT_ID);
       setReadIds(localReads);
       setNotifications(items);
       setSelectedNotification((prev) => {
@@ -141,7 +141,7 @@ export function StudentNotificationsPage() {
       setSelectedNotification((prev) =>
         prev && prev.id === id ? { ...prev, unread: false } : prev
       );
-      await learningDAL.markNotificationRead(id);
+      await learningDAL.markNotificationRead(id, DEFAULT_STUDENT_ID);
       setSuccessMsg("Đã đánh dấu thông báo là đã đọc.");
     } finally {
       setMarkingRead(false);

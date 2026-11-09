@@ -8,7 +8,8 @@ import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import type { ProgressClassItem } from '../../components/student/progress/progressData';
 
 export function StudentProgressPage() {
-  const [classes, setClasses] = useState<ProgressClassItem[]>([]);
+  const [currentClasses, setCurrentClasses] = useState<ProgressClassItem[]>([]);
+  const [pastClasses, setPastClasses] = useState<ProgressClassItem[]>([]);
   const [overallAttendanceRate, setOverallAttendanceRate] = useState<number>(100);
   const [attendedSessionsCount, setAttendedSessionsCount] = useState<number>(0);
   const [presentCount, setPresentCount] = useState<number>(0);
@@ -33,7 +34,8 @@ export function StudentProgressPage() {
           setLateCount(vm.lateCount);
           setTotalSessionsCount(vm.totalSessionsCount);
           setEnrolledClassesCount(vm.enrolledClassesCount);
-          setClasses(vm.currentClasses);
+          setCurrentClasses(vm.currentClasses);
+          setPastClasses(vm.pastClasses || []);
         }
       } catch (err) {
         console.warn('Lỗi khi tải tiến độ học sinh:', err);
@@ -80,10 +82,10 @@ export function StudentProgressPage() {
         />
 
         {/* 3. Current Classes Section */}
-        <ProgressCurrentSection classes={classes} />
+        <ProgressCurrentSection classes={currentClasses} />
 
         {/* 4. Past Progress History Section */}
-        <ProgressPastHistorySection />
+        <ProgressPastHistorySection classes={pastClasses} />
       </div>
     </main>
   );

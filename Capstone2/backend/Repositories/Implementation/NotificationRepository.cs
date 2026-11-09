@@ -13,7 +13,7 @@ namespace EduTrack.API.Repositories.Implementation
     {
         private static readonly string[] AllowedRoles =
         {
-            "center_manager", "admin_staff", "teacher", "teaching_assistant", "student"
+            "center_manager", "admin_staff", "teacher", "teaching_assistant", "student", "parent"
         };
 
         public NotificationRepository(EduTrackDbContext context) : base(context) { }

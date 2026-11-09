@@ -693,9 +693,9 @@ export const teachingDAL = {
   /**
    * Đánh dấu một thông báo là đã đọc
    */
-  async markNotificationAsRead(notificationId: number): Promise<boolean> {
+  async markNotificationAsRead(notificationId: number, userId?: number): Promise<boolean> {
     try {
-      return await teachingApi.markNotificationAsRead(notificationId);
+      return await teachingApi.markNotificationAsRead(notificationId, userId);
     } catch (err: any) {
       console.warn(`🟡 [teachingDAL] Đánh dấu đọc thông báo #${notificationId} local fallback:`, err?.message);
       return true;
