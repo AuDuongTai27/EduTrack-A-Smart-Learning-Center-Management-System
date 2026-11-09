@@ -950,6 +950,94 @@ namespace EduTrack.API.Migrations
                     b.ToTable("roles");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.ScheduleChangeRequestDetail", b =>
+                {
+                    b.Property<int>("RequestId")
+                        .HasColumnType("int")
+                        .HasColumnName("request_id");
+
+                    b.Property<DateTime?>("AppliedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("applied_at");
+
+                    b.Property<string>("ChangeKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("change_kind");
+
+                    b.Property<string>("ClientRequestKey")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("client_request_key");
+
+                    b.Property<string>("ExpectedSessionFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("expected_session_fingerprint");
+
+                    b.Property<TimeSpan>("OriginalEndTime")
+                        .HasColumnType("time(6)")
+                        .HasColumnName("original_end_time");
+
+                    b.Property<string>("OriginalRoom")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("original_room");
+
+                    b.Property<DateTime>("OriginalSessionDate")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("original_session_date");
+
+                    b.Property<TimeSpan>("OriginalStartTime")
+                        .HasColumnType("time(6)")
+                        .HasColumnName("original_start_time");
+
+                    b.Property<string>("OriginalStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("original_status");
+
+                    b.Property<TimeSpan?>("ProposedEndTime")
+                        .HasColumnType("time(6)")
+                        .HasColumnName("proposed_end_time");
+
+                    b.Property<string>("ProposedRoom")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("proposed_room");
+
+                    b.Property<DateTime?>("ProposedSessionDate")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("proposed_session_date");
+
+                    b.Property<TimeSpan?>("ProposedStartTime")
+                        .HasColumnType("time(6)")
+                        .HasColumnName("proposed_start_time");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int")
+                        .HasColumnName("session_id");
+
+                    b.HasKey("RequestId");
+
+                    b.HasIndex("ClientRequestKey")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_change_client_key");
+
+                    b.HasIndex("SessionId");
+
+                    b.ToTable("schedule_change_request_details", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_change_kind", "change_kind IN ('reschedule','cancel','makeup')");
+
+                            t.HasCheckConstraint("CK_change_target", "(change_kind='cancel' AND proposed_session_date IS NULL AND proposed_start_time IS NULL AND proposed_end_time IS NULL AND proposed_room IS NULL) OR (change_kind IN ('reschedule','makeup') AND proposed_session_date IS NOT NULL AND proposed_start_time IS NOT NULL AND proposed_end_time IS NOT NULL AND proposed_start_time >= '00:00:00' AND proposed_start_time < proposed_end_time AND proposed_end_time < '24:00:00')");
+                        });
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.StudentClass", b =>
                 {
                     b.Property<int>("ScId")
@@ -1644,6 +1732,25 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Class");
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.ScheduleChangeRequestDetail", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.ApprovalRequest", "Request")
+                        .WithOne()
+                        .HasForeignKey("EduTrack.API.Models.Entities.ScheduleChangeRequestDetail", "RequestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.ClassSession", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Request");
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.StudentClass", b =>

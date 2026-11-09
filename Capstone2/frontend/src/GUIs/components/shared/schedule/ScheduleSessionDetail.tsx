@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { ScheduleSession } from '../../../../BLL/models/ScheduleSession';
 import { displayScheduleDate, scheduleStatus } from '../../../../BLL/services/scheduleViewService';
+import {ScheduleChangeRequests} from './ScheduleChangeRequests';
 
 export function ScheduleSessionDetail({session, now, onClose}: {session: ScheduleSession; now: Date; onClose: () => void}) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -28,6 +29,7 @@ export function ScheduleSessionDetail({session, now, onClose}: {session: Schedul
       <p><span className={`et-schedule-badge et-status-${status.key}`}>{status.label}</span></p>
       <dl>{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
       <p className="et-schedule-note">Teacher và TA hiển thị theo phân công hiện tại của lớp.</p>
+      <ScheduleChangeRequests mode="teacher" session={session} />
     </div>
   </dialog>;
 }

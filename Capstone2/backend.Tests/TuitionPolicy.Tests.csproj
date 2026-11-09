@@ -10,6 +10,7 @@
     <Compile Remove="TuitionIntegration/**/*.cs" />
     <Compile Remove="ScheduleRead/**/*.cs" />
     <Compile Remove="ScheduleManagement/**/*.cs" />
+    <Compile Remove="ScheduleChanges/**/*.cs" />
     <Compile Include="../backend/Services/Management/TuitionPolicy.cs" Link="TuitionPolicy.cs" />
   </ItemGroup>
 </Project>

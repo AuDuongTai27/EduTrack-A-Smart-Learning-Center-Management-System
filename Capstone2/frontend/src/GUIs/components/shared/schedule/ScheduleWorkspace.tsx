@@ -1,4 +1,4 @@
-import {useMemo, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useState, type ReactNode} from 'react';
 import type {ScheduleRole} from '../../../../BLL/models/ScheduleSession';
 import {addScheduleDays, displayScheduleDate, mondayOf, vietnamClock} from '../../../../BLL/services/scheduleViewService';
 import {useScheduleReadModel} from './useScheduleReadModel';
@@ -6,6 +6,7 @@ import {ScheduleCalendar} from './ScheduleCalendar';
 import {ScheduleList} from './ScheduleList';
 import {ScheduleSessionDetail} from './ScheduleSessionDetail';
 import {ScheduleManagement} from './ScheduleManagement';
+import {ScheduleChangeRequests} from './ScheduleChangeRequests';
 import {ScheduleLegendStrip} from '../../student/schedule/ScheduleLegendStrip';
 import ScheduleListHeader from '../../teacher/Teacher/schedule/ScheduleListHeader';
 import TaListHeader from '../../teacher/TeachingAssistant/schedule/ScheduleListHeader';
@@ -15,8 +16,12 @@ import './schedule.css';
 
 export function ScheduleWorkspace({role = 'student', renderHeader}: {role?: ScheduleRole; renderHeader?: (actions: ReactNode) => ReactNode}) {
   const model = useScheduleReadModel(role);
+  const refreshSchedule = model.retry;
+  useEffect(() => {const refresh = () => refreshSchedule(); window.addEventListener('edutrack:schedule-applied', refresh);
+    return () => window.removeEventListener('edutrack:schedule-applied', refresh);}, [refreshSchedule]);
   const [expanded, setExpanded] = useState(false);
   const [managementOpen, setManagementOpen] = useState(false);
+  const [requestsOpen, setRequestsOpen] = useState(false);
   const options = useMemo(() => {
     const distinct = (pairs: [string, string][]) => Array.from(new Map(pairs)).sort((a,b) => a[1].localeCompare(b[1], 'vi', {numeric:true}));
     return {
@@ -72,6 +77,13 @@ export function ScheduleWorkspace({role = 'student', renderHeader}: {role?: Sche
           onClick={() => setManagementOpen(value => !value)}>{managementOpen ? 'Đóng quản lý lịch' : role === 'teacher' ? 'Tạo phiên học' : 'Quản lý lịch cố định'}</button>
       </div>}
       {managementOpen && ['center-manager','admin-staff','teacher'].includes(role) && <ScheduleManagement onCreated={model.retry} />}
+      {['center-manager','admin-staff','teacher'].includes(role) && <div className="mb-3">
+        <button type="button" className="btn btn-outline-primary" aria-expanded={requestsOpen} aria-controls="et-schedule-change-requests"
+          onClick={() => setRequestsOpen(value => !value)}>{requestsOpen ? 'Đóng yêu cầu đổi lịch' : role === 'teacher' ? 'Lịch sử yêu cầu đổi lịch' : 'Xử lý yêu cầu đổi lịch'}</button>
+      </div>}
+      {requestsOpen && ['center-manager','admin-staff','teacher'].includes(role) && <div id="et-schedule-change-requests">
+        <ScheduleChangeRequests mode={role === 'teacher' ? 'teacher' : 'reviewer'} />
+      </div>}
       <div className="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 border shadow-sm et-schedule-summary">
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">

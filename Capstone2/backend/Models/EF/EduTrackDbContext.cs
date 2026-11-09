@@ -22,6 +22,7 @@ namespace EduTrack.API.Models.EF
         public virtual DbSet<StudentClass> StudentClasses { get; set; } = null!;
         public virtual DbSet<ClassSchedule> ClassSchedules { get; set; } = null!;
         public virtual DbSet<ClassScheduleVersion> ClassScheduleVersions { get; set; } = null!;
+        public virtual DbSet<ScheduleChangeRequestDetail> ScheduleChangeRequestDetails { get; set; } = null!;
         public virtual DbSet<ClassSession> ClassSessions { get; set; } = null!;
         public virtual DbSet<ContentUnit> ContentUnits { get; set; } = null!;
         public virtual DbSet<Attendance> Attendances { get; set; } = null!;
@@ -40,6 +41,19 @@ namespace EduTrack.API.Models.EF
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ScheduleChangeRequestDetail>(d =>
+            {
+                d.ToTable("schedule_change_request_details", t =>
+                {
+                    t.HasCheckConstraint("CK_change_kind", "change_kind IN ('reschedule','cancel','makeup')");
+                    t.HasCheckConstraint("CK_change_target", "(change_kind='cancel' AND proposed_session_date IS NULL AND proposed_start_time IS NULL AND proposed_end_time IS NULL AND proposed_room IS NULL) OR (change_kind IN ('reschedule','makeup') AND proposed_session_date IS NOT NULL AND proposed_start_time IS NOT NULL AND proposed_end_time IS NOT NULL AND proposed_start_time >= '00:00:00' AND proposed_start_time < proposed_end_time AND proposed_end_time < '24:00:00')");
+                });
+                d.Property(x => x.RequestId).ValueGeneratedNever();
+                d.HasOne(x => x.Request).WithOne().HasForeignKey<ScheduleChangeRequestDetail>(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
+                d.HasOne(x => x.Session).WithMany().HasForeignKey(x => x.SessionId).OnDelete(DeleteBehavior.Restrict);
+                d.HasIndex(x => x.ClientRequestKey).IsUnique().HasDatabaseName("UQ_change_client_key");
+            });
 
             modelBuilder.Entity<ClassSchedule>().HasAlternateKey(s => new { s.ScheduleId, s.ClassId }).HasName("AK_schedule_class");
             modelBuilder.Entity<ClassScheduleVersion>(v =>
