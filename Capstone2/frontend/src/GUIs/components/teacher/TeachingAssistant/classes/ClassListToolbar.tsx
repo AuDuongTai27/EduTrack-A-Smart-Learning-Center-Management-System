@@ -16,62 +16,39 @@ export default function ClassListToolbar({
   onSearchChange,
   statusFilter = "all",
   onStatusFilterChange,
-  rowsPerPage = 10,
-  onRowsPerPageChange,
-  totalFiltered,
-  totalAll,
 }: ClassListToolbarProps) {
   return (
-    <div className="table-toolbar p-3 bg-light border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <div className="d-flex align-items-center gap-3 flex-wrap">
-        <div className="table-entries-select d-flex align-items-center gap-1">
-          <span className="small text-muted">Hiển thị</span>
-          <select
-            className="form-select form-select-sm"
-            id="entriesSelect"
-            value={rowsPerPage}
-            onChange={(e) => onRowsPerPageChange && onRowsPerPageChange(Number(e.target.value))}
-            style={{ width: "auto" }}
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <span className="small text-muted">dòng</span>
-        </div>
+    <div
+      className="table-toolbar p-3 bg-light border-bottom d-flex align-items-center justify-content-end"
+      style={{ flexWrap: "nowrap" }}
+    >
+      <div className="d-flex align-items-center gap-2" style={{ flexWrap: "nowrap" }}>
+        {/* Dropdown Trạng thái ở bên trái cạnh thanh tìm kiếm trên cùng một hàng */}
+        <select
+          className="form-select form-select-sm"
+          value={statusFilter}
+          onChange={(e) => onStatusFilterChange && onStatusFilterChange(e.target.value)}
+          style={{ width: "auto", minWidth: 145, flexShrink: 0 }}
+        >
+          <option value="all">Tất cả trạng thái</option>
+          <option value="active">Đang trợ giảng</option>
+          <option value="completed">Đã kết thúc</option>
+        </select>
 
-        <div className="d-flex align-items-center gap-1">
-          <span className="small text-muted">Trạng thái:</span>
-          <select
-            className="form-select form-select-sm"
-            value={statusFilter}
-            onChange={(e) => onStatusFilterChange && onStatusFilterChange(e.target.value)}
-            style={{ width: "auto" }}
-          >
-            <option value="all">Tất cả lớp</option>
-            <option value="active">Đang trợ giảng</option>
-            <option value="completed">Đã kết thúc</option>
-          </select>
-        </div>
-
-        {totalFiltered !== undefined && totalAll !== undefined && (
-          <span className="text-muted small">
-            (Tìm thấy <strong>{totalFiltered}</strong> / {totalAll} lớp)
+        {/* Thanh tìm kiếm */}
+        <div className="input-group input-group-sm" style={{ width: 280, flexShrink: 0 }}>
+          <span className="input-group-text bg-white border-end-0">
+            <i className="bi bi-search text-muted" />
           </span>
-        )}
-      </div>
-
-      <div>
-        <input
-          type="search"
-          className="form-control form-control-sm table-search-input"
-          id="tableSearchInput"
-          placeholder="Tìm tên lớp, môn học, phòng..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-          style={{ minWidth: 240 }}
-        />
+          <input
+            type="search"
+            className="form-control form-control-sm border-start-0 ps-0"
+            id="taTableSearchInput"
+            placeholder="Tìm tên lớp, môn học, phòng..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+          />
+        </div>
       </div>
     </div>
   );

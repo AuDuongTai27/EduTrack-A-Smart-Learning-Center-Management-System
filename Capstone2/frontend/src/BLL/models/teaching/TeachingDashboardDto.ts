@@ -16,9 +16,11 @@ export interface TeachingKpiSummaryDto {
   activeClasses: number;
   classesToday: number;
   totalStudents: number;
+  pendingAttendance?: number;
 }
 
 export interface TodayClassSessionItemDto {
+  sessionId?: number;
   classId: number;
   className: string;
   subjectName?: string;
@@ -27,6 +29,8 @@ export interface TodayClassSessionItemDto {
   startTime?: string;
   endTime?: string;
   status?: string;
+  studentsCount?: number;
+  attendanceTaken?: boolean;
 }
 
 export interface TeachingNotificationItemDto {

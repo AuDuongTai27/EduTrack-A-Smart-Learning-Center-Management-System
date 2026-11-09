@@ -7,7 +7,6 @@ import {
   NewAssignmentDescription,
   NewAssignmentFormAction,
   NewAssignmentTitle,
-  NewAssignmentTypeSelector,
 } from "../../../components/teacher/Teacher/newAssignment";
 import classDAL from "../../../../DAL/classDAL";
 import teachingDAL, { DEFAULT_TEACHER_ID } from "../../../../DAL/teachingDAL";
@@ -175,13 +174,6 @@ export default function TeacherNewAssignmentPage() {
                   if (deadlineError) setDeadlineError("");
                 }}
                 error={deadlineError}
-                disabled={submitting}
-              />
-
-              {/* Assignment Type Radio Buttons */}
-              <NewAssignmentTypeSelector
-                value={assignmentType}
-                onChange={setAssignmentType}
                 disabled={submitting}
               />
 

@@ -13,11 +13,12 @@ export default function TeacherClassesPage() {
   const [classes, setClasses] = useState<TeachingClassItemDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Search, Filter & Pagination states
+  // Search, Filter, Sort & Pagination states
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const rowsPerPage = 10; // Cố định mặc định 10 lớp mỗi trang
 
   useEffect(() => {
     let isMounted = true;
@@ -41,14 +42,21 @@ export default function TeacherClassesPage() {
     };
   }, []);
 
-  const filteredClasses = useMemo(() => {
-    let result = classes;
+  const filteredAndSortedClasses = useMemo(() => {
+    let result = [...classes];
+
+    // Lọc theo trạng thái
     if (statusFilter !== "all") {
       result = result.filter((c) => {
-        const isActive = c.status?.toLowerCase() === "active" || c.status === "Đang học" || c.status === "open";
+        const isActive =
+          c.status?.toLowerCase() === "active" ||
+          c.status === "Đang học" ||
+          c.status === "open";
         return statusFilter === "active" ? isActive : !isActive;
       });
     }
+
+    // Tìm kiếm theo từ khóa
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
@@ -59,13 +67,23 @@ export default function TeacherClassesPage() {
           String(c.classId).includes(term)
       );
     }
+
+    // Sắp xếp tự nhiên theo tên lớp (ví dụ: Class 8 < Class 9, Lớp 10 < Lớp 11)
+    result.sort((a, b) => {
+      const comp = a.className.localeCompare(b.className, "vi", {
+        numeric: true,
+        sensitivity: "base",
+      });
+      return sortOrder === "asc" ? comp : -comp;
+    });
+
     return result;
-  }, [classes, statusFilter, searchTerm]);
+  }, [classes, statusFilter, searchTerm, sortOrder]);
 
   const paginatedClasses = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
-    return filteredClasses.slice(start, start + rowsPerPage);
-  }, [filteredClasses, currentPage, rowsPerPage]);
+    return filteredAndSortedClasses.slice(start, start + rowsPerPage);
+  }, [filteredAndSortedClasses, currentPage, rowsPerPage]);
 
   return (
     <>
@@ -102,24 +120,23 @@ export default function TeacherClassesPage() {
             setStatusFilter(val);
             setCurrentPage(1);
           }}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(val) => {
-            setRowsPerPage(val);
-            setCurrentPage(1);
-          }}
-          totalFiltered={filteredClasses.length}
-          totalAll={classes.length}
         />
 
         {/* Table */}
-        <ClassListTable classes={paginatedClasses} />
+        <ClassListTable
+          classes={paginatedClasses}
+          sortOrder={sortOrder}
+          onToggleSort={() =>
+            setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+          }
+        />
 
         {/* Footer Pagination */}
         <ClassListPagination
-          totalItems={filteredClasses.length}
+          totalItems={filteredAndSortedClasses.length}
           currentPage={currentPage}
           rowsPerPage={rowsPerPage}
-          onPageChange={setCurrentPage}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       </div>
     </>

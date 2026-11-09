@@ -197,7 +197,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       </div>
 
       {/* 2. Global Open all / Close all Controls Bar */}
-      <div className="px-4 py-2.5 bg-light-subtle border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div className="px-4 py-2 bg-light-subtle border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div className="d-flex align-items-center gap-3">
           <button
             type="button"
@@ -273,11 +273,11 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
 
               {/* Week Body (Content when Open) */}
               {isOpen && (
-                <div className="border-top p-3.5 bg-white">
+                <div className="border-top p-3 bg-white">
                   {/* Part A: Study Materials */}
                   <div className="mb-4">
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-1.5">
+                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
                         <i className="bi bi-folder2-open text-primary" /> Tài liệu &amp; Bài giảng trong tuần
                       </span>
                     </div>
@@ -287,7 +287,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                         {week.materials.map((mat) => (
                           <div
                             key={mat.id}
-                            className="d-flex align-items-center justify-content-between p-2.5 rounded-2 border bg-light-subtle"
+                            className="d-flex align-items-center justify-content-between p-2 px-3 rounded-2 border bg-light-subtle"
                             style={{ borderColor: "#F1F5F9" }}
                           >
                             <div className="d-flex align-items-center gap-3 min-w-0">
@@ -306,12 +306,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                               <div className="min-w-0">
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                   <span className="fw-semibold text-dark text-break small">{mat.fileName}</span>
-                                  <span className="badge bg-secondary-subtle text-secondary small py-0.5">
+                                  <span className="badge bg-secondary-subtle text-secondary small py-1">
                                     {mat.type}
                                   </span>
                                 </div>
                                 {mat.description && (
-                                  <p className="text-muted small mb-0 mt-0.5 text-truncate" style={{ maxWidth: "580px" }}>
+                                  <p className="text-muted small mb-0 mt-1 text-truncate" style={{ maxWidth: "580px" }}>
                                     {mat.description}
                                   </p>
                                 )}
@@ -330,10 +330,11 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                     alert(`Đang tải xuống tài liệu: ${mat.fileName}`);
                                   }
                                 }}
-                                className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center"
+                                style={{ height: "32px", width: "32px", padding: 0 }}
                                 title="Tải xuống tài liệu"
                               >
-                                <i className="bi bi-download" /> Tải về
+                                <i className="bi bi-download" />
                               </a>
                             </div>
                           </div>
@@ -349,7 +350,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                   {/* Part B: Assignments Table for this week */}
                   <div>
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-1.5">
+                      <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
                         <i className="bi bi-journal-text text-primary" /> Bài tập &amp; Đề kiểm tra
                       </span>
                     </div>
@@ -359,12 +360,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                         <table className="table custom-table align-middle mb-0">
                           <thead>
                             <tr>
-                              <th>Tiêu đề bài tập</th>
-                              <th>Ngày giao</th>
-                              <th>Hạn nộp</th>
-                              <th>Nộp bài &amp; Chấm điểm</th>
-                              <th>Điểm tối đa</th>
-                              <th className="text-end">Thao tác</th>
+                              <th style={{ width: "32%" }}>Tiêu đề bài tập</th>
+                              <th style={{ width: "13%" }}>Ngày giao</th>
+                              <th style={{ width: "20%" }}>Hạn nộp</th>
+                              <th style={{ width: "20%" }}>Nộp bài &amp; Chấm điểm</th>
+                              <th style={{ width: "10%" }}>Điểm tối đa</th>
+                              <th className="text-end" style={{ width: "5%" }}>Thao tác</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -373,66 +374,116 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                               const submissionCount = asg.submissionCount ?? 0;
                               const gradedCount = asg.gradedCount ?? 0;
 
+                              // Đánh giá trạng thái chấm bài
+                              const isGradedDone = submissionCount > 0 && gradedCount === submissionCount;
+                              const isPendingGrading = isOverdue && !isGradedDone;
+                              const isOverdueCompleted = isOverdue && isGradedDone;
+
+                              // Màu nền hàng (tr):
+                              // - Hết hạn và chưa chấm xong: màu vàng nhạt (#fff9db)
+                              // - Hết hạn và chấm xong: màu xám nhạt #e9ecef
+                              const rowBg = isPendingGrading
+                                ? "#fff9db"
+                                : isOverdueCompleted
+                                ? "#e9ecef"
+                                : undefined;
+
                               return (
-                                <tr key={asg.assignmentId || idx}>
-                                  <td className="fw-semibold text-dark">
-                                    <Link
-                                      to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId}`}
-                                      className="text-decoration-none text-dark"
-                                    >
-                                      <i className="bi bi-file-earmark-text me-1 text-primary" /> {asg.title}
-                                    </Link>
+                                <tr
+                                  key={asg.assignmentId || idx}
+                                  style={rowBg ? { backgroundColor: rowBg } : undefined}
+                                >
+                                  <td
+                                    className="fw-semibold text-dark"
+                                    style={{
+                                      backgroundColor: rowBg ? "inherit" : undefined,
+                                      maxWidth: "280px",
+                                    }}
+                                  >
+                                    <div className="d-flex align-items-center">
+                                      <i className="bi bi-file-earmark-text me-1.5 text-primary flex-shrink-0" />
+                                      <Link
+                                        to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId}`}
+                                        className="text-decoration-none text-dark text-truncate d-inline-block"
+                                        title={asg.title}
+                                      >
+                                        {asg.title}
+                                      </Link>
+                                    </div>
                                     {asg.assignmentType && (
-                                      <span className="d-block text-muted small fw-normal">
+                                      <span className="d-block text-muted small fw-normal text-truncate">
                                         {asg.assignmentType}
                                       </span>
                                     )}
                                   </td>
-                                  <td>{asg.createdAt || "08/09/2026"}</td>
-                                  <td>
-                                    <div>
-                                      {asg.dueDateFormatted ||
-                                        (asg.dueDate
-                                          ? new Date(asg.dueDate).toLocaleDateString("vi-VN")
-                                          : "Không có hạn")}
-                                    </div>
-                                    <span
-                                      className={`badge ${
-                                        isOverdue ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success"
-                                      } fw-normal`}
-                                    >
-                                      {isOverdue ? "Quá hạn" : "Đang mở"}
-                                    </span>
+                                  <td style={rowBg ? { backgroundColor: "inherit" } : undefined}>
+                                    {asg.createdAt || "08/09/2026"}
                                   </td>
-                                  <td>
-                                    {submissionCount > 0 ? (
+                                  <td style={rowBg ? { backgroundColor: "inherit" } : undefined}>
+                                    <div className="d-inline-flex align-items-center gap-2 flex-wrap">
+                                      <span>
+                                        {asg.dueDateFormatted ||
+                                          (asg.dueDate
+                                            ? new Date(asg.dueDate).toLocaleDateString("vi-VN")
+                                            : "Không có hạn")}
+                                      </span>
                                       <span
                                         className={`badge ${
-                                          gradedCount === submissionCount
-                                            ? "bg-success-subtle text-success"
-                                            : "bg-warning-subtle text-warning"
-                                        } fw-medium px-2 py-1`}
+                                          isOverdue ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success"
+                                        } fw-normal`}
                                       >
-                                        {gradedCount === submissionCount ? "Đã chấm" : "Chờ chấm"} ({gradedCount}/
-                                        {submissionCount})
+                                        {isOverdue ? "Quá hạn" : "Đang mở"}
                                       </span>
+                                    </div>
+                                  </td>
+                                  <td style={rowBg ? { backgroundColor: "inherit" } : undefined}>
+                                    {submissionCount > 0 ? (
+                                      isPendingGrading ? (
+                                        <span
+                                          className="badge fw-medium px-2 py-1 border shadow-xs"
+                                          style={{
+                                            backgroundColor: "#ffffff",
+                                            color: "#000000",
+                                            borderColor: "#dee2e6",
+                                          }}
+                                        >
+                                          Chờ chấm ({gradedCount}/{submissionCount})
+                                        </span>
+                                      ) : (
+                                        <span
+                                          className={`badge ${
+                                            isGradedDone
+                                              ? "bg-success-subtle text-success"
+                                              : "bg-warning-subtle text-warning"
+                                          } fw-medium px-2 py-1`}
+                                        >
+                                          {isGradedDone ? "Đã chấm" : "Chờ chấm"} ({gradedCount}/{submissionCount})
+                                        </span>
+                                      )
                                     ) : (
                                       <span className="badge bg-secondary-subtle text-secondary fw-normal">
                                         Chưa có bài nộp
                                       </span>
                                     )}
                                   </td>
-                                  <td>
+                                  <td style={rowBg ? { backgroundColor: "inherit" } : undefined}>
                                     <span className="fw-bold text-dark">{asg.maxScore ?? "10.0"}</span>{" "}
                                     <small className="text-muted">điểm</small>
                                   </td>
-                                  <td className="text-end">
-                                    <Link
-                                      to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId}`}
-                                      className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                                    >
-                                      <i className="bi bi-eye" /> Hỗ trợ chấm
-                                    </Link>
+                                  <td
+                                    className="text-end"
+                                    style={rowBg ? { backgroundColor: "inherit" } : undefined}
+                                  >
+                                    <div className="d-inline-flex align-items-center justify-content-end">
+                                      <Link
+                                        to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId}`}
+                                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center"
+                                        style={{ height: "32px", width: "32px", padding: 0 }}
+                                        title="Hỗ trợ chấm"
+                                      >
+                                        <i className="bi bi-eye" />
+                                      </Link>
+                                    </div>
                                   </td>
                                 </tr>
                               );

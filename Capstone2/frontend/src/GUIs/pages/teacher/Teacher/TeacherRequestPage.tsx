@@ -86,11 +86,8 @@ export default function TeacherRequestPage() {
           </div>
         ) : (
           <>
-            {/* Toolbar & Table */}
+            {/* Toolbar & Table (bao gồm Pagination nội bộ) */}
             <RequestTable requests={sortedRequests} onRequestUpdated={handleRequestUpdated} />
-
-            {/* Footer Pagination */}
-            <RequestPagination />
           </>
         )}
       </div>

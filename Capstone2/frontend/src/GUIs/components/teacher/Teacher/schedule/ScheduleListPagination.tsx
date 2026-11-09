@@ -1,4 +1,5 @@
 import React from "react";
+import { PaginationNavGroup } from "../../CommonPaginationUtils";
 
 export interface ScheduleListPaginationProps {
   totalItems?: number;
@@ -15,54 +16,35 @@ export default function ScheduleListPagination({
 }: ScheduleListPaginationProps) {
   const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
 
-  if (totalPages <= 1) {
-    return (
-      <div className="table-pagination-footer d-flex align-items-center justify-content-between p-3 border-top">
-        <span className="small text-muted">Hiển thị {totalItems} ca học</span>
-        <span className="small text-muted">Trang 1 / 1</span>
-      </div>
-    );
-  }
-
-  const pages = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pages.push(i);
-  }
-
   return (
     <div className="table-pagination-footer d-flex align-items-center justify-content-between p-3 border-top flex-wrap gap-2">
-      <span className="small text-muted">
-        Hiển thị {Math.min((currentPage - 1) * rowsPerPage + 1, totalItems)} - {Math.min(currentPage * rowsPerPage, totalItems)} trong {totalItems} ca học
-      </span>
+      <span className="small text-muted">Hiển thị {totalItems} ca học</span>
 
-      <div className="d-flex align-items-center gap-1">
+      <div className="d-flex align-items-center gap-2">
         <button
           type="button"
-          className="btn btn-sm btn-outline-secondary"
+          className="pagination-text-btn"
+          id="prevPageBtn"
           disabled={currentPage <= 1}
+          style={{ opacity: currentPage <= 1 ? 0.5 : 1, cursor: currentPage <= 1 ? "not-allowed" : "pointer" }}
           onClick={() => onPageChange && onPageChange(currentPage - 1)}
         >
-          Trước
+          Prev
         </button>
 
-        {pages.map((p) => (
-          <button
-            key={p}
-            type="button"
-            className={`btn btn-sm ${p === currentPage ? "btn-primary" : "btn-outline-secondary"}`}
-            onClick={() => onPageChange && onPageChange(p)}
-          >
-            {p}
-          </button>
-        ))}
+        <div id="paginationContainer" className="d-inline-flex align-items-center gap-1">
+          <PaginationNavGroup currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+        </div>
 
         <button
           type="button"
-          className="btn btn-sm btn-outline-secondary"
+          className="pagination-text-btn"
+          id="nextPageBtn"
           disabled={currentPage >= totalPages}
+          style={{ opacity: currentPage >= totalPages ? 0.5 : 1, cursor: currentPage >= totalPages ? "not-allowed" : "pointer" }}
           onClick={() => onPageChange && onPageChange(currentPage + 1)}
         >
-          Sau
+          Next
         </button>
       </div>
     </div>

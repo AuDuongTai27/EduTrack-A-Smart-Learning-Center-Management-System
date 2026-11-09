@@ -510,14 +510,7 @@ export default function TeacherNotificationPage() {
                   </div>
                 </div>
 
-                <div className="p-4 border-top bg-light d-flex justify-content-between align-items-center gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => setSelectedNotification(null)}
-                  >
-                    <i className="bi bi-arrow-left me-1" /> Thoát xem chi tiết
-                  </button>
+                <div className="p-4 border-top bg-light d-flex justify-content-end align-items-center gap-2">
                   {!selectedNotification.isRead ? (
                     <button
                       type="button"

@@ -8,9 +8,9 @@ export interface GreetingSectionProps {
 }
 
 export function GreetingSection({
-  name = "[FE-Mock] Âu Dương Tài",
+  name,
   greeting,
-  message = "Chúc bạn một ngày làm việc hỗ trợ lớp học thật hiệu quả tại EduTrack!",
+  message,
 }: GreetingSectionProps) {
   const getGreetingText = (): string => {
     if (greeting) return greeting;
@@ -24,11 +24,13 @@ export function GreetingSection({
     <div className="row mb-3">
       <div className="col-md-12 d-flex">
         <div className="card flex-fill bg-info bg-03">
-          <div className="card-body">
-            <h1 className="text-white mb-1">
+          <div className="card-body py-2.5 px-4">
+            <h3 className="text-white mb-1 fw-bold" style={{ fontSize: "22px" }}>
               {getGreetingText()} {name}
-            </h1>
-            <p className="text-white mb-3">{message}</p>
+            </h3>
+            <p className="text-white mb-0" style={{ fontSize: "14px", opacity: 0.9 }}>
+              {message}
+            </p>
           </div>
         </div>
       </div>
