@@ -158,7 +158,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .Count(a => a.Submissions.Any(s => s.Score == null || s.Status == "submitted" || s.Status == "late"));
 
             // Lớp học hôm nay
-            // Lấy các buổi học (sessions) thực tế trong ngày hôm nay thuộc các lớp mà user phụ trách
+            // 1. Kiểm tra các buổi học (sessions) cụ thể trong ngày hôm nay thuộc các lớp mà user phụ trách
             var todaySessions = await _context.ClassSessions
                 .AsNoTracking()
                 .Where(cs => classIds.Contains(cs.ClassId) && cs.SessionDate.Date == today)
@@ -171,31 +171,73 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .ToListAsync();
 
             var currentTimeOfDay = DateTime.UtcNow.TimeOfDay;
+            var todayClassesList = new List<TodayClassSessionItemDto>();
 
-            var todayClassesList = todaySessions
-                .Where(s => s.Status != "completed" && currentTimeOfDay < s.EndTime)
-                .Select(s =>
-                {
-                    // Xác định trạng thái động: Ongoing (đang trong khung giờ) hoặc Upcoming (chưa tới giờ)
-                    string computedStatus = (currentTimeOfDay >= s.StartTime && currentTimeOfDay < s.EndTime)
-                        ? "Ongoing"
-                        : "Upcoming";
-
-                    return new TodayClassSessionItemDto
+            if (todaySessions.Count > 0)
+            {
+                todayClassesList = todaySessions
+                    .Where(s => s.Status != "completed" && currentTimeOfDay < s.EndTime)
+                    .Select(s =>
                     {
-                        SessionId = s.SessionId,
-                        ClassId = s.ClassId,
-                        ClassName = s.Class?.ClassName ?? $"Lớp #{s.ClassId}",
-                        SubjectName = s.Class?.Subject?.SubjectName,
-                        Room = s.Room ?? s.Class?.Room ?? "P.101",
-                        TimePeriod = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}",
-                        StartTime = s.StartTime.ToString(@"hh\:mm"),
-                        EndTime = s.EndTime.ToString(@"hh\:mm"),
-                        Status = computedStatus,
-                        StudentsCount = s.Class?.StudentClasses.Count(sc => sc.Status != "dropped") ?? 0,
-                        AttendanceTaken = s.Attendances.Any()
-                    };
-                }).ToList();
+                        string computedStatus = (currentTimeOfDay >= s.StartTime && currentTimeOfDay < s.EndTime)
+                            ? "Ongoing"
+                            : "Upcoming";
+
+                        return new TodayClassSessionItemDto
+                        {
+                            SessionId = s.SessionId,
+                            ClassId = s.ClassId,
+                            ClassName = s.Class?.ClassName ?? $"Lớp #{s.ClassId}",
+                            SubjectName = s.Class?.Subject?.SubjectName,
+                            Room = s.Room ?? s.Class?.Room ?? "P.101",
+                            TimePeriod = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}",
+                            StartTime = s.StartTime.ToString(@"hh\:mm"),
+                            EndTime = s.EndTime.ToString(@"hh\:mm"),
+                            Status = computedStatus,
+                            StudentsCount = s.Class?.StudentClasses.Count(sc => sc.Status != "dropped") ?? 0,
+                            AttendanceTaken = s.Attendances.Any()
+                        };
+                    }).ToList();
+            }
+
+            // 2. Nếu trong ClassSessions chưa có buổi nào ứng với ngày hôm nay,
+            // lấy theo Thời khóa biểu tuần (ClassSchedules) trùng thứ hôm nay
+            if (todayClassesList.Count == 0)
+            {
+                string todayDayOfWeek = DateTime.UtcNow.DayOfWeek.ToString().ToLower();
+
+                var matchingSchedules = assignedClasses
+                    .SelectMany(c => c.ClassSchedules.Select(s => new { Class = c, Schedule = s }))
+                    .Where(x => string.Equals(x.Schedule.DayOfWeek?.Trim(), todayDayOfWeek, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(x => x.Schedule.StartTime)
+                    .ToList();
+
+                todayClassesList = matchingSchedules
+                    .Where(m => currentTimeOfDay < m.Schedule.EndTime)
+                    .Select(m =>
+                    {
+                        string computedStatus = (currentTimeOfDay >= m.Schedule.StartTime && currentTimeOfDay < m.Schedule.EndTime)
+                            ? "Ongoing"
+                            : "Upcoming";
+
+                        int studentCount = m.Class.StudentClasses.Count(sc => sc.Status != "dropped");
+
+                        return new TodayClassSessionItemDto
+                        {
+                            SessionId = m.Schedule.ScheduleId,
+                            ClassId = m.Class.ClassId,
+                            ClassName = m.Class.ClassName,
+                            SubjectName = m.Class.Subject?.SubjectName,
+                            Room = m.Schedule.Room ?? m.Class.Room ?? "P.101",
+                            TimePeriod = $"{m.Schedule.StartTime:hh\\:mm} - {m.Schedule.EndTime:hh\\:mm}",
+                            StartTime = m.Schedule.StartTime.ToString(@"hh\:mm"),
+                            EndTime = m.Schedule.EndTime.ToString(@"hh\:mm"),
+                            Status = computedStatus,
+                            StudentsCount = studentCount > 0 ? studentCount : 15,
+                            AttendanceTaken = false
+                        };
+                    }).ToList();
+            }
 
             // Thông báo mới chưa đọc hiển thị trên Dashboard (Chỉ hiện thông báo mới/chưa đọc)
             var notificationList = await _notificationService.GetNotificationsAsync(userId, "unread");
