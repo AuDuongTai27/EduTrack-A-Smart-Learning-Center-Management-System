@@ -295,8 +295,9 @@ export const learningApi = {
   /**
    * Đánh dấu một thông báo là đã đọc (PUT /api/learning/student/notifications/{notificationId}/read)
    */
-  async markNotificationRead(notificationId: number): Promise<boolean> {
-    const response = await fetch(`${API_BASE_URL}/learning/student/notifications/${notificationId}/read`, {
+  async markNotificationRead(notificationId: number, userId?: number): Promise<boolean> {
+    const query = userId ? `?userId=${userId}` : '';
+    const response = await fetch(`${API_BASE_URL}/learning/student/notifications/${notificationId}/read${query}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
     });

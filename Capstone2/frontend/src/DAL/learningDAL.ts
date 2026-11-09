@@ -415,9 +415,10 @@ function mapApiProfileToStudentProfile(dto: LearnerProfileApiDto): StudentProfil
  */
 const LOCAL_READ_NOTIFS_KEY = 'edutrack_read_notification_ids';
 
-export function getLocalReadNotificationIds(): Set<number> {
+export function getLocalReadNotificationIds(userId?: number): Set<number> {
   try {
-    const raw = localStorage.getItem(LOCAL_READ_NOTIFS_KEY);
+    const key = userId ? `${LOCAL_READ_NOTIFS_KEY}_${userId}` : LOCAL_READ_NOTIFS_KEY;
+    const raw = localStorage.getItem(key);
     if (raw) {
       const arr = JSON.parse(raw);
       if (Array.isArray(arr)) return new Set(arr);
@@ -428,29 +429,31 @@ export function getLocalReadNotificationIds(): Set<number> {
   return new Set();
 }
 
-export function saveLocalReadNotificationId(id: number) {
+export function saveLocalReadNotificationId(id: number, userId?: number) {
   try {
-    const set = getLocalReadNotificationIds();
+    const key = userId ? `${LOCAL_READ_NOTIFS_KEY}_${userId}` : LOCAL_READ_NOTIFS_KEY;
+    const set = getLocalReadNotificationIds(userId);
     set.add(id);
-    localStorage.setItem(LOCAL_READ_NOTIFS_KEY, JSON.stringify(Array.from(set)));
+    localStorage.setItem(key, JSON.stringify(Array.from(set)));
   } catch {
     // ignore
   }
 }
 
-export function saveAllLocalReadNotificationIds(ids: number[]) {
+export function saveAllLocalReadNotificationIds(ids: number[], userId?: number) {
   try {
-    const set = getLocalReadNotificationIds();
+    const key = userId ? `${LOCAL_READ_NOTIFS_KEY}_${userId}` : LOCAL_READ_NOTIFS_KEY;
+    const set = getLocalReadNotificationIds(userId);
     ids.forEach((id) => set.add(id));
-    localStorage.setItem(LOCAL_READ_NOTIFS_KEY, JSON.stringify(Array.from(set)));
+    localStorage.setItem(key, JSON.stringify(Array.from(set)));
   } catch {
     // ignore
   }
 }
 
 export const learningDAL = {
-  getLocalReadIds(): Set<number> {
-    return getLocalReadNotificationIds();
+  getLocalReadIds(userId?: number): Set<number> {
+    return getLocalReadNotificationIds(userId);
   },
 
   /**
@@ -459,7 +462,7 @@ export const learningDAL = {
   async getStudentUnreadCount(studentId = DEFAULT_STUDENT_ID): Promise<number> {
     try {
       const notifs = await this.getStudentNotifications(studentId);
-      const readSet = getLocalReadNotificationIds();
+      const readSet = getLocalReadNotificationIds(studentId);
       return notifs.filter((n) => n.unread && !readSet.has(n.id)).length;
     } catch {
       return 0;
@@ -475,7 +478,7 @@ export const learningDAL = {
   ): Promise<number> {
     try {
       const notifs = await this.getParentNotifications(parentId, studentId);
-      const readSet = getLocalReadNotificationIds();
+      const readSet = getLocalReadNotificationIds(parentId);
       return notifs.filter((n) => !n.isRead && !readSet.has(n.notificationId)).length;
     } catch {
       return 0;
@@ -1001,13 +1004,13 @@ export const learningDAL = {
     ];
   },
 
-  async markNotificationRead(notificationId: number): Promise<boolean> {
-    saveLocalReadNotificationId(notificationId);
+  async markNotificationRead(notificationId: number, userId?: number): Promise<boolean> {
+    saveLocalReadNotificationId(notificationId, userId);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('notifications-updated'));
     }
     try {
-      return await learningApi.markNotificationRead(notificationId);
+      return await learningApi.markNotificationRead(notificationId, userId);
     } catch (error) {
       console.warn('[learningDAL] Không thể lưu trạng thái đã đọc lên Backend:', error);
       return false;
@@ -1020,7 +1023,7 @@ export const learningDAL = {
     notificationIds?: number[]
   ): Promise<number> {
     if (notificationIds && notificationIds.length > 0) {
-      saveAllLocalReadNotificationIds(notificationIds);
+      saveAllLocalReadNotificationIds(notificationIds, userId);
     }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('notifications-updated'));

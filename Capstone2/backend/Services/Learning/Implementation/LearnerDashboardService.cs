@@ -1093,15 +1093,17 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .AsNoTracking()
                 .Include(n => n.Class)
                 .Include(n => n.User)
+                .Include(n => n.Recipients)
                 .Where(n =>
                     n.UserId == studentId ||
+                    n.Recipients.Any(r => r.UserId == studentId && r.DeletedAt == null) ||
                     (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null))
+                    (n.UserId == null && n.ClassId == null && (n.TargetRole == null || n.TargetRole == "student" || n.TargetRole == "all")))
                 .OrderByDescending(n => n.CreatedAt)
                 .ThenByDescending(n => n.NotificationId)
                 .ToListAsync();
 
-            return notifications.Select(MapNotificationToLearnerDto).ToList();
+            return notifications.Select(n => MapNotificationToLearnerDto(n, studentId)).ToList();
         }
 
         public async Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
@@ -1139,19 +1141,21 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .AsNoTracking()
                 .Include(n => n.Class)
                 .Include(n => n.User)
+                .Include(n => n.Recipients)
                 .Where(n =>
                     n.UserId == parentId ||
                     (n.UserId.HasValue && childIds.Contains(n.UserId.Value)) ||
+                    n.Recipients.Any(r => r.UserId == parentId && r.DeletedAt == null) ||
                     (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null))
+                    (n.UserId == null && n.ClassId == null && (n.TargetRole == null || n.TargetRole == "parent" || n.TargetRole == "all")))
                 .OrderByDescending(n => n.CreatedAt)
                 .ThenByDescending(n => n.NotificationId)
                 .ToListAsync();
 
-            return notifications.Select(MapNotificationToLearnerDto).ToList();
+            return notifications.Select(n => MapNotificationToLearnerDto(n, parentId)).ToList();
         }
 
-        public async Task<bool> MarkNotificationAsReadAsync(int notificationId)
+        public async Task<bool> MarkNotificationAsReadAsync(int notificationId, int? userId = null)
         {
             var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == notificationId);
             if (notif == null)
@@ -1159,12 +1163,39 @@ namespace EduTrack.API.Services.Learning.Implementation
                 return false;
             }
 
-            if (!notif.IsRead)
+            if (userId.HasValue && userId.Value > 0)
+            {
+                int uid = userId.Value;
+                var recipient = await _context.NotificationRecipients
+                    .FirstOrDefaultAsync(r => r.NotificationId == notificationId && r.UserId == uid);
+
+                if (recipient == null)
+                {
+                    await _context.NotificationRecipients.AddAsync(new NotificationRecipient
+                    {
+                        NotificationId = notificationId,
+                        UserId = uid,
+                        IsRead = true,
+                        ReadAt = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    recipient.IsRead = true;
+                    recipient.ReadAt = DateTime.UtcNow;
+                }
+
+                if (notif.UserId == uid)
+                {
+                    notif.IsRead = true;
+                }
+            }
+            else
             {
                 notif.IsRead = true;
-                await _context.SaveChangesAsync();
             }
 
+            await _context.SaveChangesAsync();
             return true;
         }
 
@@ -1183,25 +1214,44 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Distinct()
                 .ToListAsync();
 
-            var unreadList = await _context.Notifications
+            var visibleNotifs = await _context.Notifications
+                .Include(n => n.Recipients)
                 .Where(n =>
-                    !n.IsRead &&
-                    ((n.UserId.HasValue && targetUserIds.Contains(n.UserId.Value)) ||
-                     (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                     (n.UserId == null && n.ClassId == null)))
+                    (n.UserId.HasValue && targetUserIds.Contains(n.UserId.Value)) ||
+                    (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
+                    (n.UserId == null && n.ClassId == null))
                 .ToListAsync();
 
-            foreach (var n in unreadList)
+            int updatedCount = 0;
+            foreach (var n in visibleNotifs)
             {
-                n.IsRead = true;
+                var recipient = n.Recipients.FirstOrDefault(r => r.UserId == userId);
+                if (recipient == null)
+                {
+                    await _context.NotificationRecipients.AddAsync(new NotificationRecipient
+                    {
+                        NotificationId = n.NotificationId,
+                        UserId = userId,
+                        IsRead = true,
+                        ReadAt = DateTime.UtcNow
+                    });
+                    updatedCount++;
+                }
+                else if (!recipient.IsRead)
+                {
+                    recipient.IsRead = true;
+                    recipient.ReadAt = DateTime.UtcNow;
+                    updatedCount++;
+                }
+
+                if (n.UserId == userId && !n.IsRead)
+                {
+                    n.IsRead = true;
+                }
             }
 
-            if (unreadList.Count > 0)
-            {
-                await _context.SaveChangesAsync();
-            }
-
-            return unreadList.Count;
+            await _context.SaveChangesAsync();
+            return updatedCount;
         }
 
         public async Task<LearnerProfileDto?> GetLearnerProfileAsync(int userId)
@@ -1461,6 +1511,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                 return;
             }
 
+            var now = DateTime.UtcNow;
+
             var seedNotifs = new List<Notification>
             {
                 new Notification
@@ -1470,8 +1522,9 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Title = "Bài tập mới: Phương trình bậc hai & Định lý Vi-ét",
                     Content = "Giáo viên vừa giao bài tập về nhà mới cho lớp Toán Nâng Cao 9 (Class 9A - Advanced Mathematics). Vui lòng hoàn thành trước hạn nộp.",
                     Type = "homework",
+                    TargetRole = "student",
                     IsRead = false,
-                    CreatedAt = new DateTime(2026, 10, 15, 8, 30, 0, DateTimeKind.Utc)
+                    CreatedAt = now.AddHours(-3)
                 },
                 new Notification
                 {
@@ -1480,8 +1533,9 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Title = "Tài liệu học tập mới môn Vật Lý 9",
                     Content = "Giáo viên đã đăng tải chuyên đề Định luật Ôm và Công suất điện lên mục Tài liệu lớp học (Class 9B - Fundamental Physics).",
                     Type = "class",
+                    TargetRole = "student",
                     IsRead = false,
-                    CreatedAt = new DateTime(2026, 10, 14, 15, 15, 0, DateTimeKind.Utc)
+                    CreatedAt = now.AddDays(-1).AddHours(2)
                 },
                 new Notification
                 {
@@ -1490,8 +1544,9 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Title = "Thông báo học phí kỳ Tháng 10/2026",
                     Content = "Hóa đơn học phí kỳ Tháng 10/2026 của học sinh Lê Văn An đã được phát hành. Quý phụ huynh có thể kiểm tra và thanh toán trực tuyến tại mục Học phí.",
                     Type = "tuition",
+                    TargetRole = "parent",
                     IsRead = false,
-                    CreatedAt = new DateTime(2026, 10, 14, 9, 0, 0, DateTimeKind.Utc)
+                    CreatedAt = now.AddDays(-1).AddHours(-4)
                 },
                 new Notification
                 {
@@ -1500,8 +1555,9 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Title = "Cập nhật nhận xét định kỳ từ Giáo viên",
                     Content = "Giáo viên phụ trách lớp Toán Nâng Cao 9 đã cập nhật phiếu đánh giá tiến độ và chuyên cần tháng 10 cho học sinh Lê Văn An.",
                     Type = "class",
+                    TargetRole = "parent",
                     IsRead = false,
-                    CreatedAt = new DateTime(2026, 10, 13, 17, 45, 0, DateTimeKind.Utc)
+                    CreatedAt = now.AddDays(-2)
                 }
             };
 
@@ -1567,8 +1623,18 @@ namespace EduTrack.API.Services.Learning.Implementation
             };
         }
 
-        private static LearnerNotificationItemDto MapNotificationToLearnerDto(Notification n)
+        private static LearnerNotificationItemDto MapNotificationToLearnerDto(Notification n, int? currentUserId = null)
         {
+            bool isRead = n.IsRead;
+            if (currentUserId.HasValue && n.Recipients != null && n.Recipients.Count > 0)
+            {
+                var recipient = n.Recipients.FirstOrDefault(r => r.UserId == currentUserId.Value);
+                if (recipient != null)
+                {
+                    isRead = recipient.IsRead;
+                }
+            }
+
             return new LearnerNotificationItemDto
             {
                 NotificationId = n.NotificationId,
@@ -1579,7 +1645,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 Title = n.Title,
                 Content = n.Content,
                 Type = n.Type,
-                IsRead = n.IsRead,
+                IsRead = isRead,
                 CreatedAt = n.CreatedAt
             };
         }
