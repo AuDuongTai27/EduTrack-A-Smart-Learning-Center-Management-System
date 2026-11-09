@@ -148,6 +148,13 @@ async Task<string> DatabaseFingerprint(string connectionString, bool excludeProf
             rows.Add(JsonSerializer.Serialize(values));
         }
         rows.Sort(StringComparer.Ordinal);
+        // The Grade rehearsal predates Schedule Versioning. Compare every original
+        // table value, and separately forbid fabricated rows in the new empty table.
+        if (excludeProfileGrade && table == "class_schedule_versions")
+        {
+            if (rows.Count != 0) throw new Exception("Migration unexpectedly created Schedule versions without reviewed mapping.");
+            continue;
+        }
         contents.Add(new { table, rows });
     }
     return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(contents))));

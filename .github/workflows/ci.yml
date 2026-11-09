@@ -133,3 +133,13 @@ jobs:
       # No database, test principal host, seeder or migrations in default mode.
       - name: Run Schedule identity and range checks
         run: dotnet run --project backend.Tests/ScheduleRead/ScheduleRead.Tests.csproj --configuration Release --no-build --no-restore
+
+      - name: Restore Schedule management policy checks
+        run: dotnet restore backend.Tests/ScheduleManagement/ScheduleManagement.Tests.csproj
+
+      - name: Build Schedule management policy checks
+        run: dotnet build backend.Tests/ScheduleManagement/ScheduleManagement.Tests.csproj --configuration Release --no-restore
+
+      # Default mode validates policy only. No production host or database access.
+      - name: Run Schedule management policy checks
+        run: dotnet run --project backend.Tests/ScheduleManagement/ScheduleManagement.Tests.csproj --configuration Release --no-build --no-restore

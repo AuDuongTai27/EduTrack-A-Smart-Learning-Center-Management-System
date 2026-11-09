@@ -76,3 +76,10 @@
   .schedule-official .schedule-inline-actions { justify-content:flex-start; }
   .et-schedule-detail dl > div { grid-template-columns:100px 1fr; }
 }
+.schedule-management {min-width:0;}
+.schedule-management-fields {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;}
+.schedule-management-fields label {min-width:0;}
+.schedule-preview-scroll {max-height:420px;overflow:auto;}
+.schedule-management table {min-width:560px;}
+.schedule-management [data-outcome="conflict"] {--bs-table-bg:#fff1f2;}
+.schedule-management [data-outcome="outside_class"] {--bs-table-bg:#fff7ed;}

@@ -1,3 +1,4 @@
+using EduTrack.API.Services.Schedule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,7 +60,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     .Include(tac => tac.Class)
                         .ThenInclude(c => c.Subject)
                     .Include(tac => tac.Class)
-                        .ThenInclude(c => c.ClassSchedules)
+                        .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                     .Include(tac => tac.Class)
                         .ThenInclude(c => c.StudentClasses)
                     .Include(tac => tac.Class)
@@ -80,7 +81,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     .Include(tc => tc.Class)
                         .ThenInclude(c => c.Subject)
                     .Include(tc => tc.Class)
-                        .ThenInclude(c => c.ClassSchedules)
+                        .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                     .Include(tc => tc.Class)
                         .ThenInclude(c => c.StudentClasses)
                     .Include(tc => tc.Class)
@@ -101,7 +102,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     .AsNoTracking()
                     .Where(tc => tc.TeacherId == userId && tc.Status == "active")
                     .Include(tc => tc.Class).ThenInclude(c => c.Subject)
-                    .Include(tc => tc.Class).ThenInclude(c => c.ClassSchedules)
+                    .Include(tc => tc.Class).ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                     .Include(tc => tc.Class).ThenInclude(c => c.StudentClasses)
                     .Include(tc => tc.Class).ThenInclude(c => c.TeacherClasses).ThenInclude(tc => tc.Teacher)
                     .Include(tc => tc.Class).ThenInclude(c => c.TaClasses).ThenInclude(tac => tac.Ta)
@@ -111,7 +112,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     .AsNoTracking()
                     .Where(tac => tac.TaId == userId && tac.Status == "active")
                     .Include(tac => tac.Class).ThenInclude(c => c.Subject)
-                    .Include(tac => tac.Class).ThenInclude(c => c.ClassSchedules)
+                    .Include(tac => tac.Class).ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                     .Include(tac => tac.Class).ThenInclude(c => c.StudentClasses)
                     .Include(tac => tac.Class).ThenInclude(c => c.TeacherClasses).ThenInclude(tc => tc.Teacher)
                     .Include(tac => tac.Class).ThenInclude(c => c.TaClasses).ThenInclude(tac => tac.Ta)
@@ -133,7 +134,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
                 if (cls.ClassSchedules.Count > 0)
                 {
-                    foreach (var s in cls.ClassSchedules)
+                    foreach (var s in ScheduleTimeline.At(cls.ClassSchedules, ScheduleTimeline.ListingDate(cls.StartDate)))
                     {
                         scheduleList.Add(new TeachingScheduleItemDto
                         {

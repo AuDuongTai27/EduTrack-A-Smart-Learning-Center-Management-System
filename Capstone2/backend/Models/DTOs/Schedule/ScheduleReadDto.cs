@@ -20,6 +20,9 @@ public sealed class ScheduleSessionDto
     public int ClassId { get; set; }
     public string ClassName { get; set; } = "";
     public int? ScheduleId { get; set; }
+    public int? ScheduleVersionId { get; set; }
+    public string? PlannedOccurrenceDate { get; set; }
+    public string? OccurrenceWeekStart { get; set; }
     public int SubjectId { get; set; }
     public string? SubjectName { get; set; }
     public string SessionDate { get; set; } = "";

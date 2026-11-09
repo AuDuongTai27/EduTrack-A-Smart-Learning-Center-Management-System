@@ -1,3 +1,4 @@
+using EduTrack.API.Services.Schedule;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +42,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     .ThenInclude(c => c.TeacherClasses)
                         .ThenInclude(tc => tc.Teacher)
                 .Include(sc => sc.Class)
-                    .ThenInclude(c => c.ClassSchedules)
+                    .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                 .Include(sc => sc.Class)
                     .ThenInclude(c => c.ClassSessions)
                         .ThenInclude(cs => cs.Attendances)
@@ -135,7 +136,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                         .ThenInclude(c => c.TeacherClasses)
                             .ThenInclude(tc => tc.Teacher)
                     .Include(sc => sc.Class)
-                        .ThenInclude(c => c.ClassSchedules)
+                        .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                     .Include(sc => sc.Class)
                         .ThenInclude(c => c.ClassSessions)
                             .ThenInclude(cs => cs.Attendances)
@@ -243,7 +244,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Include(c => c.TeacherClasses)
                     .ThenInclude(tc => tc.Teacher)
                 .Include(c => c.StudentClasses)
-                .Include(c => c.ClassSchedules)
+                .Include(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                 .Include(c => c.ContentUnits)
                 .Include(c => c.Assignments)
                     .ThenInclude(a => a.Submissions)
@@ -544,7 +545,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     .ThenInclude(c => c.TeacherClasses)
                         .ThenInclude(tc => tc.Teacher)
                 .Include(sc => sc.Class)
-                    .ThenInclude(c => c.ClassSchedules)
+                    .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                 .Include(sc => sc.Class)
                     .ThenInclude(c => c.ClassSessions)
                 .ToListAsync();
@@ -563,7 +564,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 string teacherName = mainTeacher?.FullName ?? "Giáo viên phụ trách";
                 string teacherInitials = GetInitials(teacherName);
 
-                foreach (var sched in cls.ClassSchedules)
+                foreach (var sched in ScheduleTimeline.At(cls.ClassSchedules, ScheduleTimeline.ListingDate(cls.StartDate)))
                 {
                     int dayIndex = MapDayIndex(sched.DayOfWeek);
                     var matchingSession = cls.ClassSessions
@@ -1603,7 +1604,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                 return $"Khai giảng: {startDate:dd/MM/yyyy}";
             }
 
-            var orderedSchedules = schedules.ToList();
+            var orderedSchedules = ScheduleTimeline.At(schedules, ScheduleTimeline.ListingDate(startDate));
+            if (orderedSchedules.Count == 0) return $"Khai gi?ng: {startDate:dd/MM/yyyy}";
             var days = orderedSchedules
                 .Select(s => MapDayOfWeek(s.DayOfWeek))
                 .Distinct()

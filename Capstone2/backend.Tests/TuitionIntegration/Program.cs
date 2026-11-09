@@ -56,7 +56,7 @@ try
 {
     await using (var db = Db())
     {
-        await db.Database.MigrateAsync(); Check(!db.Database.HasPendingModelChanges(), "Task04 introduces no model/schema migration");
+        await db.Database.MigrateAsync(); Check(!db.Database.HasPendingModelChanges(), "Tuition regression uses the current migration model with monthly rules unchanged");
         db.Roles.AddRange(new Role { RoleId = 1, RoleName = "student" }, new Role { RoleId = 2, RoleName = "admin_staff" }, new Role { RoleId = 3, RoleName = "center_manager" });
         db.Subjects.Add(new Subject { SubjectId = 601, SubjectCode = "T04", SubjectName = "Synthetic Tuition" });
         db.CenterSettings.Add(new CenterSetting { SettingKey = "tuition_due_day", SettingValue = "10" });
@@ -89,7 +89,12 @@ try
     request.PreviewToken = preview.PreviewToken;
     await using (var db = Db())
     {
-        var session = new ClassSession { ClassId = 601, SessionDate = new(2026, 11, 2), StartTime = TimeSpan.FromHours(17), EndTime = TimeSpan.FromHours(19), Status = "cancelled" };
+        // Explicit synthetic occurrence declaration for the new required planned identity.
+        var schedule = new ClassSchedule {ClassId = 601, DayOfWeek = "Monday", StartTime = TimeSpan.FromHours(17), EndTime = TimeSpan.FromHours(19),
+            Versions = [new() {EffectiveFrom = new(2026,11,2), DayOfWeek = "Monday", StartTime = TimeSpan.FromHours(17), EndTime = TimeSpan.FromHours(19)}]};
+        db.ClassSchedules.Add(schedule); await db.SaveChangesAsync();
+        var session = new ClassSession { ClassId = 601, ScheduleId = schedule.ScheduleId, ScheduleVersionId = schedule.Versions.Single().ScheduleVersionId,
+            PlannedOccurrenceDate = new(2026,11,2), SessionDate = new(2026, 11, 2), StartTime = TimeSpan.FromHours(17), EndTime = TimeSpan.FromHours(19), Status = "cancelled" };
         db.ClassSessions.Add(session); await db.SaveChangesAsync();
         db.Attendances.Add(new Attendance { SessionId = session.SessionId, StudentId = 1001, RecordedBy = 1, Status = "absent" }); await db.SaveChangesAsync();
     }
@@ -136,6 +141,13 @@ try
     try { await using var db = new EduTrackDbContext(failing); await new TuitionGenerationService(db).Confirm(rollback); throw new Exception("Failure injector did not run"); }
     catch (DbUpdateException) { Check(prior == await InvoiceCount(), "Real failure on second INSERT rolls back the entire new invoice batch"); }
     await using (var db = Db()) Check(!await db.Payments.AnyAsync(), "Generation never creates a Payment");
+
+    if (args.Contains("--database-only") || Environment.GetEnvironmentVariable("EDUTRACK_TEST_DATABASE_ONLY") == "1")
+    {
+        Check(await EnrollmentSnapshot() == historyBefore, "Database-only regression preserves every enrollment field");
+        Console.WriteLine($"{count} Tuition database/policy assertions; no production host started; isolated MySQL only.");
+        return;
+    }
 
     var listener = new TcpListener(IPAddress.Loopback, 0); listener.Start(); var port = ((IPEndPoint)listener.LocalEndpoint).Port; listener.Stop();
     if (port == 5036) throw new Exception("Development port prohibited");

@@ -21,6 +21,7 @@ namespace EduTrack.API.Models.EF
         public virtual DbSet<TaClass> TaClasses { get; set; } = null!;
         public virtual DbSet<StudentClass> StudentClasses { get; set; } = null!;
         public virtual DbSet<ClassSchedule> ClassSchedules { get; set; } = null!;
+        public virtual DbSet<ClassScheduleVersion> ClassScheduleVersions { get; set; } = null!;
         public virtual DbSet<ClassSession> ClassSessions { get; set; } = null!;
         public virtual DbSet<ContentUnit> ContentUnits { get; set; } = null!;
         public virtual DbSet<Attendance> Attendances { get; set; } = null!;
@@ -39,6 +40,39 @@ namespace EduTrack.API.Models.EF
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ClassSchedule>().HasAlternateKey(s => new { s.ScheduleId, s.ClassId }).HasName("AK_schedule_class");
+            modelBuilder.Entity<ClassScheduleVersion>(v =>
+            {
+                v.ToTable("class_schedule_versions", t =>
+                {
+                    t.HasCheckConstraint("CK_version_effective", "WEEKDAY(effective_from) = 0 AND (effective_to IS NULL OR (effective_to > effective_from AND WEEKDAY(effective_to) = 0))");
+                    t.HasCheckConstraint("CK_version_weekday", "day_of_week IN ('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')");
+                    t.HasCheckConstraint("CK_version_times", "start_time >= '00:00:00' AND start_time < end_time AND end_time < '24:00:00'");
+                });
+                v.HasAlternateKey(x => new { x.ScheduleVersionId, x.ScheduleId }).HasName("AK_version_schedule");
+                v.HasIndex(x => new { x.ScheduleId, x.EffectiveFrom }).IsUnique().HasDatabaseName("UQ_schedule_version_from");
+                v.Property(x => x.EffectiveFrom).HasColumnType("date");
+                v.Property(x => x.EffectiveTo).HasColumnType("date");
+                v.HasOne(x => x.Schedule).WithMany(s => s.Versions).HasForeignKey(x => x.ScheduleId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<ClassSession>(s =>
+            {
+                s.ToTable("class_sessions", t => t.HasCheckConstraint("CK_occurrence_week_known", "occurrence_week_start IS NOT NULL"));
+                s.Property(x => x.ScheduleId).IsRequired();
+                s.Property(x => x.ScheduleVersionId).IsRequired();
+                s.Property(x => x.PlannedOccurrenceDate).HasColumnType("date").IsRequired();
+                s.Property(x => x.OccurrenceWeekStart).HasColumnType("date")
+                    .HasComputedColumnSql("DATE_SUB(planned_occurrence_date, INTERVAL WEEKDAY(planned_occurrence_date) DAY)", stored: true);
+                s.HasIndex(x => new { x.SessionDate, x.StartTime }).HasDatabaseName("IX_session_actual_range");
+                s.HasIndex(x => new { x.ScheduleId, x.OccurrenceWeekStart }).IsUnique().HasDatabaseName("UQ_schedule_occurrence_week");
+                s.HasOne(x => x.Schedule).WithMany(x => x.ClassSessions)
+                    .HasForeignKey(x => new { x.ScheduleId, x.ClassId })
+                    .HasPrincipalKey(x => new { x.ScheduleId, x.ClassId }).OnDelete(DeleteBehavior.Restrict);
+                s.HasOne(x => x.ScheduleVersion).WithMany(x => x.ClassSessions)
+                    .HasForeignKey(x => new { x.ScheduleVersionId, x.ScheduleId })
+                    .HasPrincipalKey(x => new { x.ScheduleVersionId, x.ScheduleId }).OnDelete(DeleteBehavior.Restrict);
+            });
 
             // 1. Composite Key for parent_students
             modelBuilder.Entity<ParentStudent>(entity =>

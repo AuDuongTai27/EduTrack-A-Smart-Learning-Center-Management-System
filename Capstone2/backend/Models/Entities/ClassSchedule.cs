@@ -35,5 +35,6 @@ namespace EduTrack.API.Models.Entities
         public virtual Class Class { get; set; } = null!;
 
         public virtual ICollection<ClassSession> ClassSessions { get; set; } = new List<ClassSession>();
+        public virtual ICollection<ClassScheduleVersion> Versions { get; set; } = new List<ClassScheduleVersion>();
     }
 }

@@ -5,6 +5,7 @@ import {useScheduleReadModel} from './useScheduleReadModel';
 import {ScheduleCalendar} from './ScheduleCalendar';
 import {ScheduleList} from './ScheduleList';
 import {ScheduleSessionDetail} from './ScheduleSessionDetail';
+import {ScheduleManagement} from './ScheduleManagement';
 import {ScheduleLegendStrip} from '../../student/schedule/ScheduleLegendStrip';
 import ScheduleListHeader from '../../teacher/Teacher/schedule/ScheduleListHeader';
 import TaListHeader from '../../teacher/TeachingAssistant/schedule/ScheduleListHeader';
@@ -15,6 +16,7 @@ import './schedule.css';
 export function ScheduleWorkspace({role = 'student', renderHeader}: {role?: ScheduleRole; renderHeader?: (actions: ReactNode) => ReactNode}) {
   const model = useScheduleReadModel(role);
   const [expanded, setExpanded] = useState(false);
+  const [managementOpen, setManagementOpen] = useState(false);
   const options = useMemo(() => {
     const distinct = (pairs: [string, string][]) => Array.from(new Map(pairs)).sort((a,b) => a[1].localeCompare(b[1], 'vi', {numeric:true}));
     return {
@@ -65,6 +67,11 @@ export function ScheduleWorkspace({role = 'student', renderHeader}: {role?: Sche
     {renderHeader?.(actions)}
     <section className="et-schedule schedule-official" aria-label="Lịch phiên học chính thức">
       {!renderHeader && <div className="schedule-inline-actions">{actions}</div>}
+      {['center-manager','admin-staff','teacher'].includes(role) && <div className="mb-3">
+        <button type="button" className="btn btn-outline-primary" aria-expanded={managementOpen}
+          onClick={() => setManagementOpen(value => !value)}>{managementOpen ? 'Đóng quản lý lịch' : role === 'teacher' ? 'Tạo phiên học' : 'Quản lý lịch cố định'}</button>
+      </div>}
+      {managementOpen && ['center-manager','admin-staff','teacher'].includes(role) && <ScheduleManagement onCreated={model.retry} />}
       <div className="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 border shadow-sm et-schedule-summary">
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">

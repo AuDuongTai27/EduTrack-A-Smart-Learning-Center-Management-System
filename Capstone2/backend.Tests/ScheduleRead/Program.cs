@@ -78,8 +78,8 @@ try
 {
     await using (var db = new EduTrackDbContext(options))
     {
-        // Creates only this random synthetic test schema. No EF migrations or DbSeeder.
-        await db.Database.EnsureCreatedAsync();
+        // Applies the new migrations only to this verified random synthetic test schema. No DbSeeder.
+        await db.Database.MigrateAsync();
         db.Roles.AddRange(new Role {RoleId = 101, RoleName = "teacher"}, new Role {RoleId = 102, RoleName = "teaching_assistant"},
             new Role {RoleId = 103, RoleName = "student"}, new Role {RoleId = 104, RoleName = "center_manager"},
             new Role {RoleId = 105, RoleName = "admin_staff"}, new Role {RoleId = 106, RoleName = "parent"});
@@ -106,8 +106,15 @@ try
             new StudentClass {ClassId = 801, StudentId = 514, EnrolledDate = new(2026,1,1), Status = "completed"},
             new StudentClass {ClassId = 801, StudentId = 515, EnrolledDate = new(2027,1,1), Status = "active"},
             new StudentClass {ClassId = 807, StudentId = 504, EnrolledDate = new(2026,1,1), Status = "active"});
-        ClassSession Session(int id, int classId, DateTime date, int start, int end, string? room = null, string status = "scheduled") =>
-            new() {SessionId = id, ClassId = classId, SessionDate = date, StartTime = TimeSpan.FromHours(start), EndTime = TimeSpan.FromHours(end), Room = room, Status = status};
+        // Each synthetic test slot explicitly owns its own weekly ca, including deliberate
+        // overlap fixtures. This is fixture declaration, never inference from historical DB data.
+        ClassSession Session(int id, int classId, DateTime date, int start, int end, string? room = null, string status = "scheduled")
+        {
+            var scheduleId = 200000 + id; var versionId = 300000 + id;
+            db.ClassSchedules.Add(new ClassSchedule {ScheduleId = scheduleId, ClassId = classId, DayOfWeek = date.DayOfWeek.ToString(), StartTime = TimeSpan.FromHours(start), EndTime = TimeSpan.FromHours(end), Room = room,
+                Versions = [new() {ScheduleVersionId = versionId, EffectiveFrom = ScheduleTimeline.Monday(DateOnly.FromDateTime(date)), DayOfWeek = date.DayOfWeek.ToString(), StartTime = TimeSpan.FromHours(start), EndTime = TimeSpan.FromHours(end), Room = room}]});
+            return new() {SessionId = id, ClassId = classId, ScheduleId = scheduleId, ScheduleVersionId = versionId, PlannedOccurrenceDate = DateOnly.FromDateTime(date), SessionDate = date, StartTime = TimeSpan.FromHours(start), EndTime = TimeSpan.FromHours(end), Room = room, Status = status};
+        }
         db.ClassSessions.AddRange(Session(9001,801,new(2026,12,28),18,20), Session(9002,801,new(2026,12,28),19,21,"QA A"),
             Session(9003,801,new(2027,1,4),18,20), Session(9004,801,new(2026,12,21),18,20), Session(9005,802,new(2026,12,28),18,20,"QA B"),
             Session(9006,802,new(2026,12,29),18,20,"QA B"), Session(9007,801,new(2026,12,28),17,18),

@@ -8,6 +8,9 @@ export interface ScheduleSession {
   classId: number;
   className: string;
   scheduleId: number | null;
+  scheduleVersionId?: number | null;
+  plannedOccurrenceDate?: string | null;
+  occurrenceWeekStart?: string | null;
   subjectId: number;
   subjectName: string | null;
   sessionDate: string;

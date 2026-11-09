@@ -17,6 +17,8 @@ export function ScheduleSessionDetail({session, now, onClose}: {session: Schedul
     ['Teacher', session.teachers.map(p => p.name).join(', ') || 'Chưa phân công'],
     ['TA', session.teachingAssistants.map(p => p.name).join(', ') || 'Chưa phân công'], ['Room', session.room || 'Chưa xếp phòng'],
     ['Điểm danh', session.hasAttendance ? 'Đã có bản ghi điểm danh' : 'Chưa có bản ghi điểm danh'],
+    ...(session.plannedOccurrenceDate ? [['Ngày dự kiến gốc', displayScheduleDate(session.plannedOccurrenceDate)]] : []),
+    ...(session.scheduleVersionId ? [['Version nguồn', String(session.scheduleVersionId)]] : []),
   ];
   return <dialog ref={ref} className="et-schedule-detail" aria-labelledby="et-session-detail-title" onCancel={onClose}
     onClick={e => {if (e.target === ref.current) onClose();}}>

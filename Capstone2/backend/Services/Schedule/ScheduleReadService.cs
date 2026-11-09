@@ -98,7 +98,7 @@ public sealed class ScheduleReadService(EduTrackDbContext context)
         var rows = await sessions.OrderBy(s => s.SessionDate).ThenBy(s => s.StartTime).ThenBy(s => s.SessionId)
             .Select(s => new
             {
-                s.SessionId, s.ClassId, s.Class.ClassName, s.ScheduleId, s.Class.SubjectId,
+                s.SessionId, s.ClassId, s.Class.ClassName, s.ScheduleId, s.ScheduleVersionId, s.PlannedOccurrenceDate, s.OccurrenceWeekStart, s.Class.SubjectId,
                 SubjectName = s.Class.Subject.SubjectName, s.SessionDate, s.StartTime, s.EndTime, s.Room, s.Status,
                 Teachers = s.Class.TeacherClasses.Where(a => a.Status == "active").OrderBy(a => a.TeacherId)
                     .Select(a => new SchedulePersonDto(a.TeacherId, a.Teacher.FullName)).ToList(),
@@ -109,6 +109,8 @@ public sealed class ScheduleReadService(EduTrackDbContext context)
         return rows.Select(s => new ScheduleSessionDto
         {
             SessionId = s.SessionId, ClassId = s.ClassId, ClassName = s.ClassName, ScheduleId = s.ScheduleId,
+            ScheduleVersionId = s.ScheduleVersionId, PlannedOccurrenceDate = s.PlannedOccurrenceDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            OccurrenceWeekStart = s.OccurrenceWeekStart?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
             SubjectId = s.SubjectId, SubjectName = s.SubjectName, SessionDate = s.SessionDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
             StartTime = s.StartTime.ToString("c", CultureInfo.InvariantCulture), EndTime = s.EndTime.ToString("c", CultureInfo.InvariantCulture),
             Room = s.Room, Status = s.Status, Teachers = s.Teachers, TeachingAssistants = s.Assistants, HasAttendance = s.HasAttendance
