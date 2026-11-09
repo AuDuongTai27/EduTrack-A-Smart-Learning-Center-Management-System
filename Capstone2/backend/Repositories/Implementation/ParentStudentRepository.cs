@@ -31,20 +31,35 @@ namespace EduTrack.API.Repositories.Implementation
                 .FirstOrDefaultAsync(ps => ps.ParentId == parentId && ps.StudentId == studentId);
         }
 
-        public async Task<ParentStudent> AssignAsync(ParentStudent parentStudent)
+        public async Task<ParentStudent> AssignAsync(ParentStudent parentStudent, bool updateExisting = false, bool preserveRelationship = false, bool preservePrimaryContact = false)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+            if (parentStudent.ParentId <= 0 || parentStudent.StudentId <= 0
+                || !await _context.UserRoles.AnyAsync(ur => ur.UserId == parentStudent.ParentId && ur.Role.RoleName == "parent")
+                || !await _context.UserRoles.AnyAsync(ur => ur.UserId == parentStudent.StudentId && ur.Role.RoleName == "student"))
+                throw new ArgumentException("Phụ huynh hoặc học sinh đã chọn không tồn tại hoặc không đúng vai trò. Vui lòng tải lại danh sách.");
             var existing = await _dbSet.FirstOrDefaultAsync(ps => ps.ParentId == parentStudent.ParentId && ps.StudentId == parentStudent.StudentId);
             if (existing != null)
             {
-                existing.Relationship = parentStudent.Relationship;
-                existing.IsPrimaryContact = parentStudent.IsPrimaryContact;
+                if (!updateExisting)
+                    throw new InvalidOperationException("Liên kết phụ huynh–học sinh đã tồn tại. Hãy chọn lại cặp để xem và chỉnh sửa quan hệ đã lưu.");
+                if (!preserveRelationship) existing.Relationship = parentStudent.Relationship;
+                if (!preservePrimaryContact) existing.IsPrimaryContact = parentStudent.IsPrimaryContact;
             }
             else
             {
+                if (updateExisting)
+                    throw new InvalidOperationException("Liên kết cần cập nhật không còn tồn tại. Vui lòng tải lại danh sách trước khi tạo liên kết mới.");
                 await _dbSet.AddAsync(parentStudent);
             }
-            await _context.SaveChangesAsync();
-            return await GetByIdsAsync(parentStudent.ParentId, parentStudent.StudentId) ?? parentStudent;
+            try { await _context.SaveChangesAsync(); }
+            catch (DbUpdateException ex) when (ex.InnerException is MySqlConnector.MySqlException { Number: 1062 })
+            {
+                throw new InvalidOperationException("Liên kết đã được tạo ở phiên khác. Vui lòng tải lại danh sách.", ex);
+            }
+            var result = await GetByIdsAsync(parentStudent.ParentId, parentStudent.StudentId) ?? parentStudent;
+            await transaction.CommitAsync();
+            return result;
         }
 
         public async Task<bool> RemoveAsync(int parentId, int studentId)

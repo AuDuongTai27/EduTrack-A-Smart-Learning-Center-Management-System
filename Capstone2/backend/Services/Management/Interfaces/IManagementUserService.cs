@@ -7,6 +7,7 @@ namespace EduTrack.API.Services.Management.Interfaces
     public interface IManagementUserService
     {
         Task<UserDto> CreateUserAsync(CreateUserDto dto);
+        Task<UserDto> CreateStudentAsync(CreateStudentDto dto);
         Task<UserDto?> UpdateUserAsync(int id, UpdateUserDto dto);
         Task<bool> UpdateStatusAsync(int id, string status);
         Task<bool> DeleteUserAsync(int id);

@@ -18,7 +18,8 @@ namespace EduTrack.API.Repositories.Implementation
             return await _dbSet
                 .AsNoTracking()
                 .Include(ti => ti.Student)
-                .Include(ti => ti.Class)
+                .Include(ti => ti.Class).ThenInclude(c => c.Grade)
+                .Include(ti => ti.Payments)
                 .ToListAsync();
         }
 
@@ -27,7 +28,8 @@ namespace EduTrack.API.Repositories.Implementation
             return await _dbSet
                 .AsNoTracking()
                 .Include(ti => ti.Student)
-                .Include(ti => ti.Class)
+                .Include(ti => ti.Class).ThenInclude(c => c.Grade)
+                .Include(ti => ti.Payments)
                 .FirstOrDefaultAsync(x => x.InvoiceId == id);
         }
     }

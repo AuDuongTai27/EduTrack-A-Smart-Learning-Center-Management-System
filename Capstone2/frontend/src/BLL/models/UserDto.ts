@@ -8,6 +8,8 @@ export interface UserDto {
   dateOfBirth?: string | null;
   gender?: string | null;
   specialty?: string | null;
+  gradeId?: number | null;
+  gradeName?: string | null;
   enrolledSince?: string | null;
   status: string;
   createdAt: string;

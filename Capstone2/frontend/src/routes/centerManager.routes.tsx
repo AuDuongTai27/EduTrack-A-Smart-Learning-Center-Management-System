@@ -4,7 +4,10 @@ import CenterManagerDashboardPage from "../GUIs/pages/admin/CenterManager/Center
 import CenterManagerUserAccountPage from "../GUIs/pages/admin/CenterManager/CenterManagerUserAccountPage";
 import CenterManagerStudentPage from "../GUIs/pages/admin/CenterManager/CenterManagerStudentPage";
 import CenterManagerSubjectPage from "../GUIs/pages/admin/CenterManager/CenterManagerSubjectPage";
+import CenterManagerGradePage from "../GUIs/pages/admin/CenterManager/CenterManagerGradePage";
 import CenterManagerClassPage from "../GUIs/pages/admin/CenterManager/CenterManagerClassPage";
+import ClassDetailsPage from "../GUIs/pages/admin/shared/ClassDetailsPage";
+import ManagementSchedulePage from "../GUIs/pages/admin/shared/ManagementSchedulePage";
 import CenterManagerTuitionPage from "../GUIs/pages/admin/CenterManager/CenterManagerTuition";
 import CenterManagerApprovalRequestPage from "../GUIs/pages/admin/CenterManager/CenterManagerApprovalRequestPage";
 import CenterManagerNotificationPage from "../GUIs/pages/admin/CenterManager/CenterManagerNotificationPage";
@@ -15,6 +18,7 @@ export const centerManagerRoutes: RouteObject = {
   path: "/center-manager",
   element: <CenterManagerLayout />,
   children: [
+    {path: "schedule", element: <ManagementSchedulePage role="center-manager" />},
     {
       index: true,
       element: <Navigate to="dashboard" replace />,
@@ -36,8 +40,16 @@ export const centerManagerRoutes: RouteObject = {
       element: <CenterManagerSubjectPage />,
     },
     {
+      path: "grades",
+      element: <CenterManagerGradePage />,
+    },
+    {
       path: "classes",
       element: <CenterManagerClassPage />,
+    },
+    {
+      path: "classes/:id",
+      element: <ClassDetailsPage role="center-manager" />,
     },
     {
       path: "tuition",

@@ -61,4 +61,3 @@ export interface CreateTeachingEvaluationPayload {
   content: string;
   suggestions?: string;
 }
-

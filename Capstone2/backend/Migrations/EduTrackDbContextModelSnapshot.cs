@@ -338,6 +338,10 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("end_date");
 
+                    b.Property<int?>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
                     b.Property<string>("Room")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)")
@@ -362,6 +366,8 @@ namespace EduTrack.API.Migrations
                         .HasColumnName("tuition_fee");
 
                     b.HasKey("ClassId");
+
+                    b.HasIndex("GradeId");
 
                     b.HasIndex("SubjectId");
 
@@ -402,9 +408,71 @@ namespace EduTrack.API.Migrations
 
                     b.HasKey("ScheduleId");
 
+                    b.HasAlternateKey("ScheduleId", "ClassId")
+                        .HasName("AK_schedule_class");
+
                     b.HasIndex("ClassId");
 
                     b.ToTable("class_schedules");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.ClassScheduleVersion", b =>
+                {
+                    b.Property<int>("ScheduleVersionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("schedule_version_id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ScheduleVersionId"));
+
+                    b.Property<string>("DayOfWeek")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("day_of_week");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_from");
+
+                    b.Property<DateOnly?>("EffectiveTo")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_to");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time(6)")
+                        .HasColumnName("end_time");
+
+                    b.Property<string>("Room")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("room");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("int")
+                        .HasColumnName("schedule_id");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time(6)")
+                        .HasColumnName("start_time");
+
+                    b.HasKey("ScheduleVersionId");
+
+                    b.HasAlternateKey("ScheduleVersionId", "ScheduleId")
+                        .HasName("AK_version_schedule");
+
+                    b.HasIndex("ScheduleId", "EffectiveFrom")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_schedule_version_from");
+
+                    b.ToTable("class_schedule_versions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_version_effective", "WEEKDAY(effective_from) = 0 AND (effective_to IS NULL OR (effective_to > effective_from AND WEEKDAY(effective_to) = 0))");
+
+                            t.HasCheckConstraint("CK_version_times", "start_time >= '00:00:00' AND start_time < end_time AND end_time < '24:00:00'");
+
+                            t.HasCheckConstraint("CK_version_weekday", "day_of_week IN ('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')");
+                        });
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.ClassSession", b =>
@@ -424,14 +492,31 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("time(6)")
                         .HasColumnName("end_time");
 
+                    b.Property<DateOnly?>("OccurrenceWeekStart")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("date")
+                        .HasColumnName("occurrence_week_start")
+                        .HasComputedColumnSql("DATE_SUB(planned_occurrence_date, INTERVAL WEEKDAY(planned_occurrence_date) DAY)", true);
+
+                    b.Property<DateOnly?>("PlannedOccurrenceDate")
+                        .IsRequired()
+                        .HasColumnType("date")
+                        .HasColumnName("planned_occurrence_date");
+
                     b.Property<string>("Room")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("room");
 
                     b.Property<int?>("ScheduleId")
+                        .IsRequired()
                         .HasColumnType("int")
                         .HasColumnName("schedule_id");
+
+                    b.Property<int?>("ScheduleVersionId")
+                        .IsRequired()
+                        .HasColumnType("int")
+                        .HasColumnName("schedule_version_id");
 
                     b.Property<DateTime>("SessionDate")
                         .HasColumnType("datetime(6)")
@@ -451,9 +536,21 @@ namespace EduTrack.API.Migrations
 
                     b.HasIndex("ClassId");
 
-                    b.HasIndex("ScheduleId");
+                    b.HasIndex("ScheduleId", "ClassId");
 
-                    b.ToTable("class_sessions");
+                    b.HasIndex("ScheduleId", "OccurrenceWeekStart")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_schedule_occurrence_week");
+
+                    b.HasIndex("ScheduleVersionId", "ScheduleId");
+
+                    b.HasIndex("SessionDate", "StartTime")
+                        .HasDatabaseName("IX_session_actual_range");
+
+                    b.ToTable("class_sessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_occurrence_week_known", "occurrence_week_start IS NOT NULL");
+                        });
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.ContentUnit", b =>
@@ -500,6 +597,85 @@ namespace EduTrack.API.Migrations
                     b.HasIndex("ParentUnitId");
 
                     b.ToTable("content_units");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.Grade", b =>
+                {
+                    b.Property<int>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
+                    b.Property<string>("GradeName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("grade_name");
+
+                    b.HasKey("GradeId");
+
+                    b.ToTable("grades");
+
+                    b.HasData(
+                        new
+                        {
+                            GradeId = 1,
+                            GradeName = "Khối 1"
+                        },
+                        new
+                        {
+                            GradeId = 2,
+                            GradeName = "Khối 2"
+                        },
+                        new
+                        {
+                            GradeId = 3,
+                            GradeName = "Khối 3"
+                        },
+                        new
+                        {
+                            GradeId = 4,
+                            GradeName = "Khối 4"
+                        },
+                        new
+                        {
+                            GradeId = 5,
+                            GradeName = "Khối 5"
+                        },
+                        new
+                        {
+                            GradeId = 6,
+                            GradeName = "Khối 6"
+                        },
+                        new
+                        {
+                            GradeId = 7,
+                            GradeName = "Khối 7"
+                        },
+                        new
+                        {
+                            GradeId = 8,
+                            GradeName = "Khối 8"
+                        },
+                        new
+                        {
+                            GradeId = 9,
+                            GradeName = "Khối 9"
+                        },
+                        new
+                        {
+                            GradeId = 10,
+                            GradeName = "Khối 10"
+                        },
+                        new
+                        {
+                            GradeId = 11,
+                            GradeName = "Khối 11"
+                        },
+                        new
+                        {
+                            GradeId = 12,
+                            GradeName = "Khối 12"
+                        });
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>
@@ -1077,6 +1253,10 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("varchar(20)")
                         .HasColumnName("gender");
 
+                    b.Property<int?>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -1109,6 +1289,8 @@ namespace EduTrack.API.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("GradeId");
 
                     b.HasIndex("UserCode")
                         .IsUnique();
@@ -1265,11 +1447,18 @@ namespace EduTrack.API.Migrations
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Class", b =>
                 {
+                    b.HasOne("EduTrack.API.Models.Entities.Grade", "Grade")
+                        .WithMany("Classes")
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("EduTrack.API.Models.Entities.Subject", "Subject")
                         .WithMany("Classes")
                         .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Grade");
 
                     b.Navigation("Subject");
                 });
@@ -1285,6 +1474,17 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Class");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.ClassScheduleVersion", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.ClassSchedule", "Schedule")
+                        .WithMany("Versions")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.ClassSession", b =>
                 {
                     b.HasOne("EduTrack.API.Models.Entities.Class", "Class")
@@ -1295,11 +1495,23 @@ namespace EduTrack.API.Migrations
 
                     b.HasOne("EduTrack.API.Models.Entities.ClassSchedule", "Schedule")
                         .WithMany("ClassSessions")
-                        .HasForeignKey("ScheduleId");
+                        .HasForeignKey("ScheduleId", "ClassId")
+                        .HasPrincipalKey("ScheduleId", "ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.ClassScheduleVersion", "ScheduleVersion")
+                        .WithMany("ClassSessions")
+                        .HasForeignKey("ScheduleVersionId", "ScheduleId")
+                        .HasPrincipalKey("ScheduleVersionId", "ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Class");
 
                     b.Navigation("Schedule");
+
+                    b.Navigation("ScheduleVersion");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.ContentUnit", b =>
@@ -1536,6 +1748,16 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.User", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Grade", "Grade")
+                        .WithMany()
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Grade");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.UserRole", b =>
                 {
                     b.HasOne("EduTrack.API.Models.Entities.Role", "Role")
@@ -1588,6 +1810,13 @@ namespace EduTrack.API.Migrations
             modelBuilder.Entity("EduTrack.API.Models.Entities.ClassSchedule", b =>
                 {
                     b.Navigation("ClassSessions");
+
+                    b.Navigation("Versions");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.ClassScheduleVersion", b =>
+                {
+                    b.Navigation("ClassSessions");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.ClassSession", b =>
@@ -1600,6 +1829,11 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Assignments");
 
                     b.Navigation("SubUnits");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.Grade", b =>
+                {
+                    b.Navigation("Classes");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>

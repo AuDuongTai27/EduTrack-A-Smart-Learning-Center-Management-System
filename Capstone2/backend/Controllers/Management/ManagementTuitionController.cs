@@ -24,6 +24,20 @@ namespace EduTrack.API.Controllers.Management
             _service = service;
         }
 
+        [HttpPost("generation/preview")]
+        public async Task<IActionResult> Preview(GenerateTuitionDto dto) => await Generation(dto, false);
+
+        [HttpPost("generation/confirm")]
+        public async Task<IActionResult> Generate(GenerateTuitionDto dto) => await Generation(dto, true);
+
+        private async Task<IActionResult> Generation(GenerateTuitionDto dto, bool confirm)
+        {
+            try { return Ok(confirm ? await _service.GenerateAsync(dto) : await _service.PreviewAsync(dto)); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+            catch (Exception) { return StatusCode(503, new { message = "Chưa xác nhận kết quả; tải Preview để đối chiếu hóa đơn đã có trước khi thử lại. Batch mới là atomic; không tự tạo Payment." }); }
+        }
+
         // POST: /api/tuitioninvoices
         [HttpPost]
         public async Task<ActionResult<TuitionInvoiceDto>> Create(
@@ -39,6 +53,7 @@ namespace EduTrack.API.Controllers.Management
                     created
                 );
             }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new
@@ -78,6 +93,7 @@ namespace EduTrack.API.Controllers.Management
 
                 return Ok(updated);
             }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new
@@ -112,6 +128,7 @@ namespace EduTrack.API.Controllers.Management
                     created
                 );
             }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new

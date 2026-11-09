@@ -14,6 +14,8 @@ namespace EduTrack.API.Models.DTOs
         public DateTime? DateOfBirth { get; set; }
         public string? Gender { get; set; }
         public string? Specialty { get; set; }
+        public int? GradeId { get; set; }
+        public string? GradeName { get; set; }
         public DateTime? EnrolledSince { get; set; }
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }

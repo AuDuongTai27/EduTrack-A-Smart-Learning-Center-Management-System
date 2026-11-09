@@ -6,6 +6,8 @@ namespace EduTrack.API.Models.DTOs
     {
         public int ClassId { get; set; }
         public string ClassName { get; set; } = null!;
+        public int? GradeId { get; set; }
+        public string? GradeName { get; set; }
         public int SubjectId { get; set; }
         public string SubjectName { get; set; } = null!;
         public string SubjectCode { get; set; } = null!;

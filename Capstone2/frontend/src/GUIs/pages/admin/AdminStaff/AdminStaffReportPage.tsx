@@ -1,16 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
-import KpiCard from "../../../components/Common/KpiCard";
+import TuitionOverview from "../../../components/Common/TuitionOverview";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
+import { useTuitionData } from "../../../hooks/useTuitionData";
+import { calculateTuitionMetrics, invoiceTotal, invoicePeriodLabel, matchesTuitionStatus } from "../../../../BLL/services/tuitionMetricsService";
+import { formatVND } from "../../../utils/formatCurrency";
 import type { TuitionDto } from "../../../../BLL/models/TuitionDto";
 
 export default function AdminStaffReportPage() {
-  const [tuitions, setTuitions] = useState<TuitionDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { rows: tuitions, payments, now, collectionLabel, invoiceReady, paymentReady, balanceReady, loading, error: loadError } = useTuitionData();
+  const classOptions = useMemo(() => [...new Map(tuitions.map(invoice => [invoice.classId, invoice.className])).entries()], [tuitions]);
 
   // Filters state
   const [reportType, setReportType] = useState<string>("Tuition Report");
@@ -31,27 +34,6 @@ export default function AdminStaffReportPage() {
   const [exportFormat, setExportFormat] = useState<"Excel" | "PDF">("Excel");
   const [exportSuccessMsg, setExportSuccessMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchReportData() {
-      try {
-        setLoading(true);
-        const res = await tuitionDAL.getAllTuitions();
-        if (isMounted && res.data) {
-          setTuitions(res.data);
-        }
-      } catch (err) {
-        console.warn("Lỗi tải dữ liệu báo cáo admin staff:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    fetchReportData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   // Filter & Search logic
   const filteredTuitions = useMemo(() => {
     return tuitions.filter((t) => {
@@ -63,11 +45,11 @@ export default function AdminStaffReportPage() {
 
       const matchClass =
         selectedClass === "All" ||
-        (t.className && t.className.toLowerCase().includes(selectedClass.toLowerCase()));
+        String(t.classId) === selectedClass;
 
       const matchStatus =
         selectedStatus === "All" ||
-        (t.status && t.status.toLowerCase() === selectedStatus.toLowerCase());
+        matchesTuitionStatus(t, selectedStatus);
 
       return matchSearch && matchClass && matchStatus;
     });
@@ -79,42 +61,8 @@ export default function AdminStaffReportPage() {
     return filteredTuitions.slice(start, start + entriesPerPage);
   }, [filteredTuitions, currentPage, entriesPerPage]);
 
-  // Summary Metrics calculations
-  const metrics = useMemo(() => {
-    let totalDue = 0;
-    let collected = 0;
-    let outstanding = 0;
-    let overdueCount = 0;
-    let overdueAmount = 0;
-
-    tuitions.forEach((t) => {
-      const amount = t.amount || 0;
-      const paid = t.paidAmount || (t.status === "Paid" ? amount : 0);
-      totalDue += amount;
-      collected += paid;
-
-      const remaining = Math.max(0, amount - paid);
-      outstanding += remaining;
-
-      if (t.status === "Overdue" || (remaining > 0 && t.dueDate && new Date(t.dueDate) < new Date())) {
-        overdueCount++;
-        overdueAmount += remaining;
-      }
-    });
-
-    const collectedPercent = totalDue > 0 ? Math.round((collected / totalDue) * 100) : 0;
-    const remainingPercent = 100 - collectedPercent;
-
-    return {
-      totalDue,
-      collected,
-      outstanding,
-      overdueCount,
-      overdueAmount,
-      collectedPercent,
-      remainingPercent,
-    };
-  }, [tuitions]);
+  const metrics = useMemo(() => balanceReady ? calculateTuitionMetrics(filteredTuitions, payments.data!, now) : null, [filteredTuitions, payments.data, balanceReady, now]);
+  const invoiceScopeReady = invoiceReady && (selectedStatus !== "Partially Paid" || paymentReady);
 
   // Handle open detail modal (GetById)
   const handleViewDetails = async (tuition: TuitionDto) => {
@@ -123,7 +71,7 @@ export default function AdminStaffReportPage() {
     if (!targetId) return;
     try {
       const detail = await tuitionDAL.getTuitionById(targetId);
-      setSelectedTuition(detail || tuition);
+      setSelectedTuition(detail ? { ...detail, paidAmount: tuition.paidAmount } : tuition);
     } catch {
       setSelectedTuition(tuition);
     } finally {
@@ -174,6 +122,8 @@ export default function AdminStaffReportPage() {
           </div>
         }
       />
+
+      {loadError && <div className="alert alert-danger mb-3" role="alert">{loadError}</div>}
 
       {/* Success Notification Alert */}
       {exportSuccessMsg && (
@@ -234,12 +184,7 @@ export default function AdminStaffReportPage() {
                 }}
               >
                 <option value="All">All Classes</option>
-                <option value="7">Class 7</option>
-                <option value="8">Class 8</option>
-                <option value="9">Class 9</option>
-                <option value="10">Class 10</option>
-                <option value="11">Class 11</option>
-                <option value="12">Class 12</option>
+                {classOptions.map(([id, name]) => <option key={id} value={String(id)}>{name || `Class #${id}`}</option>)}
               </select>
             </div>
 
@@ -290,59 +235,20 @@ export default function AdminStaffReportPage() {
           <p className="text-muted mb-0">Hệ thống tổng hợp dữ liệu thực tế từ trung tâm</p>
         </div>
         <span className="badge bg-light text-secondary border px-3 py-2">
-          <i className="bi bi-clock-history me-1" /> Cập nhật thời gian thực
+          <i className="bi bi-clock-history me-1" /> Theo bộ lọc hiện tại
         </span>
       </div>
 
-      {/* Summary Cards */}
-      <div className="row g-3 mb-4">
-        {/* Total Tuition Due */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="total"
-            title="Total Tuition Due"
-            value={`${Math.round(metrics.totalDue / 1000000)}M`}
-            footerValue="August 2026"
-          />
-        </div>
-
-        {/* Collected */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="collected"
-            title="Collected"
-            value={`${Math.round(metrics.collected / 1000000)}M`}
-            footerValue={`${metrics.collectedPercent}%`}
-            footerLabel="collected"
-          />
-        </div>
-
-        {/* Outstanding */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="outstanding"
-            title="Outstanding"
-            value={`${Math.round(metrics.outstanding / 1000000)}M`}
-            footerValue={`${metrics.remainingPercent}%`}
-            footerLabel="remaining"
-          />
-        </div>
-
-        {/* Overdue */}
-        <div className="col-xl-3 col-md-6">
-          <KpiCard
-            type="tuition"
-            status="overdue"
-            title="Overdue"
-            value={`${Math.round(metrics.overdueAmount / 1000000)}M`}
-            footerValue={metrics.overdueCount}
-            footerLabel="records"
-          />
-        </div>
-      </div>
+      <TuitionOverview
+        totalDue={invoiceScopeReady ? invoiceTotal(filteredTuitions) : null}
+        collected={metrics?.monthlyCollected ?? null}
+        collectionLabel={collectionLabel}
+        collectionError={metrics?.monthlyCollectionError}
+        outstanding={metrics?.outstanding ?? null}
+        overdueAmount={metrics?.overdueAmount ?? null}
+        overdueCount={metrics?.overdueCount ?? null}
+        filtered={searchTerm.trim() !== "" || selectedClass !== "All" || selectedStatus !== "All"}
+      />
 
       {/* Detailed Data */}
       <div className="card user-list-card border-0 shadow-sm">
@@ -423,7 +329,7 @@ export default function AdminStaffReportPage() {
                           <SubjectBadge subject={t.className || "Mathematics"} />
                         </div>
                       </td>
-                      <td>{t.period || "August 2026"}</td>
+                      <td>{invoicePeriodLabel(t)}</td>
                       <td>
                         <strong className="text-dark">
                           {(t.amount || 0).toLocaleString("vi-VN")} VND
@@ -564,7 +470,7 @@ export default function AdminStaffReportPage() {
                           </span>
                           <span>
                             <i className="bi bi-calendar me-1" />
-                            Kỳ học: {selectedTuition.period || "August 2026"}
+                            Kỳ học: {invoicePeriodLabel(selectedTuition)}
                           </span>
                         </div>
                       </div>
@@ -584,7 +490,7 @@ export default function AdminStaffReportPage() {
                         <div className="p-3 bg-light rounded-3 text-center">
                           <small className="text-muted d-block mb-1">Đã thanh toán</small>
                           <h6 className="fw-bold text-success mb-0">
-                            {(selectedTuition.paidAmount || (selectedTuition.status === "Paid" ? selectedTuition.amount : 0) || 0).toLocaleString("vi-VN")} VND
+                            {formatVND(paymentReady ? selectedTuition.paidAmount : null)}
                           </h6>
                         </div>
                       </div>
@@ -592,7 +498,7 @@ export default function AdminStaffReportPage() {
                         <div className="p-3 bg-light rounded-3 text-center">
                           <small className="text-muted d-block mb-1">Còn lại</small>
                           <h6 className="fw-bold text-danger mb-0">
-                            {Math.max(0, (selectedTuition.amount || 0) - (selectedTuition.paidAmount || (selectedTuition.status === "Paid" ? selectedTuition.amount : 0) || 0)).toLocaleString("vi-VN")} VND
+                            {formatVND(paymentReady && selectedTuition.paidAmount != null ? Math.max(0, selectedTuition.amountDue - selectedTuition.paidAmount) : null)}
                           </h6>
                         </div>
                       </div>

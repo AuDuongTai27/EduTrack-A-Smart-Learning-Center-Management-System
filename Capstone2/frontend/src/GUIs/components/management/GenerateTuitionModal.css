@@ -1,0 +1,55 @@
+.tuition-generation-modal {
+  background: rgb(0 0 0 / 50%);
+  overflow: hidden;
+  padding: 12px;
+}
+
+.tuition-generation-modal .modal-dialog {
+  width: 100%;
+  max-width: 960px;
+  min-height: calc(100dvh - 24px);
+  margin: 0 auto;
+}
+
+.tuition-generation-modal .modal-content {
+  max-height: calc(100dvh - 24px);
+  min-width: 0;
+}
+
+.tuition-generation-modal .modal-header,
+.tuition-generation-modal .modal-footer {
+  flex-shrink: 0;
+}
+
+.tuition-generation-modal .modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+
+.tuition-generation-modal .form-label { font-size: .875rem; }
+.tuition-generation-config { padding: 0; }
+.tuition-generation-modal summary { cursor: pointer; }
+.tuition-generation-modal .modal-footer { gap: 8px; }
+.tuition-generation-modal .modal-footer > * { margin: 0; }
+.tuition-generation-preview { border-top: 1px solid var(--bs-border-color, #dee2e6); margin-top: 20px; padding: 20px 0 0; }
+.tuition-generation-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.tuition-generation-stats > div { border: 1px solid var(--bs-border-color, #dee2e6); border-radius: 8px; padding: 12px; min-width: 0; }
+.tuition-generation-stats dt { font-size: .8rem; font-weight: 400; color: var(--bs-secondary-color, #6c757d); }
+.tuition-generation-stats dd { margin: 6px 0 0; font-size: 1.3rem; font-weight: 600; }
+.tuition-generation-stats .tuition-generation-stat-total { background: var(--bs-tertiary-bg, #f8f9fa); }
+.tuition-generation-stats .tuition-generation-date { font-size: 1rem; }
+.tuition-generation-details > summary { font-size: .875rem; font-weight: 600; padding: 8px 0; }
+.tuition-generation-class { margin-top: 12px; border: 1px solid var(--bs-border-color, #dee2e6); border-radius: 8px; padding: 12px; }
+.tuition-generation-student { border-top: 1px solid var(--bs-border-color, #dee2e6); padding: 12px 0; }
+.tuition-generation-student:last-child { padding-bottom: 0; }
+
+@media (max-width: 575.98px) {
+  .tuition-generation-modal .modal-body,
+  .tuition-generation-modal .modal-header,
+  .tuition-generation-modal .modal-footer { padding: 14px; }
+  .tuition-generation-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tuition-generation-stats dd { font-size: 1.1rem; }
+  .tuition-generation-modal .modal-footer > button { flex: 1 1 auto; }
+  .tuition-generation-modal .modal-footer > [data-testid="generation-confirm"] { flex-basis: 100%; }
+}

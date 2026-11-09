@@ -38,9 +38,34 @@ namespace EduTrack.API.Services.Management.Implementation
 
             var userCode = !string.IsNullOrWhiteSpace(dto.UserCode)
                 ? dto.UserCode.Trim().ToUpper()
-                : $"{prefix}{DateTime.UtcNow:MMddHHmm}";
+                : role == "parent"
+                    ? $"{prefix}{Guid.NewGuid():N}"[..20].ToUpperInvariant()
+                    : $"{prefix}{DateTime.UtcNow:MMddHHmm}";
 
-            var user = new User
+            var user = BuildUser(dto, userCode);
+            var created = await _userRepository.CreateUserWithRoleAsync(user, role);
+            return MapUserToDto(created);
+        }
+
+        public async Task<UserDto> CreateStudentAsync(CreateStudentDto dto)
+        {
+            if (!string.Equals(dto.Role?.Trim(), "student", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Luồng này chỉ dùng để tạo học sinh.");
+            if (string.IsNullOrWhiteSpace(dto.UserCode) || dto.UserCode.Trim().Length > 20)
+                throw new ArgumentException("Thiếu mã yêu cầu tạo học sinh hợp lệ. Vui lòng mở lại form.");
+            if (string.IsNullOrWhiteSpace(dto.FullName))
+                throw new ArgumentException("Họ và tên là bắt buộc.");
+            if (dto.ClassIds == null)
+                throw new ArgumentException("Danh sách lớp không hợp lệ.");
+            var user = BuildUser(dto, dto.UserCode.Trim().ToUpperInvariant());
+            user.GradeId = dto.GradeId;
+            var created = await _userRepository.CreateStudentWithClassesAsync(user, dto.GradeId, dto.ClassIds);
+            return MapUserToDto(created);
+        }
+
+        private static User BuildUser(CreateUserDto dto, string userCode)
+        {
+            return new User
             {
                 UserCode = userCode,
                 FullName = dto.FullName.Trim(),
@@ -55,8 +80,6 @@ namespace EduTrack.API.Services.Management.Implementation
                 EnrolledSince = DateTime.UtcNow
             };
 
-            var created = await _userRepository.CreateUserWithRoleAsync(user, role);
-            return MapUserToDto(created);
         }
 
         public async Task<UserDto?> UpdateUserAsync(int id, UpdateUserDto dto)
@@ -68,10 +91,11 @@ namespace EduTrack.API.Services.Management.Implementation
                 Phone = dto.Phone?.Trim(),
                 Specialty = dto.Specialty?.Trim(),
                 Gender = dto.Gender?.Trim(),
+                GradeId = dto.GradeId,
                 Status = dto.Status?.Trim() ?? "active"
             };
 
-            var result = await _userRepository.UpdateUserWithRoleAsync(id, updatedUser, dto.Role?.Trim().ToLower());
+            var result = await _userRepository.UpdateUserWithRoleAsync(id, updatedUser, dto.Role?.Trim().ToLower(), dto.GradeSpecified);
             return result == null ? null : MapUserToDto(result);
         }
 
@@ -87,6 +111,10 @@ namespace EduTrack.API.Services.Management.Implementation
 
         public async Task<ParentStudentDto> AssignParentStudentAsync(AssignParentStudentDto dto)
         {
+            if (dto.ParentId <= 0 || dto.StudentId <= 0 || dto.ParentId == dto.StudentId)
+                throw new ArgumentException("Vui lòng chọn đầy đủ phụ huynh và học sinh hợp lệ.");
+            if (string.IsNullOrWhiteSpace(dto.Relationship))
+                throw new ArgumentException("Vui lòng chọn mối quan hệ.");
             var entity = new ParentStudent
             {
                 ParentId = dto.ParentId,
@@ -96,7 +124,9 @@ namespace EduTrack.API.Services.Management.Implementation
                 CreatedAt = DateTime.UtcNow
             };
 
-            var saved = await _parentStudentRepository.AssignAsync(entity);
+            var saved = await _parentStudentRepository.AssignAsync(entity, dto.UpdateExisting,
+                preserveRelationship: dto.UpdateExisting && !dto.RelationshipSpecified,
+                preservePrimaryContact: dto.UpdateExisting && !dto.PrimaryContactSpecified);
             return new ParentStudentDto
             {
                 ParentId = saved.ParentId,
@@ -130,6 +160,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 DateOfBirth = u.DateOfBirth,
                 Gender = u.Gender,
                 Specialty = u.Specialty,
+                GradeId = u.GradeId,
+                GradeName = u.Grade?.GradeName,
                 EnrolledSince = u.EnrolledSince,
                 Status = u.Status,
                 CreatedAt = u.CreatedAt,

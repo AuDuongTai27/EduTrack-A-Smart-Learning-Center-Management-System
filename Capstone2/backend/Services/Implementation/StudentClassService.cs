@@ -17,11 +17,17 @@ namespace EduTrack.API.Services.Implementation
             _repository = repository;
         }
 
-        public async Task<IEnumerable<StudentClassDto>> GetAllStudentClassesAsync()
+        public async Task<IEnumerable<StudentClassDto>> GetAllStudentClassesAsync(int? studentId = null)
         {
-            var list = await _repository.GetAllAsync();
+            var list = studentId.HasValue ? await _repository.GetForStudentAsync(studentId.Value) : await _repository.GetAllAsync();
             return list.Select(MapToDto);
         }
+
+        public async Task<IEnumerable<StudentClassDto>> EnrollAsync(int studentId, int gradeId, IReadOnlyCollection<int> classIds) =>
+            (await _repository.EnrollAsync(studentId, gradeId, classIds)).Select(MapToDto).ToList();
+
+        public async Task<IEnumerable<StudentClassDto>> DropAsync(int studentId, int enrollmentId, string? reason) =>
+            (await _repository.DropAsync(studentId, enrollmentId, reason)).Select(MapToDto).ToList();
 
         public async Task<StudentClassDto?> GetStudentClassByIdAsync(int id)
         {

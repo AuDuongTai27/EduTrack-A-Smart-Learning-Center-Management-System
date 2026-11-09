@@ -20,6 +20,10 @@ namespace EduTrack.API.Models.Entities
         [Column("subject_id")]
         public int SubjectId { get; set; }
 
+        // Nullable only to preserve existing, unclassified classes.
+        [Column("grade_id")]
+        public int? GradeId { get; set; }
+
         [StringLength(50)]
         [Column("room")]
         public string? Room { get; set; }
@@ -41,6 +45,9 @@ namespace EduTrack.API.Models.Entities
         // Navigation Properties
         [ForeignKey("SubjectId")]
         public virtual Subject Subject { get; set; } = null!;
+
+        [ForeignKey("GradeId")]
+        public virtual Grade? Grade { get; set; }
 
         public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
         public virtual ICollection<TaClass> TaClasses { get; set; } = new List<TaClass>();

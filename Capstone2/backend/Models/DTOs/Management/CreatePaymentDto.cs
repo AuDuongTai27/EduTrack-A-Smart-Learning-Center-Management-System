@@ -8,7 +8,9 @@ namespace EduTrack.API.Models.DTOs.Management
         public decimal Amount { get; set; }
 
         [Required]
-        public string PaymentMethod { get; set; } = "bank_transfer";
+        public string PaymentMethod { get; set; } = "cash";
+
+        public bool ExternalPaymentVerified { get; set; }
 
         [StringLength(100)]
         public string? TransactionCode { get; set; }

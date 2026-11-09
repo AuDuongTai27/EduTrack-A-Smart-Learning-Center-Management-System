@@ -69,6 +69,8 @@ namespace EduTrack.API.Controllers.Learning
                 return BadRequest(new { success = false, message = "Thông tin thanh toán không hợp lệ." });
             }
 
+            try
+            {
             var updated = await _dashboardService.PayStudentTuitionAsync(request);
             return Ok(new
             {
@@ -76,6 +78,11 @@ namespace EduTrack.API.Controllers.Learning
                 message = "Thanh toán học phí thành công!",
                 data = updated
             });
+            }
+            catch (NotSupportedException)
+            {
+                return StatusCode(501, new { success = false, message = "Chưa tích hợp xác nhận cổng thanh toán. Chưa ghi Payment; vui lòng liên hệ trung tâm để đối soát và ghi nhận khoản thu." });
+            }
         }
 
         /// <summary>
@@ -84,6 +91,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpPost("tuition/{studentId:int}/reset-demo")]
         public async Task<IActionResult> ResetDemoTuition(int studentId)
         {
+            try
+            {
             var updated = await _dashboardService.ResetDemoUnpaidTuitionAsync(studentId);
             return Ok(new
             {
@@ -91,6 +100,11 @@ namespace EduTrack.API.Controllers.Learning
                 message = "Đã tạo lại hóa đơn học phí chờ thanh toán cho kỳ hiện tại.",
                 data = updated
             });
+            }
+            catch (NotSupportedException)
+            {
+                return Conflict(new { success = false, message = "Không cho phép reset hóa đơn hoặc xóa lịch sử Payment để demo." });
+            }
         }
 
         /// <summary>
