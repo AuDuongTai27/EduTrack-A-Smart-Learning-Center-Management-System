@@ -1,5 +1,6 @@
 import {selectedUrl} from '../BLL/services/userSelection.ts';
-import type {ScheduleCapabilities, ScheduleGenerationInput, ScheduleGenerationPreview, ScheduleTemplate, ScheduleTemplateInput, ScheduleTemplatePreview, ScheduleVersion} from '../BLL/models/ScheduleManagement';
+import type {DirectSessionCreateInput, DirectSessionUpdateInput, ScheduleCapabilities, ScheduleGenerationInput, ScheduleGenerationPreview, ScheduleTemplate, ScheduleTemplateInput, ScheduleTemplatePreview, ScheduleVersion} from '../BLL/models/ScheduleManagement';
+import type {ScheduleSession} from '../BLL/models/ScheduleSession';
 import {dateOnly, mondayOf} from '../BLL/services/scheduleViewService';
 
 const positive = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n > 0;
@@ -94,6 +95,15 @@ export function createScheduleManagementApi(baseUrl: string, selectedUserId?: nu
       if (result.previewToken !== input.previewToken || result.rows.some(r => r.outcome === 'created' && !input.selectedKeys?.includes(r.key)))
         throw new Error('Xác nhận trả về khác Preview đã chọn. Tải lại lịch để kiểm tra kết quả.');
       return result;
+    },
+    async createSessionDirect(input: DirectSessionCreateInput): Promise<ScheduleSession> {
+      return await request('/sessions/direct', 'POST', input) as ScheduleSession;
+    },
+    async updateSessionDirect(sessionId: number, input: DirectSessionUpdateInput): Promise<ScheduleSession> {
+      return await request(`/sessions/${sessionId}`, 'PUT', input) as ScheduleSession;
+    },
+    async deleteSessionDirect(sessionId: number): Promise<{deleted: boolean; sessionId: number}> {
+      return await request(`/sessions/${sessionId}`, 'DELETE') as {deleted: boolean; sessionId: number};
     },
   };
 }

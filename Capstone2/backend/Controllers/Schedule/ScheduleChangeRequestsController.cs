@@ -11,8 +11,8 @@ namespace EduTrack.API.Controllers.Schedule;
 [ResponseCache(NoStore=true,Location=ResponseCacheLocation.None)]
 public sealed class ScheduleChangeRequestsController(EduTrackDbContext db,IConfiguration configuration,TimeProvider? clock=null) : ControllerBase
 {
-    private ScheduleChangeRequestService Service => new(db,new(configuration.GetValue<bool>("ScheduleChangeRequests:GenericRoutesGuarded"),
-        configuration.GetValue<bool>("ScheduleChangeRequests:AttendanceWritesCoordinated")),clock);
+    private ScheduleChangeRequestService Service => new(db,new(configuration.GetValue("ScheduleChangeRequests:GenericRoutesGuarded", true),
+        configuration.GetValue("ScheduleChangeRequests:AttendanceWritesCoordinated", true)),clock);
     private async Task<IActionResult> Execute<T>(Func<ScheduleChangeRequestService,Task<T>> action)
     {
         try{return Ok(await action(Service));}

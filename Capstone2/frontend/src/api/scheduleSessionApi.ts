@@ -15,9 +15,9 @@ function isSession(value: unknown): value is ScheduleSession {
 
 export function createScheduleSessionApi(baseUrl: string, selectedUserId?: number) {
   return {
-    async getWeek(from: string, toExclusive: string, signal?: AbortSignal): Promise<ScheduleSession[]> {
+    async getWeek(from: string, toExclusive: string, signal?: AbortSignal, userIdOverride?: number): Promise<ScheduleSession[]> {
       const query = new URLSearchParams({from: dateOnly(from), toExclusive: dateOnly(toExclusive)});
-      const response = await fetch(await selectedUrl(`${baseUrl}/schedule/sessions?${query}`, 'userId', selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json'}});
+      const response = await fetch(await selectedUrl(`${baseUrl}/schedule/sessions?${query}`, 'userId', userIdOverride ?? selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json'}});
       if (!response.ok) {
         throw new Error(`Không tải được lịch học (HTTP ${response.status}). Vui lòng thử lại.`);
       }

@@ -1,4 +1,35 @@
-export interface ScheduleClassOption {classId: number; className: string; status: string; startDate: string; endDate: string | null}
+import type {SchedulePerson} from './ScheduleSession';
+
+export interface ScheduleClassOption {
+  classId: number;
+  className: string;
+  status: string;
+  startDate: string;
+  endDate: string | null;
+  subjectName?: string | null;
+  room?: string | null;
+  teachers?: SchedulePerson[];
+  teachingAssistants?: SchedulePerson[];
+  scheduleSummary?: string[];
+  totalSessions?: number;
+}
+
+export interface DirectSessionUpdateInput {
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  room?: string | null;
+  reason?: string | null;
+}
+
+export interface DirectSessionCreateInput {
+  classId: number;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  room?: string | null;
+  reason?: string | null;
+}
 export interface ScheduleCapabilities {canManageTemplates: boolean; canCreateSessions: boolean; classes: ScheduleClassOption[]; earliestEffectiveFrom: string}
 export interface ScheduleVersion {scheduleVersionId: number; effectiveFrom: string; effectiveTo: string | null; dayOfWeek: string; startTime: string; endTime: string; room: string | null}
 export interface ScheduleTemplate {

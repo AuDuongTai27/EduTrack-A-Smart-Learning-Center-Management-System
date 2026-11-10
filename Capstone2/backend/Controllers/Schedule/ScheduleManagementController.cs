@@ -35,4 +35,10 @@ public sealed class ScheduleManagementController(EduTrackDbContext db, TimeProvi
     public Task<IActionResult> Preview(ScheduleGenerationInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.Preview(userId, input, ct));
     [HttpPost("sessions/confirm")]
     public Task<IActionResult> Confirm(ScheduleGenerationInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.Confirm(userId, input, ct));
+    [HttpPost("sessions/direct")]
+    public Task<IActionResult> CreateDirect(DirectSessionCreateInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.CreateSessionDirect(userId, input, ct));
+    [HttpPut("sessions/{sessionId:int}")]
+    public Task<IActionResult> UpdateDirect(int sessionId, DirectSessionUpdateInput input, [FromQuery] int userId, CancellationToken ct) => Execute(s => s.UpdateSessionDirect(userId, sessionId, input, ct));
+    [HttpDelete("sessions/{sessionId:int}")]
+    public Task<IActionResult> DeleteDirect(int sessionId, [FromQuery] int userId, CancellationToken ct) => Execute(async s => { await s.DeleteSessionDirect(userId, sessionId, ct); return new { deleted = true, sessionId }; });
 }

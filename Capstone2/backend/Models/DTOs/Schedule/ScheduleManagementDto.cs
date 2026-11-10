@@ -2,11 +2,41 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EduTrack.API.Models.DTOs.Schedule;
 
-public sealed record ScheduleClassOption(int ClassId, string ClassName, string Status, string StartDate, string? EndDate);
+public sealed record ScheduleClassOption(
+    int ClassId,
+    string ClassName,
+    string Status,
+    string StartDate,
+    string? EndDate,
+    string? SubjectName = null,
+    string? Room = null,
+    List<SchedulePersonDto>? Teachers = null,
+    List<SchedulePersonDto>? TeachingAssistants = null,
+    List<string>? ScheduleSummary = null,
+    int TotalSessions = 0);
 public sealed record ScheduleCapabilities(bool CanManageTemplates, bool CanCreateSessions, List<ScheduleClassOption> Classes, string EarliestEffectiveFrom);
 public sealed record ScheduleVersionDto(int ScheduleVersionId, string EffectiveFrom, string? EffectiveTo, string DayOfWeek, string StartTime, string EndTime, string? Room);
 public sealed record ScheduleTemplateDto(int ScheduleId, int ClassId, string DayOfWeek, string StartTime, string EndTime,
     string? Room, bool HasSessions, string Version, List<ScheduleVersionDto> Versions);
+
+public sealed class DirectSessionUpdateInput
+{
+    [Required] public string SessionDate { get; set; } = "";
+    [Required] public string StartTime { get; set; } = "";
+    [Required] public string EndTime { get; set; } = "";
+    [StringLength(50)] public string? Room { get; set; }
+    [StringLength(500)] public string? Reason { get; set; }
+}
+
+public sealed class DirectSessionCreateInput
+{
+    [Range(1, int.MaxValue)] public int ClassId { get; set; }
+    [Required] public string SessionDate { get; set; } = "";
+    [Required] public string StartTime { get; set; } = "";
+    [Required] public string EndTime { get; set; } = "";
+    [StringLength(50)] public string? Room { get; set; }
+    [StringLength(500)] public string? Reason { get; set; }
+}
 
 public sealed class ScheduleTemplateInput
 {
