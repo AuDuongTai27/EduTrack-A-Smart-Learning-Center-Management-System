@@ -10,6 +10,7 @@ import {
 import {
   teachingDAL,
   DEFAULT_TEACHER_ID,
+  isSessionStarted,
   type TeachingClassAttendanceSheetDto,
   type TeachingStudentAttendanceItemDto,
   type TeachingAttendanceStatsDto,
@@ -122,11 +123,25 @@ export default function TeacherAttendancePage() {
     setStudents((prev) => prev.map((s) => ({ ...s, status: "present" })));
   };
 
+  const isCompletedSession = Boolean(sheet?.currentSession?.status === "completed" || sheet?.currentSession?.isRecorded);
+  const isStartedSession = sheet?.currentSession?.hasStarted !== undefined
+    ? sheet?.currentSession?.hasStarted
+    : (isCompletedSession || isSessionStarted(sheet?.currentSession || undefined));
+  const canTakeAttendance = isStartedSession;
+
   // Lưu điểm danh vào cơ sở dữ liệu
   const handleSaveAttendance = async () => {
     const currentSessionId = selectedSessionId || sheet?.currentSession?.sessionId;
     if (!currentSessionId) {
       setToast({ message: "Không tìm thấy thông tin buổi học cần điểm danh.", type: "danger" });
+      return;
+    }
+
+    if (!canTakeAttendance) {
+      setToast({
+        message: "Buổi học này chưa bắt đầu. Chỉ có buổi học đã bắt đầu mới có thể điểm danh.",
+        type: "danger",
+      });
       return;
     }
 
@@ -212,6 +227,18 @@ export default function TeacherAttendancePage() {
         </div>
       )}
 
+      {/* Warning if session has not started */}
+      {sheet?.currentSession && !canTakeAttendance && (
+        <div className="alert alert-warning border-warning d-flex align-items-center gap-2 shadow-sm mb-4" role="alert">
+          <i className="bi bi-clock-history fs-5 text-warning flex-shrink-0" />
+          <div className="flex-grow-1">
+            <strong>Buổi học chưa bắt đầu:</strong> Buổi học này được lên lịch vào{" "}
+            <strong>{sheet.currentSession.timePeriod || sheet.currentSession.startTime}</strong> ngày{" "}
+            <strong>{sheet.currentSession.sessionDate}</strong>. Chỉ có buổi học đã bắt đầu mới có thể thực hiện điểm danh.
+          </div>
+        </div>
+      )}
+
       {/* Main Attendance Card */}
       <div className="card class-list-card border-0 mb-4 shadow-sm">
         {/* Header with Class & Session info */}
@@ -227,6 +254,7 @@ export default function TeacherAttendancePage() {
           selectedSessionId={selectedSessionId || sheet?.currentSession?.sessionId}
           onSessionChange={handleSessionChange}
           onMarkAllPresent={handleMarkAllPresent}
+          canMarkAll={canTakeAttendance}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           stats={computedStats}
@@ -250,6 +278,7 @@ export default function TeacherAttendancePage() {
             <AttendanceSaveBar
               isSaving={isSaving}
               onSave={handleSaveAttendance}
+              canSave={canTakeAttendance}
               backUrl={`/teacher/classes/${targetClassId}`}
             />
           </>

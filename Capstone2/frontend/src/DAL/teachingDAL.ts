@@ -1218,4 +1218,47 @@ export const teachingDAL = {
   },
 };
 
+/**
+ * Kiểm tra xem một buổi học đã bắt đầu hay chưa (dựa theo ngày và giờ bắt đầu)
+ */
+export function isSessionStarted(session?: {
+  sessionDate?: string;
+  startTime?: string;
+  status?: string;
+  isRecorded?: boolean;
+  hasStarted?: boolean;
+}): boolean {
+  if (!session) return false;
+  if (typeof session.hasStarted === 'boolean') {
+    return session.hasStarted;
+  }
+  if (session.isRecorded || session.status === 'completed' || session.status === 'in_progress') {
+    return true;
+  }
+  if (!session.sessionDate) {
+    return true;
+  }
+
+  try {
+    let dateStr = session.sessionDate.trim();
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        dateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    const startTimeStr = session.startTime?.trim() || '00:00';
+    const [h, m] = startTimeStr.split(':').map(Number);
+    const sessionDateTime = new Date(`${dateStr}T${String(h || 0).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}:00`);
+
+    if (isNaN(sessionDateTime.getTime())) {
+      return true;
+    }
+
+    return new Date() >= sessionDateTime;
+  } catch {
+    return true;
+  }
+}
+
 export default teachingDAL;

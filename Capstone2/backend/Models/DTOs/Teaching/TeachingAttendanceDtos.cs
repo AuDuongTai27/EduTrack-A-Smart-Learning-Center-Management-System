@@ -23,6 +23,8 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public int LateCount { get; set; }
         public int ExcusedCount { get; set; }
         public int TotalRecorded { get; set; }
+        public bool HasStarted { get; set; }
+        public bool CanTakeAttendance { get; set; }
     }
 
     /// <summary>

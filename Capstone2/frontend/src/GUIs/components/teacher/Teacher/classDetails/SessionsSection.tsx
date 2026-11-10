@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import teachingDAL, { type TeachingSessionItemDto } from "../../../../../DAL/teachingDAL";
+import teachingDAL, { type TeachingSessionItemDto, isSessionStarted } from "../../../../../DAL/teachingDAL";
 
 export interface SessionsSectionProps {
   classId?: string | number;
@@ -68,6 +68,8 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
             <tbody>
               {sessions.map((s, idx) => {
                 const isCompleted = s.status === "completed" || s.isRecorded;
+                const hasStarted = s.hasStarted !== undefined ? s.hasStarted : (isCompleted || isSessionStarted(s));
+
                 return (
                   <tr key={s.sessionId} className={isCompleted ? "session-row-ended" : ""}>
                     <td className="fw-semibold text-dark">
@@ -87,6 +89,10 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
                         <span className="badge bg-success-subtle text-success fw-medium px-2.5 py-1">
                           <i className="bi bi-check-circle me-1" /> Đã điểm danh
                         </span>
+                      ) : !hasStarted ? (
+                        <span className="badge bg-secondary-subtle text-secondary fw-medium px-2.5 py-1" title="Buổi học chưa đến giờ">
+                          <i className="bi bi-hourglass-split me-1" /> Chưa bắt đầu
+                        </span>
                       ) : (
                         <span className="badge bg-warning-subtle text-warning-emphasis fw-medium px-2.5 py-1">
                           <i className="bi bi-clock me-1" /> Chưa điểm danh
@@ -95,15 +101,33 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
                     </td>
                     <td className="text-end">
                       <div className="d-inline-flex align-items-center gap-1">
-                        <Link
-                          to={`${baseRolePath}/classes/${classId}/attendance?sessionId=${s.sessionId}`}
-                          className={`btn btn-sm ${
-                            isCompleted ? "btn-outline-success" : "btn-primary"
-                          } d-inline-flex align-items-center gap-1 shadow-sm`}
-                        >
-                          <i className="bi bi-clipboard-check" />
-                          <span>{isCompleted ? "Xem điểm danh" : "Điểm danh"}</span>
-                        </Link>
+                        {isCompleted ? (
+                          <Link
+                            to={`${baseRolePath}/classes/${classId}/attendance?sessionId=${s.sessionId}`}
+                            className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 shadow-sm"
+                          >
+                            <i className="bi bi-clipboard-check" />
+                            <span>Xem điểm danh</span>
+                          </Link>
+                        ) : hasStarted ? (
+                          <Link
+                            to={`${baseRolePath}/classes/${classId}/attendance?sessionId=${s.sessionId}`}
+                            className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
+                          >
+                            <i className="bi bi-clipboard-check" />
+                            <span>Điểm danh</span>
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border text-muted d-inline-flex align-items-center gap-1 opacity-75"
+                            disabled
+                            title="Chỉ có buổi học đã bắt đầu mới có thể điểm danh"
+                          >
+                            <i className="bi bi-lock-fill text-secondary" />
+                            <span>Chưa bắt đầu</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
