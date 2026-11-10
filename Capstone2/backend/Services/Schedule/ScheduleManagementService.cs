@@ -393,12 +393,23 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             if (trackedClass.EndDate.HasValue && targetDate.Date > trackedClass.EndDate.Value.Date) trackedClass.EndDate = targetDate.Date;
 
             var tracked = await db.ClassSessions.SingleAsync(s => s.SessionId == sessionId, ct);
+            var oldDate = tracked.SessionDate;
+            var oldStart = tracked.StartTime;
+            var oldEnd = tracked.EndTime;
             tracked.SessionDate = targetDate.Date;
             tracked.StartTime = start;
             tracked.EndTime = end;
             tracked.Room = room;
             tracked.Status = "scheduled";
             await db.SaveChangesAsync(ct);
+
+            var roomNote = string.IsNullOrWhiteSpace(room) ? "" : $", phòng {room}";
+            await NotifyScheduleChangeAsync(
+                userId,
+                c.ClassId,
+                $"Thay đổi lịch học lớp {c.ClassName}",
+                $"Buổi học lớp {c.ClassName} từ ngày {FormatDate(oldDate)} ({FormatTime(oldStart)} – {FormatTime(oldEnd)}) đã được chuyển sang ngày {FormatDate(targetDate)} ({FormatTime(start)} – {FormatTime(end)}){roomNote}.",
+                ct);
 
             return (await new ScheduleReadService(db).GetSession(userId, sessionId, ct))!;
         }, ct);
@@ -414,6 +425,12 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             if (session.Attendances.Count > 0 || session.Status == "completed")
                 throw new ScheduleAccessException(409, "Buổi học này đã được điểm danh hoặc đã hoàn thành nên không thể xóa.");
 
+            var cls = await db.Classes.AsNoTracking().SingleOrDefaultAsync(x => x.ClassId == session.ClassId, ct);
+            var classId = session.ClassId;
+            var sessionDate = session.SessionDate;
+            var startTime = session.StartTime;
+            var endTime = session.EndTime;
+
             var details = await db.ScheduleChangeRequestDetails.Include(d => d.Request).Where(d => d.SessionId == sessionId).ToListAsync(ct);
             if (details.Count > 0)
             {
@@ -424,6 +441,16 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
 
             db.ClassSessions.Remove(session);
             await db.SaveChangesAsync(ct);
+
+            if (cls != null)
+            {
+                await NotifyScheduleChangeAsync(
+                    userId,
+                    classId,
+                    $"Tạm nghỉ / Rời buổi học lớp {cls.ClassName}",
+                    $"Buổi học lớp {cls.ClassName} ngày {FormatDate(sessionDate)} ({FormatTime(startTime)} – {FormatTime(endTime)}) đã được hủy để sắp xếp lịch học bù.",
+                    ct);
+            }
             return true;
         }, ct);
     }
@@ -517,7 +544,50 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             db.ClassSessions.Add(session);
             await db.SaveChangesAsync(ct);
 
+            var roomNote = string.IsNullOrWhiteSpace(room) ? "" : $", phòng {room}";
+            await NotifyScheduleChangeAsync(
+                userId,
+                c.ClassId,
+                $"Lịch học bổ sung / học bù lớp {c.ClassName}",
+                $"Lớp {c.ClassName} có buổi học mới vào ngày {FormatDate(targetDate)} ({FormatTime(start)} – {FormatTime(end)}){roomNote}.",
+                ct);
+
             return (await new ScheduleReadService(db).GetSession(userId, session.SessionId, ct))!;
         }, ct);
+    }
+
+    private async Task NotifyScheduleChangeAsync(int senderId, int classId, string title, string content, CancellationToken ct)
+    {
+        try
+        {
+            var repo = new EduTrack.API.Repositories.Implementation.NotificationRepository(db);
+            var recipientIds = await repo.ResolveRecipientIdsAsync("class", null, classId, null, senderId);
+            recipientIds.Remove(senderId);
+            if (recipientIds.Count == 0) return;
+
+            var notification = new Notification
+            {
+                SenderId = senderId,
+                ClassId = classId,
+                Title = title,
+                Content = content,
+                Type = "schedule",
+                TargetScope = "class",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                Recipients = recipientIds.Distinct().Select(uid => new NotificationRecipient
+                {
+                    UserId = uid,
+                    IsRead = false,
+                    ReadAt = null
+                }).ToList()
+            };
+            await db.Notifications.AddAsync(notification, ct);
+            await db.SaveChangesAsync(ct);
+        }
+        catch
+        {
+            // Do not fail schedule change if notification creation encounters a non-critical error
+        }
     }
 }

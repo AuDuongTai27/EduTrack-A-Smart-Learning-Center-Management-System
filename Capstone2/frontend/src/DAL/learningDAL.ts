@@ -1007,15 +1007,18 @@ export const learningDAL = {
 
   async markNotificationRead(notificationId: number, userId?: number): Promise<boolean> {
     saveLocalReadNotificationId(notificationId, userId);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('notifications-updated'));
-    }
+    let ok = false;
     try {
-      return await learningApi.markNotificationRead(notificationId, userId);
+      ok = await learningApi.markNotificationRead(notificationId, userId);
     } catch (error) {
       console.warn('[learningDAL] Không thể lưu trạng thái đã đọc lên Backend:', error);
-      return false;
     }
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* ignore */ }
+      window.dispatchEvent(new StorageEvent('storage', { key: 'edutrack-notifications-invalidated' }));
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
+    return ok;
   },
 
   async markAllNotificationsRead(
@@ -1026,15 +1029,18 @@ export const learningDAL = {
     if (notificationIds && notificationIds.length > 0) {
       saveAllLocalReadNotificationIds(notificationIds, userId);
     }
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('notifications-updated'));
-    }
+    let count = 0;
     try {
-      return await learningApi.markAllNotificationsRead(userId, studentId);
+      count = await learningApi.markAllNotificationsRead(userId, studentId);
     } catch (error) {
       console.warn('[learningDAL] Không thể lưu trạng thái đã đọc tất cả lên Backend:', error);
-      return 0;
     }
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* ignore */ }
+      window.dispatchEvent(new StorageEvent('storage', { key: 'edutrack-notifications-invalidated' }));
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
+    return count;
   },
 
   /**

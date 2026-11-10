@@ -48,9 +48,117 @@ public sealed class NotificationInboxService(EduTrackDbContext db, TimeProvider?
             throw new NotificationAccessException(400, "Không có quyền thực hiện thao tác này.");
         return identity;
     }
+    public async Task EnsureSeededRecipientsAsync()
+    {
+        var unsynced = await db.Notifications.AsNoTracking()
+            .Where(n => !n.Recipients.Any())
+            .ToListAsync();
+        if (unsynced.Count == 0) return;
+
+        try
+        {
+            var activeUsers = await db.Users.AsNoTracking()
+                .Where(u => u.Status == "active")
+                .Select(u => new
+                {
+                    u.UserId,
+                    Roles = u.UserRoles.Select(ur => ur.Role.RoleName).ToList()
+                })
+                .ToListAsync();
+            var allActiveUserIds = activeUsers.Select(u => u.UserId).ToHashSet();
+            var studentClasses = await db.StudentClasses.AsNoTracking()
+                .Where(sc => sc.Status == "active")
+                .Select(sc => new { sc.ClassId, sc.StudentId })
+                .ToListAsync();
+            var teacherClasses = await db.TeacherClasses.AsNoTracking()
+                .Where(tc => tc.Status == "active")
+                .Select(tc => new { tc.ClassId, tc.TeacherId })
+                .ToListAsync();
+            var taClasses = await db.TaClasses.AsNoTracking()
+                .Where(tc => tc.Status == "active")
+                .Select(tc => new { tc.ClassId, tc.TaId })
+                .ToListAsync();
+            var parentLinks = await db.ParentStudents.AsNoTracking()
+                .Select(ps => new { ps.ParentId, ps.StudentId })
+                .ToListAsync();
+
+            var toAdd = new List<NotificationRecipient>();
+            foreach (var n in unsynced)
+            {
+                var recipientIds = new HashSet<int>();
+                var role = (n.TargetRole ?? "all").Trim().ToLowerInvariant();
+
+                if (n.UserId.HasValue && allActiveUserIds.Contains(n.UserId.Value))
+                {
+                    recipientIds.Add(n.UserId.Value);
+                    foreach (var pl in parentLinks.Where(p => p.StudentId == n.UserId.Value && allActiveUserIds.Contains(p.ParentId)))
+                        recipientIds.Add(pl.ParentId);
+                    if (role == "parent")
+                    {
+                        foreach (var u in activeUsers.Where(u => u.Roles.Contains("parent")))
+                            recipientIds.Add(u.UserId);
+                    }
+                }
+                else if (n.ClassId.HasValue)
+                {
+                    var cid = n.ClassId.Value;
+                    var sIds = studentClasses.Where(sc => sc.ClassId == cid).Select(sc => sc.StudentId).ToHashSet();
+                    foreach (var sid in sIds.Where(allActiveUserIds.Contains))
+                        recipientIds.Add(sid);
+                    foreach (var pl in parentLinks.Where(p => sIds.Contains(p.StudentId) && allActiveUserIds.Contains(p.ParentId)))
+                        recipientIds.Add(pl.ParentId);
+                    foreach (var tid in teacherClasses.Where(tc => tc.ClassId == cid).Select(tc => tc.TeacherId).Where(allActiveUserIds.Contains))
+                        recipientIds.Add(tid);
+                    foreach (var taid in taClasses.Where(tc => tc.ClassId == cid).Select(tc => tc.TaId).Where(allActiveUserIds.Contains))
+                        recipientIds.Add(taid);
+                }
+                else if (!string.IsNullOrEmpty(role) && role != "all")
+                {
+                    foreach (var u in activeUsers.Where(u => u.Roles.Contains(role)))
+                        recipientIds.Add(u.UserId);
+                    if (role == "student")
+                    {
+                        foreach (var pl in parentLinks.Where(p => recipientIds.Contains(p.StudentId) && allActiveUserIds.Contains(p.ParentId)))
+                            recipientIds.Add(pl.ParentId);
+                    }
+                }
+                else
+                {
+                    foreach (var uid in allActiveUserIds)
+                        recipientIds.Add(uid);
+                }
+
+                if (n.SenderId.HasValue)
+                    recipientIds.Remove(n.SenderId.Value);
+
+                foreach (var uid in recipientIds)
+                {
+                    toAdd.Add(new NotificationRecipient
+                    {
+                        NotificationId = n.NotificationId,
+                        UserId = uid,
+                        IsRead = n.IsRead,
+                        ReadAt = n.IsRead ? n.CreatedAt : null
+                    });
+                }
+            }
+
+            if (toAdd.Count > 0)
+            {
+                await db.NotificationRecipients.AddRangeAsync(toAdd);
+                await db.SaveChangesAsync();
+            }
+        }
+        catch
+        {
+            db.ChangeTracker.Clear();
+        }
+    }
+
     public async Task<NotificationInboxSnapshot> SnapshotAsync(int userId)
     {
         var identity = await IdentifyAsync(userId);
+        await EnsureSeededRecipientsAsync();
         var rows = await db.NotificationRecipients.AsNoTracking().Where(r => r.UserId == identity.UserId)
             .Include(r => r.Notification).ThenInclude(n => n.Sender)
             .Include(r => r.Notification).ThenInclude(n => n.Class)

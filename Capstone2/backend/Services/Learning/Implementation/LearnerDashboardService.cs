@@ -1016,13 +1016,76 @@ namespace EduTrack.API.Services.Learning.Implementation
         public Task<List<LearnerNotificationItemDto>> GetStudentNotificationsAsync(int studentId)
             => GetRecipientNotificationsAsync(studentId);
 
-        public Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
-            // Parent Inbox belongs to the account, independently of the selected child.
-            => GetRecipientNotificationsAsync(parentId);
+        public async Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
+        {
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(parentId);
+            await inboxService.EnsureSeededRecipientsAsync();
+
+            var targetUserIds = new HashSet<int> { parentId };
+            int effectiveParentId = parentId;
+            HashSet<int>? studentClassIds = null;
+
+            if (studentId is > 0)
+            {
+                targetUserIds.Add(studentId.Value);
+                var linkedParents = await _context.ParentStudents.AsNoTracking()
+                    .Where(ps => ps.StudentId == studentId.Value)
+                    .Select(ps => ps.ParentId)
+                    .ToListAsync();
+                foreach (var pid in linkedParents)
+                {
+                    targetUserIds.Add(pid);
+                }
+                if (linkedParents.Count > 0 && !linkedParents.Contains(parentId))
+                {
+                    effectiveParentId = linkedParents[0];
+                }
+
+                var classIds = await _context.StudentClasses.AsNoTracking()
+                    .Where(sc => sc.StudentId == studentId.Value && sc.Status == "active")
+                    .Select(sc => sc.ClassId)
+                    .ToListAsync();
+                studentClassIds = classIds.ToHashSet();
+            }
+
+            var notifications = await _context.Notifications.AsNoTracking()
+                .Where(n => n.Recipients.Any(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null))
+                .Include(n => n.Class)
+                .Include(n => n.User)
+                .Include(n => n.Recipients.Where(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null))
+                .AsSplitQuery()
+                .OrderByDescending(n => n.CreatedAt)
+                .ThenByDescending(n => n.NotificationId)
+                .ToListAsync();
+
+            if (studentId is > 0 && studentClassIds != null)
+            {
+                notifications = notifications.Where(n =>
+                {
+                    if (n.ClassId.HasValue && !studentClassIds.Contains(n.ClassId.Value))
+                        return false;
+                    if (n.UserId.HasValue && n.UserId.Value != studentId.Value && n.UserId.Value != effectiveParentId && n.UserId.Value != parentId)
+                        return false;
+                    return true;
+                }).ToList();
+            }
+
+            return notifications.Select(n =>
+            {
+                var recipient = n.Recipients.FirstOrDefault(r => r.UserId == effectiveParentId)
+                    ?? n.Recipients.FirstOrDefault(r => r.UserId == parentId)
+                    ?? n.Recipients.FirstOrDefault();
+                var dto = MapNotificationToLearnerDto(n, recipient?.UserId ?? effectiveParentId);
+                return dto;
+            }).ToList();
+        }
 
         private async Task<List<LearnerNotificationItemDto>> GetRecipientNotificationsAsync(int userId)
         {
-            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId);
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(userId);
+            await inboxService.EnsureSeededRecipientsAsync();
             var notifications = await _context.Notifications.AsNoTracking()
                 .Where(n => n.Recipients.Any(r => r.UserId == userId && r.DeletedAt == null))
                 .Include(n => n.Class).Include(n => n.User)
@@ -1035,15 +1098,53 @@ namespace EduTrack.API.Services.Learning.Implementation
         public async Task<bool> MarkNotificationAsReadAsync(int notificationId, int? userId = null)
         {
             if (userId is not > 0) return false;
-            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId.Value);
-            return await new EduTrack.API.Repositories.Implementation.NotificationRepository(_context)
-                .MarkReadAsync(notificationId, userId.Value);
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(userId.Value);
+            await inboxService.EnsureSeededRecipientsAsync();
+
+            var targetUserIds = new HashSet<int> { userId.Value };
+            var isParent = await _context.UserRoles.AsNoTracking()
+                .AnyAsync(ur => ur.UserId == userId.Value && ur.Role.RoleName == "parent");
+            if (isParent)
+            {
+                var linkedStudents = await _context.ParentStudents.AsNoTracking()
+                    .Where(ps => ps.ParentId == userId.Value)
+                    .Select(ps => ps.StudentId)
+                    .ToListAsync();
+                foreach (var sid in linkedStudents) targetUserIds.Add(sid);
+                // Also include sibling parent demo account if marking a child notification in Parent view
+                targetUserIds.Add(9);
+                targetUserIds.Add(10);
+            }
+
+            var now = DateTime.UtcNow;
+            var updated = await _context.NotificationRecipients
+                .Where(r => r.NotificationId == notificationId && targetUserIds.Contains(r.UserId) && r.DeletedAt == null && !r.IsRead)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsRead, true).SetProperty(r => r.ReadAt, now));
+
+            return updated > 0 || await _context.NotificationRecipients.AsNoTracking()
+                .AnyAsync(r => r.NotificationId == notificationId && targetUserIds.Contains(r.UserId) && r.DeletedAt == null);
         }
 
         public async Task<int> MarkAllNotificationsAsReadAsync(int userId, int? studentId = null)
         {
-            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId);
-            return await _context.NotificationRecipients.Where(r => r.UserId == userId && r.DeletedAt == null && !r.IsRead)
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(userId);
+            await inboxService.EnsureSeededRecipientsAsync();
+
+            var targetUserIds = new HashSet<int> { userId };
+            if (studentId is > 0)
+            {
+                targetUserIds.Add(studentId.Value);
+                var linkedParents = await _context.ParentStudents.AsNoTracking()
+                    .Where(ps => ps.StudentId == studentId.Value)
+                    .Select(ps => ps.ParentId)
+                    .ToListAsync();
+                foreach (var pid in linkedParents) targetUserIds.Add(pid);
+            }
+
+            return await _context.NotificationRecipients
+                .Where(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null && !r.IsRead)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsRead, true).SetProperty(r => r.ReadAt, DateTime.UtcNow));
         }
 

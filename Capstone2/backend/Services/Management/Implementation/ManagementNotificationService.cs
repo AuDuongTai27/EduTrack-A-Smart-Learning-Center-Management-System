@@ -65,7 +65,7 @@ namespace EduTrack.API.Services.Management.Implementation
                         throw new InvalidOperationException("Gửi toàn trung tâm không chọn vai trò, lớp hoặc cá nhân.");
                     break;
                 case "role":
-                    if (targetRole == null || !AllowedRoles.Contains(targetRole) || targetRole == "parent"
+                    if (targetRole == null || !AllowedRoles.Contains(targetRole)
                         || dto.ClassId.HasValue || dto.UserId.HasValue)
                         throw new InvalidOperationException("Hãy chọn một vai trò hợp lệ.");
                     break;

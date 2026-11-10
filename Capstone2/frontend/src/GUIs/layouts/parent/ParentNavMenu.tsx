@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
-import { useNotificationInbox } from '../../hooks/useNotificationInbox';
+import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
+import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
 
 interface ParentNavMenuProps {
   onLinkClick?: () => void;
@@ -10,11 +11,28 @@ interface ParentNavMenuProps {
 
 export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const { selectedChild } = useParent();
-  const { data } = useNotificationInbox();
-  const unreadCount = data?.unreadCount ?? 0;
+  const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
   const footerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let mounted = true;
+    const refreshCount = async () => {
+      const count = await learningDAL.getParentUnreadCount(DEFAULT_PARENT_ID, targetStudentId);
+      if (mounted) setUnreadCount(count);
+    };
+    void refreshCount();
+    const onUpdate = () => void refreshCount();
+    window.addEventListener('notifications-updated', onUpdate);
+    window.addEventListener('focus', onUpdate);
+    return () => {
+      mounted = false;
+      window.removeEventListener('notifications-updated', onUpdate);
+      window.removeEventListener('focus', onUpdate);
+    };
+  }, [targetStudentId]);
 
   // Đóng dropup khi click bên ngoài
   useEffect(() => {

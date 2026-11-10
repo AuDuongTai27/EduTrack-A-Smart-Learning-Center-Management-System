@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../../Common/PageHeader';
 import Pagination from '../../Common/Pagination';
 import { useNotificationInbox } from '../../../hooks/useNotificationInbox';
-import { useSelectedUser } from '../../../hooks/useSelectedUser';
 import { newest, notificationTime } from '../../../../BLL/services/notificationInbox';
 import { notificationInboxApi } from '../../../../api/notificationInboxApi';
 import type { NotificationDto } from '../../../../BLL/models/NotificationDto';
@@ -20,7 +19,6 @@ export default function NotificationInboxPage() {
   return <NotificationPage key={`${inbox.role}:${inbox.data?.identity.userId ?? 'unverified'}`} inbox={inbox} />;
 }
 function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationInbox> }) {
-  const selection = useSelectedUser();
   const { data, loading, error, store, busy, manager } = inbox;
   const [params, setParams] = useSearchParams(); const rawId = params.get('notificationId');
   const selectedId = rawId && /^\d+$/.test(rawId) && Number.isSafeInteger(Number(rawId)) ? Number(rawId) : null;
@@ -62,13 +60,6 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
   function switchTab(next: typeof tab) { if (next === tab) return; if (next === 'sent') { setSent([]); setSentError(null); setSentLoading(true); } setTab(next); setParams({}); setPage(1); setActionError(null); attempted.current = ''; }
   return <div className="ntf-scope ntf-page">
     <PageHeader title="Thông báo" breadcrumbItems={[{ label: 'Thông báo' }]} action={manager && data && <button className="btn btn-primary" onClick={() => setCompose(true)}>Gửi thông báo</button>} />
-    {(inbox.role === 'student' || inbox.role === 'parent') && <div className="ntf-identity">
-      <label htmlFor="ntf-selected-account">Tài khoản nhận thông báo</label>
-      <select id="ntf-selected-account" className="form-select" value={selection.user?.userId ?? ''} disabled={selection.loading}
-        onChange={e => { setParams({}); selection.select(Number(e.target.value)); }}>
-        <option value="" disabled>Chọn tài khoản</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}
-      </select>{selection.error && <p role="alert" className="text-danger">{selection.error}</p>}
-    </div>}
     {manager && data && <ComposeNotificationModal open={compose} onClose={() => setCompose(false)} onSent={() => { setCompose(false); setSuccess('Đã gửi thông báo.'); switchTab('sent'); void store.refresh(); }} />}
     {error && <p role="alert" className="alert alert-warning">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Thử lại</button></p>}
     {actionError && <p role="alert" className="alert alert-danger">{actionError}</p>}
