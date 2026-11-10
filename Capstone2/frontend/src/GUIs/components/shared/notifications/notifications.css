@@ -1,0 +1,254 @@
+.ntf-scope {
+  min-width:0;
+  color:#26334d
+}
+.ntf-anchor {
+  position:relative
+}
+.ntf-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px;
+  border-bottom:1px solid #edf0f5;
+  flex-wrap:wrap
+}
+.ntf-heading h5 {
+  margin:0;
+  font-size:1rem
+}
+.ntf-heading span {
+  font-size:.8rem;
+  color:#59677e
+}
+.ntf-dashboard {
+  height:auto;
+  align-self:flex-start;
+  width:100%
+}
+.ntf-quick-list {
+  list-style:none;
+  margin:0;
+  padding:0
+}
+.ntf-item {
+  display:flex;
+  gap:12px;
+  padding:14px 16px;
+  border-bottom:1px solid #edf0f5;
+  color:inherit;
+  text-decoration:none;
+  align-items:flex-start
+}
+.ntf-item:hover,.ntf-item:focus-visible {
+  background:#f0f5ff
+}
+.ntf-item>div {
+  min-width:0;
+  flex:1;
+  overflow-wrap:anywhere
+}
+.ntf-item strong {
+  display:block;
+  font-size:.9rem
+}
+.ntf-item p {
+  margin:4px 0;
+  color:#627087;
+  font-size:.85rem
+}
+.ntf-item small {
+  color:#627087;
+  font-size:.75rem
+}
+.ntf-clamp {
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden
+}
+.ntf-unread {
+  background:#f6f8ff;
+  border-left:3px solid #5274df
+}
+.ntf-dot {
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#5274df;
+  flex-shrink:0;
+  margin-top:8px
+}
+.ntf-count {
+  position:absolute;
+  top:-3px;
+  right:-5px;
+  padding:1px 5px;
+  background:#3458c6;
+  color:white;
+  border-radius:12px;
+  font-size:10px
+}
+.ntf-popover {
+  position:absolute;
+  right:0;
+  top:calc(100% + 10px);
+  width:370px;
+  max-width:calc(100vw - 24px);
+  max-height:75vh;
+  overflow:auto;
+  background:white;
+  border:1px solid #e1e5ed;
+  border-radius:12px;
+  box-shadow:0 10px 36px #22304825;
+  z-index:1100
+}
+.ntf-view-all {
+  display:block;
+  text-align:center;
+  padding:12px;
+  color:#3153bf;
+  font-weight:600
+}
+.ntf-account-trigger {
+  border:0;
+  background:transparent;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  text-align:left;
+  max-width:245px;
+  padding:3px;
+  color:inherit
+}
+.ntf-account-trigger img,.ntf-avatar {
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  object-fit:cover;
+  flex-shrink:0
+}
+.ntf-avatar {
+  display:grid;
+  place-items:center;
+  background:#edf1fc;
+  color:#3856a8
+}
+.ntf-account-label {
+  min-width:0;
+  display:grid
+}
+.ntf-account-label strong {
+  font-size:13px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.ntf-account-label small {
+  font-size:11px;
+  color:#657188
+}
+.ntf-account-menu {
+  width:290px;
+  padding:16px;
+  overflow-wrap:anywhere
+}
+.ntf-account-menu p {
+  margin:6px 0
+}
+.ntf-page .ntf-toolbar {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:16px 0
+}
+.ntf-page .ntf-layout {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);
+  gap:20px
+}
+.ntf-page .ntf-detail {
+  padding:22px;
+  overflow-wrap:anywhere
+}
+.ntf-page .ntf-detail .ntf-body {
+  white-space:pre-wrap
+}
+.ntf-page .ntf-list-button {
+  display:block;
+  width:100%;
+  text-align:left;
+  border:0;
+  background:transparent;
+  color:inherit;
+  padding:14px;
+  border-bottom:1px solid #e9edf4;
+  overflow-wrap:anywhere
+}
+.ntf-page .ntf-list-button[aria-pressed=true] {
+  background:#eef3ff
+}
+.ntf-page form {
+  display:grid;
+  gap:12px;
+  padding:20px
+}
+.ntf-page label {
+  display:grid;
+  gap:5px
+}
+.ntf-page .ntf-tabs {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
+}
+.ntf-page .ntf-actions {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:16px
+}
+.ntf-page button:focus-visible,.ntf-scope button:focus-visible,.ntf-scope a:focus-visible {
+  outline:3px solid #5d7ee2;
+  outline-offset:2px
+}
+@media(max-width:767px) {
+  .ntf-account-label {
+    display:none
+  }
+  .ntf-popover {
+    position:fixed;
+    right:12px;
+    top:76px;
+    width:370px
+  }
+  .ntf-page .ntf-layout {
+    grid-template-columns:minmax(0,1fr)
+  }
+  .ntf-heading {
+    padding:12px
+  }
+  .ntf-item {
+    padding:12px
+  }
+  .ntf-page .ntf-detail {
+    padding:16px
+  }
+}
+.topbar-actions .ntf-scope.ntf-anchor .notification-btn.icon-btn {
+  display:inline-flex
+}
+.ntf-type-icon {
+  flex-shrink:0;
+  color:#4f68b9;
+  margin-top:2px
+}
+.ntf-scope.ntf-dashboard {
+  padding:0;
+  margin:0;
+  min-height:0
+}
+.ntf-page section.card:not(.ntf-detail) {
+  padding:0
+}

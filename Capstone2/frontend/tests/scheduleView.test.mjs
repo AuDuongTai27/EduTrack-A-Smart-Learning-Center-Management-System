@@ -52,11 +52,11 @@ test('status is consistent and elapsed time never invents completion', () => {
 });
 test('empty API remains empty; no identity parameters are sent; transport/auth/invalid responses reject', async () => {
   const original = globalThis.fetch;
-  const api = createScheduleSessionApi('/api');
+  const api = createScheduleSessionApi('/api', 501);
   try {
     globalThis.fetch = async (url, options) => {
-      assert.equal(String(url), '/api/schedule/sessions?from=2026-12-28&toExclusive=2027-01-04');
-      assert.equal(options.credentials, 'include'); assert.equal(options.cache, 'no-store');
+      assert.equal(String(url), '/api/schedule/sessions?from=2026-12-28&toExclusive=2027-01-04&userId=501');
+      assert.equal(options.credentials, 'omit'); assert.equal(options.cache, 'no-store');
       return new Response('[]', {status: 200});
     };
     assert.deepEqual(await api.getWeek('2026-12-28', '2027-01-04'), []);

@@ -15,4 +15,5 @@ export interface NotificationDto {
   targetRole?: string | null;
   recipientCount?: number | null;
   readAt?: string | null;
+  deletedAt?: string | null;
 }

@@ -3,13 +3,13 @@ import React from 'react';
 export interface HeroSectionProps {
   centerName?: string;
   slogan?: string;
-  onOpenLogin?: () => void;
+  onOpenWorkspace?: () => void;
 }
 
 export function HeroSection({
   centerName = 'EduTrack Smart Learning Center',
   slogan = 'Đồng Hành Cùng Tri Thức - Nâng Tầm Tương Lai',
-  onOpenLogin,
+  onOpenWorkspace,
 }: HeroSectionProps) {
   const handleScrollToCourses = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -49,10 +49,10 @@ export function HeroSection({
           <button
             type="button"
             className="btn btn-success rounded-pill px-4 py-2.5 fw-semibold d-inline-flex align-items-center shadow-sm"
-            onClick={onOpenLogin}
+            onClick={onOpenWorkspace}
           >
             <i className="bi bi-box-arrow-in-right me-2"></i>
-            Đăng nhập ngay
+            Chọn giao diện
           </button>
           <a
             href="#courses"

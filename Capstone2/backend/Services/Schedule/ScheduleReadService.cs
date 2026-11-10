@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Security.Claims;
 using EduTrack.API.Models.DTOs.Schedule;
 using EduTrack.API.Models.EF;
 using EduTrack.API.Models.Entities;
@@ -13,34 +12,27 @@ public sealed class ScheduleAccessException : Exception
     public ScheduleAccessException(int statusCode, string message) : base(message) => StatusCode = statusCode;
 }
 
-// Read-only boundary. Identity must already have been authenticated by the Auth module.
-// No query/body/header identity fallback, seeding, SaveChanges or Attendance service calls.
+// Read-only business scope selected by userId; no authentication is implemented.
+// Selection is not access protection. No seeding or Attendance service calls.
 public sealed class ScheduleReadService(EduTrackDbContext context)
 {
     private static readonly string[] Actors = ["center_manager", "admin_staff", "teacher", "teaching_assistant", "student"];
 
-    public static int RequireSubject(ClaimsPrincipal principal)
+    public static int RequireSelectedUser(int userId)
     {
-        var identities = principal.Identities.Where(i => i.IsAuthenticated).ToList();
-        if (identities.Count == 0)
-            throw new ScheduleAccessException(401, "Vui lòng đăng nhập bằng tài khoản đã được xác thực.");
-        var subjects = identities.SelectMany(i => i.Claims)
-            .Where(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")
-            .Select(c => c.Value).Distinct().ToArray();
-        if (subjects.Length != 1 || !int.TryParse(subjects[0], NumberStyles.None, CultureInfo.InvariantCulture, out var id) || id <= 0)
-            throw new ScheduleAccessException(401, "Danh tính xác thực chưa có mã người dùng hợp lệ.");
-        return id;
+        if (userId <= 0) throw new ScheduleAccessException(400, "Select a valid database userId.");
+        return userId;
     }
 
-    private async Task<IQueryable<ClassSession>> ScopedSessions(ClaimsPrincipal principal, CancellationToken ct)
+    private async Task<IQueryable<ClassSession>> ScopedSessions(int userId, CancellationToken ct)
     {
-        var userId = RequireSubject(principal);
+        RequireSelectedUser(userId);
         var user = await context.Users.AsNoTracking().Include(u => u.UserRoles).ThenInclude(r => r.Role)
             .SingleOrDefaultAsync(u => u.UserId == userId, ct);
         if (user == null || user.Status != "active")
-            throw new ScheduleAccessException(403, "Tài khoản không có quyền xem lịch học.");
+            throw new ScheduleAccessException(400, "Tài khoản không có quyền xem lịch học.");
         var roles = user.UserRoles.Select(r => r.Role.RoleName).Where(Actors.Contains).ToHashSet(StringComparer.Ordinal);
-        if (roles.Count == 0) throw new ScheduleAccessException(403, "Tài khoản không có quyền xem lịch học.");
+        if (roles.Count == 0) throw new ScheduleAccessException(400, "Tài khoản không có quyền xem lịch học.");
 
         var sessions = context.ClassSessions.AsNoTracking();
         if (roles.Contains("center_manager") || roles.Contains("admin_staff")) return sessions;
@@ -75,10 +67,10 @@ public sealed class ScheduleReadService(EduTrackDbContext context)
         return (from, to);
     }
 
-    public async Task<List<ScheduleSessionDto>> GetSessions(ClaimsPrincipal principal, ScheduleQuery query, CancellationToken ct = default)
+    public async Task<List<ScheduleSessionDto>> GetSessions(int userId, ScheduleQuery query, CancellationToken ct = default)
     {
-        // Authenticate before parsing filters; userId in an incoming URL has no role here.
-        var sessions = await ScopedSessions(principal, ct);
+        // Validate the data selector before applying business filters.
+        var sessions = await ScopedSessions(userId, ct);
         var (from, to) = ValidateRange(query);
         sessions = sessions.Where(s => s.SessionDate >= from && s.SessionDate < to);
         if (query.ClassId.HasValue) sessions = sessions.Where(s => s.ClassId == query.ClassId);
@@ -90,8 +82,8 @@ public sealed class ScheduleReadService(EduTrackDbContext context)
         return await Read(sessions, ct);
     }
 
-    public async Task<ScheduleSessionDto?> GetSession(ClaimsPrincipal principal, int id, CancellationToken ct = default) =>
-        (await Read((await ScopedSessions(principal, ct)).Where(s => s.SessionId == id), ct)).SingleOrDefault();
+    public async Task<ScheduleSessionDto?> GetSession(int userId, int id, CancellationToken ct = default) =>
+        (await Read((await ScopedSessions(userId, ct)).Where(s => s.SessionId == id), ct)).SingleOrDefault();
 
     private static async Task<List<ScheduleSessionDto>> Read(IQueryable<ClassSession> sessions, CancellationToken ct)
     {

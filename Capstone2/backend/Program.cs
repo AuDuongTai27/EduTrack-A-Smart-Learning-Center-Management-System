@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Cấu hình Pomelo MySQL Provider
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<EduTrackDbContext>(options =>
+builder.Services.AddDbContext<EduTrackDbContext, EduTrackRuntimeDbContext>(options =>
 {
     if (!string.IsNullOrEmpty(connectionString))
     {
@@ -55,7 +55,7 @@ app.UseCors("AllowAll");
 
 app.UseStaticFiles();
 
-app.UseAuthorization();
+// No authentication/authorization pipeline in the current application.
 
 app.MapControllers();
 

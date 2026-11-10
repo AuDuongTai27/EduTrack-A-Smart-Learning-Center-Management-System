@@ -1,3 +1,4 @@
+import { DashboardNotificationsCard } from '../../../components/shared/notifications/NotificationQuickViews';
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
@@ -6,7 +7,7 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import KpiCard from "../../../components/Common/KpiCard";
 import { adminStaffDashboardDAL, type AdminStaffDashboardData } from "../../../../DAL/adminStaffDashboardDAL";
 import { CENTER_TIME_ZONE, centerDateKey, getRequestStatus, getSessionStatus, getStaffUserId, type DashboardSection } from "../../../../BLL/services/adminStaffDashboardService";
-import { useAuthContext } from "../../../../contexts/AuthContext";
+import {useSelectedUser} from '../../../hooks/useSelectedUser';
 import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
@@ -17,7 +18,7 @@ function formatDate(value: string | null | undefined) {
 }
 
 export default function AdminStaffDashboardPage() {
-  const { user, permission, loading: authLoading } = useAuthContext();
+  const { user, permission, loading: selectionLoading } = useSelectedUser();
   const { refresh: refreshCenterSettings } = useCenterSettings();
   const staffUserId = getStaffUserId(user, permission);
   const [data, setData] = useState<AdminStaffDashboardData | null>(null);
@@ -26,10 +27,9 @@ export default function AdminStaffDashboardPage() {
   const [now, setNow] = useState(() => new Date());
   const today = centerDateKey(now);
   // Hide the previous account's data immediately when identity changes.
-  const dashboard = !authLoading && data?.userId === staffUserId && data?.today === today ? data : null;
+  const dashboard = !selectionLoading && data?.userId === staffUserId && data?.today === today ? data : null;
   const currentUser = dashboard?.staff.data;
   const schedules = dashboard?.schedule.data ?? [];
-  const notifications = dashboard?.notifications.data ?? [];
   const requests = dashboard?.requests.data ?? [];
   const recentRequests = requests.slice(0, 4);
   const pendingRequests = requests.filter((request) => request.status.trim().toLowerCase() === "pending");
@@ -46,7 +46,7 @@ export default function AdminStaffDashboardPage() {
 
   useEffect(() => {
     let isMounted = true;
-    if (authLoading) return;
+    if (selectionLoading) return;
     async function loadDashboardData() {
       setLoading(true);
       setData(null);
@@ -64,7 +64,7 @@ export default function AdminStaffDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [staffUserId, authLoading, today, refreshKey]);
+  }, [staffUserId, selectionLoading, today, refreshKey]);
 
   const totalOutstanding = dashboard?.tuition.data?.outstanding;
   const todayStr = now.toLocaleDateString("vi-VN", {
@@ -85,7 +85,7 @@ export default function AdminStaffDashboardPage() {
           { label: "Dashboard" },
         ]}
         action={
-          <button type="button" className="btn btn-outline-primary" disabled={loading || authLoading}
+          <button type="button" className="btn btn-outline-primary" disabled={loading || selectionLoading}
             onClick={() => {
               void refreshCenterSettings();
               setNow(new Date());
@@ -96,14 +96,14 @@ export default function AdminStaffDashboardPage() {
         }
       />
 
-      {(loading || authLoading) && (
+      {(loading || selectionLoading) && (
         <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2" role="status">
           <div className="spinner-border spinner-border-sm" role="status" />
           <span>Đang nạp dữ liệu thống kê trung tâm...</span>
         </div>
       )}
       {dashboard && [dashboard.students, dashboard.tuition, dashboard.schedule, dashboard.staff,
-        dashboard.notifications, dashboard.requests].some((section) => section.error) && (
+        dashboard.requests].some((section) => section.error) && (
         <div className="alert alert-warning py-2 px-3 mb-3" role="alert">
           Một số dữ liệu chưa tải được. Vui lòng xem thông báo tại từng mục và thử tải lại.
         </div>
@@ -241,46 +241,7 @@ export default function AdminStaffDashboardPage() {
           </div>
         </div>
 
-        {/* Latest Notifications */}
-        <div className="col-xl-5">
-          <div className="card dashboard-card h-100 border-0">
-            <div className="dashboard-card-header d-flex justify-content-between align-items-center">
-              <div>
-                <h5 className="mb-0">Thông Báo Mới Nhất</h5>
-                <small className="text-muted">Thông báo gửi đến bạn</small>
-              </div>
-              <Link to="/admin-staff/notifications" className="dashboard-view-link">
-                Xem tất cả
-                <i className="bi bi-arrow-right ms-1" />
-              </Link>
-            </div>
-            <div className="dashboard-card-body p-0">
-              <div className="staff-notification-list">
-                {notifications.length > 0 ? (
-                  notifications.slice(0, 4).map((n) => (
-                    <div key={n.notificationId} className="staff-notification-item">
-                      <div className="staff-notification-icon">
-                        <i className="bi bi-bell" />
-                      </div>
-                      <div className="staff-notification-content">
-                        <h6>{n.title}</h6>
-                        <p className="text-truncate" style={{ maxWidth: 260 }}>{n.content}</p>
-                        <small className="text-muted">
-                          {formatDate(n.createdAt)}
-                        </small>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className={`p-4 text-center ${dashboard?.notifications.error ? "text-danger" : "text-muted"}`}
-                    role={dashboard?.notifications.error ? "alert" : "status"}>
-                    {sectionText(dashboard?.notifications, "Bạn chưa nhận được thông báo nào.")}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="col-xl-5"><DashboardNotificationsCard /></div>
       </div>
 
       {/* Recent Approval Requests */}

@@ -185,7 +185,7 @@ namespace EduTrack.API.Services.Management.Implementation
                 Content = n.Content,
                 Type = n.Type,
                 IsRead = currentUserId.HasValue ? recipient?.IsRead ?? false : n.IsRead,
-                CreatedAt = n.CreatedAt,
+                CreatedAt = DateTime.SpecifyKind(n.CreatedAt, DateTimeKind.Utc),
                 SenderId = n.SenderId,
                 SenderName = n.Sender?.FullName,
                 TargetScope = n.TargetScope,

@@ -21,5 +21,6 @@ namespace EduTrack.API.Models.DTOs
         public string? TargetRole { get; set; }
         public int? RecipientCount { get; set; }
         public DateTime? ReadAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
     }
 }

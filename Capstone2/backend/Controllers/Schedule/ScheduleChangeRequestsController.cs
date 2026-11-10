@@ -21,12 +21,12 @@ public sealed class ScheduleChangeRequestsController(EduTrackDbContext db,IConfi
         catch(MySqlException e) when(e.Number is 1062 or 1205 or 1213){return Conflict(new {message="Dữ liệu thay đổi đồng thời; tải lại request/Preview để kiểm tra."});}
         catch(DbUpdateException e) when(e.InnerException is MySqlException {Number:1062 or 1205 or 1213}){return Conflict(new {message="Chưa xác nhận lưu; tải lại request/Preview để kiểm tra."});}
     }
-    [HttpGet("capabilities")] public Task<IActionResult> Capabilities(CancellationToken ct)=>Execute(s=>s.Capabilities(User,ct));
-    [HttpGet] public Task<IActionResult> List(CancellationToken ct)=>Execute(s=>s.List(User,ct));
-    [HttpGet("{id:int}")] public Task<IActionResult> Get(int id,CancellationToken ct)=>Execute(s=>s.Get(User,id,ct));
-    [HttpPost("preview")] public Task<IActionResult> Preview(ScheduleChangeInput input,CancellationToken ct)=>Execute(s=>s.Preview(User,input,ct));
-    [HttpPost] public Task<IActionResult> Submit(ScheduleChangeInput input,CancellationToken ct)=>Execute(s=>s.Submit(User,input,ct));
-    [HttpPost("{id:int}/claim")] public Task<IActionResult> Claim(int id,CancellationToken ct)=>Execute(s=>s.Claim(User,id,ct));
-    [HttpPost("{id:int}/decision-preview")] public Task<IActionResult> PreviewDecision(int id,ScheduleChangeDecisionInput input,CancellationToken ct)=>Execute(s=>s.DecisionPreview(User,id,input,ct));
-    [HttpPost("{id:int}/decision")] public Task<IActionResult> Decide(int id,ScheduleChangeDecisionInput input,CancellationToken ct)=>Execute(s=>s.Decide(User,id,input,ct));
+    [HttpGet("capabilities")] public Task<IActionResult> Capabilities([FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.Capabilities(userId,ct));
+    [HttpGet] public Task<IActionResult> List([FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.List(userId,ct));
+    [HttpGet("{id:int}")] public Task<IActionResult> Get(int id, [FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.Get(userId,id,ct));
+    [HttpPost("preview")] public Task<IActionResult> Preview(ScheduleChangeInput input, [FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.Preview(userId,input,ct));
+    [HttpPost] public Task<IActionResult> Submit(ScheduleChangeInput input, [FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.Submit(userId,input,ct));
+    [HttpPost("{id:int}/claim")] public Task<IActionResult> Claim(int id, [FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.Claim(userId,id,ct));
+    [HttpPost("{id:int}/decision-preview")] public Task<IActionResult> PreviewDecision(int id,ScheduleChangeDecisionInput input, [FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.DecisionPreview(userId,id,input,ct));
+    [HttpPost("{id:int}/decision")] public Task<IActionResult> Decide(int id,ScheduleChangeDecisionInput input, [FromQuery] int userId, CancellationToken ct)=>Execute(s=>s.Decide(userId,id,input,ct));
 }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
-import { useAuthContext } from "../../../contexts/AuthContext";
 
 interface StudentNavMenuProps {
   onLinkClick?: () => void;
@@ -12,7 +11,6 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
   const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
   const footerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { dispatch } = useAuthContext();
 
   useEffect(() => {
     let isMounted = true;
@@ -58,10 +56,9 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
     navigate("/student/profile");
   };
 
-  const handleLogout = () => {
+  const handleHome = () => {
     setIsDropupOpen(false);
     onLinkClick?.();
-    dispatch({ type: "logout" });
     navigate("/");
   };
   return (
@@ -184,10 +181,10 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
             <button
               type="button"
               className="sidebar-dropup-item text-danger"
-              onClick={handleLogout}
+              onClick={handleHome}
             >
               <i className="bi bi-box-arrow-right fs-6" />
-              <span>Đăng xuất</span>
+              <span>Về trang chủ</span>
             </button>
           </div>
         )}

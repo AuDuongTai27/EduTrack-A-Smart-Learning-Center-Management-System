@@ -12,18 +12,18 @@ const affected={sessionId:91,scheduleVersionId:51,plannedOccurrenceDate:'2027-01
 const row={key:'41:2027-01-11',scheduleId:41,classId:801,sessionDate:'2027-01-12',startTime:'18:00:00',endTime:'20:00:00',room:'A',outcome:'existing',reason:'Retained original occurrence',sessionId:91,
   plannedOccurrenceDate:'2027-01-11',occurrenceWeekStart:'2027-01-11',scheduleVersionId:51,proposedPlannedDate:'2027-01-13',status:'scheduled'};
 const preview={previewToken:token,rows:[row],created:0};
-before(async()=>{server=await createServer({configFile:false,server:{middlewareMode:true,watch:null,ws:false},appType:'custom'});const m=await server.ssrLoadModule('/src/api/scheduleManagementApi.ts');api=m.createScheduleManagementApi('/api');read=m.readScheduleGeneration;});
+before(async()=>{server=await createServer({configFile:false,server:{middlewareMode:true,watch:null,ws:false},appType:'custom'});const m=await server.ssrLoadModule('/src/api/scheduleManagementApi.ts');api=m.createScheduleManagementApi('/api', 501);read=m.readScheduleGeneration;});
 after(async()=>{globalThis.fetch=originalFetch;await server?.close();});
 test('capabilities use server roles and earliest future Monday; no client actor',async()=>{
   const calls=[];globalThis.fetch=async(url,options)=>{calls.push({url,options});return Response.json({canManageTemplates:false,canCreateSessions:true,classes:[{classId:801,className:'Real',status:'active',startDate:'2027-01-04',endDate:null}],earliestEffectiveFrom:'2026-11-16'});};
-  assert.equal((await api.capabilities()).canCreateSessions,true);assert.equal(calls[0].url,'/api/schedule/management/capabilities');assert.equal(calls[0].options.credentials,'include');assert.equal(calls[0].options.cache,'no-store');
+  assert.equal((await api.capabilities()).canCreateSessions,true);assert.equal(calls[0].url,'/api/schedule/management/capabilities?userId=501');assert.equal(calls[0].options.credentials,'omit');assert.equal(calls[0].options.cache,'no-store');
   globalThis.fetch=async()=>Response.json({canManageTemplates:true,canCreateSessions:true,classes:[],earliestEffectiveFrom:'2027-01-05'});await assert.rejects(api.capabilities(),/không hợp lệ/);
 });
 test('timeline Preview and Confirm are separate commands and retained actual sessions are explicit',async()=>{
   const calls=[];globalThis.fetch=async(url,options)=>{calls.push({url,options});return Response.json({previewToken:token,operation:'replace',effectiveFrom:'2027-01-11',retainedSessions:[affected],message:'Keep generated sessions',template:calls.length===1?null:template});};
   const p=await api.previewTemplate(change);assert.equal(calls.length,1);assert.equal(p.retainedSessions[0].sessionDate,'2027-01-12');
   const result=await api.confirmTemplate({...change,previewToken:p.previewToken});assert.equal(result.template.scheduleId,41);
-  assert.deepEqual(calls.map(c=>c.url),['/api/schedule/management/templates/preview','/api/schedule/management/templates/confirm']);
+  assert.deepEqual(calls.map(c=>c.url),['/api/schedule/management/templates/preview?userId=501','/api/schedule/management/templates/confirm?userId=501']);
   assert.equal(JSON.parse(calls[1].options.body).operation,'replace');assert.equal(JSON.parse(calls[1].options.body).previewToken,token);
 });
 test('retire keeps stable root/version lineage and never submits a DELETE',async()=>{
@@ -65,6 +65,6 @@ test('mismatched Confirm token, unapproved created rows and wrong template do no
   await assert.rejects(api.confirmTemplate({...change,previewToken:token}),/không hợp lệ/);
 });
 test('401/403/409 and ambiguous network failures never become saved occurrences',async()=>{
-  for(const code of [401,403,409]){globalThis.fetch=async()=>Response.json({message:'Conflict or forbidden'},{status:code});await assert.rejects(api.confirm(input),code===401?/Chưa xác thực/:/Conflict or forbidden/);}
+  for(const code of [400,409,500]){globalThis.fetch=async()=>Response.json({message:'Conflict or forbidden'},{status:code});await assert.rejects(api.confirm(input),code===401?/Chưa xác thực/:/Conflict or forbidden/);}
   globalThis.fetch=async()=>{throw Error('offline');};await assert.rejects(api.confirm(input),/Chưa xác định được kết quả lưu/);await assert.rejects(api.previewTemplate(change),/Không kết nối/);
 });

@@ -1,6 +1,5 @@
 import userDAL from "./userDAL";
 import tuitionDAL from "./tuitionDAL";
-import notificationDAL from "./notificationDAL";
 import feedbackDAL from "./feedbackDAL";
 import {
   countActiveStudents,
@@ -24,7 +23,7 @@ async function getList<T>(endpoint: string): Promise<T[]> {
 
 async function getCurrentStaff(userId: number | null) {
   if (userId == null) {
-    throw new Error("Chưa xác định được tài khoản giáo vụ. Vui lòng đăng nhập để xem dữ liệu cá nhân.");
+    throw new Error("Chưa chọn được tài khoản giáo vụ từ dữ liệu hệ thống.");
   }
   const user = await userDAL.getUserById(userId);
   if (!user || user.userId !== userId || user.status.trim().toLowerCase() !== "active"
@@ -39,7 +38,6 @@ interface DashboardSections {
   tuition: DashboardSection<ReturnType<typeof summarizeTuition>>;
   schedule: DashboardSection<ReturnType<typeof getTodaySessions>>;
   staff: DashboardSection<Awaited<ReturnType<typeof getCurrentStaff>>>;
-  notifications: DashboardSection<Awaited<ReturnType<typeof notificationDAL.getInbox>>>;
   requests: DashboardSection<ReturnType<typeof getMyRequests>>;
 }
 
@@ -53,7 +51,7 @@ export const adminStaffDashboardDAL = {
     const empty = () => ({ data: null, error: null });
     const data: AdminStaffDashboardData = {
       userId, today, students: empty(), tuition: empty(), schedule: empty(),
-      staff: empty(), notifications: empty(), requests: empty(),
+      staff: empty(), requests: empty(),
     };
     const sections: DashboardSections = data;
     // Publish each section as it resolves so a slow Payments request cannot hide student data.
@@ -71,8 +69,6 @@ export const adminStaffDashboardDAL = {
         getList<TeacherClassAssignmentDto>("teacherclasses"),
       ]).then(([sessions, assignments]) => getTodaySessions(sessions, assignments, today))).then(update("schedule")),
       loadDashboardSection(currentStaff).then(update("staff")),
-      loadDashboardSection(currentStaff.then((user) => notificationDAL.getInbox(user.userId))
-        .then((items) => [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.notificationId - a.notificationId))).then(update("notifications")),
       loadDashboardSection(currentStaff.then(async (user) => {
         const result = await feedbackDAL.getAllRequests();
         return getMyRequests(result.data, user.userId);
