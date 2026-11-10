@@ -1,12 +1,12 @@
-import {useEffect, useMemo, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useState, type FormEvent, type ReactNode} from 'react';
 import type {ScheduleRole} from '../../../../BLL/models/ScheduleSession';
 import {addScheduleDays, displayScheduleDate, mondayOf, vietnamClock} from '../../../../BLL/services/scheduleViewService';
+import {scheduleManagementDAL} from '../../../../DAL/scheduleManagementDAL';
 import {useScheduleReadModel} from './useScheduleReadModel';
 import {ScheduleCalendar} from './ScheduleCalendar';
 import {ScheduleList} from './ScheduleList';
 import {ScheduleSessionDetail} from './ScheduleSessionDetail';
 import {ScheduleManagement} from './ScheduleManagement';
-import {ScheduleChangeRequests} from './ScheduleChangeRequests';
 import {ScheduleLegendStrip} from '../../student/schedule/ScheduleLegendStrip';
 import ScheduleListHeader from '../../teacher/Teacher/schedule/ScheduleListHeader';
 import TaListHeader from '../../teacher/TeachingAssistant/schedule/ScheduleListHeader';
@@ -14,14 +14,64 @@ import ScheduleListToolbar from '../../teacher/Teacher/schedule/ScheduleListTool
 import '../../../../assets/css/schedule-calendar.css';
 import './schedule.css';
 
-export function ScheduleWorkspace({role = 'student', userId, renderHeader}: {role?: ScheduleRole; userId?: number; renderHeader?: (actions: ReactNode) => ReactNode}) {
-  const model = useScheduleReadModel(role, userId);
+export function ScheduleWorkspace({
+  role = 'student',
+  userId,
+  lockedClassId,
+  defaultRoom,
+  onSessionMutated,
+  renderHeader,
+}: {
+  role?: ScheduleRole;
+  userId?: number;
+  lockedClassId?: number;
+  defaultRoom?: string | null;
+  onSessionMutated?: () => void;
+  renderHeader?: (actions: ReactNode) => ReactNode;
+}) {
+  const model = useScheduleReadModel(role, userId, lockedClassId);
   const refreshSchedule = model.retry;
   useEffect(() => {const refresh = () => refreshSchedule(); window.addEventListener('edutrack:schedule-applied', refresh);
     return () => window.removeEventListener('edutrack:schedule-applied', refresh);}, [refreshSchedule]);
   const [expanded, setExpanded] = useState(false);
   const [managementOpen, setManagementOpen] = useState(false);
-  const [requestsOpen, setRequestsOpen] = useState(false);
+  const [addSessionOpen, setAddSessionOpen] = useState(false);
+  const [newDate, setNewDate] = useState(() => vietnamClock().date);
+  const [newStart, setNewStart] = useState('18:00');
+  const [newEnd, setNewEnd] = useState('20:00');
+  const [newRoom, setNewRoom] = useState(defaultRoom || '');
+  const [addBusy, setAddBusy] = useState(false);
+  const [addError, setAddError] = useState('');
+  const [addNotice, setAddNotice] = useState('');
+
+  async function handleCreateDirectSession(e: FormEvent) {
+    e.preventDefault();
+    if (!lockedClassId || addBusy) return;
+    if (!newDate || !newStart || !newEnd || newStart >= newEnd) {
+      setAddError('Vui lòng chọn ngày học và giờ bắt đầu trước giờ kết thúc.');
+      return;
+    }
+    setAddBusy(true);
+    setAddError('');
+    setAddNotice('');
+    try {
+      const created = await scheduleManagementDAL.createSessionDirect({
+        classId: lockedClassId,
+        sessionDate: newDate,
+        startTime: newStart,
+        endTime: newEnd,
+        room: newRoom.trim() || null,
+      });
+      setAddNotice(`Đã thêm buổi học #${created.sessionId} vào ngày ${displayScheduleDate(created.sessionDate)} (${created.startTime.slice(0, 5)}–${created.endTime.slice(0, 5)}).`);
+      model.navigate(mondayOf(created.sessionDate));
+      model.retry();
+      onSessionMutated?.();
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : 'Không thể tạo buổi học mới.');
+    } finally {
+      setAddBusy(false);
+    }
+  }
   const options = useMemo(() => {
     const distinct = (pairs: [string, string][]) => Array.from(new Map(pairs)).sort((a,b) => a[1].localeCompare(b[1], 'vi', {numeric:true}));
     return {
@@ -72,18 +122,58 @@ export function ScheduleWorkspace({role = 'student', userId, renderHeader}: {rol
     {renderHeader?.(actions)}
     <section className="et-schedule schedule-official" aria-label="Lịch phiên học chính thức">
       {!renderHeader && <div className="schedule-inline-actions">{actions}</div>}
-      {['center-manager','admin-staff','teacher'].includes(role) && <div className="mb-3">
+      {['center-manager','admin-staff'].includes(role) && <div className="d-flex flex-wrap gap-2 mb-3">
+        {lockedClassId && (
+          <button
+            type="button"
+            className={'btn ' + (addSessionOpen ? 'btn-primary' : 'btn-outline-primary')}
+            onClick={() => { setAddSessionOpen(v => !v); setAddError(''); setAddNotice(''); }}
+          >
+            <i className="bi bi-calendar-plus me-1" />
+            {addSessionOpen ? 'Đóng thêm buổi học' : 'Thêm buổi học / Học bù (Ngày bất kỳ)'}
+          </button>
+        )}
         <button type="button" className="btn btn-outline-primary" aria-expanded={managementOpen}
-          onClick={() => setManagementOpen(value => !value)}>{managementOpen ? 'Đóng quản lý lịch' : role === 'teacher' ? 'Tạo phiên học' : 'Quản lý lịch cố định'}</button>
+          onClick={() => setManagementOpen(value => !value)}>{managementOpen ? 'Đóng quản lý lịch cố định' : 'Quản lý lịch cố định & Tạo lịch theo tháng'}</button>
       </div>}
-      {managementOpen && ['center-manager','admin-staff','teacher'].includes(role) && <ScheduleManagement onCreated={model.retry} />}
-      {['center-manager','admin-staff','teacher'].includes(role) && <div className="mb-3">
-        <button type="button" className="btn btn-outline-primary" aria-expanded={requestsOpen} aria-controls="et-schedule-change-requests"
-          onClick={() => setRequestsOpen(value => !value)}>{requestsOpen ? 'Đóng yêu cầu đổi lịch' : role === 'teacher' ? 'Lịch sử yêu cầu đổi lịch' : 'Xử lý yêu cầu đổi lịch'}</button>
-      </div>}
-      {requestsOpen && ['center-manager','admin-staff','teacher'].includes(role) && <div id="et-schedule-change-requests">
-        <ScheduleChangeRequests mode={role === 'teacher' ? 'teacher' : 'reviewer'} />
-      </div>}
+      {addSessionOpen && ['center-manager','admin-staff'].includes(role) && lockedClassId && (
+        <div className="border rounded-4 bg-white p-3 mb-3 shadow-sm">
+          <h3 className="h6 fw-bold mb-2">
+            <i className="bi bi-plus-circle text-primary me-2" />
+            Tạo phiên học mới / Buổi học bù vào ngày bất kỳ
+          </h3>
+          <p className="small text-muted mb-3">
+            Buổi học được tạo sẽ xuất hiện ngay trên thời khóa biểu của Lớp và tự động cập nhật vào danh sách buổi Điểm danh của Giáo viên & Trợ giảng.
+          </p>
+          {addError && <div className="alert alert-danger py-2 small" role="alert">{addError}</div>}
+          {addNotice && <div className="alert alert-success py-2 small" role="status">{addNotice}</div>}
+          <form onSubmit={handleCreateDirectSession} className="row g-2 align-items-end">
+            <div className="col-12 col-md-3">
+              <label className="form-label small fw-semibold mb-1">Ngày học (bất kỳ)</label>
+              <input type="date" className="form-control form-control-sm" required value={newDate} onChange={e => setNewDate(e.target.value)} disabled={addBusy} />
+            </div>
+            <div className="col-6 col-md-2">
+              <label className="form-label small fw-semibold mb-1">Giờ bắt đầu</label>
+              <input type="time" className="form-control form-control-sm" required value={newStart} onChange={e => setNewStart(e.target.value)} disabled={addBusy} />
+            </div>
+            <div className="col-6 col-md-2">
+              <label className="form-label small fw-semibold mb-1">Giờ kết thúc</label>
+              <input type="time" className="form-control form-control-sm" required value={newEnd} onChange={e => setNewEnd(e.target.value)} disabled={addBusy} />
+            </div>
+            <div className="col-12 col-md-3">
+              <label className="form-label small fw-semibold mb-1">Phòng học</label>
+              <input type="text" className="form-control form-control-sm" maxLength={50} placeholder="VD: Room 201" value={newRoom} onChange={e => setNewRoom(e.target.value)} disabled={addBusy} />
+            </div>
+            <div className="col-12 col-md-2">
+              <button type="submit" className="btn btn-sm btn-primary w-100" disabled={addBusy}>
+                <i className="bi bi-check2 me-1" />
+                {addBusy ? 'Đang tạo…' : 'Tạo buổi học'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      {managementOpen && ['center-manager','admin-staff'].includes(role) && <ScheduleManagement initialClassId={lockedClassId} onCreated={() => { model.retry(); onSessionMutated?.(); }} />}
       <div className="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 border shadow-sm et-schedule-summary">
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
@@ -108,7 +198,20 @@ export function ScheduleWorkspace({role = 'student', userId, renderHeader}: {rol
         </>}
       </div>
       {model.view === 'calendar' && <ScheduleLegendStrip official />}
-      {model.selected && <ScheduleSessionDetail session={model.selected} now={model.now} onClose={model.close} />}
+      {model.selected && (
+        <ScheduleSessionDetail
+          session={model.selected}
+          now={model.now}
+          role={role}
+          onClose={model.close}
+          onMutated={(targetDate) => {
+            model.close();
+            if (targetDate) model.navigate(mondayOf(targetDate));
+            model.retry();
+            onSessionMutated?.();
+          }}
+        />
+      )}
     </section>
   </>;
 }

@@ -5,7 +5,7 @@ import {scheduleSessionDAL} from '../../../../DAL/scheduleSessionDAL';
 import {useSelectedUser} from '../../../hooks/useSelectedUser';
 
 // Role chooses presentation; selected database userId chooses timetable business scope.
-export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number) {
+export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number, lockedClassId?: number) {
   const {user: selectedUser} = useSelectedUser();
   const selectedUserKey = userIdOverride ?? selectedUser;
   const [now, setNow] = useState(() => new Date());
@@ -38,7 +38,11 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
   }, [monday, toExclusive, requestKey, selectedUserKey, userIdOverride]);
   const loading = result?.key !== requestKey || result?.actor !== selectedUserKey;
   const error = !loading ? result?.error : null;
-  const sessions = useMemo(() => !loading ? result!.sessions : [], [loading, result]);
+  const sessions = useMemo(() => {
+    if (loading) return [];
+    const all = result!.sessions;
+    return lockedClassId ? all.filter(s => s.classId === lockedClassId) : all;
+  }, [loading, result, lockedClassId]);
   const filtered = useMemo(() => sortSchedule(filterSchedule(sessions, monday, toExclusive, filters), sort),
     [sessions, monday, toExclusive, filters, sort]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));

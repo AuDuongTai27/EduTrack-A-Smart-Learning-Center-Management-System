@@ -23,9 +23,10 @@ namespace EduTrack.API.Services.Teaching.Implementation
         {
             var sessions = await _context.ClassSessions
                 .AsNoTracking()
-                .Where(s => s.ClassId == classId)
+                .Where(s => s.ClassId == classId && s.Status != "cancelled")
                 .OrderBy(s => s.SessionDate)
                 .ThenBy(s => s.StartTime)
+                .ThenBy(s => s.SessionId)
                 .ToListAsync();
 
             // Nếu lớp chưa có buổi học nào trong DB, tự động sinh các buổi học chuẩn và lưu vào DB
@@ -183,7 +184,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 ClassId = cls.ClassId,
                 ClassName = cls.ClassName,
                 SubjectName = cls.Subject?.SubjectName ?? "Bộ môn giảng dạy",
-                Room = !string.IsNullOrWhiteSpace(cls.Room) ? cls.Room : "Phòng 201",
+                Room = !string.IsNullOrWhiteSpace(activeSession.Room) ? activeSession.Room : (!string.IsNullOrWhiteSpace(cls.Room) ? cls.Room : "Phòng 201"),
                 CurrentSession = activeSession,
                 AvailableSessions = availableSessions,
                 Students = studentItems,

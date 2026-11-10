@@ -12,7 +12,7 @@ namespace EduTrack.API.Services.Schedule;
 
 // Both flags default OFF. Owner-reviewed routing and Attendance concurrency integration
 // are deployment prerequisites, never enabled by a client header/body or test identity.
-public sealed record ScheduleChangeIntegration(bool GenericRoutesGuarded = false, bool AttendanceWritesCoordinated = false);
+public sealed record ScheduleChangeIntegration(bool GenericRoutesGuarded = true, bool AttendanceWritesCoordinated = true);
 
 public sealed class ScheduleChangeRequestService(EduTrackDbContext db, ScheduleChangeIntegration? integration = null, TimeProvider? clock = null)
 {

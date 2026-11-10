@@ -10,13 +10,13 @@ const errorText = (cause: unknown) => cause instanceof Error ? cause.message : '
 const emptyForm = () => ({dayOfWeek:'Monday',startTime:'',endTime:'',room:'',effectiveFrom:''});
 const dayLabel = (value: string) => days.find(([key]) => key === value)?.[1] || value;
 
-export function ScheduleManagement({onCreated}: {onCreated: () => void}) {
+export function ScheduleManagement({onCreated, initialClassId}: {onCreated: () => void; initialClassId?: number}) {
   const {user} = useSelectedUser();
-  return <ManagementPanel key={user?.userId ?? 'anonymous'} onCreated={onCreated} />;
+  return <ManagementPanel key={`${user?.userId ?? 'anonymous'}:${initialClassId ?? 'all'}`} onCreated={onCreated} initialClassId={initialClassId} />;
 }
-function ManagementPanel({onCreated}: {onCreated: () => void}) {
+function ManagementPanel({onCreated, initialClassId}: {onCreated: () => void; initialClassId?: number}) {
   const [capabilities,setCapabilities] = useState<ScheduleCapabilities | null>(null);
-  const [classId,setClassId] = useState('');
+  const [classId,setClassId] = useState(initialClassId ? String(initialClassId) : '');
   const [templates,setTemplates] = useState<ScheduleTemplate[] | null>(null);
   const [error,setError] = useState(''); const [notice,setNotice] = useState(''); const [reload,setReload] = useState(0);
   const [busy,setBusy] = useState(false); const pending = useRef(false); const mounted = useRef(true);
@@ -78,8 +78,8 @@ function ManagementPanel({onCreated}: {onCreated: () => void}) {
     {error && <p className="alert alert-danger" role="alert">{error}</p>}{notice && <p className="alert alert-success" role="status">{notice}</p>}
     {!capabilities ? <p role="status">Đang tải quyền và danh sách Class…</p> : <>
       <p className="text-muted small">Mỗi ca có một phiên dự kiến mỗi tuần. Đổi lịch cố định giữ nguyên các phiên đã tạo; Teacher xem trước và xác nhận các phiên còn thiếu.</p>
-      <label className="d-block mb-3">Class<select aria-label="Class quản lý lịch" className="form-select" value={classId} disabled={busy} onChange={e => selectClass(e.target.value)}>
-        <option value="">Chọn Class</option>{capabilities.classes.map(c => <option key={c.classId} value={c.classId}>{c.className}</option>)}</select></label>
+      {!initialClassId && <label className="d-block mb-3">Class<select aria-label="Class quản lý lịch" className="form-select" value={classId} disabled={busy} onChange={e => selectClass(e.target.value)}>
+        <option value="">Chọn Class</option>{capabilities.classes.map(c => <option key={c.classId} value={c.classId}>{c.className}</option>)}</select></label>}
       {capabilities.classes.length === 0 && <p>Chưa có Class hợp lệ trong phạm vi được phân quyền.</p>}
       {selectedClass && <><p className="small text-muted">Thời gian Class: {selectedClass.startDate} – {selectedClass.endDate || 'chưa có ngày kết thúc'} · Giờ Việt Nam (GMT+7)</p>
         {!templates ? <p role="status">Đang tải lịch cố định…</p> : <>

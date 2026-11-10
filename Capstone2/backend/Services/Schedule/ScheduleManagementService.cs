@@ -51,10 +51,62 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
     public async Task<ScheduleCapabilities> Capabilities(int userId, CancellationToken ct)
     {
         var actor = await RequireActor(userId, false, ct);
-        var classes = await db.Classes.AsNoTracking().Where(c => actor.Manager || c.TeacherClasses.Any(a => a.TeacherId == actor.Id && a.Status == "active"))
+        var classes = await db.Classes.AsNoTracking()
+            .Include(c => c.Subject)
+            .Include(c => c.TeacherClasses).ThenInclude(tc => tc.Teacher)
+            .Include(c => c.TaClasses).ThenInclude(ta => ta.Ta)
+            .Include(c => c.ClassSchedules).ThenInclude(cs => cs.Versions)
+            .Include(c => c.ClassSessions)
+            .AsSplitQuery()
+            .Where(c => actor.Manager || c.TeacherClasses.Any(a => a.TeacherId == actor.Id && a.Status == "active"))
             .OrderBy(c => c.ClassName).ToListAsync(ct);
-        return new(actor.Manager, actor.Teacher, classes.Where(ValidClass).Select(c => new ScheduleClassOption(c.ClassId, c.ClassName, c.Status,
-            FormatDate(c.StartDate), c.EndDate.HasValue ? FormatDate(c.EndDate.Value) : null)).ToList(), NextMonday(clock).ToString("yyyy-MM-dd"));
+
+        static string ViDay(string day) => day switch
+        {
+            "Monday" => "Thứ Hai",
+            "Tuesday" => "Thứ Ba",
+            "Wednesday" => "Thứ Tư",
+            "Thursday" => "Thứ Năm",
+            "Friday" => "Thứ Sáu",
+            "Saturday" => "Thứ Bảy",
+            "Sunday" => "Chủ Nhật",
+            _ => day
+        };
+
+        var options = classes.Where(ValidClass).Select(c =>
+        {
+            var teachers = c.TeacherClasses.Where(a => a.Status == "active" && a.Teacher != null)
+                .OrderBy(a => a.TeacherId)
+                .Select(a => new SchedulePersonDto(a.TeacherId, a.Teacher.FullName)).ToList();
+            var tas = c.TaClasses.Where(a => a.Status == "active" && a.Ta != null)
+                .OrderBy(a => a.TaId)
+                .Select(a => new SchedulePersonDto(a.TaId, a.Ta.FullName)).ToList();
+            var summary = c.ClassSchedules.OrderBy(cs => cs.ScheduleId)
+                .Select(cs =>
+                {
+                    var ver = cs.Versions.OrderBy(v => v.EffectiveFrom).LastOrDefault();
+                    var dow = ver?.DayOfWeek ?? cs.DayOfWeek;
+                    var st = ver?.StartTime ?? cs.StartTime;
+                    var et = ver?.EndTime ?? cs.EndTime;
+                    var rm = ver?.Room ?? cs.Room ?? c.Room;
+                    return $"{ViDay(dow)} · {st:hh\\:mm}–{et:hh\\:mm}" + (string.IsNullOrWhiteSpace(rm) ? "" : $" ({rm})");
+                }).ToList();
+            var totalSessions = c.ClassSessions.Count(s => s.Status != "cancelled");
+            return new ScheduleClassOption(
+                c.ClassId,
+                c.ClassName,
+                c.Status,
+                FormatDate(c.StartDate),
+                c.EndDate.HasValue ? FormatDate(c.EndDate.Value) : null,
+                c.Subject?.SubjectName,
+                c.Room,
+                teachers,
+                tas,
+                summary,
+                totalSessions);
+        }).ToList();
+
+        return new(actor.Manager, actor.Manager || actor.Teacher, options, NextMonday(clock).ToString("yyyy-MM-dd"));
     }
     private ScheduleTemplateDto Map(ClassSchedule s, State state)
     {
@@ -193,7 +245,7 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
     }
     public async Task<ScheduleGenerationPreview> Preview(int userId, ScheduleGenerationInput input, CancellationToken ct)
     {
-        var actor = await RequireActor(userId, true, ct);
+        var actor = await RequireActor(userId, false, ct);
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
         var preview = Build(await Load(ct), actor, input);
         await tx.CommitAsync(ct); return preview;
@@ -231,7 +283,7 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
     }
     private static ScheduleGenerationPreview Build(State state, Actor actor, ScheduleGenerationInput input)
     {
-        var c = RequireClass(state, actor, input.ClassId, true); RequireMapped(state, c.ClassId);
+        var c = RequireClass(state, actor, input.ClassId, false); RequireMapped(state, c.ClassId);
         if (input.Mode is not ("single" or "month")) throw new ArgumentException("Chế độ phải là single hoặc month.");
         var roots = state.Templates.Where(s => s.ClassId == c.ClassId && (input.Mode == "month" || s.ScheduleId == input.ScheduleId)).ToList();
         if (roots.Count == 0 || roots.Count > 50) throw new ArgumentException("Class chưa được cấp ca lịch phù hợp hoặc vượt 50 ca.");
@@ -276,12 +328,12 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
     }
     public async Task<ScheduleGenerationPreview> Confirm(int userId, ScheduleGenerationInput input, CancellationToken ct)
     {
-        await RequireActor(userId, true, ct);
+        await RequireActor(userId, false, ct);
         if (string.IsNullOrWhiteSpace(input.PreviewToken) || input.SelectedKeys is not {Count: > 0 and <= 1550} || input.SelectedKeys.Distinct().Count() != input.SelectedKeys.Count)
             throw new ArgumentException("Hãy Preview và chọn occurrence hợp lệ trước khi xác nhận.");
         async Task<ScheduleGenerationPreview> Write(bool insert)
         {
-            var actor = await RequireActor(userId, true, ct); var state = await Load(ct); var preview = Build(state, actor, input);
+            var actor = await RequireActor(userId, false, ct); var state = await Load(ct); var preview = Build(state, actor, input);
             if (preview.PreviewToken != input.PreviewToken) throw new ScheduleAccessException(409, "Preview đã cũ: timeline, Class hoặc phân công thay đổi. Xem lại trước khi xác nhận.");
             var selected = preview.Rows.Where(r => input.SelectedKeys.Contains(r.Key)).ToList();
             if (selected.Count != input.SelectedKeys.Count || selected.Any(r => r.Outcome is not ("eligible" or "existing")))
@@ -308,5 +360,164 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             db.ChangeTracker.Clear();
             return await ScheduleWriteTransaction.Run(db, () => Write(false), ct);
         }
+    }
+
+    public async Task<ScheduleSessionDto> UpdateSessionDirect(int userId, int sessionId, DirectSessionUpdateInput input, CancellationToken ct)
+    {
+        await Manager(userId, ct);
+        var targetDate = Date(input.SessionDate);
+        var start = Time(input.StartTime);
+        var end = Time(input.EndTime);
+        var room = string.IsNullOrWhiteSpace(input.Room) ? null : input.Room.Trim();
+        if (!ValidSlot(start, end) || room?.Length > 50)
+            throw new ArgumentException("Giờ bắt đầu phải trước giờ kết thúc và tên phòng tối đa 50 ký tự.");
+
+        return await ScheduleWriteTransaction.Run(db, async () =>
+        {
+            var state = await Load(ct);
+            var existing = state.Sessions.SingleOrDefault(s => s.SessionId == sessionId)
+                ?? throw new ScheduleAccessException(404, "Không tìm thấy phiên học cần điều chỉnh.");
+            if (existing.Attendances.Count > 0 || existing.Status == "completed")
+                throw new ScheduleAccessException(409, "Buổi học này đã được điểm danh hoặc đã hoàn thành nên không thể dời lịch.");
+
+            var c = state.Classes.Single(x => x.ClassId == existing.ClassId);
+            foreach (var other in state.Sessions.Where(s => s.SessionId != sessionId && s.Status != "cancelled" && s.SessionDate.Date == targetDate.Date))
+            {
+                var reason = ResourceConflict(c, room, state.Classes.Single(x => x.ClassId == other.ClassId), other.Room);
+                if (reason != null && Overlap(start, end, other.StartTime, other.EndTime))
+                    throw new ScheduleAccessException(409, $"{reason} (Trùng với phiên #{other.SessionId} ngày {FormatDate(other.SessionDate)} {FormatTime(other.StartTime)}–{FormatTime(other.EndTime)}).");
+            }
+
+            var trackedClass = await db.Classes.SingleAsync(x => x.ClassId == c.ClassId, ct);
+            if (targetDate.Date < trackedClass.StartDate.Date) trackedClass.StartDate = targetDate.Date;
+            if (trackedClass.EndDate.HasValue && targetDate.Date > trackedClass.EndDate.Value.Date) trackedClass.EndDate = targetDate.Date;
+
+            var tracked = await db.ClassSessions.SingleAsync(s => s.SessionId == sessionId, ct);
+            tracked.SessionDate = targetDate.Date;
+            tracked.StartTime = start;
+            tracked.EndTime = end;
+            tracked.Room = room;
+            tracked.Status = "scheduled";
+            await db.SaveChangesAsync(ct);
+
+            return (await new ScheduleReadService(db).GetSession(userId, sessionId, ct))!;
+        }, ct);
+    }
+
+    public async Task DeleteSessionDirect(int userId, int sessionId, CancellationToken ct)
+    {
+        await Manager(userId, ct);
+        await ScheduleWriteTransaction.Run(db, async () =>
+        {
+            var session = await db.ClassSessions.Include(s => s.Attendances).SingleOrDefaultAsync(s => s.SessionId == sessionId, ct)
+                ?? throw new ScheduleAccessException(404, "Không tìm thấy phiên học cần xóa.");
+            if (session.Attendances.Count > 0 || session.Status == "completed")
+                throw new ScheduleAccessException(409, "Buổi học này đã được điểm danh hoặc đã hoàn thành nên không thể xóa.");
+
+            var details = await db.ScheduleChangeRequestDetails.Include(d => d.Request).Where(d => d.SessionId == sessionId).ToListAsync(ct);
+            if (details.Count > 0)
+            {
+                var headers = details.Select(d => d.Request).ToList();
+                db.ScheduleChangeRequestDetails.RemoveRange(details);
+                db.ApprovalRequests.RemoveRange(headers);
+            }
+
+            db.ClassSessions.Remove(session);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }, ct);
+    }
+
+    public async Task<ScheduleSessionDto> CreateSessionDirect(int userId, DirectSessionCreateInput input, CancellationToken ct)
+    {
+        var actor = await Manager(userId, ct);
+        var targetDate = Date(input.SessionDate);
+        var start = Time(input.StartTime);
+        var end = Time(input.EndTime);
+        if (!ValidSlot(start, end) || input.Room?.Trim().Length > 50)
+            throw new ArgumentException("Giờ bắt đầu phải trước giờ kết thúc và tên phòng tối đa 50 ký tự.");
+
+        return await ScheduleWriteTransaction.Run(db, async () =>
+        {
+            var state = await Load(ct);
+            var c = RequireClass(state, actor, input.ClassId);
+            var room = string.IsNullOrWhiteSpace(input.Room) ? c.Room : input.Room.Trim();
+
+            foreach (var other in state.Sessions.Where(s => s.Status != "cancelled" && s.SessionDate.Date == targetDate.Date))
+            {
+                var reason = ResourceConflict(c, room, state.Classes.Single(x => x.ClassId == other.ClassId), other.Room);
+                if (reason != null && Overlap(start, end, other.StartTime, other.EndTime))
+                    throw new ScheduleAccessException(409, $"{reason} (Trùng với phiên #{other.SessionId} ngày {FormatDate(other.SessionDate)} {FormatTime(other.StartTime)}–{FormatTime(other.EndTime)}).");
+            }
+
+            var trackedClass = await db.Classes.SingleAsync(x => x.ClassId == c.ClassId, ct);
+            if (targetDate.Date < trackedClass.StartDate.Date) trackedClass.StartDate = targetDate.Date;
+            if (trackedClass.EndDate.HasValue && targetDate.Date > trackedClass.EndDate.Value.Date) trackedClass.EndDate = targetDate.Date;
+
+            var targetDay = DateOnly.FromDateTime(targetDate);
+            var targetWeek = Monday(targetDay);
+            int scheduleId;
+            int scheduleVersionId;
+            DateOnly plannedDate;
+
+            var classTemplates = state.Templates.Where(t => t.ClassId == c.ClassId).ToList();
+            var freeTemplate = classTemplates.FirstOrDefault(t =>
+                t.Versions.Count > 0 && !state.Sessions.Any(s => s.ScheduleId == t.ScheduleId && s.OccurrenceWeekStart == targetWeek));
+
+            if (freeTemplate != null)
+            {
+                var ver = At(freeTemplate, targetWeek) ?? freeTemplate.Versions.OrderBy(v => v.EffectiveFrom).Last();
+                scheduleId = freeTemplate.ScheduleId;
+                scheduleVersionId = ver.ScheduleVersionId;
+                plannedDate = PlannedDate(ver, targetWeek);
+            }
+            else
+            {
+                var root = new ClassSchedule
+                {
+                    ClassId = c.ClassId,
+                    DayOfWeek = targetDay.DayOfWeek.ToString(),
+                    StartTime = start,
+                    EndTime = end,
+                    Room = room
+                };
+                db.ClassSchedules.Add(root);
+                await db.SaveChangesAsync(ct);
+
+                var ver = new ClassScheduleVersion
+                {
+                    ScheduleId = root.ScheduleId,
+                    EffectiveFrom = targetWeek,
+                    EffectiveTo = targetWeek.AddDays(7),
+                    DayOfWeek = targetDay.DayOfWeek.ToString(),
+                    StartTime = start,
+                    EndTime = end,
+                    Room = room
+                };
+                db.ClassScheduleVersions.Add(ver);
+                await db.SaveChangesAsync(ct);
+
+                scheduleId = root.ScheduleId;
+                scheduleVersionId = ver.ScheduleVersionId;
+                plannedDate = targetDay;
+            }
+
+            var session = new ClassSession
+            {
+                ClassId = c.ClassId,
+                ScheduleId = scheduleId,
+                ScheduleVersionId = scheduleVersionId,
+                PlannedOccurrenceDate = plannedDate,
+                SessionDate = targetDate.Date,
+                StartTime = start,
+                EndTime = end,
+                Room = room,
+                Status = "scheduled"
+            };
+            db.ClassSessions.Add(session);
+            await db.SaveChangesAsync(ct);
+
+            return (await new ScheduleReadService(db).GetSession(userId, session.SessionId, ct))!;
+        }, ct);
     }
 }
