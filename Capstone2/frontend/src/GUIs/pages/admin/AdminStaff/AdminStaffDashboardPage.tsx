@@ -6,7 +6,17 @@ import StatusBadge from "../../../components/Common/StatusBadge";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import KpiCard from "../../../components/Common/KpiCard";
 import { adminStaffDashboardDAL, type AdminStaffDashboardData } from "../../../../DAL/adminStaffDashboardDAL";
-import { CENTER_TIME_ZONE, centerDateKey, getRequestStatus, getSessionStatus, getStaffUserId, type DashboardSection } from "../../../../BLL/services/adminStaffDashboardService";
+import {
+  CENTER_TIME_ZONE,
+  centerDateKey,
+  formatRequestType,
+  getRequestContent,
+  getRequestStatus,
+  getReviewerDisplayInfo,
+  getSessionStatus,
+  getStaffUserId,
+  type DashboardSection,
+} from "../../../../BLL/services/adminStaffDashboardService";
 import {useSelectedUser} from '../../../hooks/useSelectedUser';
 import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
@@ -15,6 +25,12 @@ function formatDate(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("vi-VN", { timeZone: CENTER_TIME_ZONE });
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("vi-VN", { timeZone: CENTER_TIME_ZONE });
 }
 
 export default function AdminStaffDashboardPage() {
@@ -263,7 +279,7 @@ export default function AdminStaffDashboardPage() {
                 <th>STT</th>
                 <th>Mã Đơn</th>
                 <th>Loại Yêu Cầu</th>
-                <th>Người Liên Quan</th>
+                <th>Tiêu Đề / Đối Tượng</th>
                 <th>Ngày Gửi</th>
                 <th>Ưu Tiên</th>
                 <th>Trạng Thái</th>
@@ -275,17 +291,39 @@ export default function AdminStaffDashboardPage() {
                 recentRequests.map((req, idx) => {
                   const reqCode = req.requestCode || `#${req.requestId}`;
                   const reqDate = formatDate(req.createdAt);
+                  const displayType = formatRequestType(req.requestType);
+                  const targetLabel = req.studentName
+                    ? `Học viên: ${req.studentName}`
+                    : req.className
+                      ? `Lớp: ${req.className}`
+                      : null;
                   return (
                     <tr key={req.requestId || idx}>
                       <td>{idx + 1}</td>
                       <td>
-                        <strong>{reqCode}</strong>
+                        <span className="badge bg-light text-primary border font-monospace">
+                          {reqCode}
+                        </span>
                       </td>
-                      <td>{req.title || req.requestType}</td>
-                      <td>{req.studentName || req.className || "—"}</td>
+                      <td>
+                        <span className="badge bg-secondary-subtle text-secondary-emphasis">
+                          {displayType}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="fw-semibold text-dark">
+                          {req.title || displayType}
+                        </div>
+                        {targetLabel && (
+                          <small className="text-muted d-block">
+                            <i className="bi bi-person me-1" />
+                            {targetLabel}
+                          </small>
+                        )}
+                      </td>
                       <td>{reqDate}</td>
                       <td>
-                        <StatusBadge status={req.priority || "—"} />
+                        <StatusBadge status={req.priority || "Medium"} />
                       </td>
                       <td>
                         <DotStatusBadge status={getRequestStatus(req)} />
@@ -315,53 +353,143 @@ export default function AdminStaffDashboardPage() {
         </div>
       </div>
 
-      {/* Details of an API record already loaded for the current account. */}
-      {dashboard && selectedRequest && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content shadow border-0">
-              <div className="modal-header bg-light">
-                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                  <i className="bi bi-file-earmark-text text-primary" />
-                  Đơn Yêu Cầu #{selectedRequest.requestId}
-                </h5>
-                <button type="button" className="btn-close" onClick={() => setSelectedRequest(null)} />
-              </div>
-              <div className="modal-body p-4">
-                <div className="mb-3">
-                  <label className="text-muted small d-block">Loại yêu cầu</label>
-                  <span className="fw-bold text-dark">{selectedRequest.requestType}</span>
-                </div>
-                <div className="mb-3">
-                  <label className="text-muted small d-block">Tiêu đề</label>
-                  <span className="fw-semibold text-dark">{selectedRequest.title || selectedRequest.requestType}</span>
-                </div>
-                <div className="mb-3">
-                  <label className="text-muted small d-block">Nội dung chi tiết</label>
-                  <div className="p-3 bg-light rounded border text-secondary">
-                    {selectedRequest.description || "Không có nội dung thêm."}
+      {/* Details modal of the selected request */}
+      {dashboard && selectedRequest && (() => {
+        const reviewerInfo = getReviewerDisplayInfo(selectedRequest);
+        const reqCode = selectedRequest.requestCode || `#${selectedRequest.requestId}`;
+        const displayType = formatRequestType(selectedRequest.requestType);
+        const content = getRequestContent(selectedRequest);
+        const normalizedStatus = (selectedRequest.status || "").trim().toLowerCase();
+
+        return (
+          <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+            <div className="modal-dialog modal-dialog-centered modal-lg">
+              <div className="modal-content shadow-lg border-0">
+                <div className="modal-header bg-light border-bottom">
+                  <div className="d-flex align-items-center gap-2">
+                    <span className="badge bg-primary fs-6 font-monospace">
+                      {reqCode}
+                    </span>
+                    <h5 className="modal-title fw-bold mb-0 text-dark">
+                      Chi Tiết Yêu Cầu Phê Duyệt
+                    </h5>
                   </div>
+                  <button type="button" className="btn-close" onClick={() => setSelectedRequest(null)} />
                 </div>
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <label className="text-muted small d-block">Trạng thái</label>
-                    <DotStatusBadge status={getRequestStatus(selectedRequest)} />
+                <div className="modal-body p-4">
+                  {/* Title and top meta */}
+                  <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3 pb-3 border-bottom">
+                    <div>
+                      <h5 className="fw-bold text-dark mb-1">
+                        {selectedRequest.title || displayType}
+                      </h5>
+                      <div className="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
+                        <span>
+                          <i className="bi bi-tag-fill me-1 text-primary" />
+                          Loại đơn: <strong>{displayType}</strong>
+                        </span>
+                        <span>
+                          <i className="bi bi-clock me-1 text-secondary" />
+                          Ngày gửi: <strong>{formatDateTime(selectedRequest.createdAt)}</strong>
+                        </span>
+                        <span>
+                          <i className="bi bi-person me-1 text-secondary" />
+                          Người gửi: <strong>{selectedRequest.requesterName || currentUser?.fullName || "Admin Staff"}</strong>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="d-flex flex-column align-items-end gap-1">
+                      <DotStatusBadge status={getRequestStatus(selectedRequest)} />
+                      <StatusBadge status={selectedRequest.priority || "Medium"} />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-muted small d-block">Ngày gửi</label>
-                    <span className="small">{formatDate(selectedRequest.createdAt)}</span>
+
+                  {/* 2-column details info */}
+                  <div className="row g-3 mb-3">
+                    <div className="col-md-6">
+                      <div className="p-3 bg-light rounded-3 h-100 border">
+                        <small className="text-muted d-block mb-1 fw-semibold">
+                          <i className="bi bi-person-badge me-1" /> Học sinh / Đối tượng liên quan
+                        </small>
+                        <div className="fw-bold text-dark fs-6">
+                          {selectedRequest.studentName || "Không gắn kèm học viên cụ thể"}
+                        </div>
+                        {selectedRequest.className && (
+                          <div className="small text-muted mt-1">
+                            Lớp học: <strong>{selectedRequest.className}</strong>
+                          </div>
+                        )}
+                        {selectedRequest.invoiceId && (
+                          <div className="small text-muted mt-1">
+                            Hóa đơn tham chiếu: <strong>#{selectedRequest.invoiceId}</strong>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="p-3 bg-light rounded-3 h-100 border">
+                        <small className="text-muted d-block mb-1 fw-semibold">
+                          <i className="bi bi-shield-check me-1" /> Phê duyệt (Center Manager)
+                        </small>
+                        <div className="fw-bold text-dark fs-6">
+                          {reviewerInfo.reviewerText}
+                        </div>
+                        <div className="small text-muted mt-1">
+                          Thời gian phản hồi: <strong>{reviewerInfo.reviewedAtText}</strong>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Content / Reason */}
+                  <div className="mb-3">
+                    <label className="text-muted small fw-semibold d-block mb-1">
+                      <i className="bi bi-card-text me-1" /> Nội dung chi tiết &amp; Lý do đề xuất:
+                    </label>
+                    <div className="p-3 bg-light rounded border text-secondary" style={{ whiteSpace: "pre-line", minHeight: "70px" }}>
+                      {content}
+                    </div>
+                  </div>
+
+                  {/* Review Notes from Center Manager */}
+                  {reviewerInfo.reviewNotes ? (
+                    <div className="mb-3">
+                      <label className="text-muted small fw-semibold d-block mb-1">
+                        <i className="bi bi-chat-left-quote-fill text-warning me-1" /> Ý kiến / Phản hồi từ Center Manager:
+                      </label>
+                      <div
+                        className="p-3 bg-warning-subtle text-dark rounded border border-warning"
+                        style={{ whiteSpace: "pre-line" }}
+                      >
+                        {reviewerInfo.reviewNotes}
+                      </div>
+                    </div>
+                  ) : reviewerInfo.isReviewed ? (
+                    <div className="mb-3">
+                      <div className="p-2 bg-light text-muted small rounded border text-center">
+                        <i className="bi bi-info-circle me-1" />
+                        Giám đốc đã {normalizedStatus === "approved" ? "phê duyệt" : "từ chối"} đơn này mà không để lại ghi chú thêm.
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              </div>
-              <div className="modal-footer bg-light">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedRequest(null)}>
-                  Đóng
-                </button>
+                <div className="modal-footer bg-light d-flex justify-content-between">
+                  <Link
+                    to="/admin-staff/approval-requests"
+                    className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"
+                    onClick={() => setSelectedRequest(null)}
+                  >
+                    <i className="bi bi-box-arrow-up-right" /> Mở trang quản lý đơn
+                  </Link>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedRequest(null)}>
+                    Đóng
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </>
   );
 }
