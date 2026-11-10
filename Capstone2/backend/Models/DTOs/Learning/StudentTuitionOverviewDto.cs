@@ -44,6 +44,7 @@ namespace EduTrack.API.Models.DTOs.Learning
         public int StudentId { get; set; } = 6;
         public int ParentId { get; set; } = 9;
         public string PaymentMethod { get; set; } = "bank_transfer";
+        public string? TransactionCode { get; set; }
         public List<int>? InvoiceIds { get; set; }
     }
 }

@@ -263,7 +263,7 @@
   padding:0
 }
 .ntf-page .ntf-tabs { border-bottom:1px solid #e1e5ed; padding:0 0 14px; margin-top:8px }
-.student-scope .ntf-page { padding:24px; min-width:0 }
+.student-scope .ntf-page { padding:24px; min-width:0; flex:1; overflow-y:auto }
 .ntf-page .ntf-identity { display:grid; gap:8px; max-width:480px; margin-bottom:20px }
 .ntf-page .ntf-toolbar { padding:16px; background:#fff; border:1px solid #e1e5ed; border-radius:8px; align-items:center }
 .ntf-page .ntf-layout { align-items:start }

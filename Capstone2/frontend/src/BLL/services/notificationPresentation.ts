@@ -9,7 +9,9 @@ export const notificationRoles = {
 // Audience label only: a Student send expands linked guardians at the backend.
 // Account/search labels continue to describe the user's actual role.
 export const notificationRecipientRoles = {
-  ...notificationRoles, student: 'Học viên / Phụ huynh (Student / Parent)',
+  ...notificationRoles,
+  student: 'Học viên / Phụ huynh (Student / Parent)',
+  parent: 'Phụ huynh (Parent)',
 };
 export const studentParentNotificationHint = 'Thông báo gửi đến học viên cũng được gửi cho phụ huynh liên kết.';
 export const notificationScopes = { all: 'Toàn trung tâm', role: 'Theo vai trò', class: 'Theo lớp', user: 'Cá nhân' };

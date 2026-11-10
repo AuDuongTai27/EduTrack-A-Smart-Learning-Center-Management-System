@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { PaymentMethodCard } from './components/PaymentMethodCard';
 
 interface TuitionPaymentModalProps {
   isOpen: boolean;
@@ -7,7 +6,7 @@ interface TuitionPaymentModalProps {
   studentName?: string;
   period?: string;
   totalAmountText?: string;
-  onConfirmPayment?: (method: 'qr' | 'momo' | 'atm' | 'visa') => Promise<void> | void;
+  onConfirmPayment?: (transactionCode?: string) => Promise<void> | void;
 }
 
 export function TuitionPaymentModal({
@@ -15,22 +14,23 @@ export function TuitionPaymentModal({
   onClose,
   studentName = 'Lê Văn An',
   period = 'Kỳ tháng 10 / 2026',
-  totalAmountText = '2.900.000 đ',
+  totalAmountText = '0 đ',
   onConfirmPayment,
 }: TuitionPaymentModalProps) {
-  const [selectedMethod, setSelectedMethod] = useState<'qr' | 'momo' | 'atm' | 'visa'>('qr');
+  const [transactionCode, setTransactionCode] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   if (!isOpen) return null;
+
+  const transferNote = `EDUTRACK HP ${studentName.toUpperCase()}`;
 
   const handleConfirm = async () => {
     setIsProcessing(true);
     try {
       if (onConfirmPayment) {
-        await onConfirmPayment(selectedMethod);
-      } else {
-        alert(`🎉 Thanh toán thành công ${totalAmountText}! Hóa đơn điện tử đã được ghi nhận.`);
+        await onConfirmPayment(transactionCode.trim() || undefined);
       }
+      setTransactionCode('');
       onClose();
     } finally {
       setIsProcessing(false);
@@ -58,7 +58,7 @@ export function TuitionPaymentModal({
             <div className="modal-header payment-modal-header border-0">
               <div>
                 <h5 className="modal-title fw-bold" id="paymentModalLabel">
-                  Thanh toán học phí trực tuyến
+                  Chuyển khoản thanh toán học phí
                 </h5>
                 <p className="mb-0 text-white-50 small">
                   {period} &middot; Học sinh {studentName}
@@ -72,54 +72,54 @@ export function TuitionPaymentModal({
               ></button>
             </div>
             <div className="modal-body p-4">
-              <div className="p-3 bg-light rounded-3 mb-3 d-flex justify-content-between align-items-center">
-                <span className="text-muted small">Tổng số tiền thanh toán:</span>
+              <div className="p-3 bg-light rounded-3 mb-3 d-flex justify-content-between align-items-center border">
+                <span className="text-muted small fw-semibold">Tổng số tiền thanh toán:</span>
                 <span className="fs-4 fw-extrabold text-primary">{totalAmountText}</span>
               </div>
 
-              <label className="form-label small fw-bold text-uppercase text-muted mb-2">
-                Chọn phương thức thanh toán:
-              </label>
+              <div className="p-3 rounded-3 border border-primary-subtle bg-primary-subtle bg-opacity-25 mb-3">
+                <div className="d-flex align-items-center gap-2 mb-2 text-primary fw-bold small text-uppercase">
+                  <i className="bi bi-bank2 fs-6" />
+                  <span>Thông tin tài khoản nhận học phí Trung tâm</span>
+                </div>
+                <div className="small d-grid gap-2 text-dark">
+                  <div className="d-flex justify-content-between gap-2">
+                    <span className="text-muted">Ngân hàng:</span>
+                    <strong className="text-end">Vietcombank (CN TP.HCM)</strong>
+                  </div>
+                  <div className="d-flex justify-content-between gap-2">
+                    <span className="text-muted">Số tài khoản:</span>
+                    <strong className="font-monospace text-primary">1029 3847 56</strong>
+                  </div>
+                  <div className="d-flex justify-content-between gap-2">
+                    <span className="text-muted">Chủ tài khoản:</span>
+                    <strong className="text-end">TRUNG TAM DAO TAO EDUTRACK</strong>
+                  </div>
+                  <div className="d-flex justify-content-between gap-2">
+                    <span className="text-muted">Nội dung CK:</span>
+                    <strong className="font-monospace text-end">{transferNote}</strong>
+                  </div>
+                </div>
+              </div>
 
-              <PaymentMethodCard
-                methodId="qr"
-                isSelected={selectedMethod === 'qr'}
-                onSelect={() => setSelectedMethod('qr')}
-                icon="bi-qr-code-scan"
-                iconColor="text-primary"
-                title="Chuyển khoản qua mã VietQR"
-                description="Quét mã QR bằng ứng dụng ngân hàng bất kỳ"
-              />
-
-              <PaymentMethodCard
-                methodId="momo"
-                isSelected={selectedMethod === 'momo'}
-                onSelect={() => setSelectedMethod('momo')}
-                icon="bi-wallet-fill"
-                iconColor="text-danger"
-                title="Ví điện tử MoMo / ZaloPay"
-                description="Thanh toán nhanh qua ví điện tử liên kết"
-              />
-
-              <PaymentMethodCard
-                methodId="atm"
-                isSelected={selectedMethod === 'atm'}
-                onSelect={() => setSelectedMethod('atm')}
-                icon="bi-credit-card-2-front-fill"
-                iconColor="text-info"
-                title="Thẻ ATM nội địa / VNPAY-QR"
-                description="Hỗ trợ tất cả ngân hàng nội địa Việt Nam"
-              />
-
-              <PaymentMethodCard
-                methodId="visa"
-                isSelected={selectedMethod === 'visa'}
-                onSelect={() => setSelectedMethod('visa')}
-                icon="bi-credit-card-fill"
-                iconColor="text-warning"
-                title="Thẻ quốc tế (Visa / MasterCard / JCB)"
-                description="Thanh toán quốc tế bảo mật 3D-Secure"
-              />
+              <div className="mb-2">
+                <label htmlFor="txCodeInput" className="form-label small fw-bold text-dark mb-1">
+                  Mã giao dịch ngân hàng (Tùy chọn)
+                </label>
+                <input
+                  id="txCodeInput"
+                  type="text"
+                  className="form-control"
+                  placeholder="VD: FT26314981234 (Để trống hệ thống sẽ tự cấp mã tham chiếu)"
+                  value={transactionCode}
+                  onChange={(e) => setTransactionCode(e.target.value)}
+                  maxLength={80}
+                  disabled={isProcessing}
+                />
+                <small className="text-muted d-block mt-1">
+                  Khoản thanh toán sẽ được ghi nhận trực tiếp vào hóa đơn và lịch sử giao dịch trên hệ thống.
+                </small>
+              </div>
             </div>
 
             <div className="modal-footer border-0 bg-light p-3">
@@ -138,7 +138,7 @@ export function TuitionPaymentModal({
                 disabled={isProcessing}
               >
                 {isProcessing && <span className="spinner-border spinner-border-sm"></span>}
-                <span>{isProcessing ? 'Đang xử lý...' : 'Xác nhận thanh toán'}</span>
+                <span>{isProcessing ? 'Đang ghi nhận...' : 'Xác nhận đã chuyển khoản'}</span>
               </button>
             </div>
           </div>
