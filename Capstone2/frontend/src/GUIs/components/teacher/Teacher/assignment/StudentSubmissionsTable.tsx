@@ -167,13 +167,14 @@ function StudentSubmissionsTable({
             <tbody>
               {filteredSubmissions.length > 0 ? (
                 filteredSubmissions.map((sub: any, idx: number) => {
-                  const fileName = sub.fileUrl ? sub.fileUrl.split("/").pop() : `submission_${sub.studentCode || idx + 1}.pdf`;
-                  const dateStr = sub.submittedAtFormatted || (sub.submittedAt
-                    ? new Date(sub.submittedAt).toLocaleString()
-                    : "10 Aug 2026, 03:45 PM");
+                  const hasSubmitted = Boolean(sub.fileUrl && sub.fileUrl !== "#" && sub.submissionId && sub.submissionId > 0);
+                  const fileName = hasSubmitted && sub.fileUrl ? sub.fileUrl.split("/").pop() : "";
+                  const dateStr = hasSubmitted
+                    ? (sub.submittedAtFormatted || (sub.submittedAt ? new Date(sub.submittedAt).toLocaleString() : ""))
+                    : "";
 
                   return (
-                    <tr key={sub.submissionId || idx}>
+                    <tr key={sub.submissionId || sub.studentId || idx}>
                       <td>
                         <div className={`ta-avatar-initials avatar-initials-sm ${getAvatarClass(idx)}`}>
                           {getInitials(sub.studentName)}
@@ -186,26 +187,38 @@ function StudentSubmissionsTable({
                         )}
                       </td>
                       <td>
-                        <a
-                          href={sub.fileUrl || "#"}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1"
-                        >
-                          <i className="bi bi-file-earmark-pdf-fill text-danger fs-6" />
-                          {fileName}
-                        </a>
-                      </td>
-                      <td>
-                        <span className="text-dark fw-medium">{dateStr}</span>
-                      </td>
-                      <td>
-                        {sub.score !== null && sub.score !== undefined ? (
-                          <span className="badge bg-success-subtle text-success fs-6 fw-bold px-2.5 py-1">
-                            {sub.score} / 10
-                          </span>
+                        {hasSubmitted ? (
+                          <a
+                            href={sub.fileUrl || "#"}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-decoration-none fw-medium text-dark d-inline-flex align-items-center gap-1"
+                          >
+                            <i className="bi bi-file-earmark-pdf-fill text-danger fs-6" />
+                            {fileName}
+                          </a>
                         ) : (
-                          <span className="badge bg-secondary-subtle text-secondary fw-normal">Ungraded</span>
+                          <span className="text-muted small fst-italic">Chưa nộp bài</span>
+                        )}
+                      </td>
+                      <td>
+                        {hasSubmitted ? (
+                          <span className="text-dark fw-medium">{dateStr}</span>
+                        ) : (
+                          <span className="text-muted small">—</span>
+                        )}
+                      </td>
+                      <td>
+                        {hasSubmitted ? (
+                          sub.score !== null && sub.score !== undefined ? (
+                            <span className="badge bg-success-subtle text-success fs-6 fw-bold px-2.5 py-1">
+                              {sub.score} / 10
+                            </span>
+                          ) : (
+                            <span className="badge bg-warning-subtle text-warning fw-normal">Chờ chấm</span>
+                          )
+                        ) : (
+                          <span className="badge bg-secondary-subtle text-secondary fw-normal">Chưa nộp</span>
                         )}
                       </td>
                       <td>
@@ -215,18 +228,24 @@ function StudentSubmissionsTable({
                             {sub.feedback}
                           </span>
                         ) : (
-                          <span className="text-muted small">-</span>
+                          <span className="text-muted small">—</span>
                         )}
                       </td>
                       <td className="text-end">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                          onClick={() => openGradeModal(sub)}
-                        >
-                          <i className="bi bi-pencil-square" />
-                          {sub.score !== null && sub.score !== undefined ? "Update Grade" : "Grade"}
-                        </button>
+                        {hasSubmitted ? (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                            onClick={() => openGradeModal(sub)}
+                          >
+                            <i className="bi bi-pencil-square" />
+                            {sub.score !== null && sub.score !== undefined ? "Update Grade" : "Grade"}
+                          </button>
+                        ) : (
+                          <span className="badge bg-light text-muted border px-2 py-1 small fw-normal">
+                            Chưa có bài
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

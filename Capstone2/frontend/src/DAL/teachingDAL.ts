@@ -1005,7 +1005,7 @@ export const teachingDAL = {
   async getAssignmentSubmissions(id: number): Promise<TeachingSubmissionItemDto[]> {
     try {
       const list = await teachingApi.getAssignmentSubmissions(id);
-      if (list && Array.isArray(list) && list.length > 0) {
+      if (list && Array.isArray(list)) {
         return list;
       }
     } catch (err: any) {
@@ -1014,52 +1014,43 @@ export const teachingDAL = {
 
     return [
       {
-        submissionId: 1,
+        submissionId: 0,
         assignmentId: id,
         studentId: 6,
         studentName: 'Lê Văn An',
         studentCode: 'STU001',
-        fileUrl: '/uploads/submissions/an_le_hw01.pdf',
-        submittedAt: '2026-08-10T15:45:00',
-        submittedAtFormatted: '10/08/2026 15:45',
-        score: 9.5,
-        feedback: 'Bài làm rất tốt, cách giải ngắn gọn và chuẩn xác.',
-        aiScore: 9.2,
-        status: 'graded',
-        gradedBy: 3,
-        graderName: 'ThS. Hoàng Quốc Việt',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Chưa nộp bài',
+        score: null,
+        feedback: null,
+        status: 'not_submitted',
       },
       {
-        submissionId: 2,
+        submissionId: 0,
         assignmentId: id,
         studentId: 7,
         studentName: 'Phạm Thị Bích',
         studentCode: 'STU002',
-        fileUrl: '/uploads/submissions/bich_pham_hw01.pdf',
-        submittedAt: '2026-08-11T09:15:00',
-        submittedAtFormatted: '11/08/2026 09:15',
-        score: 8.0,
-        feedback: 'Cần lưu ý thêm phần trình bày biểu đồ.',
-        aiScore: 8.0,
-        status: 'graded',
-        gradedBy: 3,
-        graderName: 'ThS. Hoàng Quốc Việt',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Chưa nộp bài',
+        score: null,
+        feedback: null,
+        status: 'not_submitted',
       },
       {
-        submissionId: 3,
+        submissionId: 0,
         assignmentId: id,
         studentId: 8,
         studentName: 'Đặng Minh Cường',
         studentCode: 'STU003',
-        fileUrl: '/uploads/submissions/cuong_dang_hw01.pdf',
-        submittedAt: '2026-08-11T11:20:00',
-        submittedAtFormatted: '11/08/2026 11:20',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Chưa nộp bài',
         score: null,
         feedback: null,
-        aiScore: null,
-        status: 'submitted',
-        gradedBy: null,
-        graderName: null,
+        status: 'not_submitted',
       },
     ];
   },

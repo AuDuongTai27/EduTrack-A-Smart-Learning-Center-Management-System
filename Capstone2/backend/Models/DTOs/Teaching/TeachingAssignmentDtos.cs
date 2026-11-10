@@ -67,6 +67,7 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public int StudentId { get; set; }
         public string StudentName { get; set; } = string.Empty;
         public string StudentCode { get; set; } = string.Empty;
+        public string? StudentAvatarUrl { get; set; }
         public string? FileUrl { get; set; }
         public string SubmittedAt { get; set; } = string.Empty;
         public string SubmittedAtFormatted { get; set; } = string.Empty;
