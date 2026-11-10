@@ -64,12 +64,45 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
   return (
     <>
       <PageHeader
-        title="Quản lý Lịch học theo Lớp"
+        title={selectedClass ? `Lịch Học · ${selectedClass.className}` : 'Quản lý Lịch học theo Lớp'}
         breadcrumbItems={[
           { label: role === 'center-manager' ? 'Center Manager' : 'Admin Staff', path: `/${role}/dashboard` },
           { label: 'Lịch học trung tâm' },
           ...(selectedClass ? [{ label: selectedClass.className }] : []),
         ]}
+        action={
+          selectedClass ? (
+            <div className="d-flex flex-wrap align-items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary fw-semibold d-inline-flex align-items-center gap-1 shadow-xs"
+                onClick={() => setSelectedClassId(null)}
+              >
+                <i className="bi bi-arrow-left" />
+                Về danh sách lớp
+              </button>
+              <div className="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded-3 border shadow-xs">
+                <label className="small text-muted text-nowrap mb-0 fw-semibold" htmlFor="quickClassSwitch">
+                  <i className="bi bi-arrow-left-right text-primary me-1" />
+                  Đổi nhanh lớp:
+                </label>
+                <select
+                  id="quickClassSwitch"
+                  className="form-select form-select-sm border-0 bg-transparent fw-semibold"
+                  style={{ width: 'auto', minWidth: 210 }}
+                  value={selectedClass.classId}
+                  onChange={(e) => setSelectedClassId(Number(e.target.value))}
+                >
+                  {classes.map((c) => (
+                    <option key={c.classId} value={c.classId}>
+                      #{c.classId} · {c.className}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : undefined
+        }
       />
 
       {loading && !capabilities ? (
@@ -223,49 +256,14 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
           )}
         </section>
       ) : (
-        /* BƯỚC 2: ĐÃ CHỌN LỚP -> CHỈ GIỮ VỀ DANH SÁCH LỚP VÀ ĐỔI NHANH LỚP */
-        <>
-          <div className="bg-white rounded-4 border shadow-sm p-3 mb-3">
-            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-secondary fw-semibold d-inline-flex align-items-center gap-1"
-                onClick={() => setSelectedClassId(null)}
-              >
-                <i className="bi bi-arrow-left" />
-                Về danh sách lớp
-              </button>
-
-              <div className="d-flex align-items-center gap-2">
-                <label className="small text-muted text-nowrap mb-0 fw-semibold" htmlFor="quickClassSwitch">
-                  <i className="bi bi-arrow-left-right text-primary me-1" />
-                  Đổi nhanh lớp:
-                </label>
-                <select
-                  id="quickClassSwitch"
-                  className="form-select form-select-sm"
-                  style={{ width: 'auto', minWidth: 230 }}
-                  value={selectedClass.classId}
-                  onChange={(e) => setSelectedClassId(Number(e.target.value))}
-                >
-                  {classes.map((c) => (
-                    <option key={c.classId} value={c.classId}>
-                      #{c.classId} · {c.className}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <ScheduleWorkspace
-            key={`${role}:${selectedClass.classId}`}
-            role={role}
-            lockedClassId={selectedClass.classId}
-            defaultRoom={selectedClass.room}
-            onSessionMutated={() => setReload((r) => r + 1)}
-          />
-        </>
+        /* BƯỚC 2: ĐÃ CHỌN LỚP -> HIỂN THỊ TRỰC TIẾP LỊCH HỌC (NÚT VỀ DS LỚP & ĐỔI NHANH LỚP ĐẶT TRÊN HEADER) */
+        <ScheduleWorkspace
+          key={`${role}:${selectedClass.classId}`}
+          role={role}
+          lockedClassId={selectedClass.classId}
+          defaultRoom={selectedClass.room}
+          onSessionMutated={() => setReload((r) => r + 1)}
+        />
       )}
     </>
   );
