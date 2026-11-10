@@ -88,6 +88,50 @@ export function getMyRequests(requests: ApprovalRequestDto[], userId: number) {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.requestId - a.requestId);
 }
 
+export const REQUEST_TYPE_LABELS: Record<string, string> = {
+  tuition_adjustment: "Điều chỉnh học phí",
+  refund_request: "Yêu cầu hoàn phí",
+  due_date_extension: "Gia hạn hạn nộp",
+  student_information_change: "Thay đổi thông tin HV",
+  class_transfer: "Chuyển lớp học",
+  academic_support: "Hỗ trợ học vụ",
+  leave_request: "Đơn xin nghỉ",
+  feedback: "Ý kiến / Phản hồi",
+  other: "Yêu cầu khác",
+};
+
+export function formatRequestType(type?: string | null): string {
+  if (!type) return "Khác";
+  const key = normalize(type);
+  return REQUEST_TYPE_LABELS[key] || type;
+}
+
+export function getRequestContent(request: { description?: string | null; reason?: string | null }): string {
+  const desc = (request.description || "").trim();
+  const reason = (request.reason || "").trim();
+  if (desc && reason && desc !== reason) {
+    return `${desc}\n\nLý do: ${reason}`;
+  }
+  return desc || reason || "Không có nội dung thêm.";
+}
+
+export function getReviewerDisplayInfo(request: ApprovalRequestDto): {
+  reviewerText: string;
+  isReviewed: boolean;
+  reviewedAtText: string;
+  reviewNotes: string | null;
+} {
+  const status = normalize(request.status);
+  const isReviewed = status === "approved" || status === "rejected";
+  const reviewerText = request.reviewerName?.trim()
+    || (request.reviewedBy != null ? `Người duyệt #${request.reviewedBy}` : (status === "pending" ? "Đang chờ Giám đốc duyệt" : "Chưa có"));
+  const reviewedAtText = request.reviewedAt
+    ? new Date(request.reviewedAt).toLocaleString("vi-VN", { timeZone: CENTER_TIME_ZONE })
+    : "—";
+  const reviewNotes = request.reviewNotes?.trim() || null;
+  return { reviewerText, isReviewed, reviewedAtText, reviewNotes };
+}
+
 export function getRequestStatus(request: ApprovalRequestDto): string {
   if (normalize(request.status) === "pending") {
     return request.reviewedBy == null ? "Waiting" : "Đang xem xét giải quyết";

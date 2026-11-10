@@ -150,13 +150,6 @@ export default function AdminStaffTeachingMonitoring() {
           {error} Không hiển thị dữ liệu mẫu khi API lỗi.
         </div>
       )}
-      {!error && !loading && (
-        <div className="alert alert-secondary small" role="note">
-          Số buổi là số liệu theo <strong>lớp đã phân công</strong>, không xác nhận giáo viên nào trực tiếp đứng lớp.
-          Tỷ lệ có mặt = (Present + Late) / tổng bản ghi Present, Late, Absent, Excused trong các buổi đã hoàn thành.
-          Khi chưa có bản ghi, hiển thị — thay vì tự tạo tỷ lệ.
-        </div>
-      )}
 
       <div className="card monitoring-card border-0 mb-4">
         <div className="monitoring-tabs">

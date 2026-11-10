@@ -34,8 +34,8 @@ export function ScheduleWorkspace({
   useEffect(() => {const refresh = () => refreshSchedule(); window.addEventListener('edutrack:schedule-applied', refresh);
     return () => window.removeEventListener('edutrack:schedule-applied', refresh);}, [refreshSchedule]);
   const [expanded, setExpanded] = useState(false);
-  const [managementOpen, setManagementOpen] = useState(false);
-  const [addSessionOpen, setAddSessionOpen] = useState(false);
+  const [managementModalOpen, setManagementModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const [newDate, setNewDate] = useState(() => vietnamClock().date);
   const [newStart, setNewStart] = useState('18:00');
   const [newEnd, setNewEnd] = useState('20:00');
@@ -66,6 +66,10 @@ export function ScheduleWorkspace({
       model.navigate(mondayOf(created.sessionDate));
       model.retry();
       onSessionMutated?.();
+      setTimeout(() => {
+        setAddModalOpen(false);
+        setAddNotice('');
+      }, 1200);
     } catch (err) {
       setAddError(err instanceof Error ? err.message : 'Không thể tạo buổi học mới.');
     } finally {
@@ -104,19 +108,15 @@ export function ScheduleWorkspace({
         <i className="bi bi-list-ul" /><span className="visually-hidden">List</span></button>
     </div>
   </div>;
-  const labels = {classId:'Class', subjectId:'Subject', teacherId:'Teacher', taId:'TA', room:'Room'};
-  const toolbar = <ScheduleListToolbar filters={model.filters} statuses={model.sessions.map(s => s.status)}
-    onFilter={model.updateFilter} expanded={expanded}>
-    <details className="schedule-advanced-filters"><summary>Bộ lọc khác</summary><div className="schedule-advanced-body">
-      {(Object.keys(labels) as (keyof typeof labels)[]).map(key => <label key={key}>{labels[key]}
-        <select aria-label={labels[key]} className="form-select form-select-sm" value={model.filters[key]} onChange={e => model.updateFilter(key, e.target.value)}>
-          <option value="">Tất cả</option>
-          {model.filters[key] && !options[key].some(([id]) => id === model.filters[key]) && <option value={model.filters[key]}>Đang chọn: {model.filters[key]}</option>}
-          {options[key].map(([id,label]) => <option key={id} value={id}>{label}</option>)}
-        </select></label>)}
-    </div></details>
-    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={model.clear}>Xóa bộ lọc</button>
-  </ScheduleListToolbar>;
+  const toolbar = (
+    <ScheduleListToolbar
+      filters={model.filters}
+      classOptions={options.classId}
+      onFilter={model.updateFilter}
+      onClear={model.clear}
+      expanded={expanded}
+    />
+  );
   const ListHeader = role === 'teaching-assistant' ? TaListHeader : ScheduleListHeader;
   return <>
     {renderHeader?.(actions)}
@@ -126,54 +126,134 @@ export function ScheduleWorkspace({
         {lockedClassId && (
           <button
             type="button"
-            className={'btn ' + (addSessionOpen ? 'btn-primary' : 'btn-outline-primary')}
-            onClick={() => { setAddSessionOpen(v => !v); setAddError(''); setAddNotice(''); }}
+            className="btn btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
+            onClick={() => {
+              setAddModalOpen(true);
+              setAddError('');
+              setAddNotice('');
+            }}
           >
-            <i className="bi bi-calendar-plus me-1" />
-            {addSessionOpen ? 'Đóng thêm buổi học' : 'Thêm buổi học / Học bù (Ngày bất kỳ)'}
+            <i className="bi bi-calendar-plus" />
+            Thêm buổi học / Học bù
           </button>
         )}
-        <button type="button" className="btn btn-outline-primary" aria-expanded={managementOpen}
-          onClick={() => setManagementOpen(value => !value)}>{managementOpen ? 'Đóng quản lý lịch cố định' : 'Quản lý lịch cố định & Tạo lịch theo tháng'}</button>
+        <button
+          type="button"
+          className="btn btn-outline-primary d-inline-flex align-items-center gap-1"
+          onClick={() => setManagementModalOpen(true)}
+        >
+          <i className="bi bi-gear-wide-connected" />
+          Quản lý lịch cố định &amp; Tạo lịch theo tháng
+        </button>
       </div>}
-      {addSessionOpen && ['center-manager','admin-staff'].includes(role) && lockedClassId && (
-        <div className="border rounded-4 bg-white p-3 mb-3 shadow-sm">
-          <h3 className="h6 fw-bold mb-2">
-            <i className="bi bi-plus-circle text-primary me-2" />
-            Tạo phiên học mới / Buổi học bù vào ngày bất kỳ
-          </h3>
-          <p className="small text-muted mb-3">
-            Buổi học được tạo sẽ xuất hiện ngay trên thời khóa biểu của Lớp và tự động cập nhật vào danh sách buổi Điểm danh của Giáo viên & Trợ giảng.
-          </p>
-          {addError && <div className="alert alert-danger py-2 small" role="alert">{addError}</div>}
-          {addNotice && <div className="alert alert-success py-2 small" role="status">{addNotice}</div>}
-          <form onSubmit={handleCreateDirectSession} className="row g-2 align-items-end">
-            <div className="col-12 col-md-3">
-              <label className="form-label small fw-semibold mb-1">Ngày học (bất kỳ)</label>
-              <input type="date" className="form-control form-control-sm" required value={newDate} onChange={e => setNewDate(e.target.value)} disabled={addBusy} />
+
+      {/* MODAL 1: THÊM BUỔI HỌC TRỰC TIẾP / HỌC BÙ */}
+      {addModalOpen && ['center-manager','admin-staff'].includes(role) && lockedClassId && (
+        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom">
+                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                  <i className="bi bi-calendar-plus text-primary" />
+                  Thêm Buổi Học Mới / Buổi Học Bù
+                </h5>
+                <button type="button" className="btn-close" onClick={() => setAddModalOpen(false)} />
+              </div>
+              <form onSubmit={handleCreateDirectSession}>
+                <div className="modal-body p-4">
+                  <p className="small text-muted mb-3">
+                    Buổi học được tạo sẽ xuất hiện ngay trên thời khóa biểu của Lớp và tự động cập nhật vào danh sách buổi Điểm danh của Giáo viên &amp; Trợ giảng.
+                  </p>
+                  {addError && <div className="alert alert-danger py-2 small" role="alert">{addError}</div>}
+                  {addNotice && <div className="alert alert-success py-2 small" role="status">{addNotice}</div>}
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold mb-1">Ngày học (chọn ngày bất kỳ)</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        required
+                        value={newDate}
+                        onChange={(e) => setNewDate(e.target.value)}
+                        disabled={addBusy}
+                      />
+                    </div>
+                    <div className="col-6">
+                      <label className="form-label small fw-semibold mb-1">Giờ bắt đầu</label>
+                      <input
+                        type="time"
+                        className="form-control"
+                        required
+                        value={newStart}
+                        onChange={(e) => setNewStart(e.target.value)}
+                        disabled={addBusy}
+                      />
+                    </div>
+                    <div className="col-6">
+                      <label className="form-label small fw-semibold mb-1">Giờ kết thúc</label>
+                      <input
+                        type="time"
+                        className="form-control"
+                        required
+                        value={newEnd}
+                        onChange={(e) => setNewEnd(e.target.value)}
+                        disabled={addBusy}
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold mb-1">Phòng học (tùy chọn)</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        maxLength={50}
+                        placeholder="VD: Phòng 201"
+                        value={newRoom}
+                        onChange={(e) => setNewRoom(e.target.value)}
+                        disabled={addBusy}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer bg-light d-flex justify-content-between">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setAddModalOpen(false)}
+                    disabled={addBusy}
+                  >
+                    Đóng
+                  </button>
+                  <button type="submit" className="btn btn-primary btn-sm px-4" disabled={addBusy}>
+                    {addBusy ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-1" role="status" />
+                        Đang tạo…
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-lg me-1" />
+                        Tạo buổi học
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className="col-6 col-md-2">
-              <label className="form-label small fw-semibold mb-1">Giờ bắt đầu</label>
-              <input type="time" className="form-control form-control-sm" required value={newStart} onChange={e => setNewStart(e.target.value)} disabled={addBusy} />
-            </div>
-            <div className="col-6 col-md-2">
-              <label className="form-label small fw-semibold mb-1">Giờ kết thúc</label>
-              <input type="time" className="form-control form-control-sm" required value={newEnd} onChange={e => setNewEnd(e.target.value)} disabled={addBusy} />
-            </div>
-            <div className="col-12 col-md-3">
-              <label className="form-label small fw-semibold mb-1">Phòng học</label>
-              <input type="text" className="form-control form-control-sm" maxLength={50} placeholder="VD: Room 201" value={newRoom} onChange={e => setNewRoom(e.target.value)} disabled={addBusy} />
-            </div>
-            <div className="col-12 col-md-2">
-              <button type="submit" className="btn btn-sm btn-primary w-100" disabled={addBusy}>
-                <i className="bi bi-check2 me-1" />
-                {addBusy ? 'Đang tạo…' : 'Tạo buổi học'}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
-      {managementOpen && ['center-manager','admin-staff'].includes(role) && <ScheduleManagement initialClassId={lockedClassId} onCreated={() => { model.retry(); onSessionMutated?.(); }} />}
+
+      {/* MODAL 2: QUẢN LÝ LỊCH CỐ ĐỊNH & XẾP LỊCH THEO THÁNG */}
+      {managementModalOpen && ['center-manager','admin-staff'].includes(role) && (
+        <ScheduleManagement
+          initialClassId={lockedClassId}
+          onClose={() => setManagementModalOpen(false)}
+          onCreated={() => {
+            model.retry();
+            onSessionMutated?.();
+          }}
+        />
+      )}
       <div className="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 border shadow-sm et-schedule-summary">
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">

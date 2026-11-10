@@ -10,7 +10,6 @@ import MoneyInput from "../../../components/Common/MoneyInput";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import GenerateTuitionModal from "../../../components/management/GenerateTuitionModal";
-import { useStudentGrades } from "../../../hooks/useStudentGrades";
 import { filterTuitionInvoices } from "../../../../BLL/services/tuitionFilterService";
 import classDAL from "../../../../DAL/classDAL";
 import { useTuitionData } from "../../../hooks/useTuitionData";
@@ -28,10 +27,6 @@ function receiptDateLabel(paidAt: string) {
 
 export default function TuitionManagementPage({ role }: { role: "center-manager" | "admin-staff" }) {
   const roleLabel = role === "center-manager" ? "Center Manager" : "Admin Staff";
-  const catalogue = useStudentGrades();
-  const [selectedGrade, setSelectedGrade] = useState("All");
-  const [periodMonth, setPeriodMonth] = useState("");
-  const [periodYear, setPeriodYear] = useState("");
   const [lookupRevision, setLookupRevision] = useState(0);
   const [editError, setEditError] = useState<string | null>(null);
   const [editBusy, setEditBusy] = useState(false);
@@ -95,13 +90,13 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
     classDAL.getAllClasses().then(classRes => {
       if (active) {
         setClasses(classRes.data); setLookupError(null);
-        setSelectedClass(previous => previous === "All" || selectedGrade === "All" || classRes.data.some(c => String(c.classId) === previous && String(c.gradeId) === selectedGrade) ? previous : "All");
+        setSelectedClass(previous => previous === "All" || classRes.data.some(c => String(c.classId) === previous) ? previous : "All");
       }
     }).catch(cause => { if (active) setLookupError(cause instanceof Error ? cause.message : "Không tải được lớp học."); });
     const focus = () => setLookupRevision(value => value + 1);
     window.addEventListener("focus", focus);
     return () => { active = false; window.removeEventListener("focus", focus); };
-  }, [lookupRevision, selectedGrade]);
+  }, [lookupRevision]);
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,7 +236,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
 
   // Filter & Search logic
   const filteredTuitions = useMemo(() => {
-    return filterTuitionInvoices(tuitions, classes, { grade: selectedGrade, classId: selectedClass, month: periodMonth, year: periodYear, search: searchTerm, status: selectedStatus })
+    return filterTuitionInvoices(tuitions, classes, { grade: "All", classId: selectedClass, month: "", year: "", search: searchTerm, status: selectedStatus })
       .sort((a, b) => {
         if (selectedSort === "newest") {
           return (
@@ -263,10 +258,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
         }
         return 0;
       });
-  }, [tuitions, classes, selectedGrade, periodMonth, periodYear, searchTerm, selectedClass, selectedStatus, selectedSort]);
+  }, [tuitions, classes, searchTerm, selectedClass, selectedStatus, selectedSort]);
 
   const metrics = useMemo(() => balanceReady ? calculateTuitionMetrics(filteredTuitions, payments.data!, now) : null, [filteredTuitions, payments.data, balanceReady, now]);
-  const invoiceScopeReady = invoiceReady && (selectedStatus === "All" || paymentReady) && (selectedGrade === "All" || !lookupError);
+  const invoiceScopeReady = invoiceReady && (selectedStatus === "All" || paymentReady) && !lookupError;
 
   // Paginated list
   const paginatedTuitions = useMemo(() => {
@@ -335,7 +330,6 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
       )}
 
       {lookupError && <div className="alert alert-warning mb-3" role="alert">{lookupError} <button type="button" className="btn btn-link" onClick={() => setLookupRevision(v => v + 1)}>Tải lại Class</button></div>}
-      {catalogue.error && <div className="alert alert-warning" role="alert">{catalogue.error} <button type="button" className="btn btn-link" onClick={catalogue.refresh}>Tải lại Grade</button></div>}
       {paymentDataWarning && (
         <div className="alert alert-warning" role="alert">
           <i className="bi bi-exclamation-triangle me-2" />
@@ -351,24 +345,22 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
         outstanding={metrics?.outstanding ?? null}
         overdueAmount={metrics?.overdueAmount ?? null}
         overdueCount={metrics?.overdueCount ?? null}
-        filtered={searchTerm.trim() !== "" || selectedGrade !== "All" || !!periodMonth || !!periodYear || selectedClass !== "All" || selectedStatus !== "All"}
+        filtered={searchTerm.trim() !== "" || selectedClass !== "All" || selectedStatus !== "All"}
       />
 
       {/* Tuition List */}
       <div className="card user-list-card border-0 shadow-sm">
-        {/* Filter */}
+        {/* Streamlined Filter Toolbar */}
         <div className="card-header user-list-header bg-white py-3 border-bottom">
-          <div className="row g-3 align-items-center">
-            <div className="col-md-4"><label className="form-label" htmlFor="tuition-grade-filter">Grade của Class</label><select id="tuition-grade-filter" className="form-select" value={selectedGrade} disabled={catalogue.loading} onChange={e => { setSelectedGrade(e.target.value); setSelectedClass("All"); setCurrentPage(1); }}><option value="All">All Grades</option>{catalogue.grades.map(g => <option key={g.gradeId} value={g.gradeId}>{g.gradeName}</option>)}</select></div>
-            <div className="col-md-4"><label className="form-label" htmlFor="tuition-month-filter">Kỳ thu - Tháng</label><select id="tuition-month-filter" className="form-select" value={periodMonth} onChange={e => { setPeriodMonth(e.target.value); setCurrentPage(1); }}><option value="">Tất cả tháng</option>{Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}</select></div>
-            <div className="col-md-4"><label className="form-label" htmlFor="tuition-year-filter">Kỳ thu - Năm</label><input id="tuition-year-filter" type="text" inputMode="numeric" className="form-control" placeholder="Tất cả năm" value={periodYear} onChange={e => { setPeriodYear(e.target.value); setCurrentPage(1); }} /></div>
-            <div className="col-xl-4 col-lg-6">
+          <div className="row g-2 align-items-center">
+            {/* Search */}
+            <div className="col-xl-4 col-lg-4 col-md-6 col-12">
               <div className="user-search position-relative">
                 <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
                 <input
                   type="text"
                   className="form-control ps-5"
-                  placeholder="Search by student, class, invoice code..."
+                  placeholder="Tìm theo học sinh, mã HV, mã HĐ..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -377,47 +369,59 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                 />
               </div>
             </div>
-            <div className="col-xl-3 col-lg-3 col-md-6">
+
+            {/* Class Filter */}
+            <div className="col-xl-3 col-lg-3 col-md-6 col-12">
               <select
                 className="form-select"
-                aria-label="Lọc Class"
+                aria-label="Lọc theo Lớp học"
                 value={selectedClass}
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setCurrentPage(1);
                 }}
               >
-                <option value="All">All Classes</option>
-                {classes.filter(c => selectedGrade === "All" || String(c.gradeId) === selectedGrade).map(cls => <option key={cls.classId} value={String(cls.classId)}>{cls.className}</option>)}
+                <option value="All">Tất cả lớp học ({classes.length})</option>
+                {classes.map((cls) => (
+                  <option key={cls.classId} value={String(cls.classId)}>
+                    {cls.className}
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="col-xl-2 col-lg-3 col-md-6">
+
+            {/* Status Filter */}
+            <div className="col-xl-3 col-lg-3 col-md-6 col-12">
               <select
                 className="form-select"
+                aria-label="Lọc theo Trạng thái học phí"
                 value={selectedStatus}
                 onChange={(e) => {
                   setSelectedStatus(e.target.value);
                   setCurrentPage(1);
                 }}
               >
-                <option value="All">All Statuses</option>
-                <option value="Paid">Paid</option>
-                <option value="Partially Paid">Partially Paid</option>
-                <option value="Unpaid">Unpaid</option>
-                <option value="Overdue">Overdue</option>
-                <option value="pending_adjustment">Pending adjustment</option>
+                <option value="All">Tất cả trạng thái</option>
+                <option value="Unpaid">Chưa thanh toán (Unpaid)</option>
+                <option value="Partially Paid">Thanh toán một phần</option>
+                <option value="Paid">Đã thanh toán (Paid)</option>
+                <option value="Overdue">Quá hạn (Overdue)</option>
+                <option value="pending_adjustment">Đang chờ điều chỉnh</option>
               </select>
             </div>
-            <div className="col-xl-3 col-lg-3 col-md-6">
+
+            {/* Sort */}
+            <div className="col-xl-2 col-lg-2 col-md-6 col-12">
               <select
                 className="form-select"
+                aria-label="Sắp xếp danh sách"
                 value={selectedSort}
                 onChange={(e) => setSelectedSort(e.target.value)}
               >
-                <option value="newest">Due Date: Newest First</option>
-                <option value="oldest">Due Date: Oldest First</option>
-                <option value="az">Student Name: A-Z</option>
-                <option value="za">Student Name: Z-A</option>
+                <option value="newest">Hạn đóng: Mới nhất</option>
+                <option value="oldest">Hạn đóng: Cũ nhất</option>
+                <option value="az">Tên học sinh: A → Z</option>
+                <option value="za">Tên học sinh: Z → A</option>
               </select>
             </div>
           </div>

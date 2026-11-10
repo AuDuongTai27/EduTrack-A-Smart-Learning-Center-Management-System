@@ -3,8 +3,11 @@ import test from "node:test";
 import {
   centerDateKey,
   countActiveStudents,
+  formatRequestType,
   getMyRequests,
+  getRequestContent,
   getRequestStatus,
+  getReviewerDisplayInfo,
   getSessionStatus,
   getStaffUserId,
   getTodaySessions,
@@ -124,4 +127,61 @@ test("API failure stays distinct from an empty successful response; other sectio
   assert.deepEqual(empty, { data: [], error: null });
   assert.deepEqual(failed, { data: null, error: "HTTP 503" });
   assert.equal(tuition.data.outstanding, 900_000);
+});
+
+test("request type labels map known types to Vietnamese and provide graceful fallback", () => {
+  assert.equal(formatRequestType("tuition_adjustment"), "Điều chỉnh học phí");
+  assert.equal(formatRequestType("refund_request"), "Yêu cầu hoàn phí");
+  assert.equal(formatRequestType("due_date_extension"), "Gia hạn hạn nộp");
+  assert.equal(formatRequestType("student_information_change"), "Thay đổi thông tin HV");
+  assert.equal(formatRequestType("class_transfer"), "Chuyển lớp học");
+  assert.equal(formatRequestType(null), "Khác");
+  assert.equal(formatRequestType("custom_unknown_type"), "custom_unknown_type");
+});
+
+test("request content correctly extracts description and reason without losing details", () => {
+  assert.equal(
+    getRequestContent({ description: "Gia hạn nộp phí", reason: "Phụ huynh đang đi công tác" }),
+    "Gia hạn nộp phí\n\nLý do: Phụ huynh đang đi công tác",
+  );
+  assert.equal(
+    getRequestContent({ description: "Đề xuất giảm 10%", reason: "Đề xuất giảm 10%" }),
+    "Đề xuất giảm 10%",
+  );
+  assert.equal(
+    getRequestContent({ description: null, reason: "Chuyển lớp sang ca tối" }),
+    "Chuyển lớp sang ca tối",
+  );
+  assert.equal(
+    getRequestContent({ description: "", reason: "" }),
+    "Không có nội dung thêm.",
+  );
+});
+
+test("reviewer info distinguishes pending review from completed approval with notes", () => {
+  const pendingNoReviewer = getReviewerDisplayInfo({
+    status: "pending",
+    reviewedBy: null,
+  });
+  assert.equal(pendingNoReviewer.reviewerText, "Đang chờ Giám đốc duyệt");
+  assert.equal(pendingNoReviewer.isReviewed, false);
+  assert.equal(pendingNoReviewer.reviewNotes, null);
+
+  const pendingUnderReview = getReviewerDisplayInfo({
+    status: "pending",
+    reviewedBy: 9,
+    reviewerName: "Giám đốc Trung tâm",
+  });
+  assert.equal(pendingUnderReview.reviewerText, "Giám đốc Trung tâm");
+  assert.equal(pendingUnderReview.isReviewed, false);
+
+  const approvedWithNotes = getReviewerDisplayInfo({
+    status: "approved",
+    reviewerName: "Giám đốc Nguyễn Văn B",
+    reviewedAt: "2026-11-08T10:30:00",
+    reviewNotes: "Đã duyệt miễn giảm 15% theo quy chế.",
+  });
+  assert.equal(approvedWithNotes.reviewerText, "Giám đốc Nguyễn Văn B");
+  assert.equal(approvedWithNotes.isReviewed, true);
+  assert.equal(approvedWithNotes.reviewNotes, "Đã duyệt miễn giảm 15% theo quy chế.");
 });
