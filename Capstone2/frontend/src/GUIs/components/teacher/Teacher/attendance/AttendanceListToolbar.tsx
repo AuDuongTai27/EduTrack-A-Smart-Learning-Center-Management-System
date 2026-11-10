@@ -3,6 +3,7 @@ import type {
   TeachingSessionItemDto,
   TeachingAttendanceStatsDto,
 } from "../../../../../BLL/models/teaching/TeachingAttendanceDto";
+import { isSessionStarted } from "../../../../../DAL/teachingDAL";
 
 export interface AttendanceListToolbarProps {
   sessions?: TeachingSessionItemDto[];
@@ -12,6 +13,7 @@ export interface AttendanceListToolbarProps {
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   stats?: TeachingAttendanceStatsDto;
+  canMarkAll?: boolean;
 }
 
 export function AttendanceListToolbar({
@@ -22,6 +24,7 @@ export function AttendanceListToolbar({
   searchTerm = "",
   onSearchChange,
   stats,
+  canMarkAll = true,
 }: AttendanceListToolbarProps) {
   return (
     <div className="p-3 bg-light border-bottom">
@@ -38,11 +41,14 @@ export function AttendanceListToolbar({
             value={selectedSessionId || ""}
             onChange={(e) => onSessionChange && onSessionChange(Number(e.target.value))}
           >
-            {sessions.map((s) => (
-              <option key={s.sessionId} value={s.sessionId}>
-                {s.title} {s.isRecorded ? "✓ (Đã lưu)" : ""}
-              </option>
-            ))}
+            {sessions.map((s) => {
+              const isStarted = s.hasStarted !== undefined ? s.hasStarted : (s.isRecorded || isSessionStarted(s));
+              return (
+                <option key={s.sessionId} value={s.sessionId}>
+                  {s.title} {s.isRecorded ? "✓ (Đã lưu)" : (!isStarted ? "⏳ (Chưa bắt đầu)" : "")}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -79,8 +85,9 @@ export function AttendanceListToolbar({
             <button
               type="button"
               className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1.5 shadow-sm"
-              title="Đánh dấu tất cả học sinh có mặt"
-              onClick={onMarkAllPresent}
+              title={canMarkAll ? "Đánh dấu tất cả học sinh có mặt" : "Chỉ có buổi học đã bắt đầu mới có thể điểm danh"}
+              onClick={canMarkAll ? onMarkAllPresent : undefined}
+              disabled={!canMarkAll}
             >
               <i className="bi bi-check-all fs-6" />
               <span>Tất cả có mặt</span>

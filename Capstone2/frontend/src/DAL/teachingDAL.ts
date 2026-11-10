@@ -90,42 +90,14 @@ export const teachingDAL = {
         role: isTa ? 'teaching_assistant' : 'teacher',
       },
       kpis: {
-        activeAssignments: isTa ? 10 : 8,
-        assignmentsDueToday: isTa ? 4 : 3,
-        activeClasses: 6,
-        classesToday: isTa ? 3 : 2,
-        totalStudents: isTa ? 50 : 45,
-        pendingAttendance: isTa ? 2 : 1,
+        activeAssignments: 0,
+        assignmentsDueToday: 0,
+        activeClasses: isTa ? 2 : 1,
+        classesToday: 0,
+        totalStudents: isTa ? 3 : (userId === 3 ? 3 : 2),
+        pendingAttendance: 0,
       },
-      todayClasses: isTa
-        ? [
-            {
-              classId: 1,
-              className: 'Class 9 - Advanced Mathematics',
-              timePeriod: '18:00 - 20:00',
-              startTime: '18:00',
-              endTime: '20:00',
-              room: 'Room 201',
-              subjectName: 'Mathematics',
-              studentsCount: 3,
-              status: 'Upcoming',
-              attendanceTaken: false,
-            },
-          ]
-        : [
-            {
-              classId: 1,
-              className: 'Class 9 - Advanced Mathematics',
-              timePeriod: '18:00 - 20:00',
-              startTime: '18:00',
-              endTime: '20:00',
-              room: 'Room 201',
-              subjectName: 'Mathematics',
-              studentsCount: 3,
-              status: 'Upcoming',
-              attendanceTaken: false,
-            },
-          ],
+      todayClasses: [],
       notifications: [
         {
           notificationId: 1,
@@ -1033,7 +1005,7 @@ export const teachingDAL = {
   async getAssignmentSubmissions(id: number): Promise<TeachingSubmissionItemDto[]> {
     try {
       const list = await teachingApi.getAssignmentSubmissions(id);
-      if (list && Array.isArray(list) && list.length > 0) {
+      if (list && Array.isArray(list)) {
         return list;
       }
     } catch (err: any) {
@@ -1042,52 +1014,43 @@ export const teachingDAL = {
 
     return [
       {
-        submissionId: 1,
+        submissionId: 0,
         assignmentId: id,
         studentId: 6,
         studentName: 'Lê Văn An',
         studentCode: 'STU001',
-        fileUrl: '/uploads/submissions/an_le_hw01.pdf',
-        submittedAt: '2026-08-10T15:45:00',
-        submittedAtFormatted: '10/08/2026 15:45',
-        score: 9.5,
-        feedback: 'Bài làm rất tốt, cách giải ngắn gọn và chuẩn xác.',
-        aiScore: 9.2,
-        status: 'graded',
-        gradedBy: 3,
-        graderName: 'ThS. Hoàng Quốc Việt',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Chưa nộp bài',
+        score: null,
+        feedback: null,
+        status: 'not_submitted',
       },
       {
-        submissionId: 2,
+        submissionId: 0,
         assignmentId: id,
         studentId: 7,
         studentName: 'Phạm Thị Bích',
         studentCode: 'STU002',
-        fileUrl: '/uploads/submissions/bich_pham_hw01.pdf',
-        submittedAt: '2026-08-11T09:15:00',
-        submittedAtFormatted: '11/08/2026 09:15',
-        score: 8.0,
-        feedback: 'Cần lưu ý thêm phần trình bày biểu đồ.',
-        aiScore: 8.0,
-        status: 'graded',
-        gradedBy: 3,
-        graderName: 'ThS. Hoàng Quốc Việt',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Chưa nộp bài',
+        score: null,
+        feedback: null,
+        status: 'not_submitted',
       },
       {
-        submissionId: 3,
+        submissionId: 0,
         assignmentId: id,
         studentId: 8,
         studentName: 'Đặng Minh Cường',
         studentCode: 'STU003',
-        fileUrl: '/uploads/submissions/cuong_dang_hw01.pdf',
-        submittedAt: '2026-08-11T11:20:00',
-        submittedAtFormatted: '11/08/2026 11:20',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Chưa nộp bài',
         score: null,
         feedback: null,
-        aiScore: null,
-        status: 'submitted',
-        gradedBy: null,
-        graderName: null,
+        status: 'not_submitted',
       },
     ];
   },
@@ -1254,5 +1217,48 @@ export const teachingDAL = {
     return { success: true, data: fallbackItem, isLiveApi: false };
   },
 };
+
+/**
+ * Kiểm tra xem một buổi học đã bắt đầu hay chưa (dựa theo ngày và giờ bắt đầu)
+ */
+export function isSessionStarted(session?: {
+  sessionDate?: string;
+  startTime?: string;
+  status?: string;
+  isRecorded?: boolean;
+  hasStarted?: boolean;
+}): boolean {
+  if (!session) return false;
+  if (typeof session.hasStarted === 'boolean') {
+    return session.hasStarted;
+  }
+  if (session.isRecorded || session.status === 'completed' || session.status === 'in_progress') {
+    return true;
+  }
+  if (!session.sessionDate) {
+    return true;
+  }
+
+  try {
+    let dateStr = session.sessionDate.trim();
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        dateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    const startTimeStr = session.startTime?.trim() || '00:00';
+    const [h, m] = startTimeStr.split(':').map(Number);
+    const sessionDateTime = new Date(`${dateStr}T${String(h || 0).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}:00`);
+
+    if (isNaN(sessionDateTime.getTime())) {
+      return true;
+    }
+
+    return new Date() >= sessionDateTime;
+  } catch {
+    return true;
+  }
+}
 
 export default teachingDAL;

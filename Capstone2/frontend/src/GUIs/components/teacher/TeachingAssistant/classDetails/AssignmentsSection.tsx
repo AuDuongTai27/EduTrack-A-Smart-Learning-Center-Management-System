@@ -118,37 +118,28 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       },
     ];
 
+    const getAssignmentWeek = (a: any): number => {
+      if (a.contentUnitId) {
+        if (a.contentUnitId === 1 || a.contentUnitId === 2) return 1;
+        if (a.contentUnitId === 3) return 2;
+        if (a.contentUnitId === 4) return 3;
+        if (a.contentUnitId === 5) return 4;
+      }
+      const t = (a.title || "").toLowerCase();
+      if (t.includes("tuần 4") || t.includes("week 4") || t.includes("midterm") || t.includes("test")) return 4;
+      if (t.includes("tuần 3") || t.includes("week 3") || t.includes("hw03") || t.includes("hw02") || t.includes("homework 02") || t.includes("quiz 02")) return 3;
+      if (t.includes("tuần 2") || t.includes("week 2") || t.includes("hw01b") || t.includes("quiz 01")) return 2;
+      if (t.includes("tuần 1") || t.includes("week 1") || t.includes("hw01") || t.includes("homework 01")) return 1;
+
+      return 1;
+    };
+
     return weekDefs.map((def) => {
       const weekMats = materials.filter((m) => m.weekNumber === def.weekNumber);
 
-      const weekAsgs = assignments.filter((a: any) => {
-        if (a.contentUnitId) {
-          if (def.weekNumber === 1 && (a.contentUnitId === 1 || a.contentUnitId === 2)) return true;
-          if (def.weekNumber === 2 && a.contentUnitId === 3) return true;
-          if (def.weekNumber === 3 && a.contentUnitId === 4) return true;
-          if (def.weekNumber === 4 && a.contentUnitId === 5) return true;
-        }
-        const t = (a.title || "").toLowerCase();
-        if (def.weekNumber === 1 && (t.includes("01") || t.includes("hw01") || t.includes("1"))) return true;
-        if (def.weekNumber === 2 && (t.includes("02") || t.includes("quiz01") || t.includes("2"))) return true;
-        if (def.weekNumber === 3 && (t.includes("03") || t.includes("hw02") || t.includes("3"))) return true;
-        if (def.weekNumber === 4 && (t.includes("04") || t.includes("midterm") || t.includes("test") || t.includes("4"))) return true;
-        return false;
-      });
-
-      if (def.weekNumber === 1) {
-        const unassigned = assignments.filter((a: any) => {
-          const t = (a.title || "").toLowerCase();
-          const matchesAny =
-            (a.contentUnitId && [1, 2, 3, 4, 5].includes(a.contentUnitId)) ||
-            t.includes("01") ||
-            t.includes("02") ||
-            t.includes("03") ||
-            t.includes("04");
-          return !matchesAny;
-        });
-        weekAsgs.push(...unassigned);
-      }
+      const weekAsgs = assignments
+        .filter((a: any) => getAssignmentWeek(a) === def.weekNumber)
+        .sort((a: any, b: any) => (a.assignmentId || 0) - (b.assignmentId || 0));
 
       return {
         ...def,

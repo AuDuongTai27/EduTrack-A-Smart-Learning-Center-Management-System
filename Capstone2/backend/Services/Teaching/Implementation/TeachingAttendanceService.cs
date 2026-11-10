@@ -56,6 +56,12 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 string endStr = s.EndTime.ToString(@"hh\:mm");
                 string roomStr = !string.IsNullOrWhiteSpace(s.Room) ? s.Room : "Phòng học tiêu chuẩn";
 
+                var vietnamNow = DateTime.UtcNow.AddHours(7);
+                bool isRec = sessionAtts.Count > 0;
+                bool isCompleted = s.Status == "completed" || isRec;
+                var sessionStartDateTime = s.SessionDate.Date.Add(s.StartTime);
+                bool hasStarted = isCompleted || s.Status == "in_progress" || vietnamNow >= sessionStartDateTime;
+
                 result.Add(new TeachingSessionItemDto
                 {
                     SessionId = s.SessionId,
@@ -67,12 +73,14 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     Room = roomStr,
                     Status = s.Status,
                     Title = $"Buổi {index}: {dateStr} ({startStr} - {endStr}) - {roomStr}",
-                    IsRecorded = sessionAtts.Count > 0,
+                    IsRecorded = isRec,
                     PresentCount = present,
                     AbsentCount = absent,
                     LateCount = late,
                     ExcusedCount = excused,
-                    TotalRecorded = sessionAtts.Count
+                    TotalRecorded = sessionAtts.Count,
+                    HasStarted = hasStarted,
+                    CanTakeAttendance = hasStarted
                 });
                 index++;
             }
@@ -202,6 +210,15 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 throw new InvalidOperationException($"Không tìm thấy buổi học ID = {request.SessionId} thuộc lớp #{request.ClassId}");
             }
 
+            var vietnamNow = DateTime.UtcNow.AddHours(7);
+            var sessionStartDateTime = session.SessionDate.Date.Add(session.StartTime);
+            bool hasStarted = session.Status == "completed" || session.Status == "in_progress" || vietnamNow >= sessionStartDateTime;
+
+            if (!hasStarted)
+            {
+                throw new InvalidOperationException("Chỉ có buổi học đã bắt đầu mới có thể điểm danh.");
+            }
+
             var existingRecords = await _context.Attendances
                 .Where(a => a.SessionId == request.SessionId)
                 .ToListAsync();
@@ -285,61 +302,51 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
         private async Task<List<ClassSession>> EnsureDefaultSessionsCreatedAsync(int classId)
         {
-            var cls = await _context.Classes.FindAsync(classId);
+            var cls = await _context.Classes
+                .Include(c => c.ClassSchedules)
+                    .ThenInclude(cs => cs.Versions)
+                .FirstOrDefaultAsync(c => c.ClassId == classId);
+
             DateTime startDate = cls?.StartDate ?? DateTime.UtcNow.Date.AddDays(-7);
             string room = cls?.Room ?? "Room 201";
 
-            var defaultSessions = new List<ClassSession>
-            {
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate,
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "completed"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(2),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "completed"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(7),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "scheduled"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(9),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "scheduled"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(14),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "scheduled"
-                }
-            };
+            var schedule = cls?.ClassSchedules.FirstOrDefault();
+            var scheduleVersion = schedule?.Versions.FirstOrDefault();
 
-            _context.ClassSessions.AddRange(defaultSessions);
-            await _context.SaveChangesAsync();
+            if (schedule == null || scheduleVersion == null)
+            {
+                return new List<ClassSession>();
+            }
+
+            var defaultSessions = new List<ClassSession>();
+            for (int i = 0; i < 5; i++)
+            {
+                var sDate = startDate.AddDays(i * 3);
+                var targetDay = DateOnly.FromDateTime(sDate);
+                var targetWeek = targetDay.AddDays(-(((int)targetDay.DayOfWeek + 6) % 7));
+
+                bool exists = await _context.ClassSessions.AnyAsync(s => s.ScheduleId == schedule.ScheduleId && s.OccurrenceWeekStart == targetWeek);
+                if (exists) continue;
+
+                defaultSessions.Add(new ClassSession
+                {
+                    ClassId = classId,
+                    ScheduleId = schedule.ScheduleId,
+                    ScheduleVersionId = scheduleVersion.ScheduleVersionId,
+                    PlannedOccurrenceDate = targetDay,
+                    SessionDate = sDate,
+                    StartTime = scheduleVersion.StartTime,
+                    EndTime = scheduleVersion.EndTime,
+                    Room = room,
+                    Status = i < 2 ? "completed" : "scheduled"
+                });
+            }
+
+            if (defaultSessions.Count > 0)
+            {
+                _context.ClassSessions.AddRange(defaultSessions);
+                await _context.SaveChangesAsync();
+            }
             return defaultSessions;
         }
 

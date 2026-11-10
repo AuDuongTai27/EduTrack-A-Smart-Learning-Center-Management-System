@@ -16,12 +16,12 @@ export interface TeacherKpiCardsProps {
 }
 
 export function TeacherKpiCards({
-  activeAssignments = 8,
-  assignmentsDueToday = 3,
-  activeClasses = 6,
-  classesToday = 2,
-  totalStudents = 45,
-  pendingAttendance = 1,
+  activeAssignments = 0,
+  assignmentsDueToday = 0,
+  activeClasses = 0,
+  classesToday = 0,
+  totalStudents = 0,
+  pendingAttendance = 0,
 }: TeacherKpiCardsProps) {
   return (
     <div className="dashboard-kpis teacher-kpis mb-4">
