@@ -1013,180 +1013,38 @@ namespace EduTrack.API.Services.Learning.Implementation
             return MapApprovalRequestToFeedbackDto(entity, request.UserId);
         }
 
-        public async Task<List<LearnerNotificationItemDto>> GetStudentNotificationsAsync(int studentId)
+        public Task<List<LearnerNotificationItemDto>> GetStudentNotificationsAsync(int studentId)
+            => GetRecipientNotificationsAsync(studentId);
+
+        public Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
+            // Parent Inbox belongs to the account, independently of the selected child.
+            => GetRecipientNotificationsAsync(parentId);
+
+        private async Task<List<LearnerNotificationItemDto>> GetRecipientNotificationsAsync(int userId)
         {
-            await EnsureLearnerNotificationsAsync(studentId, studentId);
-
-            var enrolledClassIds = await _context.StudentClasses
-                .AsNoTracking()
-                .Where(sc => sc.StudentId == studentId && sc.Status != "dropped")
-                .Select(sc => sc.ClassId)
+            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId);
+            var notifications = await _context.Notifications.AsNoTracking()
+                .Where(n => n.Recipients.Any(r => r.UserId == userId && r.DeletedAt == null))
+                .Include(n => n.Class).Include(n => n.User)
+                .Include(n => n.Recipients.Where(r => r.UserId == userId && r.DeletedAt == null))
+                .AsSplitQuery().OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.NotificationId)
                 .ToListAsync();
-
-            var notifications = await _context.Notifications
-                .AsNoTracking()
-                .Include(n => n.Class)
-                .Include(n => n.User)
-                .Include(n => n.Recipients)
-                .Where(n =>
-                    n.UserId == studentId ||
-                    n.Recipients.Any(r => r.UserId == studentId && r.DeletedAt == null) ||
-                    (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null && (n.TargetScope == null || n.TargetScope != "user") && (n.TargetRole == null || n.TargetRole == "student" || n.TargetRole == "all")))
-                .OrderByDescending(n => n.CreatedAt)
-                .ThenByDescending(n => n.NotificationId)
-                .ToListAsync();
-
-            return notifications.Select(n => MapNotificationToLearnerDto(n, studentId)).ToList();
-        }
-
-        public async Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
-        {
-            List<int> childIds;
-            if (studentId.HasValue && studentId.Value > 0)
-            {
-                childIds = new List<int> { studentId.Value };
-            }
-            else
-            {
-                childIds = await _context.ParentStudents
-                    .AsNoTracking()
-                    .Where(ps => ps.ParentId == parentId)
-                    .Select(ps => ps.StudentId)
-                    .ToListAsync();
-
-                if (childIds.Count == 0)
-                {
-                    childIds.Add(6);
-                }
-            }
-
-            int primaryStudentId = childIds.First();
-            await EnsureLearnerNotificationsAsync(parentId, primaryStudentId);
-
-            var enrolledClassIds = await _context.StudentClasses
-                .AsNoTracking()
-                .Where(sc => childIds.Contains(sc.StudentId) && sc.Status != "dropped")
-                .Select(sc => sc.ClassId)
-                .Distinct()
-                .ToListAsync();
-
-            var notifications = await _context.Notifications
-                .AsNoTracking()
-                .Include(n => n.Class)
-                .Include(n => n.User)
-                .Include(n => n.Recipients)
-                .Where(n =>
-                    n.UserId == parentId ||
-                    (n.UserId.HasValue && childIds.Contains(n.UserId.Value)) ||
-                    n.Recipients.Any(r => r.UserId == parentId && r.DeletedAt == null) ||
-                    (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null && (n.TargetScope == null || n.TargetScope != "user") && (n.TargetRole == null || n.TargetRole == "parent" || n.TargetRole == "all")))
-                .OrderByDescending(n => n.CreatedAt)
-                .ThenByDescending(n => n.NotificationId)
-                .ToListAsync();
-
-            return notifications.Select(n => MapNotificationToLearnerDto(n, parentId)).ToList();
+            return notifications.Select(n => MapNotificationToLearnerDto(n, userId)).ToList();
         }
 
         public async Task<bool> MarkNotificationAsReadAsync(int notificationId, int? userId = null)
         {
-            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == notificationId);
-            if (notif == null)
-            {
-                return false;
-            }
-
-            if (userId.HasValue && userId.Value > 0)
-            {
-                int uid = userId.Value;
-                var recipient = await _context.NotificationRecipients
-                    .FirstOrDefaultAsync(r => r.NotificationId == notificationId && r.UserId == uid);
-
-                if (recipient == null)
-                {
-                    await _context.NotificationRecipients.AddAsync(new NotificationRecipient
-                    {
-                        NotificationId = notificationId,
-                        UserId = uid,
-                        IsRead = true,
-                        ReadAt = DateTime.UtcNow
-                    });
-                }
-                else
-                {
-                    recipient.IsRead = true;
-                    recipient.ReadAt = DateTime.UtcNow;
-                }
-
-                if (notif.UserId == uid)
-                {
-                    notif.IsRead = true;
-                }
-            }
-            else
-            {
-                notif.IsRead = true;
-            }
-
-            await _context.SaveChangesAsync();
-            return true;
+            if (userId is not > 0) return false;
+            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId.Value);
+            return await new EduTrack.API.Repositories.Implementation.NotificationRepository(_context)
+                .MarkReadAsync(notificationId, userId.Value);
         }
 
         public async Task<int> MarkAllNotificationsAsReadAsync(int userId, int? studentId = null)
         {
-            List<int> targetUserIds = new List<int> { userId };
-            if (studentId.HasValue && studentId.Value > 0 && !targetUserIds.Contains(studentId.Value))
-            {
-                targetUserIds.Add(studentId.Value);
-            }
-
-            var enrolledClassIds = await _context.StudentClasses
-                .AsNoTracking()
-                .Where(sc => targetUserIds.Contains(sc.StudentId) && sc.Status != "dropped")
-                .Select(sc => sc.ClassId)
-                .Distinct()
-                .ToListAsync();
-
-            var visibleNotifs = await _context.Notifications
-                .Include(n => n.Recipients)
-                .Where(n =>
-                    (n.UserId.HasValue && targetUserIds.Contains(n.UserId.Value)) ||
-                    n.Recipients.Any(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null) ||
-                    (n.UserId == null && n.ClassId.HasValue && enrolledClassIds.Contains(n.ClassId.Value)) ||
-                    (n.UserId == null && n.ClassId == null && (n.TargetScope == null || n.TargetScope != "user") && (n.TargetRole == null || n.TargetRole == "student" || n.TargetRole == "parent" || n.TargetRole == "all")))
-                .ToListAsync();
-
-            int updatedCount = 0;
-            foreach (var n in visibleNotifs)
-            {
-                var recipient = n.Recipients.FirstOrDefault(r => r.UserId == userId);
-                if (recipient == null)
-                {
-                    await _context.NotificationRecipients.AddAsync(new NotificationRecipient
-                    {
-                        NotificationId = n.NotificationId,
-                        UserId = userId,
-                        IsRead = true,
-                        ReadAt = DateTime.UtcNow
-                    });
-                    updatedCount++;
-                }
-                else if (!recipient.IsRead)
-                {
-                    recipient.IsRead = true;
-                    recipient.ReadAt = DateTime.UtcNow;
-                    updatedCount++;
-                }
-
-                if (n.UserId == userId && !n.IsRead)
-                {
-                    n.IsRead = true;
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return updatedCount;
+            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId);
+            return await _context.NotificationRecipients.Where(r => r.UserId == userId && r.DeletedAt == null && !r.IsRead)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsRead, true).SetProperty(r => r.ReadAt, DateTime.UtcNow));
         }
 
         public async Task<LearnerProfileDto?> GetLearnerProfileAsync(int userId)
@@ -1433,71 +1291,6 @@ namespace EduTrack.API.Services.Learning.Implementation
                 });
                 await _context.SaveChangesAsync();
             }
-        }
-
-        private async Task EnsureLearnerNotificationsAsync(int userId, int? studentId)
-        {
-            int targetStudent = studentId ?? 6;
-            bool hasRichVietnameseNotifs = await _context.Notifications
-                .AnyAsync(n => n.UserId == targetStudent && n.Title.Contains("Bài tập"));
-
-            if (hasRichVietnameseNotifs)
-            {
-                return;
-            }
-
-            var now = DateTime.UtcNow;
-
-            var seedNotifs = new List<Notification>
-            {
-                new Notification
-                {
-                    UserId = targetStudent,
-                    ClassId = 1,
-                    Title = "Bài tập mới: Phương trình bậc hai & Định lý Vi-ét",
-                    Content = "Giáo viên vừa giao bài tập về nhà mới cho lớp Toán Nâng Cao 9 (Class 9A - Advanced Mathematics). Vui lòng hoàn thành trước hạn nộp.",
-                    Type = "homework",
-                    TargetRole = "student",
-                    IsRead = false,
-                    CreatedAt = now.AddHours(-3)
-                },
-                new Notification
-                {
-                    UserId = targetStudent,
-                    ClassId = 2,
-                    Title = "Tài liệu học tập mới môn Vật Lý 9",
-                    Content = "Giáo viên đã đăng tải chuyên đề Định luật Ôm và Công suất điện lên mục Tài liệu lớp học (Class 9B - Fundamental Physics).",
-                    Type = "class",
-                    TargetRole = "student",
-                    IsRead = false,
-                    CreatedAt = now.AddDays(-1).AddHours(2)
-                },
-                new Notification
-                {
-                    UserId = 9,
-                    ClassId = 1,
-                    Title = "Thông báo học phí kỳ Tháng 10/2026",
-                    Content = "Hóa đơn học phí kỳ Tháng 10/2026 của học sinh Lê Văn An đã được phát hành. Quý phụ huynh có thể kiểm tra và thanh toán trực tuyến tại mục Học phí.",
-                    Type = "tuition",
-                    TargetRole = "parent",
-                    IsRead = false,
-                    CreatedAt = now.AddDays(-1).AddHours(-4)
-                },
-                new Notification
-                {
-                    UserId = 9,
-                    ClassId = 1,
-                    Title = "Cập nhật nhận xét định kỳ từ Giáo viên",
-                    Content = "Giáo viên phụ trách lớp Toán Nâng Cao 9 đã cập nhật phiếu đánh giá tiến độ và chuyên cần tháng 10 cho học sinh Lê Văn An.",
-                    Type = "class",
-                    TargetRole = "parent",
-                    IsRead = false,
-                    CreatedAt = now.AddDays(-2)
-                }
-            };
-
-            _context.Notifications.AddRange(seedNotifs);
-            await _context.SaveChangesAsync();
         }
 
         private static LearnerFeedbackItemDto MapApprovalRequestToFeedbackDto(ApprovalRequest r, int currentUserId)

@@ -17,6 +17,7 @@ namespace EduTrack.API.Models.DTOs
 
         public int? SenderId { get; set; }
         public string? SenderName { get; set; }
+        public string? SenderAvatarUrl { get; set; }
         public string? TargetScope { get; set; }
         public string? TargetRole { get; set; }
         public int? RecipientCount { get; set; }

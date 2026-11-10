@@ -53,6 +53,8 @@ try
         await db.Database.EnsureCreatedAsync();
         foreach (var (id, role) in new[] { (501, "center_manager"), (502, "admin_staff"), (503, "teacher"), (504, "teaching_assistant"), (505, "center_manager"), (506, "teacher"), (507, "student") })
             db.Users.Add(new() { UserId = id, UserCode = "NOTIFY-QA-" + id, FullName = "Verified " + role + " " + id, Email = $"qa{id}@example.test", PasswordHash = "isolated-fixture", Status = id == 506 ? "inactive" : "active", UserRoles = [new() { Role = new() { RoleId = id, RoleName = role + (id == 505 || id == 506 ? "_unused" : "") } }] });
+        var avatar = "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38'><circle cx='19' cy='19' r='19' fill='#3153bf'/><text x='19' y='24' text-anchor='middle' fill='white' font-size='16'>QA</text></svg>"));
+        foreach (var user in db.Users.Local.Where(u => u.UserId is 501 or 505)) user.AvatarUrl = avatar;
         await db.SaveChangesAsync();
         // Reuse role rows to satisfy the existing unique role_name constraint.
         db.UserRoles.RemoveRange(await db.UserRoles.Where(r => r.UserId == 505 || r.UserId == 506).ToListAsync());
@@ -69,6 +71,7 @@ try
     var cm = await Use(s => s.SnapshotAsync(SelectedUser(501))); var adBefore = await Use(s => s.SnapshotAsync(SelectedUser(502)));
     Check(cm.Inbox.Count == 27 && cm.UnreadCount == 20, "Complete own Inbox and recipient unread count, never global IsRead");
     Check(!cm.Inbox.Any(n => n.NotificationId == 100), "AD-only notification never leaks to CM");
+    Check(cm.Inbox.First(n => n.NotificationId <= 26).SenderAvatarUrl?.StartsWith("data:image/svg+xml;base64,") == true, "Snapshot preserves existing sender avatar metadata");
     foreach (var id in new[] { 503, 504 })
         Check((await Use(s => s.SnapshotAsync(SelectedUser(id)))).Inbox.Count == 26, "Teacher/TA only recipient membership " + id);
     Check(!JsonSerializer.Serialize(cm).Contains("PasswordHash"), "Verified identity never returns password hashes");
@@ -109,6 +112,7 @@ try
     // Concurrent marking must retain a single first-read timestamp.
     var concurrent = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => Use(s => s.MutateAsync(SelectedUser(503), "read", 2))));
     Check(concurrent.All(s => s.Inbox.Single(n => n.NotificationId == 2).ReadAt == clock.GetUtcNow().UtcDateTime), "Concurrent same-row mark read is atomic/idempotent");
+    await PropagationChecks.RunAsync(Db, Check);
     if (args.Contains("--http"))
     {
         var hostRoot = Path.Combine(Path.GetTempPath(), "edutrack-notification-host-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(hostRoot);
@@ -138,13 +142,36 @@ try
         Check((await client.PostAsync("/api/notifications/100/restore?userId=503", null)).StatusCode == HttpStatusCode.BadRequest, "Teacher persona has no Trash workflow");
         Check((await client.GetAsync("/api/notifications/100?userId=503")).StatusCode == HttpStatusCode.NotFound, "Detail must belong to selected recipient");
         Check((await client.PutAsync("/api/teaching/notifications/100/read?userId=503", null)).StatusCode == HttpStatusCode.NotFound, "Mark-read never creates a recipient");
+        var priorSent = await client.GetFromJsonAsync<List<EduTrack.API.Models.DTOs.NotificationDto>>("/api/management/notifications/sent?senderId=501");
         var sent = await client.PostAsJsonAsync("/api/management/notifications", new { senderId = 501, title = "Selected sender", content = "Synthetic send without login", type = "announcement", targetScope = "user", userId = 503 });
         Check(sent.StatusCode == HttpStatusCode.Created, "Anonymous manual send uses selected sender");
         var sentJson = await sent.Content.ReadFromJsonAsync<JsonElement>(); Check(sentJson.GetProperty("senderId").GetInt32() == 501, "Selected sender is persisted");
         var ownSent = await client.GetFromJsonAsync<List<EduTrack.API.Models.DTOs.NotificationDto>>("/api/management/notifications/sent?senderId=501");
-        Check(ownSent!.Count == 1 && ownSent.All(n => n.SenderId == 501), "Sent filters selected sender without login");
+        Check(ownSent!.Count == priorSent!.Count + 1 && ownSent.All(n => n.SenderId == 501), "Sent filters selected sender without login");
         var selectedUsers = await client.GetFromJsonAsync<List<JsonElement>>("/api/user-selection?role=center_manager");
         Check(selectedUsers!.Count == 2 && selectedUsers[0].GetProperty("userId").GetInt32() == 501, "User selection discovers actual non-seed IDs from database");
+        foreach (var (scope, role, targetUser, targetClass, expectedCount) in new[] {
+            ("user", (string?)null, (int?)507, (int?)null, 3),
+            ("role", "student", (int?)null, (int?)null, 6),
+            ("class", (string?)null, (int?)null, (int?)701, 7),
+            ("all", (string?)null, (int?)null, (int?)null, 36) })
+        {
+            var delivery = await client.PostAsJsonAsync("/api/management/notifications", new {
+                senderId = 501, title = "HTTP NTF " + scope, content = "Real HTTP and independent MySQL audience",
+                type = "academic", targetScope = scope, targetRole = role, userId = targetUser, classId = targetClass });
+            Check(delivery.StatusCode == HttpStatusCode.Created, "HTTP send scope " + scope);
+            var notification = await delivery.Content.ReadFromJsonAsync<EduTrack.API.Models.DTOs.NotificationDto>();
+            Check(notification!.RecipientCount == expectedCount, "HTTP exact expanded recipient count " + scope);
+            var childInbox = await client.GetFromJsonAsync<NotificationInboxSnapshot>("/api/notifications/inbox/snapshot?userId=507");
+            var parentInbox = await client.GetFromJsonAsync<NotificationInboxSnapshot>("/api/notifications/inbox/snapshot?userId=601");
+            Check(childInbox!.Inbox.Any(n => n.NotificationId == notification.NotificationId)
+                && parentInbox!.Inbox.Any(n => n.NotificationId == notification.NotificationId), "HTTP Student/Parent share NotificationId " + scope);
+        }
+        var results = await client.GetFromJsonAsync<List<NotificationRecipientOption>>("/api/management/notifications/recipients?senderId=501&query=Search%20Recipient&limit=100");
+        Check(results!.Count == 20, "HTTP recipient search caps excessive limit");
+        var invalidSend = await client.PostAsJsonAsync("/api/management/notifications", new {
+            senderId = 501, title = new string('x', 201), content = "Model validation", type = "system", targetScope = "all" });
+        Check(invalidSend.StatusCode == HttpStatusCode.BadRequest, "HTTP model validation preserves title limit");
         foreach (var endpoint in new[] { "users", "classes", "subjects", "grades", "tuitioninvoices", "teacherclasses", "taclasses", "studentclasses", "centersettings" })
             Check((await client.GetAsync("/api/" + endpoint)).IsSuccessStatusCode, "Anonymous existing module GET " + endpoint);
         if (!string.IsNullOrEmpty(frontend))

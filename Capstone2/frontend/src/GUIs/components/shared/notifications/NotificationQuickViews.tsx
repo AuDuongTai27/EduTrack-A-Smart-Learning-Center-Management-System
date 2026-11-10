@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNotificationInbox, clearNotificationInbox } from '../../../hooks/useNotificationInbox';
 import { useSelectedUser } from '../../../hooks/useSelectedUser';
 import { notificationTime } from '../../../../BLL/services/notificationInbox';
+import { notificationRoleLabel, notificationTypeLabel } from '../../../../BLL/services/notificationPresentation';
 import './notifications.css';
+import NotificationEmptyState from './NotificationEmptyState';
 
 function TypeIcon({ type }: { type: string }) {
   const path = type === 'schedule' ? 'M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2'
@@ -21,7 +23,7 @@ function useDismiss(open: boolean, close: () => void, root: React.RefObject<HTML
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', keyboard); };
   }, [open, close, root, trigger]);
 }
-function QuickList({ close }: { close?: () => void }) {
+function QuickList({ close, dashboard = false }: { close?: () => void; dashboard?: boolean }) {
   const { data, quick, error, loading, store, basePath } = useNotificationInbox();
   return <>
     {error ? <div role="alert" className="p-3 text-danger">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Thử lại</button></div>
@@ -30,10 +32,10 @@ function QuickList({ close }: { close?: () => void }) {
         <Link to={`${basePath}?notificationId=${n.notificationId}`} onClick={close} className={`ntf-item ${!n.isRead ? 'ntf-unread' : ''}`}>
           <TypeIcon type={n.type} />
           <div><strong>{n.title}</strong><p className="ntf-clamp">{n.content}</p>
-            <small>{n.senderName || 'Không có thông tin người gửi'} · {notificationTime(n.createdAt)}</small>
+            <small>{notificationTypeLabel(n.type)} · {n.senderName || 'Không có thông tin người gửi'} · {notificationTime(n.createdAt)}</small>
           </div>{!n.isRead && <span className="ntf-dot" aria-label="Chưa đọc" />}
         </Link></li>)}</ul>
-      : <p className="p-3 text-muted">Bạn đã xem hết thông báo mới.</p>}
+      : dashboard && data ? <NotificationEmptyState /> : <p className="p-3 text-muted">Bạn đã xem hết thông báo mới.</p>}
     <Link className="ntf-view-all" to={basePath} onClick={close}>Xem tất cả</Link>
   </>;
 }
@@ -41,7 +43,7 @@ export function DashboardNotificationsCard() {
   const { data } = useNotificationInbox();
   return <section className="ntf-scope card dashboard-card border-0 shadow-sm ntf-dashboard" aria-label="Thông báo gần đây">
     <div className="ntf-heading"><h5>Thông báo gần đây</h5><span aria-label="Số thông báo chưa đọc">{data ? data.unreadCount : '—'}</span></div>
-    <QuickList />
+    <QuickList dashboard />
   </section>;
 }
 export function NotificationBellDropdown() {
@@ -63,6 +65,7 @@ export function AdminAccountDropdown() {
   const [open, setOpen] = useState(false); const [imageError, setImageError] = useState(false);
   const root = useRef<HTMLDivElement>(null); const trigger = useRef<HTMLButtonElement>(null); const id = useId();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   useDismiss(open, () => setOpen(false), root, trigger);
   const initials = identity?.fullName.split(' ').filter(Boolean).slice(-2).map(w => w[0]).join('') || '?';
   return <div ref={root} className="ntf-scope ntf-anchor">
@@ -72,9 +75,9 @@ export function AdminAccountDropdown() {
       <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
     </button>
     {open && <div className="ntf-popover ntf-account-menu" id={id} role="region" aria-label="Thông tin tài khoản">
-      {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'Chưa có email'}</p><small>{identity.userCode} · {identity.roles?.join(', ')}</small></div>
+      {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'Chưa có email'}</p><small>{identity.userCode} · {identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
         : <p>{error || 'Chưa có tài khoản để chọn.'}</p>}
-      <label className="d-block mt-2">Tài khoản dữ liệu<select className="form-select" value={identity?.userId ?? ''} onChange={e => { clearNotificationInbox(); selection.select(Number(e.target.value)); }}><option value="" disabled>Chọn tài khoản</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}</select></label>
+      <label className="d-block mt-2">Tài khoản dữ liệu<select className="form-select" value={identity?.userId ?? ''} onChange={e => { if (pathname.endsWith('/notifications')) navigate({ search: '' }, { replace: true }); clearNotificationInbox(); selection.select(Number(e.target.value)); }}><option value="" disabled>Chọn tài khoản</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}</select></label>
       <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setOpen(false); clearNotificationInbox(); navigate('/'); }}>Về trang chủ</button>
     </div>}
   </div>;

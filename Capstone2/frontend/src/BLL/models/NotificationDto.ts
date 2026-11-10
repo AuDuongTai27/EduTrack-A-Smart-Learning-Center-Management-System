@@ -11,6 +11,7 @@ export interface NotificationDto {
   createdAt: string;
   senderId?: number | null;
   senderName?: string | null;
+  senderAvatarUrl?: string | null;
   targetScope?: string | null;
   targetRole?: string | null;
   recipientCount?: number | null;

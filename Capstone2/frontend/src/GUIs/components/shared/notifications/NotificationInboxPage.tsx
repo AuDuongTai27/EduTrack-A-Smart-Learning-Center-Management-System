@@ -1,68 +1,18 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../../Common/PageHeader';
 import Pagination from '../../Common/Pagination';
 import { useNotificationInbox } from '../../../hooks/useNotificationInbox';
+import { useSelectedUser } from '../../../hooks/useSelectedUser';
 import { newest, notificationTime } from '../../../../BLL/services/notificationInbox';
-import { notificationInboxApi, notificationRequest } from '../../../../api/notificationInboxApi';
+import { notificationInboxApi } from '../../../../api/notificationInboxApi';
 import type { NotificationDto } from '../../../../BLL/models/NotificationDto';
-import { userApi } from '../../../../api/userApi';
-import { classApi } from '../../../../api/classApi';
-import type { UserDto } from '../../../../BLL/models/UserDto';
-import type { ClassDto } from '../../../../BLL/models/ClassDto';
+import ComposeNotificationModal from './ComposeNotificationModal';
+import { notificationTypes, notificationTypeLabel, notificationRoleLabel, notificationScopeLabel } from '../../../../BLL/services/notificationPresentation';
 import './notifications.css';
 
-const roles = ['center_manager', 'admin_staff', 'teacher', 'teaching_assistant', 'student', 'parent'];
-const types = ['announcement', 'academic', 'tuition', 'reminder', 'schedule', 'system', 'homework', 'class'];
 const EMPTY: NotificationDto[] = [];
 const message = (error: unknown) => error instanceof Error ? error.message : 'Thao tác thất bại.';
-
-function ComposeNotification({ onSent, onClose }: { onSent: () => void; onClose: () => void }) {
-  const [scope, setScope] = useState('all'); const [target, setTarget] = useState('');
-  const [users, setUsers] = useState<UserDto[]>([]); const [classes, setClasses] = useState<ClassDto[]>([]);
-  const [lookupError, setLookupError] = useState<string | null>(null); const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false); const inFlight = useRef(false);
-  useEffect(() => {
-    let active = true;
-    if (scope === 'user' || scope === 'class') {
-      void (scope === 'user' ? userApi.getAll().then(rows => { if (active) setUsers(rows.filter(u => u.status === 'active' && u.roles?.some(r => roles.includes(r)))); })
-        : classApi.getAll().then(rows => { if (active) setClasses(rows.filter(c => ['active', 'upcoming'].includes(c.status))); }))
-        .catch(e => { if (active) setLookupError(message(e)); });
-    }
-    return () => { active = false; };
-  }, [scope]);
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (inFlight.current) return;
-    const form = new FormData(event.currentTarget);
-    inFlight.current = true; setBusy(true); setError(null);
-    try {
-      await notificationRequest('management/notifications', 'POST', undefined, {
-        title: String(form.get('title')).trim(), content: String(form.get('content')).trim(), type: form.get('type'),
-        targetScope: scope, targetRole: scope === 'role' ? target : null,
-        userId: scope === 'user' ? Number(target) : null, classId: scope === 'class' ? Number(target) : null,
-      });
-      onSent();
-    } catch (e) { setError(message(e)); } finally { inFlight.current = false; setBusy(false); }
-  }
-  return <section className="card mb-3" aria-label="Gửi thông báo"><form onSubmit={submit}>
-    <h5>Gửi thông báo</h5>
-    <label>Tiêu đề<input name="title" className="form-control" required maxLength={200} /></label>
-    <label>Nội dung<textarea name="content" className="form-control" required maxLength={4000} rows={4} /></label>
-    <label>Loại<select name="type" className="form-select">{types.map(t => <option key={t}>{t}</option>)}</select></label>
-    <label>Phạm vi<select className="form-select" value={scope} onChange={e => { setScope(e.target.value); setTarget(''); setLookupError(null); setUsers([]); setClasses([]); }}>
-      <option value="all">Tất cả</option><option value="role">Theo vai trò</option><option value="class">Theo lớp</option><option value="user">Cá nhân</option>
-    </select></label>
-    {scope !== 'all' && <label>Người nhận<select className="form-select" required value={target} onChange={e => setTarget(e.target.value)}>
-      <option value="">Chọn người nhận</option>
-      {scope === 'role' ? roles.map(r => <option key={r}>{r}</option>) : scope === 'user'
-        ? users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)
-        : classes.map(c => <option key={c.classId} value={c.classId}>{c.className}</option>)}
-    </select></label>}
-    {lookupError && <p role="alert" className="text-danger">{lookupError}</p>}{error && <p role="alert" className="text-danger">{error}</p>}
-    <div className="ntf-actions"><button className="btn btn-primary" disabled={busy || !!lookupError}>Gửi</button>
-      <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={onClose}>Đóng</button></div>
-  </form></section>;
-}
 
 export default function NotificationInboxPage() {
   const inbox = useNotificationInbox();
@@ -70,6 +20,7 @@ export default function NotificationInboxPage() {
   return <NotificationPage key={`${inbox.role}:${inbox.data?.identity.userId ?? 'unverified'}`} inbox={inbox} />;
 }
 function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationInbox> }) {
+  const selection = useSelectedUser();
   const { data, loading, error, store, busy, manager } = inbox;
   const [params, setParams] = useSearchParams(); const rawId = params.get('notificationId');
   const selectedId = rawId && /^\d+$/.test(rawId) && Number.isSafeInteger(Number(rawId)) ? Number(rawId) : null;
@@ -110,8 +61,15 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
   }
   function switchTab(next: typeof tab) { if (next === tab) return; if (next === 'sent') { setSent([]); setSentError(null); setSentLoading(true); } setTab(next); setParams({}); setPage(1); setActionError(null); attempted.current = ''; }
   return <div className="ntf-scope ntf-page">
-    <PageHeader title="Thông báo" breadcrumbItems={[{ label: 'Thông báo' }]} action={manager && data && <button className="btn btn-primary" onClick={() => setCompose(!compose)}>Gửi thông báo</button>} />
-    {compose && data && <ComposeNotification onClose={() => setCompose(false)} onSent={() => { setCompose(false); setSuccess('Đã gửi thông báo.'); switchTab('sent'); void store.refresh(); }} />}
+    <PageHeader title="Thông báo" breadcrumbItems={[{ label: 'Thông báo' }]} action={manager && data && <button className="btn btn-primary" onClick={() => setCompose(true)}>Gửi thông báo</button>} />
+    {(inbox.role === 'student' || inbox.role === 'parent') && <div className="ntf-identity">
+      <label htmlFor="ntf-selected-account">Tài khoản nhận thông báo</label>
+      <select id="ntf-selected-account" className="form-select" value={selection.user?.userId ?? ''} disabled={selection.loading}
+        onChange={e => { setParams({}); selection.select(Number(e.target.value)); }}>
+        <option value="" disabled>Chọn tài khoản</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}
+      </select>{selection.error && <p role="alert" className="text-danger">{selection.error}</p>}
+    </div>}
+    {manager && data && <ComposeNotificationModal open={compose} onClose={() => setCompose(false)} onSent={() => { setCompose(false); setSuccess('Đã gửi thông báo.'); switchTab('sent'); void store.refresh(); }} />}
     {error && <p role="alert" className="alert alert-warning">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Thử lại</button></p>}
     {actionError && <p role="alert" className="alert alert-danger">{actionError}</p>}
     {success && <p role="status" className="alert alert-success">{success}</p>}
@@ -124,7 +82,7 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
     </div>
     <div className="ntf-toolbar">
       <input className="form-control" style={{ maxWidth: 300 }} aria-label="Tìm thông báo" placeholder="Tìm tiêu đề, nội dung..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
-      <select className="form-select w-auto" aria-label="Loại thông báo" value={type} onChange={e => { setType(e.target.value); setPage(1); }}><option value="all">Tất cả loại</option>{types.map(t => <option key={t}>{t}</option>)}</select>
+      <select className="form-select w-auto" aria-label="Loại thông báo" value={type} onChange={e => { setType(e.target.value); setPage(1); }}><option value="all">Tất cả loại</option>{Object.entries(notificationTypes).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
       {tab !== 'sent' && <select className="form-select w-auto" aria-label="Trạng thái đọc" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="all">Tất cả trạng thái</option><option value="unread">Chưa đọc</option><option value="read">Đã đọc</option></select>}
       <select className="form-select w-auto" aria-label="Sắp xếp" value={sort} onChange={e => setSort(e.target.value)}><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option><option value="title">Tiêu đề A–Z</option></select>
       <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={store.refresh}>Tải lại</button>
@@ -135,15 +93,15 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
         {sentError ? <p role="alert" className="p-3 text-danger">{sentError}</p> : !filtered.length ? <p className="p-3">Không có thông báo.</p>
           : filtered.slice((safePage - 1) * 5, safePage * 5).map(n => <button type="button" key={n.notificationId} className={`ntf-list-button ${tab !== 'sent' && !n.isRead ? 'ntf-unread' : ''}`}
             aria-pressed={selectedId === n.notificationId} onClick={() => { attempted.current = ''; setParams({ notificationId: String(n.notificationId) }); }}>
-            <strong>{n.title}</strong><p className="ntf-clamp my-1">{n.content}</p><small>{notificationTime(n.createdAt)} · {tab === 'sent' ? `${n.recipientCount ?? 0} người nhận` : n.senderName || 'Không có thông tin người gửi'}</small>
+            <span className="ntf-type-label">{notificationTypeLabel(n.type)}</span><strong>{n.title}</strong><p className="ntf-clamp my-1">{n.content}</p><small>{notificationTime(n.createdAt)} · {tab === 'sent' ? `${n.recipientCount ?? 0} người nhận` : n.senderName || 'Không có thông tin người gửi'}</small>
             {tab !== 'sent' && <small className="d-block">{n.isRead ? 'Đã đọc' : 'Chưa đọc'}</small>}
           </button>)}
         {!!filtered.length && <div className="p-3"><Pagination currentPage={safePage} totalItems={filtered.length} entriesPerPage={5} itemLabel="thông báo" onPageChange={setPage} /></div>}
       </section>
       <section className="card ntf-detail" aria-label="Chi tiết thông báo">
         {selected ? <><h4>{selected.title}</h4><p className="text-muted">{selected.senderName || 'Không có thông tin người gửi'} · {notificationTime(selected.createdAt)}</p>
-          {tab === 'sent' && <p>Phạm vi: {selected.targetScope} {selected.targetRole} · {selected.recipientCount ?? 0} người nhận</p>}
-          <div className="ntf-body">{selected.content}</div>
+          {tab === 'sent' && <p>Phạm vi: {notificationScopeLabel(selected.targetScope ?? '')} {selected.targetRole ? `· ${notificationRoleLabel(selected.targetRole)}` : selected.className ? `· ${selected.className}` : ''} · {selected.recipientCount ?? 0} người nhận</p>}
+          <span className="ntf-type-label">{notificationTypeLabel(selected.type)}</span><div className="ntf-body">{selected.content}</div>
           {selected.readAt && tab !== 'sent' && <small className="d-block mt-3">Đã đọc: {notificationTime(selected.readAt)}</small>}
           {selected.deletedAt && <small className="d-block">Đã xóa: {notificationTime(selected.deletedAt)}</small>}
           <div className="ntf-actions">

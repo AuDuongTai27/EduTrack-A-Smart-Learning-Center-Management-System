@@ -189,11 +189,6 @@
 .ntf-page .ntf-list-button[aria-pressed=true] {
   background:#eef3ff
 }
-.ntf-page form {
-  display:grid;
-  gap:12px;
-  padding:20px
-}
 .ntf-page label {
   display:grid;
   gap:5px
@@ -249,6 +244,74 @@
   margin:0;
   min-height:0
 }
+.ntf-scope .ntf-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px; padding:24px 18px; min-height:154px }
+.ntf-scope .ntf-empty-icon { color:#198754; flex-shrink:0 }
+.ntf-scope .ntf-empty h6 { font-size:.95rem; font-weight:600; color:#26334d; margin:0 }
+.ntf-scope .ntf-empty p { font-size:.85rem; color:#627087; line-height:1.5; margin:0; max-width:340px }
+.ntf-scope.ntf-teaching-dashboard { height:auto; min-height:0 }
+.ntf-teaching-dashboard .ntf-empty { padding:12px 8px; min-height:130px }
+.ntf-teaching-dashboard .ntf-teaching-item { width:100%; color:inherit; text-decoration:none; transition:background-color .15s }
+.ntf-teaching-dashboard .ntf-teaching-item:hover { background:#f0f5ff }
+.ntf-teaching-dashboard .ntf-teaching-item:focus-visible { background:#f0f5ff; outline:3px solid #5d7ee2; outline-offset:2px }
+.ntf-teaching-dashboard .ntf-sender-avatar { width:38px; height:38px; object-fit:cover }
+.ntf-teaching-dashboard .notice-content { min-width:0; overflow-wrap:anywhere }
+.ntf-teaching-dashboard .ntf-new-badge { flex-shrink:0; white-space:nowrap }
+.ntf-teaching-dashboard .ntf-teaching-title h6 { line-height:1.5; min-width:0 }
+.ntf-teaching-dashboard .ntf-teaching-meta { font-size:.8rem }
+.ntf-compose .ntf-role-hint { font-size:.8rem; line-height:1.6; color:#59677e; overflow-wrap:anywhere; margin:0 0 14px }
 .ntf-page section.card:not(.ntf-detail) {
   padding:0
+}
+.ntf-page .ntf-tabs { border-bottom:1px solid #e1e5ed; padding:0 0 14px; margin-top:8px }
+.student-scope .ntf-page { padding:24px; min-width:0 }
+.ntf-page .ntf-identity { display:grid; gap:8px; max-width:480px; margin-bottom:20px }
+.ntf-page .ntf-toolbar { padding:16px; background:#fff; border:1px solid #e1e5ed; border-radius:8px; align-items:center }
+.ntf-page .ntf-layout { align-items:start }
+.ntf-page .ntf-layout>.card { min-width:0; border:1px solid #e1e5ed; border-radius:8px; overflow:hidden }
+.ntf-page .ntf-detail { min-height:300px }
+.ntf-page .ntf-list-button:hover { background:#f3f6fc }
+.ntf-page .ntf-list-button.ntf-unread { background:#f6f8ff; border-left:3px solid #5274df }
+.ntf-page .ntf-list-button[aria-pressed=true] { background:#eaf0fe; box-shadow:inset 3px 0 #3458c6 }
+.ntf-page .ntf-list-button strong { display:block; font-size:.95rem }
+.ntf-page .ntf-list-button small { color:#59677e }
+.ntf-scope .ntf-type-label { display:block; width:fit-content; color:#3e5796; background:#eef2fb; padding:2px 8px; border-radius:4px; font-size:.75rem; margin-bottom:8px }
+.ntf-page .ntf-body { margin-top:16px; line-height:1.7 }
+.ntf-compose { width:740px; max-width:calc(100vw - 24px); max-height:calc(100dvh - 32px); padding:0; border:1px solid #dce2ec; border-radius:10px; background:white; box-shadow:0 12px 40px #1b29452b; overflow:hidden }
+.ntf-compose::backdrop { background:#17253b66 }
+.ntf-compose form { display:flex; flex-direction:column; max-height:calc(100dvh - 34px); margin:0 }
+.ntf-compose .ntf-compose-header { display:flex; align-items:start; justify-content:space-between; gap:16px; padding:20px 24px; border-bottom:1px solid #e1e5ed }
+.ntf-compose .ntf-compose-header h2 { margin:0; font-size:1.25rem; color:#26334d }
+.ntf-compose .ntf-compose-header p { margin:6px 0 0; font-size:.8rem; color:#59677e }
+.ntf-compose .ntf-compose-body { overflow-y:auto; overscroll-behavior:contain; padding:20px 24px; min-height:0 }
+.ntf-compose fieldset { border:0; padding:0; margin:0 0 22px; min-width:0 }
+.ntf-compose fieldset:last-of-type { margin-bottom:0 }
+.ntf-compose legend { float:none; font-size:.95rem; font-weight:600; margin-bottom:14px; width:auto }
+.ntf-compose .ntf-field,.ntf-compose .ntf-recipient { display:grid; gap:6px; margin-bottom:14px; min-width:0 }
+.ntf-compose label { display:block; font-size:.875rem; font-weight:500 }
+.ntf-compose .form-control,.ntf-compose .form-select { width:100%; max-width:100%; font-size:.9rem }
+.ntf-compose textarea { resize:vertical; min-height:100px }
+.ntf-compose .ntf-required { color:#b42336 }
+.ntf-compose .ntf-compose-footer { display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid #e1e5ed; background:#fafbfd }
+.ntf-compose .ntf-compose-header,.ntf-compose .ntf-compose-footer { flex-shrink:0 }
+.ntf-compose .ntf-audience-hint { color:#59677e; font-size:.8rem; line-height:1.6; margin:10px 0 0 }
+.ntf-compose [role=listbox]:not([hidden]) { max-height:210px; overflow-y:auto; border:1px solid #dce2ec; border-radius:6px }
+.ntf-compose [role=listbox]:empty { border:0 }
+.ntf-compose .ntf-recipient-option { cursor:pointer; padding:10px 12px; border-bottom:1px solid #edf0f5; overflow-wrap:anywhere }
+.ntf-compose .ntf-recipient-option:last-child { border-bottom:0 }
+.ntf-compose .ntf-recipient-option:hover,.ntf-compose .ntf-recipient-option[aria-selected=true] { background:#eef3ff }
+.ntf-compose .ntf-recipient-option strong,.ntf-compose .ntf-recipient-option small { display:block }
+.ntf-compose .ntf-recipient-option small,.ntf-compose .ntf-search-status { font-size:.8rem; color:#59677e }
+.ntf-compose .ntf-clear-recipient { justify-self:start }
+.ntf-compose :is(input,textarea,select,button):focus-visible { outline:3px solid #5d7ee2; outline-offset:2px }
+.ntf-compose [aria-invalid=true] { border-color:#b42336 }
+@media(max-width:900px) { .ntf-page .ntf-layout { grid-template-columns:minmax(0,1fr) } }
+@media(max-width:575px) {
+  .ntf-page .ntf-toolbar>* { width:100%!important; max-width:none!important; min-width:0 }
+  .ntf-page .ntf-tabs { gap:6px }
+  .ntf-page .ntf-tabs .btn { font-size:.8rem; padding:8px }
+  .ntf-compose { max-width:calc(100vw - 16px); max-height:calc(100dvh - 16px) }
+  .ntf-compose form { max-height:calc(100dvh - 18px) }
+  .ntf-compose .ntf-compose-header,.ntf-compose .ntf-compose-body { padding:16px }
+  .ntf-compose .ntf-compose-footer { padding:12px 16px }
+  .ntf-compose .ntf-compose-footer button { flex:1; min-height:44px }
 }
