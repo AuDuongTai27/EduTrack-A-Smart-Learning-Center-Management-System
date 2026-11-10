@@ -13,35 +13,30 @@ export function StudentTuitionPage() {
   const [bill, setBill] = useState<TuitionBill | null>(null);
   const [history, setHistory] = useState<TuitionHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const loadTuition = async () => {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const vm = await learningDAL.getStudentTuition(DEFAULT_STUDENT_ID);
+      if (vm) {
+        setBill(vm.bill);
+        setHistory(vm.history);
+      }
+    } catch (err) {
+      console.warn('Lỗi khi tải thông tin học phí học sinh:', err);
+      setErrorMsg(err instanceof Error ? err.message : 'Không tải được thông tin học phí từ hệ thống.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadTuition() {
-      setLoading(true);
-      try {
-        const vm = await learningDAL.getStudentTuition(DEFAULT_STUDENT_ID);
-        if (isMounted && vm) {
-          setBill(vm.bill);
-          setHistory(vm.history);
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải thông tin học phí học sinh:', err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadTuition();
-
-    return () => {
-      isMounted = false;
-    };
+    void loadTuition();
   }, []);
 
-  if (loading || !bill) {
+  if (loading && !bill) {
     return (
       <LearnerPageLoader
         title="Đang tải thông tin học phí..."
@@ -57,19 +52,39 @@ export function StudentTuitionPage() {
         {/* 1. Breadcrumbs & Page Header */}
         <TuitionPageHeader />
 
-        {/* 2. Bill Card (2-Column Grid) */}
-        <TuitionBillCard bill={bill} />
-
-        {/* 3. Student Notice (Học sinh chỉ xem thông tin, Phụ huynh thực hiện thanh toán) */}
-        <div className="alert alert-info border-0 rounded-4 p-3 d-flex align-items-center gap-3 my-4 bg-primary bg-opacity-10 text-primary">
-          <i className="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
-          <div className="small">
-            <strong>Thông báo học phí:</strong> Học sinh chỉ xem chi tiết hóa đơn và lịch sử giao dịch của mình. Chức năng thanh toán trực tuyến do <strong>Phụ huynh</strong> thực hiện trên Cổng phụ huynh hoặc đóng trực tiếp tại bàn Giáo vụ trung tâm EduTrack.
+        {errorMsg && (
+          <div className="alert alert-danger rounded-4 border-0 shadow-xs mb-4 d-flex align-items-center justify-content-between">
+            <div>
+              <i className="bi bi-exclamation-triangle-fill me-2" />
+              {errorMsg}
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger rounded-pill px-3"
+              onClick={() => void loadTuition()}
+            >
+              Thử lại
+            </button>
           </div>
-        </div>
+        )}
 
-        {/* 4. Payment History Section */}
-        <TuitionHistorySection history={history} />
+        {bill && (
+          <>
+            {/* 2. Bill Card (2-Column Grid) */}
+            <TuitionBillCard bill={bill} />
+
+            {/* 3. Student Notice (Học sinh chỉ xem thông tin, Phụ huynh thực hiện thanh toán) */}
+            <div className="alert alert-info border-0 rounded-4 p-3 d-flex align-items-center gap-3 my-4 bg-primary bg-opacity-10 text-primary">
+              <i className="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
+              <div className="small">
+                <strong>Thông báo học phí:</strong> Học sinh chỉ xem chi tiết hóa đơn và lịch sử giao dịch của mình. Chức năng thanh toán trực tuyến do <strong>Phụ huynh</strong> thực hiện trên Cổng phụ huynh hoặc đóng trực tiếp tại bàn Giáo vụ trung tâm EduTrack.
+              </div>
+            </div>
+
+            {/* 4. Payment History Section */}
+            <TuitionHistorySection history={history} />
+          </>
+        )}
       </div>
     </main>
   );

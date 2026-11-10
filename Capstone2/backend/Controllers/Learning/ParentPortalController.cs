@@ -71,17 +71,25 @@ namespace EduTrack.API.Controllers.Learning
 
             try
             {
-            var updated = await _dashboardService.PayStudentTuitionAsync(request);
-            return Ok(new
-            {
-                success = true,
-                message = "Thanh toán học phí thành công!",
-                data = updated
-            });
+                var updated = await _dashboardService.PayStudentTuitionAsync(request);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Thanh toán học phí thành công!",
+                    data = updated
+                });
             }
-            catch (NotSupportedException)
+            catch (System.ArgumentException ex)
             {
-                return StatusCode(501, new { success = false, message = "Chưa tích hợp xác nhận cổng thanh toán. Chưa ghi Payment; vui lòng liên hệ trung tâm để đối soát và ghi nhận khoản thu." });
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                return Conflict(new { success = false, message = ex.Message });
+            }
+            catch (System.NotSupportedException)
+            {
+                return StatusCode(501, new { success = false, message = "Chưa tích hợp xác nhận cổng thanh toán." });
             }
         }
 

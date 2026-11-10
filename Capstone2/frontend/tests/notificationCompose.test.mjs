@@ -10,8 +10,9 @@ test('notification labels preserve eight API types, five primary roles and legac
   assert.equal(ui.notificationTypeLabel('announcement'), 'Thông báo chung');
   assert.equal(ui.notificationRoleLabel('parent'), 'Phụ huynh (tài khoản hiện có)');
   assert.equal(ui.notificationRoleLabel('teaching_assistant'), 'Trợ giảng (Teaching Assistant)');
-  assert.deepEqual(Object.keys(ui.notificationRecipientRoles), Object.keys(ui.notificationRoles));
+  assert.deepEqual(Object.keys(ui.notificationRecipientRoles), [...Object.keys(ui.notificationRoles), 'parent']);
   assert.equal(ui.notificationRecipientRoles.student, 'Học viên / Phụ huynh (Student / Parent)');
+  assert.equal(ui.notificationRecipientRoles.parent, 'Phụ huynh (Parent)');
   assert.equal(ui.notificationRoles.student, 'Học viên (Student)');
   for (const role of Object.keys(ui.notificationRoles).filter(role => role !== 'student'))
     assert.equal(ui.notificationRecipientRoles[role], ui.notificationRoles[role]);

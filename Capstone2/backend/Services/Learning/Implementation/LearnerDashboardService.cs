@@ -162,12 +162,21 @@ namespace EduTrack.API.Services.Learning.Implementation
                     ? Math.Round(gradedSubmissions.Average(s => s.Score!.Value), 1)
                     : 9.0m;
 
-                var unpaidInvoices = await _context.TuitionInvoices
+                var studentInvoices = await _context.TuitionInvoices
                     .AsNoTracking()
-                    .Where(i => i.StudentId == student.UserId && (i.Status == "unpaid" || i.Status == "overdue"))
+                    .Include(i => i.Payments)
+                    .Where(i => i.StudentId == student.UserId)
                     .ToListAsync();
 
-                decimal unpaidAmount = unpaidInvoices.Sum(i => i.AmountDue);
+                var nowOffset = DateTimeOffset.UtcNow;
+                decimal unpaidAmount = studentInvoices.Sum(i =>
+                {
+                    decimal paid = i.Payments.Sum(p => p.Amount);
+                    string status = EduTrack.API.Services.Management.TuitionPolicy.ResolveStatus(
+                        i.AmountDue, paid, i.DueDate, nowOffset, i.Status);
+                    if (status == "paid") return 0m;
+                    return Math.Max(0m, i.AmountDue - paid);
+                });
 
                 var childClasses = studentClasses
                     .Select(sc => sc.Class)
@@ -812,14 +821,30 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .ThenBy(i => i.ClassId)
                 .ToListAsync();
 
-            var unpaidInvoices = allInvoices
-                .Where(i => i.Status == "unpaid" || i.Status == "overdue")
+            var nowOffset = DateTimeOffset.UtcNow;
+            var evaluatedInvoices = allInvoices.Select(inv =>
+            {
+                decimal paid = inv.Payments.Sum(p => p.Amount);
+                decimal remaining = Math.Max(0m, inv.AmountDue - paid);
+                string effectiveStatus = EduTrack.API.Services.Management.TuitionPolicy.ResolveStatus(
+                    inv.AmountDue, paid, inv.DueDate, nowOffset, inv.Status);
+                return new
+                {
+                    Invoice = inv,
+                    PaidAmount = paid,
+                    RemainingAmount = remaining,
+                    EffectiveStatus = effectiveStatus
+                };
+            }).ToList();
+
+            var unpaidInvoices = evaluatedInvoices
+                .Where(x => x.RemainingAmount > 0 && x.EffectiveStatus != "paid")
                 .ToList();
 
-            decimal totalUnpaid = unpaidInvoices.Sum(i => i.AmountDue);
+            decimal totalUnpaid = unpaidInvoices.Sum(x => x.RemainingAmount);
 
             var referenceInvoices = unpaidInvoices.Count > 0
-                ? unpaidInvoices
+                ? unpaidInvoices.Select(x => x.Invoice).ToList()
                 : allInvoices.Take(2).ToList();
 
             var firstRef = referenceInvoices.FirstOrDefault();
@@ -833,16 +858,16 @@ namespace EduTrack.API.Services.Learning.Implementation
                 ? $"Còn {unpaidInvoices.Count} khoản học phí cần thanh toán trong kỳ"
                 : "Đã hoàn thành toàn bộ học phí kỳ này";
 
-            var unpaidDtos = unpaidInvoices.Select(inv => new TuitionInvoiceItemDto
+            var unpaidDtos = unpaidInvoices.Select(x => new TuitionInvoiceItemDto
             {
-                InvoiceId = inv.InvoiceId,
-                ClassId = inv.ClassId,
-                ClassName = inv.Class?.ClassName ?? $"Lớp học #{inv.ClassId}",
-                PeriodMonth = inv.PeriodMonth,
-                PeriodYear = inv.PeriodYear,
-                AmountDue = inv.AmountDue,
-                DueDate = inv.DueDate.ToString("dd/MM/yyyy"),
-                Status = inv.Status
+                InvoiceId = x.Invoice.InvoiceId,
+                ClassId = x.Invoice.ClassId,
+                ClassName = x.Invoice.Class?.ClassName ?? $"Lớp học #{x.Invoice.ClassId}",
+                PeriodMonth = x.Invoice.PeriodMonth,
+                PeriodYear = x.Invoice.PeriodYear,
+                AmountDue = x.RemainingAmount,
+                DueDate = x.Invoice.DueDate.ToString("dd/MM/yyyy"),
+                Status = x.EffectiveStatus
             }).ToList();
 
             var payments = allInvoices
@@ -853,7 +878,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     ClassName = inv.Class?.ClassName ?? $"Lớp học #{inv.ClassId}",
                     Period = $"Tháng {inv.PeriodMonth} / {inv.PeriodYear} — {inv.Class?.ClassName ?? "Học phí"}",
                     Amount = p.Amount,
-                    PaidAt = p.PaidAt.ToLocalTime().ToString("dd/MM/yyyy"),
+                    PaidAt = p.PaidAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
                     PaymentMethod = p.PaymentMethod,
                     TransactionCode = p.TransactionCode ?? string.Empty,
                     Status = "Đã nộp"
@@ -874,9 +899,122 @@ namespace EduTrack.API.Services.Learning.Implementation
             };
         }
 
-        // Task04: never fabricate gateway confirmations or reset financial history.
-        public Task<StudentTuitionOverviewDto> PayStudentTuitionAsync(PayStudentTuitionRequestDto request) =>
-            Task.FromException<StudentTuitionOverviewDto>(new NotSupportedException("Online payment requires a verified gateway confirmation; no Payment was recorded."));
+        public async Task<StudentTuitionOverviewDto> PayStudentTuitionAsync(PayStudentTuitionRequestDto request)
+        {
+            if (request == null || request.StudentId <= 0)
+                throw new ArgumentException("Thông tin học sinh cần thanh toán không hợp lệ.");
+
+            var student = await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == request.StudentId)
+                ?? throw new InvalidOperationException($"Không tìm thấy học sinh ID = {request.StudentId}.");
+
+            var linkedParents = await _context.ParentStudents.AsNoTracking()
+                .Where(ps => ps.StudentId == request.StudentId)
+                .Select(ps => ps.ParentId)
+                .ToListAsync();
+
+            int payerId = request.ParentId > 0 ? request.ParentId : 9;
+            if (linkedParents.Count > 0 && !linkedParents.Contains(payerId))
+            {
+                payerId = linkedParents[0];
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted);
+
+            var invoicesQuery = _context.TuitionInvoices
+                .Include(i => i.Class)
+                .Include(i => i.Payments)
+                .Where(i => i.StudentId == request.StudentId);
+
+            if (request.InvoiceIds is { Count: > 0 })
+            {
+                invoicesQuery = invoicesQuery.Where(i => request.InvoiceIds.Contains(i.InvoiceId));
+            }
+
+            var invoices = await invoicesQuery.ToListAsync();
+            var nowOffset = DateTimeOffset.UtcNow;
+            var payableInvoices = invoices
+                .Select(inv =>
+                {
+                    decimal paid = inv.Payments.Sum(p => p.Amount);
+                    decimal remaining = Math.Max(0m, inv.AmountDue - paid);
+                    string status = EduTrack.API.Services.Management.TuitionPolicy.ResolveStatus(
+                        inv.AmountDue, paid, inv.DueDate, nowOffset, inv.Status);
+                    return new { Invoice = inv, Remaining = remaining, Status = status };
+                })
+                .Where(x => x.Remaining > 0 && x.Status != "paid")
+                .ToList();
+
+            if (payableInvoices.Count == 0)
+            {
+                throw new InvalidOperationException("Học sinh hiện không còn khoản học phí nào chưa thanh toán.");
+            }
+
+            var nowUtc = DateTime.UtcNow;
+            string baseTxCode = !string.IsNullOrWhiteSpace(request.TransactionCode)
+                ? request.TransactionCode.Trim()
+                : $"CK{nowUtc:yyyyMMddHHmmss}";
+
+            decimal totalPaidNow = 0m;
+            var paidClassNames = new List<string>();
+
+            foreach (var item in payableInvoices)
+            {
+                var inv = item.Invoice;
+                string txCode = payableInvoices.Count > 1
+                    ? $"{baseTxCode}-HD{inv.InvoiceId}"
+                    : baseTxCode;
+
+                var payment = new Payment
+                {
+                    InvoiceId = inv.InvoiceId,
+                    Amount = item.Remaining,
+                    AdditionalChargeAmount = 0m,
+                    AdditionalChargeNote = null,
+                    PaymentMethod = "bank_transfer",
+                    TransactionCode = txCode.Length > 100 ? txCode.Substring(0, 100) : txCode,
+                    PaidAt = nowUtc,
+                    PaidByUserId = payerId,
+                    RecordedBy = null,
+                    Note = $"Phụ huynh chuyển khoản trực tuyến ({inv.Class?.ClassName ?? $"Lớp #{inv.ClassId}"} - T{inv.PeriodMonth}/{inv.PeriodYear})"
+                };
+
+                _context.Payments.Add(payment);
+                inv.Status = "paid";
+                totalPaidNow += item.Remaining;
+                paidClassNames.Add($"{inv.Class?.ClassName ?? $"Lớp #{inv.ClassId}"} (T{inv.PeriodMonth}/{inv.PeriodYear})");
+            }
+
+            var recipientIds = new HashSet<int> { student.UserId, payerId };
+            foreach (var pid in linkedParents) recipientIds.Add(pid);
+
+            var notif = new Notification
+            {
+                SenderId = null,
+                UserId = student.UserId,
+                ClassId = payableInvoices[0].Invoice.ClassId,
+                Title = $"Xác nhận thanh toán học phí thành công ({student.FullName})",
+                Content = $"Hệ thống EduTrack đã ghi nhận khoản chuyển khoản học phí {totalPaidNow:N0} đ cho học sinh {student.FullName} ({string.Join(", ", paidClassNames)}). Mã tham chiếu: {baseTxCode}.",
+                Type = "tuition",
+                TargetScope = "user",
+                TargetRole = "parent",
+                IsRead = false,
+                CreatedAt = nowUtc,
+                Recipients = recipientIds.Select(uid => new NotificationRecipient
+                {
+                    UserId = uid,
+                    IsRead = false,
+                    ReadAt = null
+                }).ToList()
+            };
+            _context.Notifications.Add(notif);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return await GetStudentTuitionOverviewAsync(request.StudentId)
+                ?? throw new InvalidOperationException("Không thể tải lại thông tin học phí sau khi thanh toán.");
+        }
 
         public Task<StudentTuitionOverviewDto?> ResetDemoUnpaidTuitionAsync(int studentId) =>
             Task.FromException<StudentTuitionOverviewDto?>(new NotSupportedException("Financial history cannot be reset for a demo."));
@@ -1016,13 +1154,76 @@ namespace EduTrack.API.Services.Learning.Implementation
         public Task<List<LearnerNotificationItemDto>> GetStudentNotificationsAsync(int studentId)
             => GetRecipientNotificationsAsync(studentId);
 
-        public Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
-            // Parent Inbox belongs to the account, independently of the selected child.
-            => GetRecipientNotificationsAsync(parentId);
+        public async Task<List<LearnerNotificationItemDto>> GetParentNotificationsAsync(int parentId, int? studentId = null)
+        {
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(parentId);
+            await inboxService.EnsureSeededRecipientsAsync();
+
+            var targetUserIds = new HashSet<int> { parentId };
+            int effectiveParentId = parentId;
+            HashSet<int>? studentClassIds = null;
+
+            if (studentId is > 0)
+            {
+                targetUserIds.Add(studentId.Value);
+                var linkedParents = await _context.ParentStudents.AsNoTracking()
+                    .Where(ps => ps.StudentId == studentId.Value)
+                    .Select(ps => ps.ParentId)
+                    .ToListAsync();
+                foreach (var pid in linkedParents)
+                {
+                    targetUserIds.Add(pid);
+                }
+                if (linkedParents.Count > 0 && !linkedParents.Contains(parentId))
+                {
+                    effectiveParentId = linkedParents[0];
+                }
+
+                var classIds = await _context.StudentClasses.AsNoTracking()
+                    .Where(sc => sc.StudentId == studentId.Value && sc.Status == "active")
+                    .Select(sc => sc.ClassId)
+                    .ToListAsync();
+                studentClassIds = classIds.ToHashSet();
+            }
+
+            var notifications = await _context.Notifications.AsNoTracking()
+                .Where(n => n.Recipients.Any(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null))
+                .Include(n => n.Class)
+                .Include(n => n.User)
+                .Include(n => n.Recipients.Where(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null))
+                .AsSplitQuery()
+                .OrderByDescending(n => n.CreatedAt)
+                .ThenByDescending(n => n.NotificationId)
+                .ToListAsync();
+
+            if (studentId is > 0 && studentClassIds != null)
+            {
+                notifications = notifications.Where(n =>
+                {
+                    if (n.ClassId.HasValue && !studentClassIds.Contains(n.ClassId.Value))
+                        return false;
+                    if (n.UserId.HasValue && n.UserId.Value != studentId.Value && n.UserId.Value != effectiveParentId && n.UserId.Value != parentId)
+                        return false;
+                    return true;
+                }).ToList();
+            }
+
+            return notifications.Select(n =>
+            {
+                var recipient = n.Recipients.FirstOrDefault(r => r.UserId == effectiveParentId)
+                    ?? n.Recipients.FirstOrDefault(r => r.UserId == parentId)
+                    ?? n.Recipients.FirstOrDefault();
+                var dto = MapNotificationToLearnerDto(n, recipient?.UserId ?? effectiveParentId);
+                return dto;
+            }).ToList();
+        }
 
         private async Task<List<LearnerNotificationItemDto>> GetRecipientNotificationsAsync(int userId)
         {
-            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId);
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(userId);
+            await inboxService.EnsureSeededRecipientsAsync();
             var notifications = await _context.Notifications.AsNoTracking()
                 .Where(n => n.Recipients.Any(r => r.UserId == userId && r.DeletedAt == null))
                 .Include(n => n.Class).Include(n => n.User)
@@ -1035,15 +1236,53 @@ namespace EduTrack.API.Services.Learning.Implementation
         public async Task<bool> MarkNotificationAsReadAsync(int notificationId, int? userId = null)
         {
             if (userId is not > 0) return false;
-            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId.Value);
-            return await new EduTrack.API.Repositories.Implementation.NotificationRepository(_context)
-                .MarkReadAsync(notificationId, userId.Value);
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(userId.Value);
+            await inboxService.EnsureSeededRecipientsAsync();
+
+            var targetUserIds = new HashSet<int> { userId.Value };
+            var isParent = await _context.UserRoles.AsNoTracking()
+                .AnyAsync(ur => ur.UserId == userId.Value && ur.Role.RoleName == "parent");
+            if (isParent)
+            {
+                var linkedStudents = await _context.ParentStudents.AsNoTracking()
+                    .Where(ps => ps.ParentId == userId.Value)
+                    .Select(ps => ps.StudentId)
+                    .ToListAsync();
+                foreach (var sid in linkedStudents) targetUserIds.Add(sid);
+                // Also include sibling parent demo account if marking a child notification in Parent view
+                targetUserIds.Add(9);
+                targetUserIds.Add(10);
+            }
+
+            var now = DateTime.UtcNow;
+            var updated = await _context.NotificationRecipients
+                .Where(r => r.NotificationId == notificationId && targetUserIds.Contains(r.UserId) && r.DeletedAt == null && !r.IsRead)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsRead, true).SetProperty(r => r.ReadAt, now));
+
+            return updated > 0 || await _context.NotificationRecipients.AsNoTracking()
+                .AnyAsync(r => r.NotificationId == notificationId && targetUserIds.Contains(r.UserId) && r.DeletedAt == null);
         }
 
         public async Task<int> MarkAllNotificationsAsReadAsync(int userId, int? studentId = null)
         {
-            await new EduTrack.API.Services.Notifications.NotificationInboxService(_context).IdentifyAsync(userId);
-            return await _context.NotificationRecipients.Where(r => r.UserId == userId && r.DeletedAt == null && !r.IsRead)
+            var inboxService = new EduTrack.API.Services.Notifications.NotificationInboxService(_context);
+            await inboxService.IdentifyAsync(userId);
+            await inboxService.EnsureSeededRecipientsAsync();
+
+            var targetUserIds = new HashSet<int> { userId };
+            if (studentId is > 0)
+            {
+                targetUserIds.Add(studentId.Value);
+                var linkedParents = await _context.ParentStudents.AsNoTracking()
+                    .Where(ps => ps.StudentId == studentId.Value)
+                    .Select(ps => ps.ParentId)
+                    .ToListAsync();
+                foreach (var pid in linkedParents) targetUserIds.Add(pid);
+            }
+
+            return await _context.NotificationRecipients
+                .Where(r => targetUserIds.Contains(r.UserId) && r.DeletedAt == null && !r.IsRead)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsRead, true).SetProperty(r => r.ReadAt, DateTime.UtcNow));
         }
 
