@@ -67,11 +67,11 @@ test("without staff identity the DAL loads public metrics but never another user
   assert.deepEqual(result.tuition.data, { unpaidCount: 0, outstanding: 0 });
   assert.deepEqual(result.schedule.data, []);
   assert.equal(result.requests.data, null);
-  assert.match(result.notifications.error, /tài khoản giáo vụ/);
+  assert.equal('notifications' in result, false, 'The shared principal Inbox store owns notifications');
   assert.deepEqual(calls.sort(), ["/classsessions", "/payments", "/teacherclasses", "/tuitioninvoices", "/users"]);
 });
 
-test("staff 42 receives their own requests and sorted inbox, never the global notification feed", async () => {
+test("staff 42 receives their own requests; dashboard DAL never fetches any notification feed", async () => {
   const calls = serve({
     ...common(),
     "/users/42": { userId: 42, fullName: "Giáo vụ kiểm thử", status: "active", roles: ["admin_staff"] },
@@ -80,15 +80,11 @@ test("staff 42 receives their own requests and sorted inbox, never the global no
       { requestId: 2, requestedBy: 2, createdAt: "2026-11-06", status: "pending" },
       { requestId: 3, requestedBy: 42, createdAt: "2026-11-05", status: "approved" },
     ],
-    "/notifications/inbox?userId=42": [
-      { notificationId: 8, createdAt: "2026-11-01" },
-      { notificationId: 9, createdAt: "2026-11-05" },
-    ],
   });
   const result = await dashboardDAL.getDashboard(42, "2026-11-06");
   assert.equal(result.staff.data.userId, 42);
   assert.deepEqual(result.requests.data.map((item) => item.requestId), [3, 1]);
-  assert.deepEqual(result.notifications.data.map((item) => item.notificationId), [9, 8]);
+  assert.ok(!calls.some(path => path.startsWith('/notifications')));
   assert.ok(!calls.includes("/notifications"));
   assert.ok(!calls.includes("/users/2"));
 });
@@ -98,7 +94,7 @@ test("a server profile without the staff role cannot load personal sections", as
   const result = await dashboardDAL.getDashboard(42, "2026-11-06");
   assert.equal(result.staff.data, null);
   assert.equal(result.requests.data, null);
-  assert.equal(result.notifications.data, null);
+  assert.equal('notifications' in result, false);
   assert.ok(!calls.includes("/approvalrequests"));
   assert.ok(!calls.some((path) => path.startsWith("/notifications")));
 });

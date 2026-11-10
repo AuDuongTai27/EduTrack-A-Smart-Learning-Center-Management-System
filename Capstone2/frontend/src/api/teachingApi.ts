@@ -163,13 +163,13 @@ export const teachingApi = {
    * Lấy danh sách thông báo dành cho Giáo viên hoặc Trợ giảng
    */
   async getNotifications(userId: number, status?: string): Promise<TeachingNotificationDto[]> {
-    const params = new URLSearchParams({ userId: String(userId) });
+    const params = new URLSearchParams({userId:String(userId)});
     if (status && status !== 'all') {
       params.append('status', status);
     }
 
     const response = await fetch(`${API_BASE_URL}/teaching/notifications?${params.toString()}`, {
-      method: 'GET',
+      method: 'GET', credentials: 'omit', cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -180,7 +180,8 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.data ?? json ?? [];
+    if (!Array.isArray(json?.data)) throw new Error('Invalid notification response.');
+    return json.data;
   },
 
   /**
@@ -190,7 +191,7 @@ export const teachingApi = {
   async markNotificationAsRead(notificationId: number, userId?: number): Promise<boolean> {
     const query = userId ? `?userId=${userId}` : '';
     const response = await fetch(`${API_BASE_URL}/teaching/notifications/${notificationId}/read${query}`, {
-      method: 'PUT',
+      method: 'PUT', credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -201,7 +202,8 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.success ?? true;
+    if (json?.success !== true) throw new Error('Mark read was not confirmed.');
+    return true;
   },
 
   /**
@@ -221,7 +223,8 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.updatedCount ?? 0;
+    if (json?.success !== true || !Number.isSafeInteger(json.updatedCount)) throw new Error('Mark all read was not confirmed.');
+    return json.updatedCount;
   },
 
   /**

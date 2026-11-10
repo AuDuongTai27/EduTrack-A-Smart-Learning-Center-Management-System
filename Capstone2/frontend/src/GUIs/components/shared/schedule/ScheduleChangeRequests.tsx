@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {useAuthContext} from '../../../../contexts/AuthContext';
+import {useSelectedUser} from '../../../hooks/useSelectedUser';
 import type {ScheduleSession} from '../../../../BLL/models/ScheduleSession';
 import type {ScheduleChangeCapabilities,ScheduleChangeInput,ScheduleChangePreview,ScheduleChangeRequest,ScheduleDecisionInput} from '../../../../BLL/models/ScheduleChangeRequest';
 import {ScheduleChangeApiError,scheduleChangeRequestApi as api} from '../../../../api/scheduleChangeRequestApi';
@@ -13,7 +13,7 @@ const statusLabels = {all:'Tất cả',pending:'Pending · Chưa nhận',claimed
 const auditTime = (value: string) => new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok',dateStyle:'short',timeStyle:'medium'}).format(new Date(value)) + ' (UTC+7)';
 const requestsChanged = () => window.dispatchEvent(new Event('edutrack:schedule-requests-changed'));
 export function ScheduleChangeRequests(props: {mode: 'teacher' | 'reviewer'; session?: ScheduleSession}) {
-  const {user,permission} = useAuthContext();
+  const {user,permission} = useSelectedUser();
   return <Panel key={`${user?.userId ?? 'anonymous'}:${permission?.join(',')}:${props.mode}:${props.session?.sessionId ?? 'list'}`} {...props} />;
 }
 function Panel({mode,session}: {mode: 'teacher' | 'reviewer';session?: ScheduleSession}) {

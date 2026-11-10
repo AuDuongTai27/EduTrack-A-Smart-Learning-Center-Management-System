@@ -4,9 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 
-// Only the migrated, isolated test assembly accepts this nonce. No production identity bypass.
-const origin=process.env.EDUTRACK_SCHEDULE_TEST_ORIGIN,nonce=process.env.EDUTRACK_SCHEDULE_TEST_NONCE;
-assert.match(origin??'',/^http:\/\/127\.0\.0\.1:\d+$/);assert.match(nonce??'',/^[a-f0-9]{32}$/);
+// Ordinary HTTP using database user selectors; no authentication in this system.
+const origin=process.env.EDUTRACK_SCHEDULE_TEST_ORIGIN;
+assert.match(origin??'',/^http:\/\/127\.0\.0\.1:\d+$/);
 const output=fs.mkdtempSync(path.join(os.tmpdir(),'edutrack-schedule-version-browser-'));
 const bootstrap=fs.readFileSync('src/assets/css/bootstrap.min.css'),icons=fs.readFileSync('src/assets/css/bootstrap-icons.css');
 const pending=new Map(),failures=[],requests=[],summary=[];
@@ -23,10 +23,10 @@ async function click(selector){assert.ok(await evaluate('Boolean('+query(selecto
 async function clickText(text,scope='body'){const expr='Array.from(document.querySelectorAll('+JSON.stringify(scope+' button')+')).find(b=>b.textContent.trim()==='+JSON.stringify(text)+')';assert.ok(await evaluate('Boolean('+expr+')'),'Button '+text);await evaluate(expr+'.click()');}
 async function setInput(label,value){const selector='[aria-label="'+label+'"]';await evaluate('(()=>{const input='+query(selector)+';const setter=Object.getOwnPropertyDescriptor(input.tagName==="SELECT"?HTMLSelectElement.prototype:HTMLInputElement.prototype,"value").set;setter.call(input,'+JSON.stringify(value)+');input.dispatchEvent(new Event(input.tagName==="SELECT"?"change":"input",{bubbles:true}));})()');}
 async function chooseClass(id){await setInput('Class quản lý lịch',String(id));await until(query('.schedule-template-table'),'templates loaded');}
-async function navigate(actor,route){await send('Network.setCookie',{name:'schedule_test_actor',value:nonce+':'+actor,url:origin,httpOnly:true});await send('Page.navigate',{url:origin+'/'+route+'/schedule'});await until('document.querySelector(".et-schedule-summary")&&!document.querySelector(".et-schedule-state")?.textContent.includes("Đang tải")','Calendar/List ready');}
+async function navigate(actor,route){await send('Page.navigate',{url:origin+'/'+route+'/schedule'});await until('document.querySelector(".et-schedule-summary")&&!document.querySelector(".et-schedule-state")?.textContent.includes("Đang tải")','Calendar/List ready');}
 async function openManagement(text){await clickText(text);await until(query('[aria-label="Class quản lý lịch"]'),'capabilities');}
 async function shot(name,selector){await evaluate(query(selector)+'.scrollIntoView({block:"start",behavior:"instant"})');await delay(100);const r=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});fs.writeFileSync(path.join(output,name+'.png'),Buffer.from(r.data,'base64'));}
-async function templates(){return evaluate('fetch("/api/schedule/management/templates?classId=803",{credentials:"include",cache:"no-store"}).then(r=>{if(!r.ok)throw Error(r.status);return r.json();})');}
+async function templates(){return evaluate('fetch("/api/schedule/management/templates?classId=803&userId=505",{credentials:"omit",cache:"no-store"}).then(r=>{if(!r.ok)throw Error(r.status);return r.json();})');}
 async function previewGeneration(){await clickText('Xem trước phiên học');await until(query('.schedule-generation-preview'),'generation preview');}
 async function confirmGeneration(){const label=await evaluate('Array.from(document.querySelectorAll(".schedule-generation-preview button")).find(b=>b.textContent.includes("Xác nhận tạo")).textContent.trim()');await clickText(label);await until('document.querySelector(".schedule-generation-preview").textContent.includes("Kết quả xác nhận")','generation confirmed');}
 async function confirmTemplate(){await clickText('Xác nhận thay đổi lịch');await until('document.querySelector(".schedule-management [role=status]")?.textContent.includes("Đã lưu")','timeline confirmed');await until(query('.schedule-template-table'),'updated timeline');}
@@ -38,7 +38,7 @@ async function paused(event){
   }
   if(url.pathname.startsWith('/api/')){
     requests.push({path:url.pathname,method:event.request.method,body:event.request.postData});
-    if(url.pathname.startsWith('/api/schedule/')){await send('Fetch.continueRequest',{requestId:event.requestId});return;}
+    if(url.pathname.startsWith('/api/schedule/')||url.pathname.startsWith('/api/user-selection')){await send('Fetch.continueRequest',{requestId:event.requestId});return;}
     assert.equal(event.request.method,'GET','No writes outside Schedule');
     await send('Fetch.fulfillRequest',{requestId:event.requestId,responseCode:503,body:Buffer.from('{}').toString('base64')});return;
   }
@@ -79,14 +79,14 @@ try{
     await clickText('List');assert.ok(await evaluate('Boolean('+query('.et-schedule-table [data-session-id="'+firstId+'"]')+')'),'same Session in List');await clickText('Calendar');
     await setInput('Chế độ tạo phiên','month');await setInput('Tháng tạo phiên','2027-01');await previewGeneration();
     assert.equal(await evaluate('document.querySelectorAll(".schedule-generation-preview [data-outcome=eligible]").length'),3);await confirmGeneration();
-    const sourceSessions=await evaluate('fetch("/api/schedule/sessions?from=2027-01-01&toExclusive=2027-02-01",{credentials:"include",cache:"no-store"}).then(r=>r.json()).then(rows=>rows.filter(s=>s.scheduleId==='+templateId+'))');assert.equal(sourceSessions.length,4);
+    const sourceSessions=await evaluate('fetch("/api/schedule/sessions?from=2027-01-01&toExclusive=2027-02-01&userId=505",{credentials:"omit",cache:"no-store"}).then(r=>r.json()).then(rows=>rows.filter(s=>s.scheduleId==='+templateId+'))');assert.equal(sourceSessions.length,4);
     await navigate(manager,manager);await openManagement('Quản lý lịch cố định');await chooseClass(803);
     await click('[data-template-id="'+templateId+'"] button.btn-outline-primary');await setInput('Tuần hiệu lực','2027-01-11');await setInput('Thứ template','Wednesday');await setInput('Giờ bắt đầu template',newStart);await setInput('Giờ kết thúc template',newEnd);await setInput('Phòng template','QA New '+viewport);
     await clickText('Xem trước thay đổi lịch');await until(query('.schedule-template-preview'),'future version Preview');
     assert.equal(await evaluate('document.querySelectorAll("[data-retained-session]").length'),3,'All already generated future occurrences retained');
     await shot('future-version-preview-'+viewport,'.schedule-template-preview');await confirmTemplate();
     const changed=(await templates()).find(s=>s.scheduleId===root.scheduleId);assert.equal(changed.versions.length,2);assert.equal(changed.versions[0].effectiveTo,'2027-01-11');assert.equal(changed.versions[1].dayOfWeek,'Wednesday');
-    const retained=await evaluate('fetch("/api/schedule/sessions?from=2027-01-01&toExclusive=2027-02-01",{credentials:"include",cache:"no-store"}).then(r=>r.json()).then(rows=>rows.filter(s=>s.scheduleId==='+templateId+'))');
+    const retained=await evaluate('fetch("/api/schedule/sessions?from=2027-01-01&toExclusive=2027-02-01&userId=505",{credentials:"omit",cache:"no-store"}).then(r=>r.json()).then(rows=>rows.filter(s=>s.scheduleId==='+templateId+'))');
     assert.deepEqual(retained,sourceSessions,'Template change leaves Session IDs/source/planned/actual intact');
     await navigate('teacher','teacher');await openManagement('Tạo phiên học');await chooseClass(803);await setInput('Chế độ tạo phiên','month');await setInput('Tháng tạo phiên','2027-01');await previewGeneration();
     assert.equal(await evaluate('document.querySelectorAll(".schedule-generation-preview [data-outcome=eligible]").length'),0);
@@ -106,8 +106,7 @@ try{
     summary.push(viewport);console.log('PASS migrated version UI '+viewport+': create/replace/retire Preview/Confirm, retained source/planned/actual, no re-generation, Calendar/List IDs, containment');
   }
   for(const role of ['teaching-assistant','student']){await navigate(role,role);assert.equal(await evaluate('Array.from(document.querySelectorAll("button")).some(b=>["Tạo phiên học","Quản lý lịch cố định"].includes(b.textContent.trim()))'),false);}
-  await navigate('teaching-assistant','teacher');await clickText('Tạo phiên học');await until(query('.schedule-management [role=alert]'),'TA cannot obtain Teacher capabilities');
-  assert.equal(await evaluate('Boolean('+query('[aria-label="Tạo phiên học"]')+')'),false);
-  await send('Network.deleteCookies',{name:'schedule_test_actor',url:origin});await send('Page.navigate',{url:origin+'/teacher/schedule'});await until(query('.et-schedule-error'),'anonymous Calendar denied');await clickText('Tạo phiên học');await until('document.querySelector(".schedule-management [role=alert]")?.textContent.includes("Chưa xác thực")','anonymous management denied');
+  await navigate('teacher','teacher');await clickText('Tạo phiên học');await until(query('[aria-label="Class quản lý lịch"]'),'Teacher data workflow works without authentication');
+  await send('Page.navigate',{url:origin+'/teacher/schedule'});await until(query('.et-schedule-summary'),'selected Teacher Calendar without login');
   assert.deepEqual(failures,[]);fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({summary,requests,failures},null,2));console.log('BROWSER RESULTS: '+summary.length+' migrated version/occurrence viewport groups. ARTIFACTS: '+output);
 }finally{if(socket?.readyState===1){await send('Browser.close',{},null).catch(()=>{});socket.close();}chrome?.kill();for(const p of pending.values())clearTimeout(p.timer);}

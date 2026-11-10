@@ -1,3 +1,4 @@
+import {selectedUrl} from '../BLL/services/userSelection.ts';
 import type {ScheduleCapabilities, ScheduleGenerationInput, ScheduleGenerationPreview, ScheduleTemplate, ScheduleTemplateInput, ScheduleTemplatePreview, ScheduleVersion} from '../BLL/models/ScheduleManagement';
 import {dateOnly, mondayOf} from '../BLL/services/scheduleViewService';
 
@@ -49,10 +50,10 @@ export function readScheduleGeneration(value: unknown, input: ScheduleGeneration
     throw new Error('Dữ liệu occurrence từ máy chủ không hợp lệ. Tải lại để kiểm tra.');
   return p;
 }
-export function createScheduleManagementApi(baseUrl: string) {
+export function createScheduleManagementApi(baseUrl: string, selectedUserId?: number) {
   async function request(path: string, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<unknown> {
     let response: Response;
-    try {response = await fetch(`${baseUrl}/schedule/management${path}`, {method, credentials:'include', cache:'no-store', signal,
+    try {response = await fetch(await selectedUrl(`${baseUrl}/schedule/management${path}`, 'userId', selectedUserId), {method, credentials:'omit', cache:'no-store', signal,
       headers:{Accept:'application/json', ...(body === undefined ? {} : {'Content-Type':'application/json'})}, ...(body === undefined ? {} : {body:JSON.stringify(body)})});}
     catch (error) {
       if (signal?.aborted) throw error;
@@ -61,7 +62,7 @@ export function createScheduleManagementApi(baseUrl: string) {
     }
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      throw new Error(response.status === 401 ? 'Chưa xác thực. Vui lòng đăng nhập bằng tài khoản được phân quyền.' : data?.message || `Không thực hiện được yêu cầu (HTTP ${response.status}).`);
+      throw new Error(data?.message || `Không thực hiện được yêu cầu (HTTP ${response.status}).`);
     }
     return response.json();
   }

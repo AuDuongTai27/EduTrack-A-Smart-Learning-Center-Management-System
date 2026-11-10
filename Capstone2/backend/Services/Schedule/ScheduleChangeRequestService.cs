@@ -1,6 +1,5 @@
 using System.Data;
 using System.Globalization;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
 using EduTrack.API.Models.DTOs.Schedule;
 using EduTrack.API.Models.EF;
@@ -22,13 +21,13 @@ public sealed class ScheduleChangeRequestService(EduTrackDbContext db, ScheduleC
     private sealed record Destination(DateTime? Date, TimeSpan? Start, TimeSpan? End, string? Room);
     private sealed record State(List<Class> Classes, List<ClassSchedule> Roots, List<ClassSession> Sessions);
     private DateTime Now {get {var utc=(clock??TimeProvider.System).GetUtcNow().UtcDateTime;return new(utc.Ticks-utc.Ticks%10,DateTimeKind.Utc);}}
-    private async Task<Actor> ActorFor(ClaimsPrincipal principal, CancellationToken ct)
+    private async Task<Actor> ActorFor(int userId, CancellationToken ct)
     {
-        var id = ScheduleReadService.RequireSubject(principal);
+        var id = ScheduleReadService.RequireSelectedUser(userId);
         var user = await db.Users.AsNoTracking().Include(u => u.UserRoles).ThenInclude(r => r.Role).SingleOrDefaultAsync(u => u.UserId == id, ct);
         var roles = user?.UserRoles.Select(r => r.Role.RoleName).ToHashSet() ?? [];
         var actor = new Actor(id, roles.Contains("teacher"), roles.Contains("admin_staff") || roles.Contains("center_manager"));
-        if (user?.Status != "active" || !actor.Teacher && !actor.Manager) throw new ScheduleAccessException(403, "Tài khoản không có quyền Schedule Change Requests.");
+        if (user?.Status != "active" || !actor.Teacher && !actor.Manager) throw new ScheduleAccessException(400, "Tài khoản không có quyền Schedule Change Requests.");
         return actor;
     }
     private void RequireIntegration(bool apply = false)
@@ -36,11 +35,11 @@ public sealed class ScheduleChangeRequestService(EduTrackDbContext db, ScheduleC
         if (!safety.GenericRoutesGuarded || apply && !safety.AttendanceWritesCoordinated)
             throw new ScheduleAccessException(503, "Chức năng ghi lịch tạm thời chưa được mở. Vui lòng liên hệ quản lý.");
     }
-    private static void Teacher(Actor actor) {if (!actor.Teacher) throw new ScheduleAccessException(403, "Chỉ Teacher được gửi yêu cầu đổi lịch.");}
-    private static void Manager(Actor actor) {if (!actor.Manager) throw new ScheduleAccessException(403, "Chỉ Admin Staff/Center Manager được xử lý yêu cầu đổi lịch.");}
+    private static void Teacher(Actor actor) {if (!actor.Teacher) throw new ScheduleAccessException(400, "Chỉ Teacher được gửi yêu cầu đổi lịch.");}
+    private static void Manager(Actor actor) {if (!actor.Manager) throw new ScheduleAccessException(400, "Chỉ Admin Staff/Center Manager được xử lý yêu cầu đổi lịch.");}
     private static void Reviewer(Actor actor, ApprovalRequest header)
     {
-        if (!actor.Manager || header.RequestedBy == actor.Id) throw new ScheduleAccessException(403, "AD/CM không được tự duyệt yêu cầu của mình.");
+        if (!actor.Manager || header.RequestedBy == actor.Id) throw new ScheduleAccessException(400, "AD/CM không được tự duyệt yêu cầu của mình.");
     }
     private async Task<State> Load(CancellationToken ct) => new(
         await db.Classes.AsNoTracking().Include(c => c.TeacherClasses).Include(c => c.TaClasses).AsSplitQuery().ToListAsync(ct),
@@ -137,18 +136,18 @@ public sealed class ScheduleChangeRequestService(EduTrackDbContext db, ScheduleC
             d.Request.ReviewedAt.HasValue?DateTime.SpecifyKind(d.Request.ReviewedAt.Value,DateTimeKind.Utc):null,d.AppliedAt.HasValue?DateTime.SpecifyKind(d.AppliedAt.Value,DateTimeKind.Utc):null,
             new(FormatDate(d.OriginalSessionDate),FormatTime(d.OriginalStartTime),FormatTime(d.OriginalEndTime),d.OriginalRoom,d.OriginalStatus),Proposed(DestinationFor(d),d.ChangeKind),SessionDto(state,Target(state,d.SessionId)));
     }
-    public async Task<ScheduleChangeCapabilities> Capabilities(ClaimsPrincipal principal,CancellationToken ct)
+    public async Task<ScheduleChangeCapabilities> Capabilities(int userId,CancellationToken ct)
     {
-        var a=await ActorFor(principal,ct);return new(a.Id,a.Teacher,a.Teacher&&safety.GenericRoutesGuarded,a.Manager&&safety.GenericRoutesGuarded,a.Manager&&safety.GenericRoutesGuarded&&safety.AttendanceWritesCoordinated,a.Manager,
+        var a=await ActorFor(userId,ct);return new(a.Id,a.Teacher,a.Teacher&&safety.GenericRoutesGuarded,a.Manager&&safety.GenericRoutesGuarded,a.Manager&&safety.GenericRoutesGuarded&&safety.AttendanceWritesCoordinated,a.Manager,
             !safety.GenericRoutesGuarded?"Tạm thời chỉ xem/xem trước yêu cầu; chức năng gửi và xử lý chưa được mở.":!safety.AttendanceWritesCoordinated?"Tạm thời chưa mở phê duyệt và áp dụng lịch; vẫn có thể xem/từ chối yêu cầu.":null);
     }
-    public async Task<List<ScheduleChangeDto>> List(ClaimsPrincipal principal,CancellationToken ct)
+    public async Task<List<ScheduleChangeDto>> List(int userId,CancellationToken ct)
     {
-        var a=await ActorFor(principal,ct);var rows=await db.ScheduleChangeRequestDetails.AsNoTracking().Include(d=>d.Request)
+        var a=await ActorFor(userId,ct);var rows=await db.ScheduleChangeRequestDetails.AsNoTracking().Include(d=>d.Request)
             .Where(d=>a.Manager||d.Request.RequestedBy==a.Id).OrderByDescending(d=>d.RequestId).ToListAsync(ct);var state=await Load(ct);return rows.Select(d=>Map(d,state)).ToList();
     }
-    public async Task<ScheduleChangeDto> Get(ClaimsPrincipal principal,int id,CancellationToken ct)
-    {var a=await ActorFor(principal,ct);return Map(await Detail(id,a,ct),await Load(ct));}
+    public async Task<ScheduleChangeDto> Get(int userId,int id,CancellationToken ct)
+    {var a=await ActorFor(userId,ct);return Map(await Detail(id,a,ct),await Load(ct));}
     private async Task<ScheduleChangePreview> PrepareSubmit(Actor actor,ScheduleChangeInput input,State state,CancellationToken ct)
     {
         Teacher(actor);var session=Target(state,input.SessionId);var c=ForClass(state,session);
@@ -157,17 +156,17 @@ public sealed class ScheduleChangeRequestService(EduTrackDbContext db, ScheduleC
         if(await db.ScheduleChangeRequestDetails.AnyAsync(d=>d.SessionId==session.SessionId&&d.Request.Status=="pending",ct))reasons.Add("Session đã có typed request pending.");
         var dto=SessionDto(state,session);return new(Hash(new {actor.Id,input.SessionId,input.ChangeKind,reason,key,dest,Allocation=Allocation(state),reasons}),reasons.Count==0,reasons,dto,Proposed(dest,input.ChangeKind));
     }
-    public async Task<ScheduleChangePreview> Preview(ClaimsPrincipal principal,ScheduleChangeInput input,CancellationToken ct)
+    public async Task<ScheduleChangePreview> Preview(int userId,ScheduleChangeInput input,CancellationToken ct)
     {
-        var actor=await ActorFor(principal,ct);await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,ct);
+        var actor=await ActorFor(userId,ct);await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,ct);
         var preview=await PrepareSubmit(actor,input,await Load(ct),ct);await tx.CommitAsync(ct);return preview;
     }
-    public async Task<ScheduleChangeDto> Submit(ClaimsPrincipal principal,ScheduleChangeInput input,CancellationToken ct)
+    public async Task<ScheduleChangeDto> Submit(int userId,ScheduleChangeInput input,CancellationToken ct)
     {
-        var actor=await ActorFor(principal,ct);Teacher(actor);RequireIntegration();
+        var actor=await ActorFor(userId,ct);Teacher(actor);RequireIntegration();
         return await ScheduleWriteTransaction.Run(db,async()=>
         {
-            actor=await ActorFor(principal,ct);Teacher(actor);var key=Key(input.ClientRequestKey);var dest=DestinationFor(input);var reason=Reason(input.Reason);
+            actor=await ActorFor(userId,ct);Teacher(actor);var key=Key(input.ClientRequestKey);var dest=DestinationFor(input);var reason=Reason(input.Reason);
             var prior=await db.ScheduleChangeRequestDetails.AsNoTracking().Include(d=>d.Request).SingleOrDefaultAsync(d=>d.ClientRequestKey==key,ct);var state=await Load(ct);
             if(prior!=null)
             {
@@ -185,11 +184,11 @@ public sealed class ScheduleChangeRequestService(EduTrackDbContext db, ScheduleC
             db.ScheduleChangeRequestDetails.Add(detail);await db.SaveChangesAsync(ct);return Map(detail,state);
         },ct);
     }
-    public async Task<ScheduleChangeDto> Claim(ClaimsPrincipal principal,int id,CancellationToken ct)
+    public async Task<ScheduleChangeDto> Claim(int userId,int id,CancellationToken ct)
     {
-        Manager(await ActorFor(principal,ct));RequireIntegration();return await ScheduleWriteTransaction.Run(db,async()=>
+        Manager(await ActorFor(userId,ct));RequireIntegration();return await ScheduleWriteTransaction.Run(db,async()=>
         {
-            var a=await ActorFor(principal,ct);var d=await Detail(id,a,ct);Reviewer(a,d.Request);
+            var a=await ActorFor(userId,ct);var d=await Detail(id,a,ct);Reviewer(a,d.Request);
             if(d.Request.Status!="pending"||d.Request.ReviewedBy.HasValue&&d.Request.ReviewedBy!=a.Id)throw new ScheduleAccessException(409,"Request đã được xử lý/claim bởi người khác.");
             if(!d.Request.ReviewedBy.HasValue){d.Request.ReviewedBy=a.Id;d.Request.ReviewedAt=Now;db.ApprovalRequests.Update(d.Request);await db.SaveChangesAsync(ct);}
             return Map(d,await Load(ct));
@@ -211,16 +210,16 @@ public sealed class ScheduleChangeRequestService(EduTrackDbContext db, ScheduleC
         }
         var dto=Map(d,state);return new(Hash(new {a.Id,input.Decision,notes,Request=dto,Allocation=Allocation(state),reasons}),reasons.Count==0,reasons,dto.Session,dto.Proposed,dto);
     }
-    public async Task<ScheduleChangePreview> DecisionPreview(ClaimsPrincipal principal,int id,ScheduleChangeDecisionInput input,CancellationToken ct)
+    public async Task<ScheduleChangePreview> DecisionPreview(int userId,int id,ScheduleChangeDecisionInput input,CancellationToken ct)
     {
-        var a=await ActorFor(principal,ct);await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,ct);
+        var a=await ActorFor(userId,ct);await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,ct);
         var p=await PrepareDecision(a,await Detail(id,a,ct),input,await Load(ct),ct);await tx.CommitAsync(ct);return p;
     }
-    public async Task<ScheduleChangeDto> Decide(ClaimsPrincipal principal,int id,ScheduleChangeDecisionInput input,CancellationToken ct)
+    public async Task<ScheduleChangeDto> Decide(int userId,int id,ScheduleChangeDecisionInput input,CancellationToken ct)
     {
-        Manager(await ActorFor(principal,ct));RequireIntegration(input.Decision=="approved");return await ScheduleWriteTransaction.Run(db,async()=>
+        Manager(await ActorFor(userId,ct));RequireIntegration(input.Decision=="approved");return await ScheduleWriteTransaction.Run(db,async()=>
         {
-            var a=await ActorFor(principal,ct);
+            var a=await ActorFor(userId,ct);
             await db.ApprovalRequests.FromSqlInterpolated($"SELECT * FROM approval_requests WHERE request_id={id} FOR UPDATE").AsNoTracking().ToListAsync(ct);
             var d=await Detail(id,a,ct);Reviewer(a,d.Request);
             await db.ClassSessions.FromSqlInterpolated($"SELECT * FROM class_sessions WHERE session_id={d.SessionId} FOR UPDATE").AsNoTracking().ToListAsync(ct);

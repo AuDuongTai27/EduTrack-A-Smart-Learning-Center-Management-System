@@ -1,43 +1,13 @@
+import { NotificationBellDropdown } from '../../components/shared/notifications/NotificationQuickViews';
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { userDAL } from "../../../DAL/userDAL";
-import { notificationDAL } from "../../../DAL/notificationDAL";
-import { useAuthContext } from "../../../contexts/AuthContext";
-import type { UserDto } from "../../../BLL/models/UserDto";
-import type { NotificationDto } from "../../../BLL/models/NotificationDto";
+import {useSelectedUser} from '../../hooks/useSelectedUser';
 
 export function TeacherTopBar() {
-  const [teacher, setTeacher] = useState<UserDto | null>(null);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { dispatch } = useAuthContext();
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadTopBarData() {
-      try {
-        const [userRes, notifRes] = await Promise.all([
-          userDAL.getUserById(3), // Teacher TC001
-          notificationDAL.getAllNotifications(),
-        ]);
-        if (isMounted) {
-          if (userRes) setTeacher(userRes);
-          if (notifRes.data) {
-            const unread = notifRes.data.filter((n: NotificationDto) => !n.isRead).length;
-            setUnreadCount(unread > 0 ? unread : notifRes.data.length);
-          }
-        }
-      } catch (err) {
-        console.warn("Lỗi tải thông tin TeacherTopBar:", err);
-      }
-    }
-    loadTopBarData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const {user: teacher} = useSelectedUser();
 
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {
@@ -52,9 +22,9 @@ export function TeacherTopBar() {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleHome = () => {
     setIsDropdownOpen(false);
-    dispatch({ type: "logout" });
+
     navigate("/");
   };
 
@@ -67,11 +37,11 @@ export function TeacherTopBar() {
         .join("")
     : "TC";
 
-  const userCode = teacher?.userCode || "TC001";
-  const displayName = teacher?.fullName || "ThS. Hoàng Quốc Việt";
+  const userCode = teacher?.userCode || '--';
+  const displayName = teacher?.fullName || 'No account selected';
   const avatarSrc =
     teacher?.avatarUrl ||
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=viet";
+    '';
 
   return (
     <header className="topbar">
@@ -93,14 +63,7 @@ export function TeacherTopBar() {
         <button className="icon-btn" type="button" title="Giao diện">
           <i className="bi bi-moon-stars" />
         </button>
-        <Link
-          to="/teacher/notifications"
-          className="icon-btn notification-btn text-decoration-none position-relative"
-          title="Thông báo"
-        >
-          <i className="bi bi-bell" />
-          {unreadCount > 0 && <span className="status-dot" />}
-        </Link>
+        <NotificationBellDropdown />
 
         {/* User Info & Avatar with Dropdown */}
         <div className="position-relative ms-1" ref={dropdownRef}>
@@ -114,7 +77,7 @@ export function TeacherTopBar() {
           >
             {/* Avatar bên trái */}
             <div className="flex-shrink-0">
-              <img
+              {avatarSrc ? (<img
                 src={avatarSrc}
                 alt={displayName}
                 className="rounded-circle border"
@@ -125,7 +88,7 @@ export function TeacherTopBar() {
                     target.src = "/assets/img/profiles/avatar-27.jpg";
                   }
                 }}
-              />
+              />) : <span className="profile-avatar">{initials}</span>}
             </div>
 
             {/* Thông tin: Tên bên phải avatar và user code bên dưới tên, độ rộng cố định và text-truncate */}
@@ -157,7 +120,7 @@ export function TeacherTopBar() {
                   {displayName}
                 </div>
                 <small className="text-muted d-block text-truncate mb-1">
-                  {teacher?.email || "viet.hoang@edutrack.edu.vn"}
+                  {teacher?.email || '--'}
                 </small>
                 <div className="d-flex align-items-center gap-1.5 mb-2">
                   <span className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: "11px" }}>
@@ -187,10 +150,10 @@ export function TeacherTopBar() {
                 <button
                   type="button"
                   className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
-                  onClick={handleLogout}
+                  onClick={handleHome}
                 >
                   <i className="bi bi-box-arrow-right fs-6" />
-                  <span>Đăng xuất</span>
+                  <span>Về trang chủ</span>
                 </button>
               </div>
             </div>

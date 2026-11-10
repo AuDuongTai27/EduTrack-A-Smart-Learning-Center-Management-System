@@ -143,3 +143,17 @@ jobs:
       # Default mode validates policy only. No production host or database access.
       - name: Run Schedule management policy checks
         run: dotnet run --project backend.Tests/ScheduleManagement/ScheduleManagement.Tests.csproj --configuration Release --no-build --no-restore
+
+      # Notification policy mode never starts an HTTP host or accesses MySQL.
+      - name: Build Notification checks
+        run: dotnet build backend.Tests/Notifications/Notifications.Tests.csproj --configuration Release
+
+      - name: Run Notification role policy checks
+        run: dotnet run --project backend.Tests/Notifications/Notifications.Tests.csproj --configuration Release --no-build --no-restore
+
+      # Metadata only: no database connection, backup import, HTTP host or migration.
+      - name: Build Schedule legacy compatibility checks
+        run: dotnet build backend.Tests/ScheduleCompatibility/ScheduleCompatibility.Tests.csproj --configuration Release
+
+      - name: Run Schedule runtime and migration model checks
+        run: dotnet run --project backend.Tests/ScheduleCompatibility/ScheduleCompatibility.Tests.csproj --configuration Release --no-build --no-restore

@@ -1,5 +1,4 @@
 using System.Data;
-using System.Security.Claims;
 using EduTrack.API.Models.DTOs.Schedule;
 using EduTrack.API.Models.EF;
 using EduTrack.API.Models.Entities;
@@ -14,20 +13,20 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
 {
     private sealed record Actor(int Id, bool Manager, bool Teacher);
     private sealed record State(List<Class> Classes, List<ClassSchedule> Templates, List<ClassSession> Sessions);
-    private async Task<Actor> RequireActor(ClaimsPrincipal principal, bool teacherOnly, CancellationToken ct)
+    private async Task<Actor> RequireActor(int userId, bool teacherOnly, CancellationToken ct)
     {
-        var id = ScheduleReadService.RequireSubject(principal);
+        var id = ScheduleReadService.RequireSelectedUser(userId);
         var user = await db.Users.AsNoTracking().Include(u => u.UserRoles).ThenInclude(r => r.Role).SingleOrDefaultAsync(u => u.UserId == id, ct);
         var roles = user?.UserRoles.Select(r => r.Role.RoleName).ToHashSet() ?? [];
         var actor = new Actor(id, roles.Contains("center_manager") || roles.Contains("admin_staff"), roles.Contains("teacher"));
         if (user?.Status != "active" || (teacherOnly ? !actor.Teacher : !actor.Manager && !actor.Teacher))
-            throw new ScheduleAccessException(403, "Tài khoản không có quyền thực hiện chức năng Schedule này.");
+            throw new ScheduleAccessException(400, "Tài khoản không có quyền thực hiện chức năng Schedule này.");
         return actor;
     }
-    private async Task<Actor> Manager(ClaimsPrincipal principal, CancellationToken ct)
+    private async Task<Actor> Manager(int userId, CancellationToken ct)
     {
-        var actor = await RequireActor(principal, false, ct);
-        if (!actor.Manager) throw new ScheduleAccessException(403, "Chỉ Center Manager/Admin Staff được cấp hoặc ngừng lịch cố định.");
+        var actor = await RequireActor(userId, false, ct);
+        if (!actor.Manager) throw new ScheduleAccessException(400, "Chỉ Center Manager/Admin Staff được cấp hoặc ngừng lịch cố định.");
         return actor;
     }
     private async Task<State> Load(CancellationToken ct) => new(
@@ -49,9 +48,9 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             state.Sessions.Any(s => s.ClassId == classId && (!s.ScheduleId.HasValue || !s.ScheduleVersionId.HasValue || !s.PlannedOccurrenceDate.HasValue || !s.OccurrenceWeekStart.HasValue)))
             throw new ScheduleAccessException(409, "Class còn dữ liệu legacy chưa mapping planned occurrence/version. Cần đối soát trước khi quản lý hoặc generate.");
     }
-    public async Task<ScheduleCapabilities> Capabilities(ClaimsPrincipal principal, CancellationToken ct)
+    public async Task<ScheduleCapabilities> Capabilities(int userId, CancellationToken ct)
     {
-        var actor = await RequireActor(principal, false, ct);
+        var actor = await RequireActor(userId, false, ct);
         var classes = await db.Classes.AsNoTracking().Where(c => actor.Manager || c.TeacherClasses.Any(a => a.TeacherId == actor.Id && a.Status == "active"))
             .OrderBy(c => c.ClassName).ToListAsync(ct);
         return new(actor.Manager, actor.Teacher, classes.Where(ValidClass).Select(c => new ScheduleClassOption(c.ClassId, c.ClassName, c.Status,
@@ -66,9 +65,9 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             state.Sessions.Any(x => x.ScheduleId == s.ScheduleId), Version(s), list.Select(v => new ScheduleVersionDto(v.ScheduleVersionId,
                 v.EffectiveFrom.ToString("yyyy-MM-dd"), v.EffectiveTo?.ToString("yyyy-MM-dd"), Weekday(v.DayOfWeek).ToString(), FormatTime(v.StartTime), FormatTime(v.EndTime), v.Room)).ToList());
     }
-    public async Task<List<ScheduleTemplateDto>> Templates(ClaimsPrincipal principal, int classId, CancellationToken ct)
+    public async Task<List<ScheduleTemplateDto>> Templates(int userId, int classId, CancellationToken ct)
     {
-        var actor = await RequireActor(principal, false, ct); var state = await Load(ct);
+        var actor = await RequireActor(userId, false, ct); var state = await Load(ct);
         RequireClass(state, actor, classId); RequireMapped(state, classId);
         return state.Templates.Where(s => s.ClassId == classId).Select(s => Map(s, state)).ToList();
     }
@@ -154,20 +153,20 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
         return (new(token, input.Operation, from.ToString("yyyy-MM-dd"), affected,
             $"Giữ nguyên {affected.Count} phiên đã tạo, kể cả buổi đã dời/hủy hoặc có Attendance. Đổi template không áp lại các phiên này."), candidate);
     }
-    public async Task<ScheduleTemplatePreview> PreviewTemplate(ClaimsPrincipal principal, ScheduleTemplateInput input, CancellationToken ct)
+    public async Task<ScheduleTemplatePreview> PreviewTemplate(int userId, ScheduleTemplateInput input, CancellationToken ct)
     {
-        var actor = await Manager(principal, ct);
+        var actor = await Manager(userId, ct);
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
         var preview = PrepareTemplate(await Load(ct), actor, input).Preview;
         await tx.CommitAsync(ct); return preview;
     }
-    public async Task<ScheduleTemplatePreview> ConfirmTemplate(ClaimsPrincipal principal, ScheduleTemplateInput input, CancellationToken ct)
+    public async Task<ScheduleTemplatePreview> ConfirmTemplate(int userId, ScheduleTemplateInput input, CancellationToken ct)
     {
-        await Manager(principal, ct);
+        await Manager(userId, ct);
         if (string.IsNullOrWhiteSpace(input.PreviewToken)) throw new ArgumentException("Hãy xem Preview thay đổi lịch trước khi xác nhận.");
         return await ScheduleWriteTransaction.Run(db, async () =>
         {
-            var actor = await Manager(principal, ct);
+            var actor = await Manager(userId, ct);
             if (input.ScheduleId.HasValue) await db.ClassSchedules.FromSqlInterpolated($"SELECT * FROM class_schedules WHERE schedule_id={input.ScheduleId.Value} FOR UPDATE").ToListAsync(ct);
             var state = await Load(ct); var (preview, candidate) = PrepareTemplate(state, actor, input);
             if (preview.PreviewToken != input.PreviewToken) throw new ScheduleAccessException(409, "Preview thay đổi lịch đã cũ; timeline/phân công/phiên đã tạo đã đổi. Chưa lưu thay đổi.");
@@ -192,9 +191,9 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             return preview with {Template = Map(after.Templates.Single(s => s.ScheduleId == root.ScheduleId), after)};
         }, ct);
     }
-    public async Task<ScheduleGenerationPreview> Preview(ClaimsPrincipal principal, ScheduleGenerationInput input, CancellationToken ct)
+    public async Task<ScheduleGenerationPreview> Preview(int userId, ScheduleGenerationInput input, CancellationToken ct)
     {
-        var actor = await RequireActor(principal, true, ct);
+        var actor = await RequireActor(userId, true, ct);
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
         var preview = Build(await Load(ct), actor, input);
         await tx.CommitAsync(ct); return preview;
@@ -275,14 +274,14 @@ public sealed class ScheduleManagementService(EduTrackDbContext db, TimeProvider
             input.Mode, input.ScheduleId, input.SessionDate, input.Year, input.Month, Timelines = roots.Select(Version).ToArray(), Keys = result.Select(r => r.Key).Order().ToArray()});
         return new(token, result);
     }
-    public async Task<ScheduleGenerationPreview> Confirm(ClaimsPrincipal principal, ScheduleGenerationInput input, CancellationToken ct)
+    public async Task<ScheduleGenerationPreview> Confirm(int userId, ScheduleGenerationInput input, CancellationToken ct)
     {
-        await RequireActor(principal, true, ct);
+        await RequireActor(userId, true, ct);
         if (string.IsNullOrWhiteSpace(input.PreviewToken) || input.SelectedKeys is not {Count: > 0 and <= 1550} || input.SelectedKeys.Distinct().Count() != input.SelectedKeys.Count)
             throw new ArgumentException("Hãy Preview và chọn occurrence hợp lệ trước khi xác nhận.");
         async Task<ScheduleGenerationPreview> Write(bool insert)
         {
-            var actor = await RequireActor(principal, true, ct); var state = await Load(ct); var preview = Build(state, actor, input);
+            var actor = await RequireActor(userId, true, ct); var state = await Load(ct); var preview = Build(state, actor, input);
             if (preview.PreviewToken != input.PreviewToken) throw new ScheduleAccessException(409, "Preview đã cũ: timeline, Class hoặc phân công thay đổi. Xem lại trước khi xác nhận.");
             var selected = preview.Rows.Where(r => input.SelectedKeys.Contains(r.Key)).ToList();
             if (selected.Count != input.SelectedKeys.Count || selected.Any(r => r.Outcome is not ("eligible" or "existing")))
