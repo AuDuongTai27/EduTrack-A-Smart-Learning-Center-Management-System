@@ -8,7 +8,7 @@ namespace EduTrack.API.Repositories.Interfaces
     public interface INotificationRepository : IGenericRepository<Notification>
     {
         Task<List<int>> ResolveRecipientIdsAsync(
-            string targetScope, string? targetRole, int? classId, int? userId);
+            string targetScope, string? targetRole, int? classId, int? userId, int? excludedUserId = null);
 
         Task<Notification> CreateWithRecipientsAsync(
             Notification notification, IReadOnlyCollection<int> recipientIds);

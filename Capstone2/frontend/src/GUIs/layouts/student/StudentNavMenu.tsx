@@ -1,41 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
+import { useNotificationInbox } from '../../hooks/useNotificationInbox';
 
 interface StudentNavMenuProps {
   onLinkClick?: () => void;
 }
 
 export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const { data } = useNotificationInbox();
+  const unreadCount = data?.unreadCount ?? 0;
   const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
   const footerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadUnreadCount = async () => {
-      try {
-        const count = await learningDAL.getStudentUnreadCount(DEFAULT_STUDENT_ID);
-        if (isMounted) setUnreadCount(count);
-      } catch {
-        if (isMounted) setUnreadCount(0);
-      }
-    };
-
-    loadUnreadCount();
-
-    const handleUpdate = () => {
-      loadUnreadCount();
-    };
-
-    window.addEventListener("notifications-updated", handleUpdate);
-    return () => {
-      isMounted = false;
-      window.removeEventListener("notifications-updated", handleUpdate);
-    };
-  }, []);
 
   // Đóng dropup khi click bên ngoài
   useEffect(() => {

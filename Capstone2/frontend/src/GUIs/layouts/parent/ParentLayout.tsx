@@ -14,7 +14,8 @@ function ParentLayoutContent() {
 
   const isFeedbackOrProfile =
     location.pathname.startsWith('/parent/feedback') ||
-    location.pathname.startsWith('/parent/profile');
+    location.pathname.startsWith('/parent/profile') ||
+    location.pathname.startsWith('/parent/notifications');
 
   const showEmptyState = !loading && childrenList.length === 0 && !isFeedbackOrProfile;
 

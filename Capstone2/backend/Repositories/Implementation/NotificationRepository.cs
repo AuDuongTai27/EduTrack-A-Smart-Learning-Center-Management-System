@@ -42,7 +42,7 @@ namespace EduTrack.API.Repositories.Implementation
         }
 
         public async Task<List<int>> ResolveRecipientIdsAsync(
-            string targetScope, string? targetRole, int? classId, int? userId)
+            string targetScope, string? targetRole, int? classId, int? userId, int? excludedUserId = null)
         {
             var users = _context.Users.AsNoTracking().Where(u => u.Status == "active")
                 .Where(u => u.UserRoles.Any(ur => AllowedRoles.Contains(ur.Role.RoleName)));
@@ -76,16 +76,29 @@ namespace EduTrack.API.Repositories.Implementation
                     throw new ArgumentOutOfRangeException(nameof(targetScope));
             }
 
-            return await users.Select(u => u.UserId).Distinct().ToListAsync();
+            // NTF-01: expand only the final student audience, using the legacy
+            // user-to-user relationship. Never infer guardians from class or name.
+            users = users.Where(u => u.UserId != excludedUserId);
+            var studentIdsInAudience = users
+                .Where(u => u.UserRoles.Any(r => r.Role.RoleName == "student"))
+                .Select(u => u.UserId);
+            var parentIds = _context.ParentStudents.AsNoTracking()
+                .Where(link => studentIdsInAudience.Contains(link.StudentId)
+                    && link.Parent.Status == "active"
+                    && link.Parent.UserRoles.Any(r => r.Role.RoleName == "parent")
+                    && link.ParentId != excludedUserId)
+                .Select(link => link.ParentId);
+            return await users.Select(u => u.UserId).Union(parentIds).ToListAsync();
         }
 
         public async Task<Notification> CreateWithRecipientsAsync(
             Notification notification, IReadOnlyCollection<int> recipientIds)
         {
-            if (recipientIds.Count == 0)
+            var uniqueIds = recipientIds.Where(id => id != notification.SenderId).Distinct().ToArray();
+            if (uniqueIds.Length == 0)
                 throw new InvalidOperationException("Không có người nhận hợp lệ.");
 
-            notification.Recipients = recipientIds.Distinct()
+            notification.Recipients = uniqueIds
                 .Select(id => new NotificationRecipient
                 {
                     UserId = id,

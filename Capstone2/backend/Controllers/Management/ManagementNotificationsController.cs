@@ -19,12 +19,19 @@ namespace EduTrack.API.Controllers.Management
     {
         private readonly IManagementNotificationService _service;
         private readonly NotificationInboxService _inbox;
+        private readonly NotificationRecipientSearchService _search;
 
         public ManagementNotificationsController(IManagementNotificationService service, EduTrackDbContext db)
         {
             _service = service;
             _inbox = new(db);
+            _search = new(db);
         }
+
+        [HttpGet("recipients")]
+        public async Task<IActionResult> SearchRecipients([FromQuery] int senderId,
+            [FromQuery] string? query, [FromQuery] int limit = 20, CancellationToken ct = default)
+            => Ok(await _search.SearchAsync(senderId, query, limit, ct));
 
         [HttpPost]
         public async Task<ActionResult<NotificationDto>> Create(

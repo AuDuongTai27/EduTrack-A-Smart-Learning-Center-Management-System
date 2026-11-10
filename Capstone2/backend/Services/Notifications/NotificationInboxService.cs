@@ -100,6 +100,7 @@ public sealed class NotificationInboxService(EduTrackDbContext db, TimeProvider?
         NotificationId = r.NotificationId, Title = r.Notification.Title, Content = r.Notification.Content,
         Type = r.Notification.Type, CreatedAt = Utc(r.Notification.CreatedAt),
         SenderId = r.Notification.SenderId, SenderName = r.Notification.Sender?.FullName,
+        SenderAvatarUrl = r.Notification.Sender?.AvatarUrl,
         ClassId = r.Notification.ClassId, ClassName = r.Notification.Class?.ClassName,
         IsRead = r.IsRead, ReadAt = r.ReadAt.HasValue ? Utc(r.ReadAt.Value) : null,
         DeletedAt = r.DeletedAt.HasValue ? Utc(r.DeletedAt.Value) : null,

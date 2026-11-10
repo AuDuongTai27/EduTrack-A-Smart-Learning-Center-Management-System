@@ -65,7 +65,7 @@ namespace EduTrack.API.Services.Management.Implementation
                         throw new InvalidOperationException("Gửi toàn trung tâm không chọn vai trò, lớp hoặc cá nhân.");
                     break;
                 case "role":
-                    if (targetRole == null || !AllowedRoles.Contains(targetRole)
+                    if (targetRole == null || !AllowedRoles.Contains(targetRole) || targetRole == "parent"
                         || dto.ClassId.HasValue || dto.UserId.HasValue)
                         throw new InvalidOperationException("Hãy chọn một vai trò hợp lệ.");
                     break;
@@ -86,7 +86,7 @@ namespace EduTrack.API.Services.Management.Implementation
             }
 
             var recipientIds = await _notificationRepository.ResolveRecipientIdsAsync(
-                scope, targetRole, dto.ClassId, dto.UserId);
+                scope, targetRole, dto.ClassId, dto.UserId, sender.UserId);
             // Người gửi theo dõi thông báo trong Sent, không nhận bản sao ở Inbox.
             recipientIds.Remove(sender.UserId);
             if (recipientIds.Count == 0)
