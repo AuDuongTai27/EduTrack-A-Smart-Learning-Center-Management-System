@@ -18,6 +18,7 @@ function SenderAvatar({ url, type }: { url?: string | null; type: string }) {
 
 export default function TeachingDashboardNotifications() {
   const { data, quick, loading, error, store, basePath } = useNotificationInbox();
+  const unreadQuick = quick.filter(n => !n.isRead);
   return <section className="ntf-scope ntf-dashboard ntf-teaching-dashboard card dashboard-card d-flex flex-column" aria-label="Thông báo gần đây">
     <div className="card-header dashboard-card-header d-flex align-items-center justify-content-between gap-2">
       <div><h5 className="mb-1 d-flex align-items-center gap-2 flex-wrap"><span>Thông Báo Mới</span>
@@ -29,8 +30,8 @@ export default function TeachingDashboardNotifications() {
       {error ? <div role="alert" className="text-danger">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Thử lại</button></div>
         : loading && !data ? <p role="status">Đang tải thông báo...</p>
         : !data ? <p role="status">Chọn tài khoản để xem thông báo.</p>
-        : !quick.length ? <NotificationEmptyState />
-        : <ul className="ntf-quick-list notice-list d-flex flex-column gap-3">{quick.map(n => <li key={n.notificationId}>
+        : !unreadQuick.length ? <NotificationEmptyState />
+        : <ul className="ntf-quick-list notice-list d-flex flex-column gap-3">{unreadQuick.map(n => <li key={n.notificationId}>
           <Link to={`${basePath}?notificationId=${n.notificationId}`} className="ntf-teaching-item notice-item d-flex align-items-start gap-3 p-2 rounded-2"
             onKeyDown={e => { if (e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}>
             <SenderAvatar key={n.senderAvatarUrl ?? ''} url={n.senderAvatarUrl} type={n.type} />

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 export interface TodayClassItem {
   id: string | number;
+  sessionId?: number;
   className: string;
   timePeriod: string;
   room?: string;
@@ -18,42 +19,46 @@ export interface TodayClassesSectionProps {
   classes?: TodayClassItem[];
 }
 
-const MOCK_TODAY_CLASSES: TodayClassItem[] = [
-  {
-    id: 1,
-    className: "Class 9A1 – Advanced Mathematics",
-    timePeriod: "18:00 – 20:00",
-    room: "Room 201",
-    studentsCount: 15,
-    status: "Upcoming",
-    attendanceTaken: false,
-  },
-  {
-    id: 2,
-    className: "Class 9A2 – Advanced Mathematics",
-    timePeriod: "20:00 – 21:30",
-    room: "Room 202",
-    studentsCount: 18,
-    status: "Upcoming",
-    attendanceTaken: true,
-  },
-];
-
 export function TodayClassesSection({
   classes = [],
 }: TodayClassesSectionProps = {}) {
-  // Lọc bỏ những lớp đã hoàn thành (hoặc đã quá giờ kết thúc)
-  const activeClasses = classes.filter((cls) => {
-    if (cls.status?.toLowerCase() === "completed") return false;
-    if (cls.startTime && cls.endTime) {
+  // Lọc chỉ giữ các lớp chưa hoàn thành trong ngày (bỏ lớp completed hoặc đã quá giờ kết thúc)
+  const activeClasses = classes
+    .filter((cls) => {
+      if (cls.status?.toLowerCase() === "completed") return false;
+      if (cls.startTime && cls.endTime) {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const [endH, endM] = cls.endTime.split(":").map(Number);
+        const endMinutes = (endH || 0) * 60 + (endM || 0);
+        if (currentMinutes >= endMinutes) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Ưu tiên lớp Ongoing lên đầu tiên, sau đó đến các lớp Upcoming theo giờ bắt đầu
       const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const [endH, endM] = cls.endTime.split(":").map(Number);
-      const endMinutes = (endH || 0) * 60 + (endM || 0);
-      if (currentMinutes >= endMinutes) return false;
-    }
-    return true;
-  });
+
+      const isOngoing = (cls: TodayClassItem) => {
+        if (cls.status?.toLowerCase() === "ongoing" || cls.status?.toLowerCase() === "in progress") return true;
+        if (cls.startTime && cls.endTime) {
+          const [startH, startM] = cls.startTime.split(":").map(Number);
+          const [endH, endM] = cls.endTime.split(":").map(Number);
+          const startMin = (startH || 0) * 60 + (startM || 0);
+          const endMin = (endH || 0) * 60 + (endM || 0);
+          return currentMinutes >= startMin && currentMinutes < endMin;
+        }
+        return false;
+      };
+
+      const aOngoing = isOngoing(a);
+      const bOngoing = isOngoing(b);
+
+      if (aOngoing && !bOngoing) return -1;
+      if (!aOngoing && bOngoing) return 1;
+      return (a.startTime || "").localeCompare(b.startTime || "");
+    });
 
   const displayClasses = activeClasses;
   const maxDisplay = 3;
@@ -92,12 +97,8 @@ export function TodayClassesSection({
 
               // Xác định trạng thái Ongoing nếu thời gian hiện tại nằm trong khoảng startTime - endTime
               let isOngoing = false;
-              let isCompleted = false;
-
               if (cls.status?.toLowerCase() === "ongoing" || cls.status?.toLowerCase() === "in progress") {
                 isOngoing = true;
-              } else if (cls.status?.toLowerCase() === "completed") {
-                isCompleted = true;
               }
 
               if (cls.startTime && cls.endTime) {
@@ -110,24 +111,19 @@ export function TodayClassesSection({
 
                 if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
                   isOngoing = true;
-                  isCompleted = false;
-                } else if (currentMinutes >= endMinutes) {
-                  isCompleted = true;
+                } else {
                   isOngoing = false;
                 }
               }
 
-              const statusText = isOngoing ? "Ongoing" : isCompleted ? "Completed" : "Upcoming";
-
+              const statusText = isOngoing ? "Ongoing" : "Upcoming";
               const badgeColorClass = isOngoing
                 ? "bg-primary-subtle text-primary border-primary-subtle"
-                : isCompleted
-                ? "bg-secondary-subtle text-secondary border-secondary-subtle"
                 : "bg-success-subtle text-success border-success-subtle";
 
               return (
                 <div
-                  key={cls.id}
+                  key={cls.sessionId ?? cls.id}
                   className="p-3 rounded-3 border bg-white shadow-xs d-flex flex-column gap-2"
                 >
                   <div className="d-flex align-items-center justify-content-between">
@@ -149,7 +145,7 @@ export function TodayClassesSection({
                   <div className="pt-2 border-top d-flex align-items-center">
                     {isOngoing ? (
                       <Link
-                        to={`/teacher/classes/${cls.id}/attendance`}
+                        to={cls.sessionId ? `/teacher/classes/${cls.id}/attendance?sessionId=${cls.sessionId}` : `/teacher/classes/${cls.id}/attendance`}
                         className="text-decoration-none text-primary fw-medium small d-inline-flex align-items-center gap-1.5"
                       >
                         <i className="bi bi-clipboard-check" />
@@ -160,7 +156,7 @@ export function TodayClassesSection({
                         to={`/teacher/classes/${cls.id}`}
                         className="text-decoration-none text-secondary fw-medium small d-inline-flex align-items-center gap-1.5"
                       >
-                        <i className="bi bi-people" />
+                        <i className="bi bi-arrow-right-circle" />
                         <span>View Class</span>
                       </Link>
                     )}

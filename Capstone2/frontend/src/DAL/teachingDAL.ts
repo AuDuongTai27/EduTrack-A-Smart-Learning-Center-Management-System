@@ -90,42 +90,14 @@ export const teachingDAL = {
         role: isTa ? 'teaching_assistant' : 'teacher',
       },
       kpis: {
-        activeAssignments: isTa ? 10 : 8,
-        assignmentsDueToday: isTa ? 4 : 3,
-        activeClasses: 6,
-        classesToday: isTa ? 3 : 2,
-        totalStudents: isTa ? 50 : 45,
-        pendingAttendance: isTa ? 2 : 1,
+        activeAssignments: 0,
+        assignmentsDueToday: 0,
+        activeClasses: isTa ? 2 : 1,
+        classesToday: 0,
+        totalStudents: isTa ? 3 : (userId === 3 ? 3 : 2),
+        pendingAttendance: 0,
       },
-      todayClasses: isTa
-        ? [
-            {
-              classId: 1,
-              className: 'Class 9 - Advanced Mathematics',
-              timePeriod: '18:00 - 20:00',
-              startTime: '18:00',
-              endTime: '20:00',
-              room: 'Room 201',
-              subjectName: 'Mathematics',
-              studentsCount: 3,
-              status: 'Upcoming',
-              attendanceTaken: false,
-            },
-          ]
-        : [
-            {
-              classId: 1,
-              className: 'Class 9 - Advanced Mathematics',
-              timePeriod: '18:00 - 20:00',
-              startTime: '18:00',
-              endTime: '20:00',
-              room: 'Room 201',
-              subjectName: 'Mathematics',
-              studentsCount: 3,
-              status: 'Upcoming',
-              attendanceTaken: false,
-            },
-          ],
+      todayClasses: [],
       notifications: [
         {
           notificationId: 1,

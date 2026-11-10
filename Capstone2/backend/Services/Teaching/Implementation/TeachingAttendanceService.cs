@@ -285,61 +285,51 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
         private async Task<List<ClassSession>> EnsureDefaultSessionsCreatedAsync(int classId)
         {
-            var cls = await _context.Classes.FindAsync(classId);
+            var cls = await _context.Classes
+                .Include(c => c.ClassSchedules)
+                    .ThenInclude(cs => cs.Versions)
+                .FirstOrDefaultAsync(c => c.ClassId == classId);
+
             DateTime startDate = cls?.StartDate ?? DateTime.UtcNow.Date.AddDays(-7);
             string room = cls?.Room ?? "Room 201";
 
-            var defaultSessions = new List<ClassSession>
-            {
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate,
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "completed"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(2),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "completed"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(7),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "scheduled"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(9),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "scheduled"
-                },
-                new ClassSession
-                {
-                    ClassId = classId,
-                    SessionDate = startDate.AddDays(14),
-                    StartTime = new TimeSpan(18, 0, 0),
-                    EndTime = new TimeSpan(20, 0, 0),
-                    Room = room,
-                    Status = "scheduled"
-                }
-            };
+            var schedule = cls?.ClassSchedules.FirstOrDefault();
+            var scheduleVersion = schedule?.Versions.FirstOrDefault();
 
-            _context.ClassSessions.AddRange(defaultSessions);
-            await _context.SaveChangesAsync();
+            if (schedule == null || scheduleVersion == null)
+            {
+                return new List<ClassSession>();
+            }
+
+            var defaultSessions = new List<ClassSession>();
+            for (int i = 0; i < 5; i++)
+            {
+                var sDate = startDate.AddDays(i * 3);
+                var targetDay = DateOnly.FromDateTime(sDate);
+                var targetWeek = targetDay.AddDays(-(((int)targetDay.DayOfWeek + 6) % 7));
+
+                bool exists = await _context.ClassSessions.AnyAsync(s => s.ScheduleId == schedule.ScheduleId && s.OccurrenceWeekStart == targetWeek);
+                if (exists) continue;
+
+                defaultSessions.Add(new ClassSession
+                {
+                    ClassId = classId,
+                    ScheduleId = schedule.ScheduleId,
+                    ScheduleVersionId = scheduleVersion.ScheduleVersionId,
+                    PlannedOccurrenceDate = targetDay,
+                    SessionDate = sDate,
+                    StartTime = scheduleVersion.StartTime,
+                    EndTime = scheduleVersion.EndTime,
+                    Room = room,
+                    Status = i < 2 ? "completed" : "scheduled"
+                });
+            }
+
+            if (defaultSessions.Count > 0)
+            {
+                _context.ClassSessions.AddRange(defaultSessions);
+                await _context.SaveChangesAsync();
+            }
             return defaultSessions;
         }
 

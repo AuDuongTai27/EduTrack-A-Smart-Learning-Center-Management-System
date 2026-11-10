@@ -12,9 +12,8 @@ export interface InboxSnapshot {
 export function newest(a: NotificationDto, b: NotificationDto) {
   return Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.notificationId - a.notificationId;
 }
-export function quickNotifications(rows: NotificationDto[], now: number) {
-  return rows.filter(n => !n.deletedAt && (!n.isRead ||
-    (n.readAt != null && now < Date.parse(n.readAt) + GRACE_MS))).sort(newest).slice(0, 5);
+export function quickNotifications(rows: NotificationDto[], _now?: number) {
+  return rows.filter(n => !n.deletedAt && !n.isRead).sort(newest).slice(0, 5);
 }
 export function nextExpiry(rows: NotificationDto[], now: number) {
   return Math.min(...rows.filter(n => !n.deletedAt && n.isRead && n.readAt)

@@ -49,7 +49,7 @@ export default function TeachingAssistantDashboardPage() {
 
   const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || [])
     .filter((cls) => {
-      // Bỏ qua lớp đã hoàn thành
+      // Bỏ qua lớp đã hoàn thành hoặc đã quá giờ kết thúc
       if (cls.status?.toLowerCase() === "completed") return false;
       if (cls.endTime) {
         const now = new Date();
@@ -83,6 +83,7 @@ export default function TeachingAssistantDashboardPage() {
 
       return {
         id: cls.classId,
+        sessionId: cls.sessionId,
         className: cls.className,
         timePeriod: cls.timePeriod,
         room: cls.room || "Room 201",
@@ -92,6 +93,13 @@ export default function TeachingAssistantDashboardPage() {
         startTime: cls.startTime,
         endTime: cls.endTime,
       };
+    })
+    .sort((a, b) => {
+      const aOngoing = a.status === "Ongoing";
+      const bOngoing = b.status === "Ongoing";
+      if (aOngoing && !bOngoing) return -1;
+      if (!aOngoing && bOngoing) return 1;
+      return (a.startTime || "").localeCompare(b.startTime || "");
     });
 
   return (
@@ -119,12 +127,12 @@ export default function TeachingAssistantDashboardPage() {
         <>
           {/* Dashboard KPI Cards - Chiếm toàn bộ chiều ngang */}
           <TeachingAssistantKpiCards
-            activeAssignments={kpis?.activeAssignments}
-            assignmentsDueToday={kpis?.assignmentsDueToday}
-            activeClasses={kpis?.activeClasses}
-            classesToday={kpis?.classesToday ?? mappedTodayClasses.length}
-            totalStudents={kpis?.totalStudents}
-            pendingAttendance={kpis?.pendingAttendance}
+            activeAssignments={kpis?.activeAssignments ?? 0}
+            assignmentsDueToday={kpis?.assignmentsDueToday ?? 0}
+            activeClasses={kpis?.activeClasses ?? 0}
+            classesToday={kpis?.classesToday ?? 0}
+            totalStudents={kpis?.totalStudents ?? 0}
+            pendingAttendance={kpis?.pendingAttendance ?? 0}
           />
 
           <div className="row">
