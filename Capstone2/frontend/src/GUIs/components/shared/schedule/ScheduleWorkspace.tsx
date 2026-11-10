@@ -14,8 +14,8 @@ import ScheduleListToolbar from '../../teacher/Teacher/schedule/ScheduleListTool
 import '../../../../assets/css/schedule-calendar.css';
 import './schedule.css';
 
-export function ScheduleWorkspace({role = 'student', renderHeader}: {role?: ScheduleRole; renderHeader?: (actions: ReactNode) => ReactNode}) {
-  const model = useScheduleReadModel(role);
+export function ScheduleWorkspace({role = 'student', userId, renderHeader}: {role?: ScheduleRole; userId?: number; renderHeader?: (actions: ReactNode) => ReactNode}) {
+  const model = useScheduleReadModel(role, userId);
   const refreshSchedule = model.retry;
   useEffect(() => {const refresh = () => refreshSchedule(); window.addEventListener('edutrack:schedule-applied', refresh);
     return () => window.removeEventListener('edutrack:schedule-applied', refresh);}, [refreshSchedule]);

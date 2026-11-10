@@ -21,7 +21,18 @@ export function ScheduleTimetableCard(props: Props) {
   const hours = official ? calendarHours(official.sessions) : {start: GRID_START, end: GRID_END};
   const totalHours = official ? hours.end - hours.start : TOTAL_H;
   const scrollRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {if (scrollRef.current) scrollRef.current.scrollTop = 0;}, [legacy?.weekOffset, official?.monday]);
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    if (official && official.sessions.length > 0) {
+      const validStarts = official.sessions.filter(validCalendarTime).map(s => Math.floor(timeMinutes(s.startTime) / 60));
+      if (validStarts.length > 0) {
+        const earliestHour = Math.min(...validStarts);
+        scrollRef.current.scrollTop = Math.max(0, (earliestHour - hours.start - 1) * HOUR_PX);
+        return;
+      }
+    }
+    scrollRef.current.scrollTop = 0;
+  }, [legacy?.weekOffset, official?.monday, official?.sessions, hours.start]);
   const nowMinutes = clock ? clock.minutes : legacy!.todayDate.getHours() * 60 + legacy!.todayDate.getMinutes();
   const showNowLine = (official ? todayIdx >= 0 : legacy!.weekOffset === 0) && nowMinutes >= hours.start * 60 && nowMinutes < hours.end * 60;
   const nowPx = (nowMinutes - hours.start * 60) / 60 * HOUR_PX;

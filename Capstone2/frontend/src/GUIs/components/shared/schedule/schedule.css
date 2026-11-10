@@ -11,7 +11,7 @@
 .schedule-official .schedule-advanced-filters summary { cursor:pointer; }
 .schedule-official .schedule-advanced-body { display:flex; flex-wrap:wrap; gap:12px; padding:12px 0 0; }
 .schedule-official .schedule-advanced-body label { display:flex; flex-direction:column; gap:5px; }
-.schedule-official .schedule-calendar-official { overflow:auto; position:relative; isolation:isolate; }
+.schedule-official .schedule-calendar-official { height:640px!important; max-height:640px!important; flex:none!important; overflow-x:auto!important; overflow-y:scroll!important; position:relative; isolation:isolate; }
 .schedule-official .schedule-calendar-official .day-header-row,
 .schedule-official .schedule-calendar-official .timetable-grid-wrapper { min-width:1044px; grid-template-columns:64px repeat(7,minmax(140px,1fr)); }
 .schedule-official .schedule-calendar-official .day-header-row { position:sticky; top:0; z-index:40; scrollbar-gutter:auto; }

@@ -16,7 +16,7 @@ public sealed class ScheduleAccessException : Exception
 // Selection is not access protection. No seeding or Attendance service calls.
 public sealed class ScheduleReadService(EduTrackDbContext context)
 {
-    private static readonly string[] Actors = ["center_manager", "admin_staff", "teacher", "teaching_assistant", "student"];
+    private static readonly string[] Actors = ["center_manager", "admin_staff", "teacher", "teaching_assistant", "student", "parent"];
 
     public static int RequireSelectedUser(int userId)
     {
@@ -39,14 +39,18 @@ public sealed class ScheduleReadService(EduTrackDbContext context)
         var teacher = roles.Contains("teacher");
         var ta = roles.Contains("teaching_assistant");
         var student = roles.Contains("student");
+        var parent = roles.Contains("parent");
+        var childIds = parent
+            ? await context.ParentStudents.AsNoTracking().Where(ps => ps.ParentId == userId).Select(ps => ps.StudentId).ToListAsync(ct)
+            : [];
         // Enrollment timestamps are UTC; session date and time are Vietnam civil time.
         // Unknown/missing enrollment evidence fails closed, including dropped without DroppedAt.
         return sessions.Where(s =>
             (teacher && s.Class.TeacherClasses.Any(a => a.TeacherId == userId && a.Status == "active")) ||
             (ta && s.Class.TaClasses.Any(a => a.TaId == userId && a.Status == "active")) ||
-            (student && s.SessionDate.Date >= s.Class.StartDate.Date &&
+            ((student || parent) && s.SessionDate.Date >= s.Class.StartDate.Date &&
                 (!s.Class.EndDate.HasValue || s.SessionDate.Date <= s.Class.EndDate.Value.Date) &&
-                s.Class.StudentClasses.Any(e => e.StudentId == userId && e.EnrolledDate.HasValue &&
+                s.Class.StudentClasses.Any(e => (e.StudentId == userId || childIds.Contains(e.StudentId)) && e.EnrolledDate.HasValue &&
                     (e.EnrolledDate.Value.AddHours(7).Date < s.SessionDate.Date ||
                         (e.EnrolledDate.Value.AddHours(7).Date == s.SessionDate.Date && e.EnrolledDate.Value.AddHours(7).TimeOfDay <= s.StartTime)) &&
                     (!e.DroppedAt.HasValue || e.DroppedAt.Value.AddHours(7).Date > s.SessionDate.Date ||
