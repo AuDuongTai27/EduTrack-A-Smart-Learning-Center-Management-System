@@ -223,43 +223,28 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
           )}
         </section>
       ) : (
-        /* BƯỚC 2: ĐÃ CHỌN LỚP -> HIỆN THÔNG TIN LỚP ĐANG CHỌN & THỜI KHÓA BIỂU CỦA RIÊNG LỚP ĐÓ */
+        /* BƯỚC 2: ĐÃ CHỌN LỚP -> CHỈ GIỮ VỀ DANH SÁCH LỚP VÀ ĐỔI NHANH LỚP */
         <>
           <div className="bg-white rounded-4 border shadow-sm p-3 mb-3">
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
-              <div className="d-flex flex-wrap align-items-center gap-2">
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-secondary fw-semibold"
-                  onClick={() => setSelectedClassId(null)}
-                >
-                  <i className="bi bi-arrow-left me-1" />
-                  Danh sách lớp
-                </button>
-                <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-                  <i className="bi bi-mortarboard-fill me-1" />
-                  {selectedClass.className}
-                </span>
-                {selectedClass.subjectName && (
-                  <span className="badge bg-light text-dark border px-2 py-1">{selectedClass.subjectName}</span>
-                )}
-                <span className="small text-muted">
-                  GV: <strong>{(selectedClass.teachers ?? []).map((t) => t.name).join(', ') || 'Chưa phân công'}</strong>
-                  {' · '}
-                  TA: <strong>{(selectedClass.teachingAssistants ?? []).map((t) => t.name).join(', ') || 'Chưa phân công'}</strong>
-                  {' · '}
-                  Thời gian: <strong>{selectedClass.startDate} → {selectedClass.endDate || '...'}</strong>
-                </span>
-              </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary fw-semibold d-inline-flex align-items-center gap-1"
+                onClick={() => setSelectedClassId(null)}
+              >
+                <i className="bi bi-arrow-left" />
+                Về danh sách lớp
+              </button>
 
               <div className="d-flex align-items-center gap-2">
-                <label className="small text-muted text-nowrap mb-0" htmlFor="quickClassSwitch">
+                <label className="small text-muted text-nowrap mb-0 fw-semibold" htmlFor="quickClassSwitch">
+                  <i className="bi bi-arrow-left-right text-primary me-1" />
                   Đổi nhanh lớp:
                 </label>
                 <select
                   id="quickClassSwitch"
                   className="form-select form-select-sm"
-                  style={{ width: 'auto', minWidth: 210 }}
+                  style={{ width: 'auto', minWidth: 230 }}
                   value={selectedClass.classId}
                   onChange={(e) => setSelectedClassId(Number(e.target.value))}
                 >
@@ -271,15 +256,6 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                 </select>
               </div>
             </div>
-            {(selectedClass.scheduleSummary ?? []).length > 0 && (
-              <div className="small text-muted mt-2 pt-2 border-top">
-                <i className="bi bi-clock me-1 text-primary" />
-                <strong>Lịch cố định hiện tại:</strong> {(selectedClass.scheduleSummary ?? []).join(' | ')}
-                <span className="ms-2 text-secondary">
-                  (Bấm trực tiếp vào từng phiên học bên dưới để <strong>dời sang ngày bất kỳ</strong> hoặc <strong>xóa buổi nghỉ</strong>)
-                </span>
-              </div>
-            )}
           </div>
 
           <ScheduleWorkspace
