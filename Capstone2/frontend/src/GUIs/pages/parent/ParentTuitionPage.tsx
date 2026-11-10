@@ -19,6 +19,7 @@ export function ParentTuitionPage() {
   const [history, setHistory] = useState<TuitionHistoryItem[]>([]);
   const [totalUnpaid, setTotalUnpaid] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const studentId = selectedChild?.id || DEFAULT_STUDENT_ID;
@@ -35,6 +36,7 @@ export function ParentTuitionPage() {
 
     async function loadTuition() {
       setLoading(true);
+      setErrorMsg(null);
       try {
         const vm = await learningDAL.getStudentTuition(studentId);
         if (isMounted && vm) {
@@ -45,6 +47,9 @@ export function ParentTuitionPage() {
         }
       } catch (err) {
         console.warn('Lỗi khi tải thông tin học phí phụ huynh:', err);
+        if (isMounted) {
+          setErrorMsg(err instanceof Error ? err.message : 'Không tải được dữ liệu học phí từ hệ thống.');
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -59,45 +64,27 @@ export function ParentTuitionPage() {
     };
   }, [studentId]);
 
-  const handleConfirmPayment = async (method: 'qr' | 'momo' | 'atm' | 'visa') => {
-    const paymentMethodMap: Record<'qr' | 'momo' | 'atm' | 'visa', string> = {
-      qr: 'bank_transfer',
-      momo: 'momo',
-      atm: 'vnpay',
-      visa: 'vnpay',
-    };
-
+  const handleConfirmPayment = async (transactionCode?: string) => {
+    setErrorMsg(null);
     try {
       const updatedVm = await learningDAL.payStudentTuition(
         studentId,
-        paymentMethodMap[method],
-        DEFAULT_PARENT_ID
+        'bank_transfer',
+        DEFAULT_PARENT_ID,
+        transactionCode
       );
       setBill(updatedVm.bill);
       setHistory(updatedVm.history);
       setTotalUnpaid(updatedVm.totalUnpaidAmount);
       updateChildUnpaidAmount(studentId, updatedVm.totalUnpaidAmount);
-      showToast(`Thanh toán thành công học phí cho bé ${selectedChild?.name || ''}!`);
+      showToast(`Đã ghi nhận thanh toán học phí cho học sinh ${selectedChild?.name || ''}!`);
     } catch (err) {
-      console.warn('Lỗi khi gọi API thanh toán, cập nhật local state:', err);
-      setTotalUnpaid(0);
-      setBill((prev) =>
-        prev
-          ? {
-              ...prev,
-              totalAmount: '0 đ',
-              subTotal: '0 đ',
-              remainingDaysText: 'Đã hoàn thành toàn bộ học phí kỳ này',
-              items: [{ name: 'Đã hoàn thành học phí tất cả các môn học trong kỳ', amount: '0 đ' }],
-            }
-          : prev
-      );
-      updateChildUnpaidAmount(studentId, 0);
-      showToast('Thanh toán học phí thành công!');
+      setErrorMsg(err instanceof Error ? err.message : 'Thanh toán học phí thất bại.');
+      throw err;
     }
   };
 
-  if (parentLoading || loading || !selectedChild || !bill) {
+  if (parentLoading || (loading && !bill)) {
     return (
       <LearnerPageLoader
         title="Đang tải thông tin học phí..."
@@ -137,37 +124,58 @@ export function ParentTuitionPage() {
           <div>
             <h1 className="page-title mb-1">Học phí của con</h1>
             <p className="page-subtitle text-muted mb-0">
-              Quản lý và thanh toán học phí trực tuyến cho bé <strong>{selectedChild.name}</strong> ({selectedChild.grade})
+              Quản lý và chuyển khoản học phí trực tuyến cho học sinh <strong>{selectedChild?.name}</strong> ({selectedChild?.grade})
             </p>
           </div>
 
-          <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-            <i className="bi bi-person-check me-1"></i> Hồ sơ: {selectedChild.name}
-          </span>
+          {selectedChild && (
+            <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
+              <i className="bi bi-person-check me-1"></i> Hồ sơ: {selectedChild.name}
+            </span>
+          )}
         </div>
 
-        {/* 2. Bill Card (Hóa đơn học phí hiện tại) */}
-        <TuitionBillCard bill={bill} />
+        {errorMsg && (
+          <div className="alert alert-danger rounded-4 border-0 shadow-xs mb-4 d-flex align-items-center justify-content-between">
+            <div>
+              <i className="bi bi-exclamation-triangle-fill me-2" />
+              {errorMsg}
+            </div>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={() => setErrorMsg(null)}
+              aria-label="Close"
+            />
+          </div>
+        )}
 
-        {/* 3. Payment CTA Action (DÀNH RIÊNG CHO PHỤ HUYNH CÓ NÚT THANH TOÁN) */}
-        <TuitionPaymentCTA
-          onPayNow={() => setModalOpen(true)}
-          totalUnpaidAmount={totalUnpaid}
-        />
+        {bill && (
+          <>
+            {/* 2. Bill Card (Hóa đơn học phí hiện tại) */}
+            <TuitionBillCard bill={bill} />
 
-        {/* 4. Payment History Section (Lịch sử các giao dịch) */}
-        <TuitionHistorySection history={history} />
+            {/* 3. Payment CTA Action (DÀNH RIÊNG CHO PHỤ HUYNH CÓ NÚT THANH TOÁN) */}
+            <TuitionPaymentCTA
+              onPayNow={() => setModalOpen(true)}
+              totalUnpaidAmount={totalUnpaid}
+            />
+
+            {/* 4. Payment History Section (Lịch sử các giao dịch) */}
+            <TuitionHistorySection history={history} />
+
+            {/* Payment Modal (Chuyển khoản ngân hàng trực tiếp) */}
+            <TuitionPaymentModal
+              isOpen={modalOpen}
+              onClose={() => setModalOpen(false)}
+              studentName={selectedChild?.name}
+              period={bill.period}
+              totalAmountText={bill.totalAmount}
+              onConfirmPayment={handleConfirmPayment}
+            />
+          </>
+        )}
       </div>
-
-      {/* Payment Modal (Modal cổng thanh toán online VNPay, MoMo, Ngân hàng) */}
-      <TuitionPaymentModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        studentName={selectedChild.name}
-        period={bill.period}
-        totalAmountText={bill.totalAmount}
-        onConfirmPayment={handleConfirmPayment}
-      />
     </main>
   );
 }

@@ -50,11 +50,9 @@ import {
   CURRENT_PROGRESS_CLASSES,
   type ProgressClassItem,
 } from '../GUIs/components/student/progress/progressData';
-import {
-  CURRENT_TUITION_BILL,
-  TUITION_HISTORY,
-  type TuitionBill,
-  type TuitionHistoryItem,
+import type {
+  TuitionBill,
+  TuitionHistoryItem,
 } from '../GUIs/components/student/tuition/tuitionData';
 import {
   parentDAL,
@@ -762,23 +760,11 @@ export const learningDAL = {
    * Lấy thông tin Hóa đơn học phí & Lịch sử giao dịch của đúng Học sinh đó
    */
   async getStudentTuition(studentId = DEFAULT_STUDENT_ID): Promise<StudentTuitionViewModel> {
-    try {
-      const apiData = await learningApi.getStudentTuition(studentId);
-      if (apiData) {
-        return mapApiTuitionToViewModel(apiData);
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Student Tuition, dùng mock fallback:', error);
+    const apiData = await learningApi.getStudentTuition(studentId);
+    if (!apiData) {
+      throw new Error('Không tải được dữ liệu học phí từ hệ thống.');
     }
-
-    return {
-      studentId,
-      studentName: 'Lê Văn An',
-      totalUnpaidAmount: 7500000,
-      bill: CURRENT_TUITION_BILL,
-      history: TUITION_HISTORY,
-      source: 'mock',
-    };
+    return mapApiTuitionToViewModel(apiData);
   },
 
   /**
@@ -787,13 +773,20 @@ export const learningDAL = {
   async payStudentTuition(
     studentId = DEFAULT_STUDENT_ID,
     paymentMethod = 'bank_transfer',
-    parentId = DEFAULT_PARENT_ID
+    parentId = DEFAULT_PARENT_ID,
+    transactionCode?: string
   ): Promise<StudentTuitionViewModel> {
     const apiData = await learningApi.payStudentTuition({
       studentId,
       parentId,
       paymentMethod,
+      transactionCode,
     });
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* ignore */ }
+      window.dispatchEvent(new StorageEvent('storage', { key: 'edutrack-notifications-invalidated' }));
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
     return mapApiTuitionToViewModel(apiData);
   },
 

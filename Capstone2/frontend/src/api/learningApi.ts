@@ -128,10 +128,10 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+    const json = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi thanh toán học phí`);
+      throw new Error(json?.message || `HTTP ${response.status} khi thanh toán học phí`);
     }
-    const json = await response.json();
     return json?.data ?? json;
   },
 

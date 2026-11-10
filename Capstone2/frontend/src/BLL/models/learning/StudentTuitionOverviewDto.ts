@@ -36,6 +36,7 @@ export interface PayStudentTuitionPayload {
   studentId: number;
   parentId: number;
   paymentMethod: string;
+  transactionCode?: string;
   invoiceIds?: number[];
 }
 
