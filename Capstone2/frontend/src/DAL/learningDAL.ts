@@ -11,6 +11,7 @@ import type {
   LearnerProfileApiDto,
   UpdateLearnerProfilePayload,
   ParentChildOverviewApiDto,
+  TuitionInvoiceItemApiDto,
 } from '../BLL/models/learning';
 import {
   INITIAL_PROFILE,
@@ -116,6 +117,7 @@ export interface StudentTuitionViewModel {
   bill: TuitionBill;
   history: TuitionHistoryItem[];
   source: 'api' | 'mock';
+  unpaidInvoices?: TuitionInvoiceItemApiDto[];
 }
 
 function fmtVnd(amount: number): string {
@@ -163,6 +165,7 @@ function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): Studen
     bill,
     history,
     source: 'api',
+    unpaidInvoices: apiData.unpaidInvoices || [],
   };
 }
 
@@ -768,19 +771,21 @@ export const learningDAL = {
   },
 
   /**
-   * Phụ huynh thực hiện thanh toán toàn bộ học phí còn nợ cho con
+   * Phụ huynh thực hiện thanh toán toàn bộ học phí còn nợ cho con (hoặc theo danh sách kỳ được chọn)
    */
   async payStudentTuition(
     studentId = DEFAULT_STUDENT_ID,
     paymentMethod = 'bank_transfer',
     parentId = DEFAULT_PARENT_ID,
-    transactionCode?: string
+    transactionCode?: string,
+    invoiceIds?: number[]
   ): Promise<StudentTuitionViewModel> {
     const apiData = await learningApi.payStudentTuition({
       studentId,
       parentId,
       paymentMethod,
       transactionCode,
+      invoiceIds,
     });
     if (typeof window !== 'undefined') {
       try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* ignore */ }
