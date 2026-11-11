@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { TuitionInvoiceItemApiDto } from '../../../BLL/models/learning';
+import type { TuitionInvoiceItemApiDto } from '../../../../BLL/models/learning';
 
 interface TuitionPaymentModalProps {
   isOpen: boolean;
