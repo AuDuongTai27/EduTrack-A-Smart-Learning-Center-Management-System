@@ -171,52 +171,34 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
     e.preventDefault();
     if (!payingTuition || paymentSubmitting || paymentNeedsReview || paymentSubmission.current) return;
     const current = tuitions.find(t => t.invoiceId === payingTuition.invoiceId) ?? payingTuition;
-    if (!actionsFor(current).canPay) { setPaymentNeedsReview(true); setPaymentError("Hóa đơn không còn dư nợ hợp lệ hoặc dữ liệu thanh toán chưa sẵn sàng; cần tải lại để đối soát, không thu thêm phụ phí vào hóa đơn đã tất toán."); return; }
-
-    const remaining = actionsFor(current).remaining!;
-    const amount = Number(paymentForm.amount);
-
-    if (!Number.isSafeInteger(amount) || amount <= 0) {
-      setPaymentError("Số tiền thanh toán phải là số nguyên VND lớn hơn 0.");
+    if (!actionsFor(current).canPay) {
+      setPaymentNeedsReview(true);
+      setPaymentError("Hóa đơn không còn dư nợ hợp lệ hoặc dữ liệu thanh toán chưa sẵn sàng; cần tải lại để đối soát.");
       return;
     }
 
-    // Phần vượt công nợ được ghi riêng thành phí bổ sung (không phải trả dư học phí).
-    const additionalChargeAmount = Math.max(0, amount - remaining);
-    if (
-      additionalChargeAmount > 0 &&
-      !paymentForm.additionalChargeNote.trim()
-    ) {
-      setPaymentError(
-        "Vui lòng ghi rõ lý do thu thêm (ví dụ: phí tài liệu) trước khi xác nhận.",
-      );
+    const remaining = actionsFor(current).remaining ?? 0;
+    if (remaining <= 0) {
+      setPaymentError("Hóa đơn này đã được tất toán trước đó.");
       return;
     }
 
-    if (paymentForm.paymentMethod !== "cash" && (!externalVerified || !paymentForm.transactionCode.trim())) {
-      setPaymentError("Cần mã giao dịch và xác nhận đã đối soát thanh toán bên ngoài; không tự đánh dấu giao dịch online thành công."); return;
-    }
     paymentSubmission.current = true;
     setPaymentSubmitting(true);
     setPaymentError(null);
     try {
       await managementDAL.recordTuitionPayment(payingTuition.invoiceId, {
-        amount,
-        paymentMethod: paymentForm.paymentMethod,
-        externalPaymentVerified: externalVerified,
-        transactionCode: paymentForm.transactionCode.trim() || undefined,
+        amount: remaining,
+        paymentMethod: "cash",
+        externalPaymentVerified: true,
         note: paymentForm.note.trim() || undefined,
-        additionalChargeAmount,
-        additionalChargeNote:
-          paymentForm.additionalChargeNote.trim() || undefined,
-        // PaidByUserId và RecordedBy có thể bỏ trống theo DTO backend.
-        // Khi tích hợp đăng nhập, lấy recordedBy từ user đã xác thực.
+        additionalChargeAmount: 0,
       });
 
       const invoiceId = payingTuition.invoiceId;
       setPayingTuition(null);
       setActionSuccessMsg(
-        `Đã ghi nhận thanh toán ${amount.toLocaleString("vi-VN")} VND cho hóa đơn #${invoiceId}.`,
+        `Đã ghi nhận thanh toán tiền mặt ${remaining.toLocaleString("vi-VN")} VND cho hóa đơn #${invoiceId}.`,
       );
 
       await refresh();
@@ -743,9 +725,9 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-success text-white">
-                <h5 className="modal-title fw-bold">
-                  <i className="bi bi-cash-coin me-2" />
-                  Ghi nhận thanh toán – Hóa đơn #{payingTuition.invoiceId}
+                <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
+                  <i className="bi bi-cash-stack" />
+                  <span>Ghi nhận thu tiền mặt tại quầy – Hóa đơn #{payingTuition.invoiceId}</span>
                 </h5>
                 <button
                   type="button"
@@ -756,171 +738,112 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
               </div>
 
               <form onSubmit={handlePaymentSubmit}>
-                <p className="small text-muted px-4 pt-3">Ghi nhận thủ công sau khi nhận tiền. Đây không phải xác nhận tự động từ cổng online.</p>
-                {paymentForm.paymentMethod !== "cash" && <label className="form-check mx-4"><input className="form-check-input" type="checkbox" checked={externalVerified} onChange={e => setExternalVerified(e.target.checked)} /><span>Đã đối soát và xác nhận nhận tiền từ giao dịch bên ngoài</span></label>}
                 <div className="modal-body p-4">
-                  <p className="mb-2">
-                    <strong>Học viên:</strong> {payingTuition.studentName}
-                    {" · "}
-                    <strong>Lớp:</strong> {payingTuition.className}
-                  </p>
-                  <div className="row g-2 mb-3">
-                    <div className="col-md-4">
-                      <small className="text-muted d-block">Tổng học phí</small>
-                      <strong>
-                        {(
-                          payingTuition.amountDue ??
-                          payingTuition.amount ??
-                          0
-                        ).toLocaleString("vi-VN")}{" "}
-                        VND
-                      </strong>
-                    </div>
-                    <div className="col-md-4">
-                      <small className="text-muted d-block">Đã đóng</small>
-                      <strong className="text-success">
-                        {(payingTuition.paidAmount ?? 0).toLocaleString(
-                          "vi-VN",
-                        )}{" "}
-                        VND
-                      </strong>
-                    </div>
-                    <div className="col-md-4">
-                      <small className="text-muted d-block">Còn nợ</small>
-                      <strong className="text-danger">
-                        {Math.max(
-                          0,
-                          (payingTuition.amountDue ??
-                            payingTuition.amount ??
-                            0) - (payingTuition.paidAmount ?? 0),
-                        ).toLocaleString("vi-VN")}{" "}
-                        VND
-                      </strong>
+                  {/* Thông tin học viên & lớp học */}
+                  <div className="bg-light p-3 rounded-3 mb-3 border">
+                    <div className="row g-2 small">
+                      <div className="col-sm-6">
+                        <strong className="text-muted">Học viên:</strong>{" "}
+                        <span className="fw-semibold text-dark">{payingTuition.studentName}</span>
+                      </div>
+                      <div className="col-sm-6">
+                        <strong className="text-muted">Lớp học:</strong>{" "}
+                        <span className="fw-semibold text-dark">{payingTuition.className}</span>
+                      </div>
+                      <div className="col-sm-6">
+                        <strong className="text-muted">Kỳ thu:</strong>{" "}
+                        <span className="text-dark">Tháng {payingTuition.periodMonth}/{payingTuition.periodYear}</span>
+                      </div>
+                      <div className="col-sm-6">
+                        <strong className="text-muted">Tổng học phí:</strong>{" "}
+                        <span className="text-dark">
+                          {(payingTuition.amountDue ?? payingTuition.amount ?? 0).toLocaleString("vi-VN")} VND
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {paymentError && (
                     <div className="alert alert-danger" role="alert">
                       {paymentError}
-                      {paymentNeedsReview && <div className="mt-2">Kết quả có thể chưa được xác nhận. Không gửi lại khoản thu trước khi đối chiếu. <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setPayingTuition(null); void refresh(); }}>Đóng và tải lại công nợ/Payments</button></div>}
+                      {paymentNeedsReview && (
+                        <div className="mt-2">
+                          Kết quả có thể chưa được xác nhận. Không gửi lại khoản thu trước khi đối chiếu.{" "}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => {
+                              setPayingTuition(null);
+                              void refresh();
+                            }}
+                          >
+                            Đóng và tải lại công nợ
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label fw-bold" htmlFor="manager-payment-amount">
-                        Số tiền thanh toán *
-                      </label>
-                      <MoneyInput
-                        id="manager-payment-amount"
-                        name="amount"
-                        value={paymentForm.amount}
-                        onValueChange={amount => setPaymentForm({...paymentForm, amount})}
-                        placeholder="Nhập số tiền thanh toán"
-                        required
-                      />
-                      <small className="text-muted">
-                        Mặc định là công nợ còn lại. Bạn có thể sửa số tiền, kể
-                        cả trường hợp thu thêm phí tài liệu.
-                      </small>
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-bold">
-                        Phương thức thanh toán *
-                      </label>
-                      <select
-                        className="form-select"
-                        value={paymentForm.paymentMethod}
-                        onChange={(e) => {
-                          setExternalVerified(false);
-                          setPaymentForm({ ...paymentForm, paymentMethod: e.target.value, transactionCode: "" });
-                        }}
-                        required
-                      >
-                        <option value="cash">Tiền mặt (Cash)</option>
-                        <option value="bank_transfer">
-                          Chuyển khoản ngân hàng
-                        </option>
-                        <option value="momo">MoMo</option>
-                        <option value="vnpay">VNPay</option>
-                      </select>
-                    </div>
-                    {paymentAmount >
-                      Math.max(
-                        0,
-                        (payingTuition.amountDue ?? payingTuition.amount ?? 0) -
-                          (payingTuition.paidAmount ?? 0),
-                      ) && (
-                      <div className="col-12">
-                        <div className="alert alert-info py-2 mb-2">
-                          <strong>Phí bổ sung: </strong>
-                          {(
-                            paymentAmount -
-                            Math.max(
-                              0,
-                              (payingTuition.amountDue ??
-                                payingTuition.amount ??
-                                0) - (payingTuition.paidAmount ?? 0),
-                            )
-                          ).toLocaleString("vi-VN")}{" "}
-                          VND. Khoản này sẽ được cộng vào tổng phải thu của hóa
-                          đơn và lưu kèm lý do thu thêm.
-                        </div>
-                        <label className="form-label fw-bold">
-                          Lý do thu thêm *
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          maxLength={255}
-                          placeholder="Ví dụ: Phí tài liệu ôn tập tháng 10"
-                          value={paymentForm.additionalChargeNote}
-                          onChange={(e) =>
-                            setPaymentForm({
-                              ...paymentForm,
-                              additionalChargeNote: e.target.value,
-                            })
-                          }
-                          required
-                        />
+
+                  {/* Số tiền cần thu - Cố định 100% toàn phần */}
+                  <div className="p-3 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                      <div className="text-muted small fw-semibold">
+                        Số tiền cần thu (Đóng toàn phần 100%):
                       </div>
-                    )}
-                    <div className="col-12">
-                      <label className="form-label fw-bold">Mã giao dịch</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        maxLength={100}
-                        required={paymentForm.paymentMethod !== "cash"}
-                        value={paymentForm.transactionCode}
-                        onChange={(e) =>
-                          setPaymentForm({
-                            ...paymentForm,
-                            transactionCode: e.target.value,
-                          })
-                        }
-                        placeholder={
-                          paymentForm.paymentMethod === "cash"
-                            ? "Không bắt buộc với tiền mặt"
-                            : "Mã ngân hàng / VNPay / MoMo đã đối soát (bắt buộc)"
-                        }
-                      />
+                      <div className="small text-secondary">
+                        Cố định đúng bằng dư nợ còn lại của hóa đơn
+                      </div>
                     </div>
-                    <div className="col-12">
-                      <label className="form-label fw-bold">Ghi chú</label>
-                      <textarea
-                        className="form-control"
-                        rows={3}
-                        value={paymentForm.note}
-                        onChange={(e) =>
-                          setPaymentForm({
-                            ...paymentForm,
-                            note: e.target.value,
-                          })
-                        }
-                      />
+                    <div className="fs-3 fw-bold text-success font-monospace">
+                      {Math.max(
+                        0,
+                        (payingTuition.amountDue ?? payingTuition.amount ?? 0) - (payingTuition.paidAmount ?? 0),
+                      ).toLocaleString("vi-VN")}{" "}
+                      VND
                     </div>
                   </div>
+
+                  {/* Phương thức thanh toán - Cố định tiền mặt */}
+                  <div className="mb-3">
+                    <label className="form-label small fw-bold text-muted text-uppercase mb-1">
+                      Phương thức thanh toán
+                    </label>
+                    <div className="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center gap-2">
+                        <i className="bi bi-cash text-success fs-5"></i>
+                        <div>
+                          <strong className="text-dark">Tiền mặt (Cash)</strong>
+                          <div className="small text-muted">
+                            Thu trực tiếp khi phụ huynh đến văn phòng trung tâm đóng học phí
+                          </div>
+                        </div>
+                      </div>
+                      <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-semibold">
+                        Mặc định
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Ghi chú thu tiền */}
+                  <div className="mb-2">
+                    <label className="form-label small fw-bold text-muted text-uppercase mb-1">
+                      Ghi chú biên nhận (Tùy chọn)
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={2}
+                      placeholder="VD: Phụ huynh đến văn phòng trung tâm đóng trực tiếp..."
+                      value={paymentForm.note}
+                      onChange={(e) =>
+                        setPaymentForm({
+                          ...paymentForm,
+                          note: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
+
                 <div className="modal-footer bg-light">
                   <button
                     type="button"
@@ -932,12 +855,18 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-success px-4"
-                    disabled={paymentSubmitting || paymentNeedsReview || !Number.isSafeInteger(paymentAmount) || paymentAmount <= 0}
+                    className="btn btn-success px-4 fw-semibold d-flex align-items-center gap-2"
+                    disabled={
+                      paymentSubmitting ||
+                      paymentNeedsReview ||
+                      Math.max(
+                        0,
+                        (payingTuition.amountDue ?? payingTuition.amount ?? 0) - (payingTuition.paidAmount ?? 0),
+                      ) <= 0
+                    }
                   >
-                    {paymentSubmitting
-                      ? "Đang ghi nhận..."
-                      : "Xác nhận thanh toán"}
+                    {paymentSubmitting && <span className="spinner-border spinner-border-sm"></span>}
+                    <span>{paymentSubmitting ? "Đang ghi nhận..." : "Xác nhận thu tiền mặt"}</span>
                   </button>
                 </div>
               </form>

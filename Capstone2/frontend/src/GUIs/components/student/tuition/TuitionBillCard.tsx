@@ -68,10 +68,6 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
           </div>
 
           <div className="breakdown-totals-box">
-            <div className="breakdown-subtotal-row">
-              <span>Tạm tính (Sub-total)</span>
-              <span className="fw-semibold">{bill.subTotal}</span>
-            </div>
             <div className="breakdown-total-row">
               <span className="breakdown-total-label">Tổng cộng (Total)</span>
               <span className="breakdown-total-val">{bill.totalAmount}</span>

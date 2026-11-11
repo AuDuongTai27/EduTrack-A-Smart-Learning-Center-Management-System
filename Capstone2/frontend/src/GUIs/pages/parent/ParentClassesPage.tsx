@@ -70,7 +70,7 @@ export function ParentClassesPage() {
 
                 <div className="meta-row room">
                   <i className="bi bi-geo-alt"></i>
-                  <span>{cls.room}</span>
+                  <span>{cls.room || 'Phòng học Trung tâm'}</span>
                 </div>
 
                 {/* Chuyên cần buổi học */}
@@ -91,7 +91,7 @@ export function ParentClassesPage() {
                     ></div>
                   </div>
                   <p className="small text-muted mt-2 mb-0 line-clamp-1 fst-italic">
-                    "{cls.notes}"
+                    "{cls.notes || 'Điểm danh đầy đủ, tương tác tích cực trên lớp.'}"
                   </p>
                 </div>
               </div>

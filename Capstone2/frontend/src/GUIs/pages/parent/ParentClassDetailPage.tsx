@@ -91,6 +91,18 @@ export function ParentClassDetailPage() {
     );
   }
 
+  // Tính số buổi con đã tham gia và tỉ lệ chuyên cần thực tế
+  const conductedSessions = sessions.filter((s) => s.status !== 'scheduled');
+  const attendedCount = sessions.filter(
+    (s) => s.status === 'present' || s.status === 'late'
+  ).length;
+
+  const actualAttended = sessions.length > 0 ? attendedCount : (cls.attendedLessons || 0);
+  const totalLessons = cls.totalLessons || sessions.length || 0;
+  const attendanceRate = conductedSessions.length > 0
+    ? Math.round((attendedCount / conductedSessions.length) * 100)
+    : 100;
+
   return (
     <main className="main-content">
       <div className={`content-container class-detail-container ${cls.subjectClass}`}>
@@ -102,58 +114,90 @@ export function ParentClassDetailPage() {
             borderRadius: '20px',
             padding: '28px',
             color: '#fff',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.25)',
           }}
         >
-          {/* Back Button */}
-          <Link
-            to="/parent/classes"
-            className="btn btn-sm btn-light bg-white bg-opacity-20 text-white border-0 rounded-pill px-3 py-1.5 mb-3 d-inline-flex align-items-center gap-1.5"
-          >
-            <i className="bi bi-arrow-left"></i>
-            <span>Quay lại danh sách lớp</span>
-          </Link>
-
-          {/* Breadcrumbs */}
-          <div className="d-flex align-items-center gap-2 small opacity-80 mb-2">
-            <Link to="/parent/dashboard" className="text-white text-decoration-none">
-              Dashboard
+          <div className="position-relative" style={{ zIndex: 2 }}>
+            {/* Back Button */}
+            <Link
+              to="/parent/classes"
+              className="btn btn-sm text-white rounded-pill px-3 py-1.5 mb-3 d-inline-flex align-items-center gap-2"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                backdropFilter: 'blur(8px)',
+                textDecoration: 'none',
+              }}
+            >
+              <i className="bi bi-arrow-left"></i>
+              <span className="fw-medium">Quay lại danh sách lớp</span>
             </Link>
-            <i className="bi bi-chevron-right fs-xs"></i>
-            <Link to="/parent/classes" className="text-white text-decoration-none">
-              Lớp học của con
-            </Link>
-            <i className="bi bi-chevron-right fs-xs"></i>
-            <span className="fw-semibold text-white">{cls.name}</span>
-          </div>
 
-          {/* Hero Main Info */}
-          <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2">
-            <div>
-              <span className="badge bg-white text-primary fw-bold px-3 py-1.5 rounded-pill mb-2">
-                {cls.subject}
-              </span>
-              <h1 className="h3 fw-bold mb-2">{cls.name}</h1>
-              <p className="mb-0 opacity-90 small">
-                <span>Học sinh: <strong>{selectedChild.name}</strong> ({selectedChild.grade})</span>
-                <span className="mx-2">·</span>
-                <span>Giáo viên phụ trách: <strong>{cls.teacher}</strong></span>
-              </p>
+            {/* Breadcrumbs */}
+            <div className="d-flex align-items-center gap-2 small text-white-50 mb-2">
+              <Link to="/parent/dashboard" className="text-white text-decoration-none opacity-75">
+                Dashboard
+              </Link>
+              <i className="bi bi-chevron-right fs-xs"></i>
+              <Link to="/parent/classes" className="text-white text-decoration-none opacity-75">
+                Lớp học của con
+              </Link>
+              <i className="bi bi-chevron-right fs-xs"></i>
+              <span className="fw-semibold text-white">{cls.name}</span>
             </div>
 
-            {/* Quick Progress Badge */}
-            <div className="d-flex align-items-center gap-3 bg-white bg-opacity-15 p-3 rounded-4 border border-white border-opacity-25">
-              <div className="text-center">
-                <div className="h4 fw-bold mb-0">
-                  {cls.attendedLessons}/{cls.totalLessons}
-                </div>
-                <div className="small opacity-80">Buổi đã học</div>
+            {/* Hero Main Info */}
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2">
+              <div>
+                <span className="badge bg-white text-primary fw-bold px-3 py-1.5 rounded-pill mb-2 shadow-xs">
+                  {cls.subject}
+                </span>
+                <h1 className="h3 fw-bold mb-2 text-white">{cls.name}</h1>
+                <p className="mb-0 text-white-50 small">
+                  <span>Học sinh: <strong className="text-white">{selectedChild.name}</strong> ({selectedChild.grade})</span>
+                  <span className="mx-2">·</span>
+                  <span>Giáo viên phụ trách: <strong className="text-white">{cls.teacher}</strong></span>
+                </p>
               </div>
-              <div className="vr bg-white opacity-50"></div>
-              <div className="text-center">
-                <div className="h4 fw-bold text-warning mb-0">
-                  {Math.round((cls.attendedLessons / Math.max(1, cls.totalLessons)) * 100)}%
+
+              {/* Quick Progress Badge */}
+              <div
+                className="d-flex align-items-center gap-3 p-3 rounded-4 shadow-sm"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <div className="text-center">
+                  <div className="h4 fw-bold mb-0 text-white">
+                    {actualAttended}/{totalLessons}
+                  </div>
+                  <div className="small text-white-50">Tiến độ buổi học</div>
                 </div>
-                <div className="small opacity-80">Chuyên cần</div>
+                <div
+                  style={{
+                    width: '1px',
+                    height: '36px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  }}
+                ></div>
+                <div className="text-center">
+                  <div
+                    className={`h4 fw-bold mb-0 ${
+                      attendanceRate >= 90
+                        ? 'text-white'
+                        : attendanceRate >= 70
+                        ? 'text-warning'
+                        : 'text-danger'
+                    }`}
+                  >
+                    {attendanceRate}%
+                  </div>
+                  <div className="small text-white-50">Chuyên cần</div>
+                </div>
               </div>
             </div>
           </div>
@@ -185,7 +229,7 @@ export function ParentClassDetailPage() {
                   </div>
                   <div>
                     <div className="small text-muted">Phòng học</div>
-                    <div className="fw-semibold text-dark">{cls.room} (EduTrack CS1)</div>
+                    <div className="fw-semibold text-dark">{cls.room || 'Phòng học Trung tâm'}</div>
                   </div>
                 </div>
 
@@ -206,7 +250,7 @@ export function ParentClassDetailPage() {
             <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
               <h3 className="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
                 <i className="bi bi-chat-heart-fill text-danger"></i>
-                Nhận xét & Đánh giá của giáo viên về con
+                Nhận xét &amp; Đánh giá của giáo viên về con
               </h3>
 
               <div className="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary-subtle mb-3">
@@ -214,16 +258,16 @@ export function ParentClassDetailPage() {
                   <div className="badge bg-primary text-white rounded-pill px-2.5 py-1">
                     Đánh giá gần nhất
                   </div>
-                  <small className="text-muted">Kỳ 1 - Năm học 2026</small>
+                  <small className="text-muted">Học kỳ hiện tại</small>
                 </div>
                 <p className="fw-medium text-dark mb-0 fst-italic">
-                  "{cls.notes}"
+                  "{cls.notes || 'Điểm danh đầy đủ, tương tác tích cực trên lớp.'}"
                 </p>
               </div>
 
               <div className="d-flex align-items-center justify-content-between small text-muted border-top pt-3 mt-auto">
-                <span>Trợ giảng phụ trách lớp: <strong>Lê Minh Đức (TA)</strong></span>
-                <span className="badge bg-success-subtle text-success">Đang theo sát</span>
+                <span>Hỗ trợ học tập: <strong>Ban Học vụ &amp; Trợ giảng bộ môn</strong></span>
+                <span className="badge bg-success-subtle text-success">Đang đồng hành</span>
               </div>
             </div>
           </div>

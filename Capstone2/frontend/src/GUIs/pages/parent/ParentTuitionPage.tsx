@@ -7,6 +7,7 @@ import { TuitionHistorySection } from '../../components/student/tuition/TuitionH
 import { TuitionPaymentModal } from '../../components/student/tuition/TuitionPaymentModal';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
+import type { TuitionInvoiceItemApiDto } from '../../../BLL/models/learning';
 import type {
   TuitionBill,
   TuitionHistoryItem,
@@ -18,6 +19,7 @@ export function ParentTuitionPage() {
   const [bill, setBill] = useState<TuitionBill | null>(null);
   const [history, setHistory] = useState<TuitionHistoryItem[]>([]);
   const [totalUnpaid, setTotalUnpaid] = useState<number>(0);
+  const [unpaidInvoices, setUnpaidInvoices] = useState<TuitionInvoiceItemApiDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export function ParentTuitionPage() {
           setBill(vm.bill);
           setHistory(vm.history);
           setTotalUnpaid(vm.totalUnpaidAmount);
+          setUnpaidInvoices(vm.unpaidInvoices || []);
           updateChildUnpaidAmount(studentId, vm.totalUnpaidAmount);
         }
       } catch (err) {
@@ -64,18 +67,20 @@ export function ParentTuitionPage() {
     };
   }, [studentId]);
 
-  const handleConfirmPayment = async (transactionCode?: string) => {
+  const handleConfirmPayment = async (transactionCode?: string, selectedInvoiceIds?: number[]) => {
     setErrorMsg(null);
     try {
       const updatedVm = await learningDAL.payStudentTuition(
         studentId,
         'bank_transfer',
         DEFAULT_PARENT_ID,
-        transactionCode
+        transactionCode,
+        selectedInvoiceIds
       );
       setBill(updatedVm.bill);
       setHistory(updatedVm.history);
       setTotalUnpaid(updatedVm.totalUnpaidAmount);
+      setUnpaidInvoices(updatedVm.unpaidInvoices || []);
       updateChildUnpaidAmount(studentId, updatedVm.totalUnpaidAmount);
       showToast(`Đã ghi nhận thanh toán học phí cho học sinh ${selectedChild?.name || ''}!`);
     } catch (err) {
@@ -171,6 +176,7 @@ export function ParentTuitionPage() {
               studentName={selectedChild?.name}
               period={bill.period}
               totalAmountText={bill.totalAmount}
+              unpaidInvoices={unpaidInvoices}
               onConfirmPayment={handleConfirmPayment}
             />
           </>

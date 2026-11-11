@@ -300,12 +300,26 @@ namespace EduTrack.API.Models.EF
             {
                 var schedules = new List<ClassSchedule>
                 {
-                    new ClassSchedule { ScheduleId = 1, ClassId = 1, DayOfWeek = "monday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201" },
-                    new ClassSchedule { ScheduleId = 2, ClassId = 1, DayOfWeek = "wednesday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201" },
-                    new ClassSchedule { ScheduleId = 3, ClassId = 2, DayOfWeek = "tuesday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202" },
-                    new ClassSchedule { ScheduleId = 4, ClassId = 2, DayOfWeek = "thursday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202" }
+                    new ClassSchedule { ScheduleId = 1, ClassId = 1, DayOfWeek = "Monday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201" },
+                    new ClassSchedule { ScheduleId = 2, ClassId = 1, DayOfWeek = "Wednesday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201" },
+                    new ClassSchedule { ScheduleId = 3, ClassId = 2, DayOfWeek = "Tuesday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202" },
+                    new ClassSchedule { ScheduleId = 4, ClassId = 2, DayOfWeek = "Thursday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202" }
                 };
                 await context.ClassSchedules.AddRangeAsync(schedules);
+                await context.SaveChangesAsync();
+            }
+
+            // 10b. Class Schedule Versions (Cần thiết cho hệ thống lịch học mới)
+            if (!await context.ClassScheduleVersions.AnyAsync())
+            {
+                var versions = new List<ClassScheduleVersion>
+                {
+                    new ClassScheduleVersion { ScheduleVersionId = 1, ScheduleId = 1, EffectiveFrom = new DateOnly(2026, 8, 31), EffectiveTo = null, DayOfWeek = "Monday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201" },
+                    new ClassScheduleVersion { ScheduleVersionId = 2, ScheduleId = 2, EffectiveFrom = new DateOnly(2026, 8, 31), EffectiveTo = null, DayOfWeek = "Wednesday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201" },
+                    new ClassScheduleVersion { ScheduleVersionId = 3, ScheduleId = 3, EffectiveFrom = new DateOnly(2026, 8, 31), EffectiveTo = null, DayOfWeek = "Tuesday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202" },
+                    new ClassScheduleVersion { ScheduleVersionId = 4, ScheduleId = 4, EffectiveFrom = new DateOnly(2026, 8, 31), EffectiveTo = null, DayOfWeek = "Thursday", StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202" }
+                };
+                await context.ClassScheduleVersions.AddRangeAsync(versions);
                 await context.SaveChangesAsync();
             }
 
@@ -314,11 +328,11 @@ namespace EduTrack.API.Models.EF
             {
                 var sessions = new List<ClassSession>
                 {
-                    new ClassSession { SessionId = 1, ClassId = 1, ScheduleId = 1, SessionDate = new DateTime(2026, 9, 8), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201", Status = "completed" },
-                    new ClassSession { SessionId = 2, ClassId = 1, ScheduleId = 2, SessionDate = new DateTime(2026, 9, 10), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201", Status = "completed" },
-                    new ClassSession { SessionId = 3, ClassId = 1, ScheduleId = 1, SessionDate = new DateTime(2026, 9, 15), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201", Status = "scheduled" },
-                    new ClassSession { SessionId = 4, ClassId = 2, ScheduleId = 3, SessionDate = new DateTime(2026, 9, 9), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202", Status = "completed" },
-                    new ClassSession { SessionId = 5, ClassId = 2, ScheduleId = 4, SessionDate = new DateTime(2026, 9, 11), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202", Status = "scheduled" }
+                    new ClassSession { SessionId = 1, ClassId = 1, ScheduleId = 1, ScheduleVersionId = 1, PlannedOccurrenceDate = new DateOnly(2026, 9, 7), SessionDate = new DateTime(2026, 9, 7), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201", Status = "completed" },
+                    new ClassSession { SessionId = 2, ClassId = 1, ScheduleId = 2, ScheduleVersionId = 2, PlannedOccurrenceDate = new DateOnly(2026, 9, 9), SessionDate = new DateTime(2026, 9, 9), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201", Status = "completed" },
+                    new ClassSession { SessionId = 3, ClassId = 1, ScheduleId = 1, ScheduleVersionId = 1, PlannedOccurrenceDate = new DateOnly(2026, 9, 14), SessionDate = new DateTime(2026, 9, 14), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 201", Status = "scheduled" },
+                    new ClassSession { SessionId = 4, ClassId = 2, ScheduleId = 3, ScheduleVersionId = 3, PlannedOccurrenceDate = new DateOnly(2026, 9, 8), SessionDate = new DateTime(2026, 9, 8), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202", Status = "completed" },
+                    new ClassSession { SessionId = 5, ClassId = 2, ScheduleId = 4, ScheduleVersionId = 4, PlannedOccurrenceDate = new DateOnly(2026, 9, 10), SessionDate = new DateTime(2026, 9, 10), StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(20, 0, 0), Room = "Room 202", Status = "scheduled" }
                 };
                 await context.ClassSessions.AddRangeAsync(sessions);
                 await context.SaveChangesAsync();
@@ -528,14 +542,23 @@ namespace EduTrack.API.Models.EF
             // 19. Payments (Online methods: bank_transfer, vnpay, momo)
             if (!await context.Payments.AnyAsync())
             {
-                var payments = new List<Payment>
+                var existingInvoiceIds = await context.TuitionInvoices.Select(i => i.InvoiceId).ToListAsync();
+                var payments = new List<Payment>();
+
+                if (existingInvoiceIds.Contains(1))
+                    payments.Add(new Payment { PaymentId = 1, InvoiceId = 1, Amount = 1500000.00m, PaymentMethod = "bank_transfer", TransactionCode = "MBVCB.789123456", PaidAt = new DateTime(2026, 9, 5, 10, 29, 38), PaidByUserId = 9, RecordedBy = 2, Note = "Settled via Vietcombank transfer by Parent Le Van Nam (PAR001)" });
+
+                if (existingInvoiceIds.Contains(2))
+                    payments.Add(new Payment { PaymentId = 2, InvoiceId = 2, Amount = 1500000.00m, PaymentMethod = "vnpay", TransactionCode = "VNPAY20260906001", PaidAt = new DateTime(2026, 9, 6, 14, 20, 0), PaidByUserId = 10, RecordedBy = 2, Note = "Settled via VNPay portal by Parent Pham Thi Mai (PAR002)" });
+
+                if (existingInvoiceIds.Contains(4))
+                    payments.Add(new Payment { PaymentId = 3, InvoiceId = 4, Amount = 1400000.00m, PaymentMethod = "bank_transfer", TransactionCode = "MBTCB.992817263", PaidAt = new DateTime(2026, 9, 7, 9, 15, 22), PaidByUserId = 9, RecordedBy = 2, Note = "Settled via Techcombank transfer by Parent Le Van Nam (PAR001)" });
+
+                if (payments.Count > 0)
                 {
-                    new Payment { PaymentId = 1, InvoiceId = 1, Amount = 1500000.00m, PaymentMethod = "bank_transfer", TransactionCode = "MBVCB.789123456", PaidAt = new DateTime(2026, 9, 5, 10, 29, 38), PaidByUserId = 9, RecordedBy = 2, Note = "Settled via Vietcombank transfer by Parent Le Van Nam (PAR001)" },
-                    new Payment { PaymentId = 2, InvoiceId = 2, Amount = 1500000.00m, PaymentMethod = "vnpay", TransactionCode = "VNPAY20260906001", PaidAt = new DateTime(2026, 9, 6, 14, 20, 0), PaidByUserId = 10, RecordedBy = 2, Note = "Settled via VNPay portal by Parent Pham Thi Mai (PAR002)" },
-                    new Payment { PaymentId = 3, InvoiceId = 4, Amount = 1400000.00m, PaymentMethod = "bank_transfer", TransactionCode = "MBTCB.992817263", PaidAt = new DateTime(2026, 9, 7, 9, 15, 22), PaidByUserId = 9, RecordedBy = 2, Note = "Settled via Techcombank transfer by Parent Le Van Nam (PAR001)" }
-                };
-                await context.Payments.AddRangeAsync(payments);
-                await context.SaveChangesAsync();
+                    await context.Payments.AddRangeAsync(payments);
+                    await context.SaveChangesAsync();
+                }
             }
 
             // 20. Approval Requests (C-01, C-03, C-07)
