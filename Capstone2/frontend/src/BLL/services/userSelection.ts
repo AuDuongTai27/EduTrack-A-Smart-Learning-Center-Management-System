@@ -37,6 +37,15 @@ export function chooseUser(role: string, userId: number) {
   try { localStorage.setItem(`edutrack-selected-user:${role}`, String(userId)); } catch { /* Storage optional. */ }
   publish(role, { ...state, user });
 }
+export function applyLoggedInUser(role: string, loggedInUser: UserDto) {
+  try { localStorage.setItem(`edutrack-selected-user:${role}`, String(loggedInUser.userId)); } catch { /* Storage optional. */ }
+  const current = states.get(role);
+  const existingUsers = current?.users?.length ? current.users : [loggedInUser];
+  const mergedUsers = existingUsers.some(u => u.userId === loggedInUser.userId)
+    ? existingUsers.map(u => u.userId === loggedInUser.userId ? { ...u, ...loggedInUser } : u)
+    : [loggedInUser, ...existingUsers];
+  publish(role, { users: mergedUsers, user: loggedInUser, loading: false, error: null });
+}
 export async function currentSelectedUser() {
   const role = selectionRole(); await loadSelection(role);
   const state = getSelection(role);

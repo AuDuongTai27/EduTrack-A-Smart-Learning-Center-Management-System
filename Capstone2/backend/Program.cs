@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Helpers.DependencyInjection;
 using EduTrack.API.Models.EF;
 
@@ -23,6 +25,12 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
+builder.Services
+    .AddAuthentication("Bearer")
+    .AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>("Bearer", null);
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -55,7 +63,8 @@ app.UseCors("AllowAll");
 
 app.UseStaticFiles();
 
-// No authentication/authorization pipeline in the current application.
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

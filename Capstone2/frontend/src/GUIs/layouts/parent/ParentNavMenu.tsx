@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
+import { authApi, getAuthUser, subscribeAuth } from '../../../api/authApi';
 
 interface ParentNavMenuProps {
   onLinkClick?: () => void;
@@ -16,6 +17,20 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
   const footerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
+
+  const isParentAuth =
+    authUser &&
+    (authUser.primaryRole === 'parent' || authUser.roles?.includes('parent'));
+
+  const displayName = isParentAuth ? authUser.fullName : 'Lê Văn Nam';
+  const displayInitials =
+    displayName
+      .split(' ')
+      .filter(Boolean)
+      .slice(-2)
+      .map((w) => w[0]?.toUpperCase())
+      .join('') || 'VN';
 
   useEffect(() => {
     let mounted = true;
@@ -32,7 +47,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
       window.removeEventListener('notifications-updated', onUpdate);
       window.removeEventListener('focus', onUpdate);
     };
-  }, [targetStudentId]);
+  }, [targetStudentId, authUser?.userId]);
 
   // Đóng dropup khi click bên ngoài
   useEffect(() => {
@@ -56,6 +71,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const handleHome = () => {
     setIsDropupOpen(false);
     onLinkClick?.();
+    authApi.logout();
     navigate('/');
   };
 
@@ -166,7 +182,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
           <div className="sidebar-user-dropup">
             <div className="px-3 py-2 border-bottom mb-1">
               <div className="fw-bold text-dark text-truncate" style={{ fontSize: '13px' }}>
-                Lê Văn Nam
+                {displayName}
               </div>
               <div className="text-muted text-truncate" style={{ fontSize: '11px' }}>
                 {selectedChild ? `Phụ huynh em ${selectedChild.name}` : 'Phụ huynh học sinh'}
@@ -207,10 +223,10 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
             className="student-avatar"
             style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}
           >
-            VN
+            {displayInitials}
           </div>
           <div className="student-info">
-            <div className="student-name">Lê Văn Nam</div>
+            <div className="student-name">{displayName}</div>
             <div className="student-grade">
               {selectedChild ? `Phụ huynh em ${selectedChild.name}` : 'Phụ huynh học sinh'}
             </div>
@@ -220,6 +236,6 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
       </div>
     </>
   );
-};
+}
 
 export default ParentNavMenu;

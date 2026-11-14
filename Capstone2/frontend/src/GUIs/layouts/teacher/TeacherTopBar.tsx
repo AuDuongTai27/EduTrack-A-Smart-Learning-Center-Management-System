@@ -2,6 +2,7 @@ import { NotificationBellDropdown } from '../../components/shared/notifications/
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {useSelectedUser} from '../../hooks/useSelectedUser';
+import { authApi } from '../../../api/authApi';
 
 export function TeacherTopBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -25,6 +26,7 @@ export function TeacherTopBar() {
   const handleHome = () => {
     setIsDropdownOpen(false);
 
+    authApi.logout();
     navigate("/");
   };
 

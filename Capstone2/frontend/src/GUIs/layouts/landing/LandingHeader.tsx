@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { authApi, getAuthUser, subscribeAuth } from '../../../api/authApi';
 
 interface LandingHeaderProps {
   onOpenWorkspace?: () => void;
@@ -7,6 +8,7 @@ interface LandingHeaderProps {
 
 export function LandingHeader({ onOpenWorkspace }: LandingHeaderProps) {
   const [activeSection, setActiveSection] = useState('hero');
+  const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
 
   const scrollTo = (id: string) => {
     setActiveSection(id);
@@ -61,25 +63,39 @@ export function LandingHeader({ onOpenWorkspace }: LandingHeaderProps) {
         </nav>
 
         <div className="d-flex align-items-center gap-2 ms-4">
-          <button
-            type="button"
-            className="btn btn-outline-success btn-sm rounded-pill px-3"
-            onClick={onOpenWorkspace}
-          >
-            <i className="bi bi-box-arrow-in-right me-1"></i>Chọn giao diện
-          </button>
-
-          {/* Dùng Link để chuyển trang sang Cổng học sinh */}
-          <Link
-            to="/student/dashboard"
-            className="btn btn-success btn-sm rounded-pill px-3 text-white text-decoration-none"
-          >
-            Cổng học sinh <i className="bi bi-arrow-right ms-1"></i>
-          </Link>
+          {authUser ? (
+            <>
+              <Link
+                to={authUser.redirectPath || '/student/dashboard'}
+                className="btn btn-success btn-sm rounded-pill px-3 text-white text-decoration-none fw-semibold"
+              >
+                <i className="bi bi-person-check-fill me-1.5" />
+                {authUser.fullName}
+              </Link>
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                onClick={() => authApi.logout()}
+                title="Đăng xuất tài khoản"
+              >
+                <i className="bi bi-box-arrow-right me-1" />
+                Đăng xuất
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-success btn-sm rounded-pill px-4 py-1.5 fw-semibold text-white shadow-sm"
+              onClick={onOpenWorkspace}
+            >
+              <i className="bi bi-box-arrow-in-right me-1.5" />
+              Đăng nhập
+            </button>
+          )}
         </div>
       </div>
     </header>
   );
-};
+}
 
 export default LandingHeader;

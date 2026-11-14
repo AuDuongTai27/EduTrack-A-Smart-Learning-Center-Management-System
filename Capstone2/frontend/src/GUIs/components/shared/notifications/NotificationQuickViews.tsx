@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNotificationInbox, clearNotificationInbox } from '../../../hooks/useNotificationInbox';
 import { useSelectedUser } from '../../../hooks/useSelectedUser';
+import { authApi } from '../../../../api/authApi';
 import { notificationTime } from '../../../../BLL/services/notificationInbox';
 import { notificationRoleLabel, notificationTypeLabel } from '../../../../BLL/services/notificationPresentation';
 import './notifications.css';
@@ -78,7 +79,7 @@ export function AdminAccountDropdown() {
       {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'Chưa có email'}</p><small>{identity.userCode} · {identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
         : <p>{error || 'Chưa có tài khoản để chọn.'}</p>}
       <label className="d-block mt-2">Tài khoản dữ liệu<select className="form-select" value={identity?.userId ?? ''} onChange={e => { if (pathname.endsWith('/notifications')) navigate({ search: '' }, { replace: true }); clearNotificationInbox(); selection.select(Number(e.target.value)); }}><option value="" disabled>Chọn tài khoản</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}</select></label>
-      <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setOpen(false); clearNotificationInbox(); navigate('/'); }}>Về trang chủ</button>
+      <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setOpen(false); clearNotificationInbox(); authApi.logout(); navigate('/'); }}>Về trang chủ</button>
     </div>}
   </div>;
 }
