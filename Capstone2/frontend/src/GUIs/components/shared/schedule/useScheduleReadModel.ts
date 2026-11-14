@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import type {ScheduleFilters, ScheduleRole, ScheduleSession} from '../../../../BLL/models/ScheduleSession';
+import type {ScheduleClassSummary, ScheduleFilters, ScheduleRole, ScheduleSession} from '../../../../BLL/models/ScheduleSession';
 import {addScheduleDays, emptyScheduleFilters, filterSchedule, mondayOf, sortSchedule, vietnamClock} from '../../../../BLL/services/scheduleViewService';
 import {scheduleSessionDAL} from '../../../../DAL/scheduleSessionDAL';
 import {useSelectedUser} from '../../../hooks/useSelectedUser';
@@ -17,6 +17,7 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
   const [selection, setSelection] = useState<{id: number; key: string; actor: typeof selectedUserKey} | null>(null);
   const [retry, setRetry] = useState(0);
   const [result, setResult] = useState<{key: string; actor: typeof selectedUserKey; sessions: ScheduleSession[]; error: string | null} | null>(null);
+  const [classResult, setClassResult] = useState<{actor: typeof selectedUserKey; retry: number; classes: ScheduleClassSummary[]; ok: boolean} | null>(null);
   const toExclusive = addScheduleDays(monday, 7);
   const requestKey = monday + '/' + retry;
   const pageSize = 10;
@@ -36,6 +37,21 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
     });
     return () => abort.abort();
   }, [monday, toExclusive, requestKey, selectedUserKey, userIdOverride]);
+  useEffect(() => {
+    const abort = new AbortController();
+    scheduleSessionDAL.getClasses(abort.signal, userIdOverride).then(list => {
+      if (!abort.signal.aborted) setClassResult({actor: selectedUserKey, retry, classes: list, ok: true});
+    }).catch(() => {
+      if (!abort.signal.aborted) setClassResult({actor: selectedUserKey, retry, classes: [], ok: false});
+    });
+    return () => abort.abort();
+  }, [retry, selectedUserKey, userIdOverride]);
+  const classesLoaded = Boolean(classResult?.ok && classResult.actor === selectedUserKey);
+  const classes = useMemo(() => {
+    if (!classesLoaded) return [];
+    const all = classResult!.classes;
+    return lockedClassId ? all.filter(c => c.classId === lockedClassId) : all;
+  }, [classesLoaded, classResult, lockedClassId]);
   const loading = result?.key !== requestKey || result?.actor !== selectedUserKey;
   const error = !loading ? result?.error : null;
   const sessions = useMemo(() => {
@@ -53,7 +69,7 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
   const handleSort = (field: string) => {
     const [current, order] = sort.split(':'); setSort(field + ':' + (current === field && order === 'asc' ? 'desc' : 'asc'));
   };
-  return {now, monday, view, setView, filters, updateFilter, sort, handleSort, sessions, filtered, page, pageSize, pageCount,
+  return {now, monday, view, setView, filters, updateFilter, sort, handleSort, sessions, filtered, classes, classesLoaded, page, pageSize, pageCount,
     setPage: (value: number) => {if (Number.isInteger(value)) setPage(Math.max(1, Math.min(value, pageCount)));},
     navigate, loading, error, selected, retry: () => setRetry(value => value + 1),
     clear: () => {setFilters(emptyScheduleFilters()); setPage(1);},

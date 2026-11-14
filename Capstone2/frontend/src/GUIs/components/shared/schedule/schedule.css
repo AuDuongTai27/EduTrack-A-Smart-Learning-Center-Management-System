@@ -5,6 +5,7 @@
 .schedule-official .et-schedule-summary { gap:12px; flex-wrap:wrap; }
 .schedule-official .et-schedule-filters label { font-size:12px; margin:0; min-width:0; }
 .schedule-official .et-schedule-filters select { width:auto; max-width:100%; }
+.schedule-official .et-schedule-filters .schedule-week-select { min-width:250px; }
 .schedule-official .et-schedule-filters input { min-width:220px; max-width:100%; }
 .schedule-official .et-schedule-filter-toggle { display:none; }
 .schedule-official .schedule-advanced-filters { font-size:12px; }

@@ -7,7 +7,6 @@ export interface ScheduleTableProps {
   sessions: ScheduleSession[]; now: Date; role?: ScheduleRole; sortField?: SortField; sortOrder?: SortOrder;
   onSort?: (field: SortField) => void; onOpen: (session: ScheduleSession) => void;
 }
-// Presentation from viet@5512b64: consolidated time, no checkboxes, sortable headers.
 // Only the row contract and actions change to actual ClassSessions.
 export default function ScheduleTable({sessions, now, role = 'student', sortField, sortOrder, onSort, onOpen}: ScheduleTableProps) {
   const isTa = role === 'teaching-assistant';

@@ -19,7 +19,7 @@ export type SessionSlot = SessionItem;
 export const GRID_START = 7;
 export const GRID_END = 21;
 export const TOTAL_H = GRID_END - GRID_START; // 14 hours
-export const HOUR_PX = 80;
+export const HOUR_PX = 60;
 export const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export const STATUS_CLASS: Record<string, string> = {

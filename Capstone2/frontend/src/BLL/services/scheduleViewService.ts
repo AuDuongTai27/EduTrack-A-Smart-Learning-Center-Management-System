@@ -1,4 +1,4 @@
-import type { ScheduleFilters, ScheduleSession } from '../models/ScheduleSession.ts';
+import type { ScheduleClassSummary, ScheduleFilters, ScheduleSession, SemesterPeriod, SemesterWeekOption } from '../models/ScheduleSession.ts';
 
 export const SCHEDULE_TIMEZONE = 'Asia/Ho_Chi_Minh';
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -116,4 +116,51 @@ export function calendarHours(sessions: ScheduleSession[]) {
   const valid = sessions.filter(validCalendarTime);
   return {start: Math.min(7, ...valid.map(s => Math.floor(timeMinutes(s.startTime) / 60))),
     end: Math.max(21, ...valid.map(s => Math.ceil(timeMinutes(s.endTime) / 60)))};
+}
+
+/**
+ * Classifies a class into current, previous, or next semester relative to a civil date (yyyy-mm-dd).
+ */
+export function classifyClassSemester(cls: ScheduleClassSummary, today: string): SemesterPeriod {
+  if (cls.status === 'completed' || (cls.endDate !== null && cls.endDate < today)) return 'previous';
+  if (cls.status === 'upcoming' || cls.startDate > today) return 'next';
+  return 'current';
+}
+
+/**
+ * Builds Monday-to-Sunday week options labeled "[Week x] dd/mm/yyyy - dd/mm/yyyy"
+ * from the min start_date to max end_date of the given classes.
+ */
+export function buildSemesterWeeks(
+  classes: ScheduleClassSummary[],
+  selectedClassId: string,
+  today: string,
+): SemesterWeekOption[] {
+  const scope = selectedClassId
+    ? classes.filter((c) => String(c.classId) === selectedClassId)
+    : classes;
+  if (scope.length === 0) return [];
+
+  const minStart = scope.reduce((min, c) => (c.startDate < min ? c.startDate : min), scope[0].startDate);
+  const maxEnd = scope.reduce((max, c) => {
+    const end = c.endDate ?? (today > addScheduleDays(c.startDate, 84) ? today : addScheduleDays(c.startDate, 84));
+    return end > max ? end : max;
+  }, scope[0].endDate ?? addScheduleDays(scope[0].startDate, 84));
+
+  const firstMonday = mondayOf(minStart);
+  const lastMonday = mondayOf(maxEnd);
+  const weeks: SemesterWeekOption[] = [];
+  let cursor = firstMonday;
+  let weekNumber = 1;
+  while (cursor <= lastMonday && weekNumber <= 104) {
+    const weekEnd = addScheduleDays(cursor, 6);
+    weeks.push({
+      monday: cursor,
+      weekNumber,
+      label: `[Week ${weekNumber}] ${displayScheduleDate(cursor)} - ${displayScheduleDate(weekEnd)}`,
+    });
+    cursor = addScheduleDays(cursor, 7);
+    weekNumber += 1;
+  }
+  return weeks;
 }

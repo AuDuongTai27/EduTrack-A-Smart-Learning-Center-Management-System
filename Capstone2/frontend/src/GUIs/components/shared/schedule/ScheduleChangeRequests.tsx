@@ -10,7 +10,7 @@ const kinds = {reschedule:'Reschedule',cancel:'Cancel',makeup:'Makeup session'};
 const booking = (x: ScheduleChangeRequest['original'] | null) => x ? `${x.sessionDate} ${x.startTime}–${x.endTime}, ${x.room || 'Unassigned'} (${x.status})` : 'No destination';
 const phase = (r: ScheduleChangeRequest) => r.status === 'pending' && r.reviewedBy !== null ? 'claimed' : r.status;
 const statusLabels = {all:'All',pending:'Pending · Unclaimed',claimed:'Claimed',approved:'Approved',rejected:'Rejected'};
-const auditTime = (value: string) => new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Bangkok',dateStyle:'short',timeStyle:'medium'}).format(new Date(value)) + ' (UTC+7)';
+const auditTime = (value: string) => new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Bangkok',dateStyle:'short',timeStyle:'medium'}).format(new Date(value));
 const requestsChanged = () => window.dispatchEvent(new Event('edutrack:schedule-requests-changed'));
 export function ScheduleChangeRequests(props: {mode: 'teacher' | 'reviewer'; session?: ScheduleSession}) {
   const {user,permission} = useSelectedUser();

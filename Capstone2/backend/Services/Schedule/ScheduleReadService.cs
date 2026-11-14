@@ -89,6 +89,52 @@ public sealed class ScheduleReadService(EduTrackDbContext context)
     public async Task<ScheduleSessionDto?> GetSession(int userId, int id, CancellationToken ct = default) =>
         (await Read((await ScopedSessions(userId, ct)).Where(s => s.SessionId == id), ct)).SingleOrDefault();
 
+    public async Task<List<ScheduleClassSummaryDto>> GetScopedClasses(int userId, CancellationToken ct = default)
+    {
+        RequireSelectedUser(userId);
+        var user = await context.Users.AsNoTracking().Include(u => u.UserRoles).ThenInclude(r => r.Role)
+            .SingleOrDefaultAsync(u => u.UserId == userId, ct);
+        if (user == null || user.Status != "active")
+            throw new ScheduleAccessException(400, "Account does not have permission to view schedule.");
+        var roles = user.UserRoles.Select(r => r.Role.RoleName).Where(Actors.Contains).ToHashSet(StringComparer.Ordinal);
+        if (roles.Count == 0)
+            throw new ScheduleAccessException(400, "Account does not have permission to view schedule.");
+
+        IQueryable<Class> classes = context.Classes.AsNoTracking();
+        if (!roles.Contains("center_manager") && !roles.Contains("admin_staff"))
+        {
+            var teacher = roles.Contains("teacher");
+            var ta = roles.Contains("teaching_assistant");
+            var student = roles.Contains("student");
+            var parent = roles.Contains("parent");
+            var childIds = parent
+                ? await context.ParentStudents.AsNoTracking().Where(ps => ps.ParentId == userId).Select(ps => ps.StudentId).ToListAsync(ct)
+                : [];
+            classes = classes.Where(c =>
+                (teacher && c.TeacherClasses.Any(a => a.TeacherId == userId && a.Status == "active")) ||
+                (ta && c.TaClasses.Any(a => a.TaId == userId && a.Status == "active")) ||
+                ((student || parent) && c.StudentClasses.Any(e =>
+                    (e.StudentId == userId || childIds.Contains(e.StudentId)) &&
+                    (e.Status == "active" || e.Status == "completed"))));
+        }
+
+        var rows = await classes
+            .Where(c => c.Status != "cancelled")
+            .OrderBy(c => c.StartDate)
+            .ThenBy(c => c.ClassName)
+            .Select(c => new { c.ClassId, c.ClassName, c.StartDate, c.EndDate, c.Status })
+            .ToListAsync(ct);
+
+        return rows.Select(c => new ScheduleClassSummaryDto
+        {
+            ClassId = c.ClassId,
+            ClassName = c.ClassName,
+            StartDate = c.StartDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            EndDate = c.EndDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            Status = c.Status,
+        }).ToList();
+    }
+
     private static async Task<List<ScheduleSessionDto>> Read(IQueryable<ClassSession> sessions, CancellationToken ct)
     {
         var rows = await sessions.OrderBy(s => s.SessionDate).ThenBy(s => s.StartTime).ThenBy(s => s.SessionId)

@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState, type FormEvent, type ReactNode} from 'react';
 import type {ScheduleRole} from '../../../../BLL/models/ScheduleSession';
-import {addScheduleDays, displayScheduleDate, mondayOf, vietnamClock} from '../../../../BLL/services/scheduleViewService';
+import {addScheduleDays, buildSemesterWeeks, displayScheduleDate, mondayOf, vietnamClock} from '../../../../BLL/services/scheduleViewService';
 import {scheduleManagementDAL} from '../../../../DAL/scheduleManagementDAL';
 import {useScheduleReadModel} from './useScheduleReadModel';
 import {ScheduleCalendar} from './ScheduleCalendar';
@@ -75,52 +75,93 @@ export function ScheduleWorkspace({
       setAddBusy(false);
     }
   }
-  const options = useMemo(() => {
-    const distinct = (pairs: [string, string][]) => Array.from(new Map(pairs)).sort((a,b) => a[1].localeCompare(b[1], 'vi', {numeric:true}));
-    return {
-      classId: distinct(model.sessions.map(s => [String(s.classId), s.className])),
-      subjectId: distinct(model.sessions.filter(s => s.subjectName).map(s => [String(s.subjectId), s.subjectName!])),
-      teacherId: distinct(model.sessions.flatMap(s => s.teachers.map(p => [String(p.userId), p.name] as [string,string]))),
-      taId: distinct(model.sessions.flatMap(s => s.teachingAssistants.map(p => [String(p.userId), p.name] as [string,string]))),
-      room: distinct(model.sessions.filter(s => s.room).map(s => [s.room!, s.room!])),
-    };
-  }, [model.sessions]);
+  const todayDate = vietnamClock(model.now).date;
+  const currentMonday = mondayOf(todayDate);
+
+  const weeks = useMemo(() => {
+    if (!model.classesLoaded || model.classes.length === 0) {
+      return [{
+        monday: model.monday,
+        weekNumber: 1,
+        label: `[Week 1] ${displayScheduleDate(model.monday)} - ${displayScheduleDate(addScheduleDays(model.monday, 6))}`,
+      }];
+    }
+    return buildSemesterWeeks(model.classes, model.filters.classId, todayDate);
+  }, [model.classesLoaded, model.classes, model.monday, model.filters.classId, todayDate]);
+
+  const classOptions = useMemo<[string, string][]>(() => {
+    if (model.classesLoaded) {
+      return [...model.classes]
+        .sort((a, b) => a.className.localeCompare(b.className, 'vi', {numeric: true}))
+        .map((c) => [String(c.classId), c.className]);
+    }
+    const pairs = model.sessions.map((s) => [String(s.classId), s.className] as [string, string]);
+    return Array.from(new Map(pairs)).sort((a, b) => a[1].localeCompare(b[1], 'vi', {numeric: true}));
+  }, [model.classesLoaded, model.classes, model.sessions]);
+
+  const displayedSessions = model.filtered;
+
+  function handleClassFilter(key: keyof typeof model.filters, value: string) {
+    model.updateFilter(key, value);
+    if (key === 'classId' && model.classesLoaded) {
+      const nextWeeks = buildSemesterWeeks(model.classes, value, todayDate);
+      if (nextWeeks.length > 0 && !nextWeeks.some((w) => w.monday === model.monday)) {
+        if (nextWeeks.some((w) => w.monday === currentMonday)) {
+          model.navigate(currentMonday);
+        } else {
+          model.navigate(nextWeeks[0].monday);
+        }
+      }
+    }
+  }
+
+  function handleToday() {
+    model.navigate(currentMonday);
+  }
+
   const range = displayScheduleDate(model.monday) + ' – ' + displayScheduleDate(addScheduleDays(model.monday, 6));
-  // Header actions keep viet's week navigator and compact far-right icon toggle.
-  const actions = <div className="d-flex flex-wrap align-items-center gap-2 schedule-header-actions schedule-official-actions">
-    {model.view === 'calendar' && <div className="week-navigator-controls d-flex align-items-center gap-2">
-      <button type="button" className="btn-week-today" id="btnWeekToday" onClick={() => model.navigate(mondayOf(vietnamClock().date))}>Today</button>
-      <div className="week-nav-group d-flex align-items-center">
-        <button type="button" className="btn-week-nav" id="btnWeekPrev" aria-label="Previous week"
-          onClick={() => model.navigate(addScheduleDays(model.monday, -7))}><i className="bi bi-chevron-left" /></button>
-        <span className="week-range-text px-2 et-schedule-range" id="weekRangeText">{range}</span>
-        <button type="button" className="btn-week-nav" id="btnWeekNext" aria-label="Next week"
-          onClick={() => model.navigate(addScheduleDays(model.monday, 7))}><i className="bi bi-chevron-right" /></button>
-      </div>
-    </div>}
-    <div className="btn-group btn-group-sm ms-auto" role="group" aria-label="View mode">
-      <button type="button" className={'btn ' + (model.view === 'calendar' ? 'btn-primary' : 'btn-outline-secondary')}
-        aria-pressed={model.view === 'calendar'} onClick={() => model.setView('calendar')} title="Calendar" aria-label="Calendar">
-        <i className="bi bi-calendar3" /><span className="visually-hidden">Calendar</span></button>
-      <button type="button" className={'btn ' + (model.view === 'list' ? 'btn-primary' : 'btn-outline-secondary')}
-        aria-pressed={model.view === 'list'} onClick={() => model.setView('list')} title="List" aria-label="List">
-        <i className="bi bi-list-ul" /><span className="visually-hidden">List</span></button>
+  const weekControls = (
+    <div className="week-navigator-controls d-flex align-items-center flex-wrap gap-2">
+      <button type="button" className="btn-week-today" id="btnWeekToday" onClick={handleToday}>
+        Today
+      </button>
+      <select
+        id="scheduleWeekSelect"
+        aria-label="Select week"
+        className="form-select form-select-sm schedule-week-select"
+        value={weeks.some((w) => w.monday === model.monday) ? model.monday : ''}
+        disabled={weeks.length === 0}
+        onChange={(e) => {
+          if (e.target.value) model.navigate(e.target.value);
+        }}
+      >
+        {weeks.length === 0 ? (
+          <option value="">No weeks available</option>
+        ) : (
+          weeks.map((w) => (
+            <option key={w.monday} value={w.monday}>
+              {w.label}
+            </option>
+          ))
+        )}
+      </select>
     </div>
-  </div>;
+  );
   const toolbar = (
     <ScheduleListToolbar
       filters={model.filters}
-      classOptions={options.classId}
-      onFilter={model.updateFilter}
+      classOptions={classOptions}
+      onFilter={handleClassFilter}
       onClear={model.clear}
       expanded={expanded}
-    />
+    >
+      {weekControls}
+    </ScheduleListToolbar>
   );
   const ListHeader = role === 'teaching-assistant' ? TaListHeader : ScheduleListHeader;
   return <>
-    {renderHeader?.(actions)}
+    {renderHeader?.(null)}
     <section className="et-schedule schedule-official" aria-label="Official session schedule">
-      {!renderHeader && <div className="schedule-inline-actions">{actions}</div>}
       {['center-manager','admin-staff'].includes(role) && <div className="d-flex flex-wrap gap-2 mb-3">
         {lockedClassId && (
           <button
@@ -257,22 +298,31 @@ export function ScheduleWorkspace({
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
             <i className="bi bi-calendar-week me-1" />{model.view === 'calendar' ? 'Weekly Schedule' : range}</span>
-          <span className="small text-muted">Total <strong>{model.filtered.length}</strong> scheduled sessions</span>
+          <span className="small text-muted">Total <strong>{displayedSessions.length}</strong> scheduled sessions</span>
         </div>
-        <span className="small text-muted d-none d-md-inline"><i className="bi bi-clock me-1" />Vietnam Time (GMT+7)</span>
-        <button type="button" className="btn btn-sm btn-outline-secondary et-schedule-filter-toggle" aria-controls="et-schedule-filters"
-          aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>Filters{Object.values(model.filters).some(Boolean) ? ' •' : ''}</button>
+        <div className="d-flex align-items-center gap-2">
+          <div className="btn-group btn-group-sm" role="group" aria-label="View mode">
+            <button type="button" className={'btn ' + (model.view === 'calendar' ? 'btn-primary' : 'btn-outline-secondary')}
+              aria-pressed={model.view === 'calendar'} onClick={() => model.setView('calendar')} title="Calendar" aria-label="Calendar">
+              <i className="bi bi-calendar3" /><span className="visually-hidden">Calendar</span></button>
+            <button type="button" className={'btn ' + (model.view === 'list' ? 'btn-primary' : 'btn-outline-secondary')}
+              aria-pressed={model.view === 'list'} onClick={() => model.setView('list')} title="List" aria-label="List">
+              <i className="bi bi-list-ul" /><span className="visually-hidden">List</span></button>
+          </div>
+          <button type="button" className="btn btn-sm btn-outline-secondary et-schedule-filter-toggle" aria-controls="et-schedule-filters"
+            aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>Filters{Object.values(model.filters).some(Boolean) ? ' •' : ''}</button>
+        </div>
       </div>
       <div className="schedule-body-card">{model.view === 'list' && <ListHeader />}{toolbar}
         {model.loading ? <div className="p-5 text-center bg-white rounded-4 border shadow-sm my-3 et-schedule-state" role="status">
           <div className="spinner-border text-primary mx-auto mb-2" role="status" /><p className="text-muted mb-0">Loading schedule…</p></div> :
           model.error ? <div className="et-schedule-state et-schedule-error" role="alert"><p>{model.error}</p>
             <button type="button" className="btn btn-sm btn-outline-danger" onClick={model.retry}>Retry</button></div> : <>
-          {model.filtered.length === 0 && <div className="et-schedule-state" role="status"><strong>No schedule available</strong>
+          {displayedSessions.length === 0 && <div className="et-schedule-state" role="status"><strong>No schedule available</strong>
             <p>{model.sessions.length ? 'No sessions match the filters.' : 'No sessions scheduled for the selected week.'}</p></div>}
-          {model.view === 'calendar' ? <ScheduleCalendar sessions={model.filtered} monday={model.monday} now={model.now} onOpen={model.open}
+          {model.view === 'calendar' ? <ScheduleCalendar sessions={displayedSessions} monday={model.monday} now={model.now} onOpen={model.open}
             partner={role === 'teacher' ? 'ta' : 'teacher'} /> :
-            <ScheduleList sessions={model.filtered} now={model.now} role={role} sort={model.sort} onSort={model.handleSort}
+            <ScheduleList sessions={displayedSessions} now={model.now} role={role} sort={model.sort} onSort={model.handleSort}
               page={model.page} pageSize={model.pageSize} onPage={model.setPage} onOpen={model.open} />}
         </>}
       </div>

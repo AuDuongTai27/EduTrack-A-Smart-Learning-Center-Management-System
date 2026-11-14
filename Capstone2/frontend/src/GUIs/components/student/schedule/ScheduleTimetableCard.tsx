@@ -56,7 +56,7 @@ export function ScheduleTimetableCard(props: Props) {
       ref={official ? scrollRef : undefined} tabIndex={official ? 0 : undefined}
       aria-label={official ? 'Weekly schedule, scroll horizontally and vertically to view dates and times' : undefined}>
       <div className="day-header-row" id={official ? undefined : 'dayHeaderRow'}>
-        <div className="day-header-corner">{official ? 'UTC+7' : ''}</div>
+        <div className="day-header-corner" />
         {days.map((date, index) => {
           const isToday = index === todayIdx && (official || legacy!.weekOffset === 0);
           return <div key={index} className={'day-header-col' + (isToday ? ' is-today' : '') + (official ? ' et-schedule-day-heading' + (isToday ? ' et-today' : '') : '')}>

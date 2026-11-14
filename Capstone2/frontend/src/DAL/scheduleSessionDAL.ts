@@ -4,4 +4,6 @@ import { scheduleSessionApi } from '../api/scheduleSessionApi.ts';
 export const scheduleSessionDAL = {
   getWeek: (from: string, toExclusive: string, signal?: AbortSignal, userId?: number) =>
     scheduleSessionApi.getWeek(from, toExclusive, signal, userId),
+  getClasses: (signal?: AbortSignal, userId?: number) =>
+    scheduleSessionApi.getClasses(signal, userId),
 };

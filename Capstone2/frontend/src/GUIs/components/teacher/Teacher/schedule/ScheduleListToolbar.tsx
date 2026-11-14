@@ -16,7 +16,6 @@ export default function ScheduleListToolbar({
   filters,
   classOptions = [],
   onFilter,
-  onClear,
   children,
   expanded,
 }: ScheduleListToolbarProps) {
@@ -47,18 +46,6 @@ export default function ScheduleListToolbar({
             ))}
           </select>
         </label>
-        {filters.classId && (
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-            onClick={() => {
-              onFilter('classId', '');
-              onClear?.();
-            }}
-          >
-            <i className="bi bi-x-circle" /> View all classes
-          </button>
-        )}
       </div>
       {children}
     </div>

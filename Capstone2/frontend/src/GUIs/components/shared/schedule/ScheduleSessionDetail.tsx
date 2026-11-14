@@ -39,7 +39,7 @@ export function ScheduleSessionDetail({
   const status = scheduleStatus(session, now);
   const fields = [
     ['Class', session.className], ['Subject', session.subjectName || 'No subject'],
-    ['Date', displayScheduleDate(session.sessionDate)], ['Time (Vietnam, UTC+7)', `${session.startTime.slice(0, 5)} – ${session.endTime.slice(0, 5)}`],
+    ['Date', displayScheduleDate(session.sessionDate)], ['Time', `${session.startTime.slice(0, 5)} – ${session.endTime.slice(0, 5)}`],
     ['Teacher', session.teachers.map(p => p.name).join(', ') || 'Unassigned'],
     ['TA', session.teachingAssistants.map(p => p.name).join(', ') || 'Unassigned'], ['Room', session.room || 'Unassigned'],
     ['Attendance', session.hasAttendance ? 'Attendance recorded (Locked)' : 'No attendance recorded (Editable)'],
