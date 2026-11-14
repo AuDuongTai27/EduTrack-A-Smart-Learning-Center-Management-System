@@ -248,7 +248,7 @@ try
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions{ContentRootPath=contentRoot,EnvironmentName="ScheduleIsolatedTest",Args=[]});
         builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0"); builder.Services.AddSingleton<TimeProvider>(clock);
         builder.Services.AddDbContext<EduTrackDbContext, EduTrackRuntimeDbContext>(o => o.UseMySql(cs.ConnectionString,new MySqlServerVersion(new Version(8,0,44))));
-        builder.Services.AddControllers().AddApplicationPart(typeof(ScheduleManagementController).Assembly).ConfigureApplicationPartManager(m => m.FeatureProviders.Add(new OnlyScheduleControllers()));
+        builder.Services.AddControllers().AddApplicationPart(typeof(ScheduleController).Assembly).ConfigureApplicationPartManager(m => m.FeatureProviders.Add(new OnlyScheduleControllers()));
         app = builder.Build(); var nonce = Guid.NewGuid().ToString("N");
         var actors = new Dictionary<string,int>{{"teacher",501},{"teaching-assistant",503},{"student",504},{"center-manager",505},{"admin-staff",506}};
 
@@ -291,7 +291,7 @@ sealed class FixtureClock : TimeProvider {public override DateTimeOffset GetUtcN
 sealed class OnlyScheduleControllers : IApplicationFeatureProvider<ControllerFeature>
 {
     public void PopulateFeature(IEnumerable<ApplicationPart> parts,ControllerFeature feature)
-    {foreach(var c in feature.Controllers.Where(c=>c.AsType()!=typeof(ScheduleManagementController)&&c.AsType()!=typeof(EduTrack.API.Controllers.Queries.UserSelectionController)&&c.AsType()!=typeof(ScheduleController)).ToList())feature.Controllers.Remove(c);}
+    {foreach(var c in feature.Controllers.Where(c=>c.AsType()!=typeof(EduTrack.API.Controllers.Queries.UsersController)&&c.AsType()!=typeof(ScheduleController)).ToList())feature.Controllers.Remove(c);}
 }
 sealed class FailAfterInsert : SaveChangesInterceptor
 {

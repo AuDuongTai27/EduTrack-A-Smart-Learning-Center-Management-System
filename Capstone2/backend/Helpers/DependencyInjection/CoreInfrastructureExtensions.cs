@@ -64,7 +64,6 @@ namespace EduTrack.API.Helpers.DependencyInjection
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IParentStudentService, ParentStudentService>();
             services.AddScoped<ICenterSettingService, CenterSettingService>();
-            services.AddScoped<ILandingPortalService, LandingPortalService>();
 
             return services;
         }

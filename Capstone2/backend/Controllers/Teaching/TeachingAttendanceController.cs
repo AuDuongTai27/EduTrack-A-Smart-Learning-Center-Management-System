@@ -1,27 +1,68 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Teaching;
+using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Teaching.Interfaces;
 
 namespace EduTrack.API.Controllers.Teaching
 {
     /// <summary>
-    /// [Bounded Context: Teaching] Điểm danh Buổi học (Attendance Management)
-    /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
+    /// [Bounded Context: Teaching] Điểm danh Buổi học & Truy vấn Điểm danh
     /// </summary>
     [ApiController]
     [Route("api/teaching/attendance")]
     [Tags("Teaching - Attendance")]
     public class TeachingAttendanceController : ControllerBase
     {
-        private readonly ITeachingAttendanceService _attendanceService;
+        private readonly ITeachingAttendanceService? _attendanceService;
+        private readonly IAttendanceService? _queryService;
 
-        public TeachingAttendanceController(ITeachingAttendanceService attendanceService)
+        public TeachingAttendanceController(
+            ITeachingAttendanceService? attendanceService = null,
+            IAttendanceService? queryService = null)
         {
             _attendanceService = attendanceService;
+            _queryService = queryService;
         }
+
+        // =====================================================================
+        // SHARED ATTENDANCE QUERIES (/api/attendances)
+        // =====================================================================
+
+        /// <summary>
+        /// Lấy toàn bộ danh sách Attendance
+        /// GET: api/attendances
+        /// </summary>
+        [HttpGet("/api/attendances")]
+        public async Task<ActionResult<IEnumerable<AttendanceDto>>> GetAll()
+        {
+            var list = await _queryService!.GetAllAttendancesAsync();
+            return Ok(list);
+        }
+
+        /// <summary>
+        /// Lấy chi tiết Attendance theo ID
+        /// GET: api/attendances/{id}
+        /// </summary>
+        [HttpGet("/api/attendances/{id:int}")]
+        public async Task<ActionResult<AttendanceDto>> GetById(int id)
+        {
+            var item = await _queryService!.GetAttendanceByIdAsync(id);
+            if (item == null)
+            {
+                return NotFound(new { message = "Không tìm thấy dữ liệu có ID = " + id });
+            }
+
+            return Ok(item);
+        }
+
+        // =====================================================================
+        // TEACHING ATTENDANCE WORKFLOW (/api/teaching/attendance/*)
+        // =====================================================================
 
         /// <summary>
         /// Lấy bảng điểm danh của lớp theo buổi học
@@ -38,7 +79,7 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Mã lớp học (classId) không hợp lệ." });
             }
 
-            var sheet = await _attendanceService.GetAttendanceSheetAsync(classId, sessionId, userId);
+            var sheet = await _attendanceService!.GetAttendanceSheetAsync(classId, sessionId, userId);
             if (sheet == null)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy thông tin lớp học #{classId}." });
@@ -59,7 +100,7 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Mã lớp học (classId) không hợp lệ." });
             }
 
-            var sessions = await _attendanceService.GetClassSessionsAsync(classId);
+            var sessions = await _attendanceService!.GetClassSessionsAsync(classId);
             return Ok(new { success = true, data = sessions });
         }
 
@@ -87,7 +128,7 @@ namespace EduTrack.API.Controllers.Teaching
 
             try
             {
-                var updatedSheet = await _attendanceService.SaveBulkAttendanceAsync(request);
+                var updatedSheet = await _attendanceService!.SaveBulkAttendanceAsync(request);
                 return Ok(new
                 {
                     success = true,
@@ -122,7 +163,7 @@ namespace EduTrack.API.Controllers.Teaching
                 request.RecordedBy = 3;
             }
 
-            var updated = await _attendanceService.UpdateSingleAttendanceAsync(id, request);
+            var updated = await _attendanceService!.UpdateSingleAttendanceAsync(id, request);
             if (updated == null)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy bản ghi điểm danh ID = {id}." });

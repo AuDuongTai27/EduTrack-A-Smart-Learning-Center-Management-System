@@ -173,7 +173,7 @@ try
     var hostRoot = Path.Combine(evidence, "host"); Directory.CreateDirectory(hostRoot);
     var builder = WebApplication.CreateBuilder(new WebApplicationOptions { ContentRootPath = hostRoot, EnvironmentName = "IsolatedCompatibility" }); builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
     builder.Services.AddDbContext<EduTrackDbContext, EduTrackRuntimeDbContext>(o => o.UseMySql(cs.ConnectionString, new MySqlServerVersion(new Version(8, 0, 44)))); builder.Services.AddCoreInfrastructure();
-    builder.Services.AddControllers().AddApplicationPart(typeof(ClassSessionsController).Assembly).ConfigureApplicationPartManager(m => m.FeatureProviders.Add(new CompatibilityControllers()));
+    builder.Services.AddControllers().AddApplicationPart(typeof(ScheduleController).Assembly).ConfigureApplicationPartManager(m => m.FeatureProviders.Add(new CompatibilityControllers()));
     app = builder.Build(); app.MapControllers(); await app.StartAsync(); using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
     var httpSessions = await client.GetFromJsonAsync<List<ClassSessionDto>>("/api/classsessions");
     Check(httpSessions!.Select(s => s.SessionId).Order().SequenceEqual(rawIds), "HTTP /api/classsessions = 200 and exactly ten original IDs");
@@ -229,7 +229,7 @@ sealed class CompatibilityControllers : IApplicationFeatureProvider<ControllerFe
 {
     public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
     {
-        var allowed = new[] { typeof(ClassSessionsController), typeof(ScheduleController), typeof(NotificationInboxController), typeof(ScheduleManagementController) };
+        var allowed = new[] { typeof(ScheduleController), typeof(NotificationInboxController) };
         foreach (var c in feature.Controllers.Where(c => !allowed.Contains(c.AsType())).ToList()) feature.Controllers.Remove(c);
     }
 }

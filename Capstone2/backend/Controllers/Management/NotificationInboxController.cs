@@ -7,6 +7,7 @@ using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Models.EF;
 using EduTrack.API.Services.Management.Interfaces;
 using EduTrack.API.Services.Notifications;
+using EduTrack.API.Services.Teaching.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EduTrack.API.Controllers.Management;
@@ -15,7 +16,8 @@ namespace EduTrack.API.Controllers.Management;
 public sealed class NotificationInboxController(
     EduTrackDbContext db,
     TimeProvider? clock = null,
-    IManagementNotificationService? managementService = null) : ControllerBase
+    IManagementNotificationService? managementService = null,
+    ITeachingNotificationService? teachingService = null) : ControllerBase
 {
     private readonly NotificationInboxService inbox = new(db, clock);
     private readonly NotificationRecipientSearchService search = new(db);
@@ -90,5 +92,43 @@ public sealed class NotificationInboxController(
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    // =====================================================================
+    // TEACHING NOTIFICATIONS (/api/teaching/notifications)
+    // =====================================================================
+
+    [HttpGet("/api/teaching/notifications")]
+    public async Task<IActionResult> GetTeachingNotifications([FromQuery] int userId, [FromQuery] string? status)
+    {
+        await inbox.IdentifyAsync(userId);
+        var data = await teachingService!.GetNotificationsAsync(userId, status);
+        return Ok(new { success = true, data });
+    }
+
+    [HttpPut("/api/teaching/notifications/{notificationId:int}/read")]
+    public async Task<IActionResult> MarkTeachingNotificationAsRead(int notificationId, [FromQuery] int? userId = null)
+    {
+        if (notificationId <= 0)
+        {
+            return BadRequest(new { success = false, message = "Mã thông báo không hợp lệ." });
+        }
+
+        var identity = await inbox.IdentifyAsync(userId ?? 0);
+        var success = await teachingService!.MarkAsReadAsync(notificationId, identity.UserId);
+        if (!success)
+        {
+            return NotFound(new { success = false, message = $"Không tìm thấy thông báo #{notificationId}" });
+        }
+
+        return Ok(new { success = true, message = "Đã đánh dấu thông báo là đã đọc." });
+    }
+
+    [HttpPut("/api/teaching/notifications/read-all")]
+    public async Task<IActionResult> MarkAllTeachingNotificationsAsRead([FromQuery] int userId)
+    {
+        await inbox.IdentifyAsync(userId);
+        var count = await teachingService!.MarkAllAsReadAsync(userId);
+        return Ok(new { success = true, updatedCount = count, message = $"Đã đánh dấu {count} thông báo là đã đọc." });
     }
 }

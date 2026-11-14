@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
+using EduTrack.API.Models.EF;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Management;
 using EduTrack.API.Services.Management.Interfaces;
@@ -13,7 +16,7 @@ using EduTrack.API.Services.Management.Interfaces;
 namespace EduTrack.API.Controllers.Queries
 {
     /// <summary>
-    /// API đọc và quản lý Tài khoản Người dùng, Học sinh, Xếp lớp & Liên kết Phụ huynh
+    /// API đọc và quản lý Tài khoản Người dùng, Học sinh, Xếp lớp, Liên kết Phụ huynh & Chọn User
     /// </summary>
     [ApiController]
     [Route("api/users")]
@@ -24,17 +27,35 @@ namespace EduTrack.API.Controllers.Queries
         private readonly IManagementUserService? _userManagementService;
         private readonly IStudentClassService? _studentClassService;
         private readonly IParentStudentService? _parentStudentService;
+        private readonly EduTrackDbContext? _db;
 
         public UsersController(
             IUserService? userQueryService = null,
             IManagementUserService? userManagementService = null,
             IStudentClassService? studentClassService = null,
-            IParentStudentService? parentStudentService = null)
+            IParentStudentService? parentStudentService = null,
+            EduTrackDbContext? db = null)
         {
             _userQueryService = userQueryService;
             _userManagementService = userManagementService;
             _studentClassService = studentClassService;
             _parentStudentService = parentStudentService;
+            _db = db;
+        }
+
+        // =====================================================================
+        // PUBLIC DATA SELECTION (/api/user-selection)
+        // =====================================================================
+
+        [HttpGet("/api/user-selection")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> GetUserSelection([FromQuery] string role, CancellationToken ct)
+        {
+            var roles = new[] { "center_manager", "admin_staff", "teacher", "teaching_assistant", "student", "parent" };
+            if (!roles.Contains(role)) return BadRequest(new { message = "Vai trò chọn dữ liệu không hợp lệ." });
+            var users = await _db!.Users.AsNoTracking().Where(u => u.Status == "active" && u.UserRoles.Any(r => r.Role.RoleName == role || role == "teaching_assistant" && r.Role.RoleName == "ta"))
+                .OrderBy(u => u.UserId).Select(u => new { u.UserId, u.UserCode, u.FullName, u.Email, u.AvatarUrl, u.Status, Roles = u.UserRoles.Select(r => r.Role.RoleName).ToArray() }).ToListAsync(ct);
+            return Ok(users);
         }
 
         // =====================================================================
