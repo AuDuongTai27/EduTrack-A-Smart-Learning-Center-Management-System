@@ -202,7 +202,7 @@ sealed class OnlyNotifications : IApplicationFeatureProvider<ControllerFeature>
 {
     public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
     {
-        var allowed = new[] { typeof(NotificationInboxController),typeof(UserSelectionController), typeof(NotificationsController), typeof(ManagementNotificationsController), typeof(TeachingNotificationsController),
+        var allowed = new[] { typeof(NotificationInboxController), typeof(UserSelectionController), typeof(TeachingNotificationsController),
             typeof(UsersController), typeof(ClassesController), typeof(SubjectsController), typeof(GradesController), typeof(TuitionInvoicesController),
             typeof(TeacherClassesController), typeof(TaClassesController), typeof(StudentClassesController), typeof(CenterSettingsController) };
         foreach (var controller in feature.Controllers.Where(c => !allowed.Contains(c.AsType())).ToList()) feature.Controllers.Remove(controller);

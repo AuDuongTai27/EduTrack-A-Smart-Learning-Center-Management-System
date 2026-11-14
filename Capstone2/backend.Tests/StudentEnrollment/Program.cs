@@ -4,7 +4,7 @@ using EduTrack.API.Repositories.Implementation;
 using EduTrack.API.Services.Management;
 using EduTrack.API.Services.Management.Implementation;
 using EduTrack.API.Models.DTOs.Management;
-using EduTrack.API.Controllers.Management;
+using EduTrack.API.Controllers.Queries;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -244,7 +244,7 @@ try
     await Fail(() => Save("STU_MULTI", 7, 1), "Changed replay cannot create or enroll anything");
     await using (var db = Context())
     {
-        var controller = new ManagementUsersController(new ManagementUserService(new UserRepository(db), new ParentStudentRepository(db)));
+        var controller = new UsersController(userManagementService: new ManagementUserService(new UserRepository(db), new ParentStudentRepository(db)));
         var dto = new CreateStudentDto { UserCode = "STU_MULTI", FullName = "Synthetic Student", Role = "student", Gender = "male", Specialty = "Class 7", GradeId = 7, ClassIds = new() { 1, 2 } };
         var success = (await controller.CreateStudent(dto)).Result as CreatedResult;
         Check(success?.StatusCode == 201, "Controller confirms atomic replay with 201");
@@ -335,7 +335,7 @@ try
     Check(beforeEnrollment == await EnrollmentSnapshot(), "School Grade change preserves every enrollment field across active/dropped/completed history");
     await using (var db = Context())
     {
-        var controller = new ManagementUsersController(new ManagementUserService(new UserRepository(db), new ParentStudentRepository(db)));
+        var controller = new UsersController(userManagementService: new ManagementUserService(new UserRepository(db), new ParentStudentRepository(db)));
         var response = (await controller.Update(multiple.UserId, new UpdateUserDto { FullName = "Edited Student", Role = "student", GradeId = 8 })).Result as OkObjectResult;
         Check(response is { StatusCode: 200, Value: EduTrack.API.Models.DTOs.UserDto { GradeId: 8 } }
             && beforeEnrollment == await EnrollmentSnapshot(), "PUT User confirms school Grade update while preserving unrelated enrollment history");
