@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { ChildStudent, PendingLinkRequest } from '../DAL/parentDAL';
-import { parentDAL, DEFAULT_PARENT_ID } from '../DAL/parentDAL';
+import { parentDAL } from '../DAL/parentDAL';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../DAL/learningDAL';
+import { getSelectedUserId } from '../BLL/services/userSelection';
+import { getAuthUser } from '../api/authApi';
 
 export type { ChildStudent, PendingLinkRequest };
 
@@ -29,7 +31,6 @@ export type ParentAction =
   | { type: 'SET_SELECTED_CHILD'; payload: number | null }
   | { type: 'ADD_CHILD'; payload: ChildStudent }
   | { type: 'ADD_PENDING_REQUEST'; payload: PendingLinkRequest }
-  | { type: 'SET_EMPTY_STATE' }
   | { type: 'RESET_CHILDREN'; payload: ChildStudent[] }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'UPDATE_CHILD_UNPAID'; payload: { studentId: number; unpaidAmount: number } };
@@ -51,13 +52,6 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
       return {
         ...state,
         pendingRequests: [action.payload, ...state.pendingRequests],
-      };
-    case 'SET_EMPTY_STATE':
-      return {
-        ...state,
-        childrenList: [],
-        selectedChildId: null,
-        loading: false,
       };
     case 'RESET_CHILDREN':
       return {
@@ -107,8 +101,6 @@ export type ParentContextType = ParentState & {
     parentPhone: string,
     note?: string
   ) => Promise<{ success: boolean; ticketId: string; message: string }>;
-  setDemoEmptyState: () => void;
-  resetDemoChildren: () => Promise<void>;
 };
 
 export const ParentContext = createContext<ParentContextType>({
@@ -119,8 +111,6 @@ export const ParentContext = createContext<ParentContextType>({
   updateChildUnpaidAmount: () => {},
   linkStudentByCode: async () => ({ success: false, message: '' }),
   requestLinkStudent: async () => ({ success: false, ticketId: '', message: '' }),
-  setDemoEmptyState: () => {},
-  resetDemoChildren: async () => {},
 });
 
 export type ParentProviderProps = {
@@ -129,6 +119,7 @@ export type ParentProviderProps = {
 
 export function ParentProvider({ children }: ParentProviderProps) {
   const [state, dispatch] = useReducer(reducer, iniState);
+  const currentParentId = getSelectedUserId('parent');
 
   useEffect(() => {
     let isMounted = true;
@@ -136,7 +127,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
     async function loadLiveChildrenOverview() {
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
-        const liveChildren = await learningDAL.getParentChildrenOverview(DEFAULT_PARENT_ID);
+        const liveChildren = await learningDAL.getParentChildrenOverview(currentParentId);
         if (isMounted) {
           dispatch({ type: 'RESET_CHILDREN', payload: liveChildren || [] });
         }
@@ -145,7 +136,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
         if (isMounted) {
           dispatch({
             type: 'RESET_CHILDREN',
-            payload: parentDAL.getLinkedChildrenSync(DEFAULT_PARENT_ID),
+            payload: parentDAL.getLinkedChildrenSync(currentParentId),
           });
         }
       }
@@ -156,7 +147,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentParentId]);
 
   const selectedChild =
     state.childrenList.find((c) => c.id === state.selectedChildId) || null;
@@ -190,17 +181,19 @@ export function ParentProvider({ children }: ParentProviderProps) {
     parentPhone: string,
     note?: string
   ): Promise<{ success: boolean; ticketId: string; message: string }> => {
+    const authUser = getAuthUser();
+    const senderName = authUser?.fullName || 'Phụ huynh';
     try {
       const createdFeedback = await learningDAL.createLearnerFeedback(
         {
-          userId: DEFAULT_PARENT_ID,
+          userId: currentParentId,
           studentId: selectedChild?.id || DEFAULT_STUDENT_ID,
           title: `Yêu cầu liên kết thêm hồ sơ học sinh: ${studentName.trim()}`,
           description: `Phụ huynh đề nghị Giáo vụ đối soát và liên kết hồ sơ học sinh: Họ tên: ${studentName.trim()} | Ngày sinh: ${dob.trim()} | Trường: ${school.trim() || 'Chưa rõ'} | SĐT Phụ huynh: ${parentPhone.trim()}.${note ? ` Ghi chú: ${note.trim()}` : ''}`,
           priority: 'medium',
         },
         'parent',
-        'Lê Văn Nam'
+        senderName
       );
 
       const ticketId = createdFeedback.requestCode || `FB${createdFeedback.id}`;
@@ -248,27 +241,6 @@ export function ParentProvider({ children }: ParentProviderProps) {
     }
   };
 
-  const setDemoEmptyState = () => {
-    dispatch({ type: 'SET_EMPTY_STATE' });
-  };
-
-  const resetDemoChildren = async () => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    try {
-      const liveChildren = await learningDAL.getParentChildrenOverview(DEFAULT_PARENT_ID);
-      if (liveChildren && liveChildren.length > 0) {
-        dispatch({ type: 'RESET_CHILDREN', payload: liveChildren });
-        return;
-      }
-    } catch (err) {
-      console.warn('[ParentContext] Không kết nối được Backend khi tải lại danh sách con:', err);
-    }
-    dispatch({
-      type: 'RESET_CHILDREN',
-      payload: parentDAL.getLinkedChildrenSync(DEFAULT_PARENT_ID),
-    });
-  };
-
   return (
     <ParentContext.Provider
       value={{
@@ -279,8 +251,6 @@ export function ParentProvider({ children }: ParentProviderProps) {
         updateChildUnpaidAmount,
         linkStudentByCode,
         requestLinkStudent,
-        setDemoEmptyState,
-        resetDemoChildren,
       }}
     >
       {children}

@@ -43,10 +43,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 {
                     classId = assignedClassId;
                 }
-                else
-                {
-                    classId = await _context.Classes.Select(c => c.ClassId).FirstOrDefaultAsync();
-                }
             }
 
             if (classId <= 0)
@@ -78,10 +74,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .OrderBy(s => s.SessionDate)
                 .ToListAsync();
 
-            int totalSessions = sessions.Count > 0 ? sessions.Count : 20;
-            int completedSessions = sessions.Count > 0
-                ? sessions.Count(s => s.SessionDate <= DateTime.UtcNow || s.Status == "completed")
-                : 12;
+            int totalSessions = sessions.Count;
+            int completedSessions = sessions.Count(s => s.SessionDate <= DateTime.UtcNow || s.Status == "completed");
 
             // 4. Lấy bài tập mới nhất của lớp
             var latestAssignment = await _context.Assignments
@@ -90,7 +84,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .OrderByDescending(a => a.DueDate)
                 .FirstOrDefaultAsync();
 
-            string latestAssignmentTitle = latestAssignment?.Title ?? "Homework 01: Quadratic Equations";
+            string latestAssignmentTitle = latestAssignment?.Title ?? "Chưa có bài tập";
 
             // 5. Lấy danh sách học viên theo lớp (qua bảng student_classes)
             var enrolledStudentRecords = await _context.StudentClasses
@@ -103,19 +97,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .Where(sc => sc.Student != null)
                 .Select(sc => sc.Student)
                 .ToList();
-
-            // Nếu lớp chưa có record trong student_classes, lấy fallback các tài khoản học sinh hệ thống để dữ liệu trực quan
-            if (students.Count == 0)
-            {
-                students = await _context.Users
-                    .AsNoTracking()
-                    .Include(u => u.UserRoles)
-                        .ThenInclude(ur => ur.Role)
-                    .Where(u => u.UserRoles.Any(ur => ur.Role != null && ur.Role.RoleName.ToLower() == "student")
-                                || (u.UserCode != null && u.UserCode.StartsWith("STU")))
-                    .Take(15)
-                    .ToListAsync();
-            }
 
             // 6. Lấy dữ liệu điểm danh theo các buổi học
             var sessionIds = sessions.Select(s => s.SessionId).ToList();
@@ -143,39 +124,21 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             // 9. Map danh sách học viên thành DTO
             var studentItems = new List<TeachingStudentProgressItemDto>();
-            int idx = 0;
 
             foreach (var stu in students)
             {
-                idx++;
                 var stuAttendances = attendances.Where(a => a.StudentId == stu.UserId).ToList();
 
-                int presentDays;
-                int absentDays;
-                int lateDays;
-                int totalRecorded;
+                int presentDays = stuAttendances.Count(a => a.Status.ToLower() == "present");
+                int absentDays = stuAttendances.Count(a => a.Status.ToLower() == "absent");
+                int lateDays = stuAttendances.Count(a => a.Status.ToLower() == "late");
+                int totalRecorded = stuAttendances.Count;
 
-                if (stuAttendances.Count > 0)
-                {
-                    presentDays = stuAttendances.Count(a => a.Status.ToLower() == "present");
-                    absentDays = stuAttendances.Count(a => a.Status.ToLower() == "absent");
-                    lateDays = stuAttendances.Count(a => a.Status.ToLower() == "late");
-                    totalRecorded = stuAttendances.Count;
-                }
-                else
-                {
-                    int baseTotal = completedSessions > 0 ? completedSessions : 12;
-                    totalRecorded = baseTotal;
-                    presentDays = Math.Max(baseTotal - (idx % 3), 0);
-                    lateDays = (idx % 4 == 0) ? 1 : 0;
-                    absentDays = Math.Max(totalRecorded - presentDays - lateDays, 0);
-                }
-
-                int pct = totalRecorded > 0 ? (int)Math.Round((double)(presentDays + lateDays) / totalRecorded * 100) : 100;
-                string attStatus = pct >= 80 ? "Present" : (pct >= 60 ? "Late" : "Absent");
+                int pct = totalRecorded > 0 ? (int)Math.Round((double)(presentDays + lateDays) / totalRecorded * 100) : 0;
+                string attStatus = totalRecorded == 0 ? "Pending" : (pct >= 80 ? "Present" : (pct >= 60 ? "Late" : "Absent"));
 
                 var sub = submissions.FirstOrDefault(s => s.StudentId == stu.UserId);
-                string assignStatus = "Submitted";
+                string assignStatus = "Pending";
                 decimal? assignScore = null;
 
                 if (sub != null)
@@ -185,16 +148,9 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         ? "Graded"
                         : (string.Equals(sub.Status, "late", StringComparison.OrdinalIgnoreCase) ? "Late" : "Submitted");
                 }
-                else
+                else if (latestAssignment != null && latestAssignment.DueDate < DateTime.UtcNow)
                 {
-                    if (latestAssignment != null && latestAssignment.DueDate < DateTime.UtcNow)
-                    {
-                        assignStatus = idx % 3 == 0 ? "Missing" : "Submitted";
-                    }
-                    else
-                    {
-                        assignStatus = idx % 2 == 0 ? "Pending" : "Submitted";
-                    }
+                    assignStatus = "Missing";
                 }
 
                 var note = progressNotes.FirstOrDefault(pn => pn.StudentId == stu.UserId)?.Content;
@@ -262,15 +218,10 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .Where(a => sessionIds.Contains(a.SessionId) && a.StudentId == studentId)
                 .ToListAsync();
 
-            int totalRecorded = sessions.Count > 0 ? sessions.Count : 20;
+            int totalRecorded = attendances.Count;
             int presentDays = attendances.Count(a => a.Status.ToLower() == "present");
             int absentDays = attendances.Count(a => a.Status.ToLower() == "absent");
-            if (attendances.Count == 0)
-            {
-                presentDays = 19;
-                absentDays = 1;
-            }
-            int attendancePct = totalRecorded > 0 ? (int)Math.Round((double)presentDays / totalRecorded * 100) : 95;
+            int attendancePct = totalRecorded > 0 ? (int)Math.Round((double)presentDays / totalRecorded * 100) : 0;
 
             // Assignments
             var classAssignments = await _context.Assignments
@@ -305,38 +256,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     SubmissionFileUrl = sub?.FileUrl,
                     TeacherFeedback = sub?.Feedback,
                     AiFeedback = sub?.AiFeedbackJson
-                });
-            }
-
-            if (assignmentItems.Count == 0)
-            {
-                assignmentItems.Add(new TeachingStudentAssignmentDetailItemDto
-                {
-                    AssignmentId = 1,
-                    Title = "Homework 01: Quadratic Equations Problem Set",
-                    WeekTitle = "Week 1. Introduction to Quadratic Equations",
-                    DueDate = "14/09/2026 23:59",
-                    SubmittedAt = "13/09/2026 20:30",
-                    Status = "graded",
-                    Score = 9.5m,
-                    MaxScore = 10,
-                    AiScore = 9.5m,
-                    TeacherFeedback = "Bài làm rất xuất sắc, các bước biến đổi phương trình bậc hai chính xác và mạch lạc.",
-                    AiFeedback = "Độ chính xác cao trên toàn bộ các bài toán. Sử dụng đúng công thức biệt thức Delta và định lý Viète."
-                });
-                assignmentItems.Add(new TeachingStudentAssignmentDetailItemDto
-                {
-                    AssignmentId = 2,
-                    Title = "Quiz 01: Applications of Vieta Theorem",
-                    WeekTitle = "Week 2. Connectivity & Vieta Theorem",
-                    DueDate = "20/09/2026 23:59",
-                    SubmittedAt = "20/09/2026 21:15",
-                    Status = "graded",
-                    Score = 8.5m,
-                    MaxScore = 10,
-                    AiScore = 8.5m,
-                    TeacherFeedback = "Nắm vững biểu thức đối xứng. Chú ý tính toán cẩn thận hơn ở bài toán cực trị nghiệm.",
-                    AiFeedback = "Phương pháp giải đúng 4/5 câu. Câu cuối có sai số nhỏ trong bước rút gọn hằng đẳng thức."
                 });
             }
 
@@ -387,7 +306,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
             var gradedList = assignmentItems.Where(a => a.Score.HasValue).ToList();
             string avgScore = gradedList.Count > 0
                 ? (gradedList.Average(a => a.Score!.Value)).ToString("0.0")
-                : "9.0";
+                : "0.0";
 
             return new TeachingStudentProgressDetailDto
             {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { learningDAL } from '../../../DAL/learningDAL';
-import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
+import { getSelectedUserId } from '../../../BLL/services/userSelection';
 
 interface ParentProfileState {
   fullName: string;
@@ -15,18 +15,19 @@ interface ParentProfileState {
 }
 
 const FALLBACK_PARENT_PROFILE: ParentProfileState = {
-  fullName: 'Lê Văn Nam',
+  fullName: '[MOCK] Lê Văn Nam',
   phone: '0981 112 233',
   email: 'nam.le@example.com',
-  address: 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
+  address: '[MOCK] Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
   identityCard: '001085012345',
   relationship: 'Phụ huynh',
 };
 
 export function ParentProfilePage() {
   const navigate = useNavigate();
-  const { childrenList, loading: parentLoading, resetDemoChildren, setDemoEmptyState } = useParent();
+  const { childrenList, loading: parentLoading } = useParent();
   const [isEditing, setIsEditing] = useState(false);
+  const currentParentId = getSelectedUserId('parent');
 
   const [parentInfo, setParentInfo] = useState<ParentProfileState | null>(null);
   const [formData, setFormData] = useState<ParentProfileState | null>(null);
@@ -40,7 +41,7 @@ export function ParentProfilePage() {
     async function loadParentProfile() {
       setLoading(true);
       try {
-        const dto = await learningDAL.getParentProfile(DEFAULT_PARENT_ID);
+        const dto = await learningDAL.getParentProfile(currentParentId);
         if (isMounted && dto) {
           const info: ParentProfileState = {
             fullName: dto.fullName || FALLBACK_PARENT_PROFILE.fullName,
@@ -70,7 +71,7 @@ export function ParentProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentParentId]);
 
   const handleSave = async () => {
     if (!formData) return;
@@ -82,7 +83,7 @@ export function ParentProfilePage() {
           email: formData.email,
           address: formData.address,
         },
-        DEFAULT_PARENT_ID
+        currentParentId
       );
       const nextInfo: ParentProfileState = {
         fullName: updated.fullName || formData.fullName,
@@ -324,26 +325,6 @@ export function ParentProfilePage() {
                   ))}
                 </div>
               )}
-
-              {/* Hỗ trợ tiện ích kiểm thử demo */}
-              <div className="mt-auto pt-3 border-top d-flex gap-2 justify-content-end">
-                <button
-                  type="button"
-                  className="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 small"
-                  style={{ fontSize: '11px' }}
-                  onClick={resetDemoChildren}
-                >
-                  <i className="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 small"
-                  style={{ fontSize: '11px' }}
-                  onClick={setDemoEmptyState}
-                >
-                  <i className="bi bi-trash me-1"></i> Thử nghiệm 0 học sinh
-                </button>
-              </div>
             </div>
           </div>
         </div>

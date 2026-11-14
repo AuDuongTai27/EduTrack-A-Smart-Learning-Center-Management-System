@@ -5,6 +5,7 @@ import StatusBadge from "../../../components/Common/StatusBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import feedbackDAL from "../../../../DAL/feedbackDAL";
+import { getSelectedUserId } from "../../../../BLL/services/userSelection";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
@@ -31,7 +32,7 @@ function isFromAdminStaff(req: ApprovalRequestDto): boolean {
     return role === "admin_staff" || role === "center_manager";
   }
   return (
-    req.requestedBy === 2 &&
+    (req.requestedBy === 2 || req.requestedBy === getSelectedUserId("admin_staff")) &&
     (req.requestType || "").trim().toLowerCase() !== "feedback"
   );
 }
@@ -191,7 +192,7 @@ export default function AdminStaffFeedbackPage() {
       const updated = await feedbackDAL.reviewRequest(
         selectedRequest.requestId,
         {
-          reviewedBy: 2, // Admin Staff
+          reviewedBy: getSelectedUserId("admin_staff"),
           status: "pending",
           reviewNotes: reviewNotes.trim() || undefined,
         },
@@ -243,7 +244,7 @@ export default function AdminStaffFeedbackPage() {
       const updated = await feedbackDAL.reviewRequest(
         selectedRequest.requestId,
         {
-          reviewedBy: 2, // Admin Staff
+          reviewedBy: getSelectedUserId("admin_staff"),
           status: newStatus.toLowerCase() as "approved" | "rejected",
           reviewNotes: reviewNotes.trim(),
         },

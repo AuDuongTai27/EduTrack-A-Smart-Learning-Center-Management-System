@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useParent } from '../../../contexts/ParentContext';
 
 /**
  * ParentEmptyState: Giao diện hiển thị khi Phụ huynh chưa có tài khoản liên kết nào.
@@ -9,8 +8,6 @@ import { useParent } from '../../../contexts/ParentContext';
  * để nhân viên đối soát hồ sơ và liên kết thủ công bằng tay.
  */
 export function ParentEmptyState() {
-  const { resetDemoChildren } = useParent();
-
   return (
     <main className="main-content">
       <div className="content-container py-4">
@@ -43,15 +40,6 @@ export function ParentEmptyState() {
                     <i className="bi bi-chat-dots-fill"></i>
                     <span>Gửi phản hồi yêu cầu liên kết hồ sơ</span>
                   </Link>
-                  <button
-                    type="button"
-                    className="btn btn-outline-light px-3.5 py-2.5 rounded-3"
-                    onClick={resetDemoChildren}
-                    title="Khôi phục dữ liệu demo 2 học sinh"
-                  >
-                    <i className="bi bi-arrow-counterclockwise me-1"></i>
-                    Khôi phục dữ liệu Demo (2 HS)
-                  </button>
                 </div>
               </div>
 
@@ -164,19 +152,10 @@ export function ParentEmptyState() {
             <i className="bi bi-telephone-fill text-primary"></i>
             <span>Hotline Giáo vụ hỗ trợ nhanh: <strong>1900 6868</strong> (8:00 – 21:00 hàng ngày)</span>
           </div>
-
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary rounded-pill px-3"
-            onClick={resetDemoChildren}
-          >
-            <i className="bi bi-arrow-counterclockwise me-1"></i>
-            Khôi phục 2 học sinh mẫu (Demo)
-          </button>
         </div>
       </div>
     </main>
   );
-};
+}
 
 export default ParentEmptyState;

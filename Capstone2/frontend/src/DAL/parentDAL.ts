@@ -23,8 +23,14 @@ import {
   MOCK_NOTIFICATIONS,
 } from './mockData';
 
+import { getSelectedUserId } from '../BLL/services/userSelection';
+
 // Mặc định phụ huynh đang đăng nhập là Lê Văn Nam (PAR001, UserId = 9)
 export const DEFAULT_PARENT_ID = 9;
+
+export function getActiveParentId(): number {
+  return getSelectedUserId('parent');
+}
 
 export interface ChildClassItem {
   id: number;
@@ -153,17 +159,17 @@ export const parentDAL = {
 
         classItems.push({
           id: cls.classId,
-          name: cls.className,
+          name: `[MOCK] ${cls.className}`,
           subject: subject ? subject.subjectName : 'Chung',
           subjectClass,
           badge,
-          teacher: teacher ? teacher.fullName : 'Chưa phân công',
+          teacher: teacher ? `[MOCK] ${teacher.fullName}` : 'Chưa phân công',
           teacherInitials,
           schedule: scheduleText || 'Chưa xếp lịch',
           room: cls.room || 'Chưa có phòng',
           attendedLessons,
           totalLessons: sessions.length || 10,
-          notes: 'Điểm danh đầy đủ, tương tác tích cực trên lớp.',
+          notes: '[MOCK] Dữ liệu mẫu dự phòng khi mất kết nối API.',
         });
       }
 
@@ -200,10 +206,10 @@ export const parentDAL = {
       children.push({
         id: studentUser.userId,
         code: studentUser.userCode,
-        name: studentUser.fullName,
+        name: `[MOCK] ${studentUser.fullName}`,
         avatar: avatarInitials,
-        grade: 'Lớp 9',
-        school: 'THCS Lê Quý Đôn',
+        grade: '[MOCK] Lớp 9',
+        school: '[MOCK] THCS Lê Quý Đôn',
         dob: studentUser.dateOfBirth ? studentUser.dateOfBirth.slice(0, 10) : '2010-02-14',
         phone: studentUser.phone ?? undefined,
         classesCount: classItems.length,

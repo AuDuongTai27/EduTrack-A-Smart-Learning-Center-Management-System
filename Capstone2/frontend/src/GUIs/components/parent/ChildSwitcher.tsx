@@ -22,8 +22,6 @@ export function ChildSwitcher({
     selectedChild,
     loading,
     setSelectedChildId,
-    setDemoEmptyState,
-    resetDemoChildren,
   } = useParent();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -69,24 +67,14 @@ export function ChildSwitcher({
         <div className="sidebar-nav-title px-0 pb-1" style={{ fontSize: '10px' }}>
           Hồ sơ học sinh
         </div>
-        <div className="d-flex align-items-center gap-1.5">
-          <button
-            type="button"
-            className="btn btn-sm btn-primary w-100 py-1.5 rounded-3 fw-semibold small d-flex align-items-center justify-content-center gap-1 shadow-xs"
-            onClick={handleRequestLinkClick}
-          >
-            <i className="bi bi-chat-dots-fill"></i>
-            <span>Gửi yêu cầu liên kết</span>
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary py-1.5 px-2 rounded-3"
-            onClick={resetDemoChildren}
-            title="Nạp lại danh sách học sinh"
-          >
-            <i className="bi bi-arrow-counterclockwise"></i>
-          </button>
-        </div>
+        <button
+          type="button"
+          className="btn btn-sm btn-primary w-100 py-1.5 rounded-3 fw-semibold small d-flex align-items-center justify-content-center gap-1 shadow-xs"
+          onClick={handleRequestLinkClick}
+        >
+          <i className="bi bi-chat-dots-fill"></i>
+          <span>Gửi yêu cầu liên kết</span>
+        </button>
       </div>
     );
   }
@@ -230,27 +218,12 @@ export function ChildSwitcher({
           <div className="border-top pt-1.5 mt-1">
             <button
               type="button"
-              className="btn btn-light w-100 py-1 rounded-2 text-primary fw-semibold small d-flex align-items-center justify-content-center gap-1 mb-1"
+              className="btn btn-light w-100 py-1 rounded-2 text-primary fw-semibold small d-flex align-items-center justify-content-center gap-1"
               style={{ fontSize: '11.5px' }}
               onClick={handleRequestLinkClick}
             >
               <i className="bi bi-chat-dots-fill"></i>
               <span>+ Yêu cầu liên kết học sinh</span>
-            </button>
-
-            {/* Công cụ hỗ trợ demo */}
-            <button
-              type="button"
-              className="btn btn-outline-danger w-100 py-0.5 rounded-2 text-danger small d-flex align-items-center justify-content-center gap-1 opacity-75"
-              style={{ fontSize: '10px' }}
-              onClick={() => {
-                setIsOpen(false);
-                setDemoEmptyState();
-              }}
-              title="Thử nghiệm trạng thái 0 học sinh"
-            >
-              <i className="bi bi-eye"></i>
-              <span>Demo 0 học sinh</span>
             </button>
           </div>
         </div>

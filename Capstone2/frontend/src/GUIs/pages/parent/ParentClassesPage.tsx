@@ -91,7 +91,7 @@ export function ParentClassesPage() {
                     ></div>
                   </div>
                   <p className="small text-muted mt-2 mb-0 line-clamp-1 fst-italic">
-                    "{cls.notes || 'Điểm danh đầy đủ, tương tác tích cực trên lớp.'}"
+                    "{cls.notes || 'Chưa có nhận xét từ giáo viên.'}"
                   </p>
                 </div>
               </div>

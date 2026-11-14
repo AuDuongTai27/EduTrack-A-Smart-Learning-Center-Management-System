@@ -210,55 +210,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .OrderByDescending(s => s.SubmittedAt)
                 .ToListAsync();
 
-            if (!submissions.Any())
-            {
-                // Tự động kiểm tra nếu có học sinh trong hệ thống nhưng chưa nộp bài, hoặc seed dữ liệu mẫu
-                var assignment = await _context.Assignments.FindAsync(assignmentId);
-                if (assignment != null)
-                {
-                    var students = await _context.Users
-                        .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == "student") || (u.Email != null && u.Email.Contains("student")))
-                        .Take(3)
-                        .ToListAsync();
-
-                    if (students.Any())
-                    {
-                        var seedList = new List<Submission>();
-                        int i = 0;
-                        foreach (var st in students)
-                        {
-                            i++;
-                            decimal? score = i == 1 ? 9.5m : (i == 2 ? 8.0m : (decimal?)null);
-                            string status = score.HasValue ? "graded" : "submitted";
-
-                            seedList.Add(new Submission
-                            {
-                                AssignmentId = assignmentId,
-                                StudentId = st.UserId,
-                                FileUrl = $"/uploads/submissions/student_{st.UserId}_hw.pdf",
-                                SubmittedAt = DateTime.UtcNow.AddHours(-i * 5),
-                                Score = score,
-                                Feedback = score.HasValue ? "Bài làm tốt, trình bày rõ ràng." : null,
-                                Status = status,
-                                GradedBy = score.HasValue ? 3 : null
-                            });
-                        }
-
-                        _context.Submissions.AddRange(seedList);
-                        await _context.SaveChangesAsync();
-
-                        // Query again with includes
-                        submissions = await _context.Submissions
-                            .AsNoTracking()
-                            .Include(s => s.Student)
-                            .Include(s => s.Grader)
-                            .Where(s => s.AssignmentId == assignmentId)
-                            .OrderByDescending(s => s.SubmittedAt)
-                            .ToListAsync();
-                    }
-                }
-            }
-
             var result = new List<TeachingSubmissionItemDto>();
             foreach (var s in submissions)
             {

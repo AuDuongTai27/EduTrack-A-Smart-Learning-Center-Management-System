@@ -1,8 +1,14 @@
 import React, { useEffect } from 'react';
 import { FeedbackView } from '../../components/student/feedback/FeedbackView';
-import { DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
+import { getSelectedUserId } from '../../../BLL/services/userSelection';
+import { getAuthUser } from '../../../api/authApi';
 
 export function StudentFeedbackPage() {
+  const authUser = getAuthUser();
+  const studentId = getSelectedUserId('student');
+  const studentName = authUser?.primaryRole === 'student' ? authUser.fullName : 'Lê Văn An';
+  const studentPhone = authUser?.primaryRole === 'student' ? (authUser.phone || '0956 789 012') : '0956 789 012';
+
   useEffect(() => {
     document.title = 'Phản hồi & Góp ý – EduTrack';
   }, []);
@@ -10,10 +16,10 @@ export function StudentFeedbackPage() {
   return (
     <FeedbackView
       userRole="student"
-      userName="Lê Văn An"
-      userPhone="0956 789 012"
-      userId={DEFAULT_STUDENT_ID}
-      studentId={DEFAULT_STUDENT_ID}
+      userName={studentName}
+      userPhone={studentPhone}
+      userId={studentId}
+      studentId={studentId}
     />
   );
 }

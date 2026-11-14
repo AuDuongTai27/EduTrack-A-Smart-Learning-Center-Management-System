@@ -116,7 +116,15 @@ export function ParentDashboardPage() {
                 </div>
               </div>
               <div className="h3 fw-bold text-success mb-0">{selectedChild.attendanceRate}%</div>
-              <small className="text-muted">Rất chăm chỉ</small>
+              <small className="text-muted">
+                {selectedChild.attendanceRate >= 90
+                  ? 'Rất chăm chỉ'
+                  : selectedChild.attendanceRate >= 75
+                  ? 'Chuyên cần khá'
+                  : selectedChild.attendanceRate > 0
+                  ? 'Cần cải thiện chuyên cần'
+                  : 'Chưa có dữ liệu điểm danh'}
+              </small>
             </div>
           </div>
 
@@ -132,7 +140,15 @@ export function ParentDashboardPage() {
                 </div>
               </div>
               <div className="h3 fw-bold text-dark mb-0">{selectedChild.averageScore} <span className="fs-6 text-muted fw-normal">/ 10</span></div>
-              <small className="text-muted">Xếp loại: Giỏi</small>
+              <small className="text-muted">
+                {selectedChild.averageScore >= 8
+                  ? 'Xếp loại: Giỏi'
+                  : selectedChild.averageScore >= 6.5
+                  ? 'Xếp loại: Khá'
+                  : selectedChild.averageScore > 0
+                  ? 'Xếp loại: Trung bình'
+                  : 'Chưa có bài chấm điểm'}
+              </small>
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import StatusBadge from "../../../components/Common/StatusBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
 import feedbackDAL from "../../../../DAL/feedbackDAL";
+import { getSelectedUserId } from "../../../../BLL/services/userSelection";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
@@ -167,7 +168,7 @@ export default function CenterManagerApprovalRequestPage() {
       const updated = await feedbackDAL.reviewRequest(
         selectedRequest.requestId,
         {
-          reviewedBy: 1, // Center Manager
+          reviewedBy: getSelectedUserId("center_manager"),
           status: "pending",
           reviewNotes: reviewNotes.trim() || undefined,
         },
@@ -219,7 +220,7 @@ export default function CenterManagerApprovalRequestPage() {
       const updated = await feedbackDAL.reviewRequest(
         selectedRequest.requestId,
         {
-          reviewedBy: 1, // Center Manager - ID test
+          reviewedBy: getSelectedUserId("center_manager"),
           status: newStatus.toLowerCase() as "approved" | "rejected",
           reviewNotes: reviewNotes.trim(),
         },
