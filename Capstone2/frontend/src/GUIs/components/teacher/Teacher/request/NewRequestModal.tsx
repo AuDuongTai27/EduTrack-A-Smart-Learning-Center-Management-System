@@ -15,7 +15,7 @@ export default function NewRequestModal({
   onClose,
   onRequestCreated,
   defaultRequestedBy = 3,
-  userRoleName = "Giáo viên",
+  userRoleName = "Teacher",
 }: NewRequestModalProps) {
   const [requestType, setRequestType] = useState('leave_request');
   const [priority, setPriority] = useState('medium');
@@ -61,7 +61,7 @@ export default function NewRequestModal({
       handleClose();
     } catch (err: any) {
       console.error('Failed to create teaching request:', err);
-      setErrorMsg(err?.message || 'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại.');
+      setErrorMsg(err?.message || 'An error occurred while submitting the request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +90,7 @@ export default function NewRequestModal({
             <div className="modal-header border-bottom py-3 px-4">
               <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="newRequestModalTitle">
                 <i className="bi bi-file-earmark-plus text-primary fs-5" />
-                <span>Tạo Đơn &amp; Yêu Cầu Mới ({userRoleName})</span>
+                <span>Create New Request ({userRoleName})</span>
               </h5>
               <button
                 type="button"
@@ -113,7 +113,7 @@ export default function NewRequestModal({
                 <div className="row g-2 mb-3">
                   <div className="col-md-7">
                     <label htmlFor="requestType" className="form-label fw-semibold text-secondary small">
-                      Loại đơn <span className="text-danger">*</span>
+                      Request Type <span className="text-danger">*</span>
                     </label>
                     <select
                       id="requestType"
@@ -122,17 +122,17 @@ export default function NewRequestModal({
                       onChange={(e) => setRequestType(e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="leave_request">Xin nghỉ phép / Vắng buổi</option>
-                      <option value="schedule_change">Đề xuất đổi lịch học / Dạy bù</option>
-                      <option value="facility_request">Đề xuất phòng học / Thiết bị</option>
-                      <option value="teaching_support">Yêu cầu trợ giảng / Phụ đạo</option>
-                      <option value="other">Yêu cầu khác</option>
+                      <option value="leave_request">Leave Request / Session Absence</option>
+                      <option value="schedule_change">Schedule Change / Make-up Session</option>
+                      <option value="facility_request">Classroom / Equipment Request</option>
+                      <option value="teaching_support">Teaching Assistant / Tutoring Request</option>
+                      <option value="other">Other Request</option>
                     </select>
                   </div>
 
                   <div className="col-md-5">
                     <label htmlFor="requestPriority" className="form-label fw-semibold text-secondary small">
-                      Mức độ ưu tiên
+                      Priority
                     </label>
                     <select
                       id="requestPriority"
@@ -141,22 +141,22 @@ export default function NewRequestModal({
                       onChange={(e) => setPriority(e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="low">Thấp</option>
-                      <option value="medium">Trung bình</option>
-                      <option value="high">Khẩn cấp</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="mb-3">
                   <label htmlFor="requestTitle" className="form-label fw-semibold text-secondary small">
-                    Tiêu đề yêu cầu <span className="text-danger">*</span>
+                    Request Title <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     id="requestTitle"
                     className="form-control form-control-sm"
-                    placeholder="Ví dụ: Xin phép nghỉ dạy ngày 20/08 do việc gia đình..."
+                    placeholder="E.g., Leave request for 08/20 due to family matters..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     disabled={isSubmitting}
@@ -166,13 +166,13 @@ export default function NewRequestModal({
 
                 <div className="mb-3">
                   <label htmlFor="requestDescription" className="form-label fw-semibold text-secondary small">
-                    Nội dung chi tiết &amp; Lý do <span className="text-danger">*</span>
+                    Detailed Content &amp; Reason <span className="text-danger">*</span>
                   </label>
                   <textarea
                     id="requestDescription"
                     className="form-control form-control-sm"
                     rows={4}
-                    placeholder="Mô tả cụ thể nguyện vọng, phương án dạy bù hoặc hỗ trợ..."
+                    placeholder="Describe specific requests, make-up plans, or support needed..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={isSubmitting}
@@ -188,7 +188,7 @@ export default function NewRequestModal({
                   onClick={handleClose}
                   disabled={isSubmitting}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -198,12 +198,12 @@ export default function NewRequestModal({
                   {isSubmitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" />
-                      <span>Đang gửi...</span>
+                      <span>Sending...</span>
                     </>
                   ) : (
                     <>
                       <i className="bi bi-send-fill" />
-                      <span>Gửi yêu cầu</span>
+                      <span>Submit Request</span>
                     </>
                   )}
                 </button>

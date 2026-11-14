@@ -26,7 +26,7 @@ export default function AdminStaffSidebar() {
           <i className="bi bi-buildings-fill" />
         </span>
         <div className="center-info">
-          <span className="center-name">{centerName || (settingsLoading ? "Đang tải..." : settingsError ? "Không tải được tên trung tâm" : "Chưa cấu hình tên trung tâm")}</span>
+          <span className="center-name">{centerName || (settingsLoading ? "Loading..." : settingsError ? "Failed to load center name" : "Center name not configured")}</span>
           <small>Learning Center</small>
         </div>
       </div>

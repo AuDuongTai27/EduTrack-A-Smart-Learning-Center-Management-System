@@ -6,10 +6,19 @@ interface ProfileViewCardProps {
   data: StudentProfileData;
 }
 
+function renderGender(gender?: string): string {
+  if (!gender) return '—';
+  const lower = gender.toLowerCase();
+  if (lower === 'nam' || lower === 'male') return 'Male';
+  if (lower === 'nữ' || lower === 'nu' || lower === 'female') return 'Female';
+  if (lower === 'khác' || lower === 'khac' || lower === 'other') return 'Other';
+  return gender;
+}
+
 export function ProfileViewCard({ data }: ProfileViewCardProps) {
   return (
     <>
-      {/* 2. Profile View Card (Chế độ xem) */}
+      {/* 2. Profile View Card (View mode) */}
           <div className="profile-card" id="profileViewCard">
             {/* Hero Gradient Banner */}
             <div className="profile-hero-banner">
@@ -29,10 +38,10 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                   <div className="profile-meta-tags">
                     <span className="profile-role-tag">
                       <i className="bi bi-mortarboard-fill"></i>
-                      <span>Học sinh</span>
+                      <span>Student</span>
                     </span>
                     <span className="profile-enroll-date-text">
-                      EduTrack &bull; Nhập học <span id="viewEnrollDate">{formatDate(data.enrollDate)}</span>
+                      EduTrack &bull; Enrolled <span id="viewEnrollDate">{formatDate(data.enrollDate)}</span>
                     </span>
                   </div>
                 </div>
@@ -47,7 +56,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                 </div>
                 <div className="flex-grow-1">
                   <div className="profile-info-label-group">
-                    <span className="profile-info-label">Ngày sinh</span>
+                    <span className="profile-info-label">Date of Birth</span>
                   </div>
                   <p className="profile-info-value" id="viewDob">{formatDate(data.dob)}</p>
                 </div>
@@ -59,9 +68,9 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                 </div>
                 <div className="flex-grow-1">
                   <div className="profile-info-label-group">
-                    <span className="profile-info-label">Giới tính</span>
+                    <span className="profile-info-label">Gender</span>
                   </div>
-                  <p className="profile-info-value" id="viewGender">{data.gender}</p>
+                  <p className="profile-info-value" id="viewGender">{renderGender(data.gender)}</p>
                 </div>
               </div>
 
@@ -71,10 +80,10 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                 </div>
                 <div className="flex-grow-1">
                   <div className="profile-info-label-group">
-                    <span className="profile-info-label">Ngày nhập học</span>
+                    <span className="profile-info-label">Enrollment Date</span>
                     <span className="profile-locked-badge">
                       <i className="bi bi-lock-fill" style={{ fontSize: '9px' }}></i>
-                      <span>Hệ thống</span>
+                      <span>System</span>
                     </span>
                   </div>
                   <p className="profile-info-value locked">{formatDate(data.enrollDate)}</p>
@@ -87,7 +96,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                 </div>
                 <div className="flex-grow-1">
                   <div className="profile-info-label-group">
-                    <span className="profile-info-label">Địa chỉ</span>
+                    <span className="profile-info-label">Address</span>
                   </div>
                   <p className="profile-info-value" id="viewAddress">{data.address}</p>
                 </div>
@@ -99,7 +108,7 @@ export function ProfileViewCard({ data }: ProfileViewCardProps) {
                 </div>
                 <div className="flex-grow-1">
                   <div className="profile-info-label-group">
-                    <span className="profile-info-label">Số điện thoại</span>
+                    <span className="profile-info-label">Phone Number</span>
                   </div>
                   <p className="profile-info-value" id="viewPhone">{data.phone}</p>
                 </div>

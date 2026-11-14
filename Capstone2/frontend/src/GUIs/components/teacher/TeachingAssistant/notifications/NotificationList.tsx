@@ -26,8 +26,8 @@ export default function NotificationList({
         {notifications.length > 0 ? (
           notifications.map((item: any, idx) => {
             const isRead = item.isRead ?? false;
-            const timeAgo = item.timeAgo || (item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Vừa xong");
-            const sender = item.sender || item.userName || "Hệ thống EduTrack";
+            const timeAgo = item.timeAgo || (item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Just now");
+            const sender = item.sender || item.userName || "EduTrack System";
             const initials = item.initials || getInitials(sender);
             const bgClass = item.initialsBgClass || "bg-info-subtle";
             const colorClass = item.initialsColorClass || "text-info";
@@ -61,7 +61,7 @@ export default function NotificationList({
                         <span className="badge bg-secondary-subtle text-secondary small">{item.className}</span>
                       )}
                       {!isRead && (
-                        <span className="badge bg-danger rounded-pill px-2">Mới</span>
+                        <span className="badge bg-danger rounded-pill px-2">New</span>
                       )}
                     </div>
                     <small className="text-muted">
@@ -77,7 +77,7 @@ export default function NotificationList({
                   <button
                     type="button"
                     className="btn btn-sm btn-link text-primary p-0 text-decoration-none flex-shrink-0"
-                    title="Đánh dấu đã đọc"
+                    title="Mark as read"
                     onClick={(e) => {
                       e.stopPropagation();
                       onMarkItemAsRead(notifId);
@@ -92,8 +92,8 @@ export default function NotificationList({
         ) : (
           <div className="p-5 text-center text-muted">
             <i className="bi bi-bell-slash fs-1 d-block mb-2 text-secondary opacity-50" />
-            <h6 className="fw-semibold">Không có thông báo nào</h6>
-            <small>Bạn đã xem hết các thông báo hoặc không có thông báo thỏa mãn bộ lọc.</small>
+            <h6 className="fw-semibold">No notifications</h6>
+            <small>You have caught up with all notifications or no notifications match the filter.</small>
           </div>
         )}
       </div>

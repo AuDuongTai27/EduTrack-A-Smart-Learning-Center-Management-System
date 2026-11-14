@@ -32,7 +32,7 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
       if (!abort.signal.aborted) setResult({key: requestKey, actor: selectedUserKey, sessions, error: null});
     }).catch((cause: unknown) => {
       if (!abort.signal.aborted) setResult({key: requestKey, actor: selectedUserKey, sessions: [],
-        error: cause instanceof Error ? cause.message : 'Không tải được lịch học. Vui lòng thử lại.'});
+        error: cause instanceof Error ? cause.message : 'Failed to load schedule. Please try again.'});
     });
     return () => abort.abort();
   }, [monday, toExclusive, requestKey, selectedUserKey, userIdOverride]);

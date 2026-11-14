@@ -15,7 +15,7 @@ interface TuitionOverviewProps {
 export default function TuitionOverview({
   totalDue, collected, collectionLabel, collectionError, outstanding, overdueAmount, overdueCount, filtered = false,
 }: TuitionOverviewProps) {
-  const invoiceScope = `Tất cả kỳ học phí${filtered ? " · Đang lọc" : ""}`;
+  const invoiceScope = `All tuition terms${filtered ? " · Filtered" : ""}`;
   const items = [
     { title: "Total Tuition Due", amount: totalDue, status: "total" as const,
       footer: invoiceScope },
@@ -24,7 +24,7 @@ export default function TuitionOverview({
     { title: "Outstanding", amount: outstanding, status: "outstanding" as const,
       footer: invoiceScope },
     { title: "Overdue", amount: overdueAmount, status: "overdue" as const,
-      footer: overdueCount == null ? "—" : `${overdueCount} hóa đơn` },
+      footer: overdueCount == null ? "—" : `${overdueCount} ${overdueCount === 1 ? "invoice" : "invoices"}` },
   ];
 
   return (

@@ -11,9 +11,9 @@ export function ProfileToast({ show }: ProfileToastProps) {
         <i className="bi bi-check-lg"></i>
       </div>
       <div>
-        <div className="fw-bold text-success fs-6">Cập nhật thành công</div>
+        <div className="fw-bold text-success fs-6">Update Successful</div>
         <div className="text-success-emphasis small">
-          Hồ sơ của bạn đã được lưu lại trên hệ thống.
+          Your profile has been saved to the system.
         </div>
       </div>
     </div>

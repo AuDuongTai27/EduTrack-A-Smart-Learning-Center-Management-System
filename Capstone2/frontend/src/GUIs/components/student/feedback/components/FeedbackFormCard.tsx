@@ -28,11 +28,11 @@ export function FeedbackFormCard({
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h2 className="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
           <i className={`bi ${isEditing ? 'bi-pencil-fill text-warning' : 'bi-pencil-square text-primary'}`}></i>
-          {isEditing ? `Chỉnh sửa phản hồi (#${editingCode})` : 'Gửi phản hồi mới về Giáo vụ (Admin Staff)'}
+          {isEditing ? `Edit Feedback (#${editingCode})` : 'Submit New Feedback to Admin Staff'}
         </h2>
         {isEditing && (
           <span className="badge bg-warning-subtle text-dark border border-warning-subtle">
-            Đang chỉnh sửa
+            Editing
           </span>
         )}
       </div>
@@ -40,20 +40,20 @@ export function FeedbackFormCard({
       {isEditing && (
         <div className="alert alert-warning border-0 rounded-3 py-2 px-3 small mb-3">
           <i className="bi bi-info-circle-fill me-1"></i>
-          Bạn có thể chỉnh sửa nội dung khi đơn đang ở trạng thái <strong>Chưa xem xét giải quyết</strong>. Khi Admin Staff đã tiếp nhận (Chờ duyệt), đơn sẽ bị khóa chỉnh sửa.
+          You can edit the content while the request is in <strong>Pending Review</strong> status. Once Admin Staff accepts it (Pending), editing will be locked.
         </div>
       )}
 
       <form onSubmit={onSubmit}>
-        {/* Tiêu đề */}
+        {/* Title */}
         <div className="mb-3">
           <label className="form-label small fw-semibold text-secondary">
-            Tiêu đề <span className="text-danger">*</span>
+            Title <span className="text-danger">*</span>
           </label>
           <input
             type="text"
             className="form-control rounded-3"
-            placeholder="VD: Yêu cầu liên kết học sinh, Thắc mắc học phí, Góp ý lớp học..."
+            placeholder="e.g., Student linking request, Tuition inquiry, Class feedback..."
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
             disabled={isSubmitting}
@@ -61,15 +61,15 @@ export function FeedbackFormCard({
           />
         </div>
 
-        {/* Nội dung */}
+        {/* Content */}
         <div className="mb-4">
           <label className="form-label small fw-semibold text-secondary">
-            Nội dung <span className="text-danger">*</span>
+            Content <span className="text-danger">*</span>
           </label>
           <textarea
             className="form-control rounded-3"
             rows={6}
-            placeholder="Nhập chi tiết nội dung phản hồi của bạn gửi tới Admin Staff. Nếu cần liên kết học sinh, vui lòng ghi rõ họ tên con, ngày sinh, trường học và SĐT để giáo vụ đối soát..."
+            placeholder="Enter detailed feedback to Admin Staff. If linking a student, please specify your child's full name, date of birth, school, and phone number for verification..."
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
             disabled={isSubmitting}
@@ -77,7 +77,7 @@ export function FeedbackFormCard({
           ></textarea>
         </div>
 
-        {/* Nút gửi / Lưu chỉnh sửa */}
+        {/* Submit / Save edit buttons */}
         <div className="d-flex gap-2">
           {isEditing && onCancelEdit && (
             <button
@@ -86,7 +86,7 @@ export function FeedbackFormCard({
               onClick={onCancelEdit}
               className="btn btn-outline-secondary w-50 py-2.5 rounded-3 fw-semibold"
             >
-              Hủy chỉnh sửa
+              Cancel Edit
             </button>
           )}
           <button
@@ -97,10 +97,10 @@ export function FeedbackFormCard({
             <i className={`bi ${isSubmitting ? 'bi-hourglass-split' : isEditing ? 'bi-check2-circle' : 'bi-send-fill'}`}></i>
             <span>
               {isSubmitting
-                ? 'Đang lưu...'
+                ? 'Saving...'
                 : isEditing
-                ? 'Lưu chỉnh sửa'
-                : 'Gửi phản hồi'}
+                ? 'Save Changes'
+                : 'Submit Feedback'}
             </span>
           </button>
         </div>

@@ -8,15 +8,15 @@ import feedbackDAL from "../../../../DAL/feedbackDAL";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
-  feedback: "Feedback (Ý kiến phản hồi)",
-  leave_request: "Leave Request (Xin nghỉ phép)",
-  class_transfer: "Class Transfer (Chuyển lớp)",
-  academic_support: "Academic Support (Hỗ trợ học vụ)",
-  tuition_adjustment: "Tuition Adjustment (Điều chỉnh học phí)",
-  refund_request: "Refund Request (Hoàn học phí)",
-  due_date_extension: "Due Date Extension (Gia hạn học phí)",
-  student_information_change: "Student Info Change (Đổi thông tin)",
-  other: "Other (Yêu cầu khác)",
+  feedback: "Feedback",
+  leave_request: "Leave Request",
+  class_transfer: "Class Transfer",
+  academic_support: "Academic Support",
+  tuition_adjustment: "Tuition Adjustment",
+  refund_request: "Refund Request",
+  due_date_extension: "Due Date Extension",
+  student_information_change: "Student Info Change",
+  other: "Other",
 };
 
 function formatRequestType(type?: string | null): string {
@@ -40,20 +40,20 @@ function formatRequesterRole(req: ApprovalRequestDto): string {
   const role = (req.requesterRole || "").trim().toLowerCase();
   switch (role) {
     case "student":
-      return "Học viên (Student)";
+      return "Student";
     case "parent":
-      return "Phụ huynh (Parent)";
+      return "Parent";
     case "teacher":
-      return "Giáo viên (Teacher)";
+      return "Teacher";
     case "ta":
-      return "Trợ giảng (TA)";
+      return "Teaching Assistant";
     default:
       if (req.requestedBy === 9 || req.requestedBy === 10)
-        return "Phụ huynh (Parent)";
+        return "Parent";
       if (req.requestedBy === 3 || req.requestedBy === 4)
-        return "Giáo viên (Teacher)";
-      if (req.requestedBy === 5) return "Trợ giảng (TA)";
-      return "Học viên (Student)";
+        return "Teacher";
+      if (req.requestedBy === 5) return "Teaching Assistant";
+      return "Student";
   }
 }
 
@@ -62,7 +62,7 @@ function getDisplayStatus(req: ApprovalRequestDto): string {
   if (s === "approved") return "Approved";
   if (s === "rejected") return "Rejected";
   if (req.reviewedBy != null) return "Pending";
-  return "Chờ phê duyệt";
+  return "Waiting";
 }
 
 export default function AdminStaffFeedbackPage() {
@@ -100,12 +100,12 @@ export default function AdminStaffFeedbackPage() {
           setRequests(res.data.filter((r) => !isFromAdminStaff(r)));
         }
       } catch (err) {
-        console.warn("Lỗi tải danh sách yêu cầu tiếp nhận:", err);
+        console.warn("Failed to load incoming requests list:", err);
         if (isMounted) {
           setLoadError(
             err instanceof Error
               ? err.message
-              : "Không thể tải danh sách phản hồi và đơn từ từ máy chủ.",
+              : "Failed to load feedback and request list from server.",
           );
         }
       } finally {
@@ -181,7 +181,7 @@ export default function AdminStaffFeedbackPage() {
     }
   };
 
-  // Step 1: Mark request as "Pending" (Đang xem xét giải quyết)
+  // Step 1: Mark request as "Pending"
   // Locks sender (Student / Parent / Teacher / TA) from editing and unlocks Approve / Reject buttons
   const handleMarkPending = async () => {
     if (!selectedRequest || submittingReview) return;
@@ -204,13 +204,13 @@ export default function AdminStaffFeedbackPage() {
       );
       setSelectedRequest(updated);
       setActionSuccessMsg(
-        `Đơn ${updated.requestCode || `#${updated.requestId}`} đã chuyển sang trạng thái "Pending (Đang xem xét giải quyết)". Bạn có thể tiến hành Phê duyệt hoặc Từ chối.`,
+        `Request ${updated.requestCode || `#${updated.requestId}`} moved to "Pending (Under Review)". You can now Approve or Reject it.`,
       );
     } catch (error) {
       alert(
         error instanceof Error
           ? error.message
-          : "Không thể chuyển trạng thái sang đang xem xét.",
+          : "Failed to change status to under review.",
       );
     } finally {
       setSubmittingReview(false);
@@ -222,19 +222,19 @@ export default function AdminStaffFeedbackPage() {
     if (!selectedRequest || submittingReview) return;
 
     if (selectedRequest.status.toLowerCase() !== "pending") {
-      alert("Đơn này đã được xử lý.");
+      alert("This request has already been processed.");
       return;
     }
 
     if (selectedRequest.reviewedBy == null) {
       alert(
-        "Vui lòng nhấn nút 'Pending (Đang xem xét giải quyết)' trước khi phê duyệt hoặc từ chối.",
+        "Please click 'Pending (Under Review)' before approving or rejecting.",
       );
       return;
     }
 
     if (newStatus === "Rejected" && !reviewNotes.trim()) {
-      alert("Vui lòng nhập lý do từ chối.");
+      alert("Please enter a rejection reason.");
       return;
     }
 
@@ -257,10 +257,10 @@ export default function AdminStaffFeedbackPage() {
 
       setSelectedRequest(null);
       setActionSuccessMsg(
-        `Đã ${newStatus === "Approved" ? "phê duyệt / giải quyết" : "từ chối"} đơn ${updated.requestCode || `#${updated.requestId}`} thành công!`,
+        `Request ${updated.requestCode || `#${updated.requestId}`} ${newStatus === "Approved" ? "approved / resolved" : "rejected"} successfully!`,
       );
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Xử lý đơn thất bại.");
+      alert(error instanceof Error ? error.message : "Failed to process request.");
     } finally {
       setSubmittingReview(false);
     }
@@ -325,7 +325,7 @@ export default function AdminStaffFeedbackPage() {
                 <input
                   type="text"
                   className="form-control ps-5"
-                  placeholder="Tìm theo mã đơn, tiêu đề hoặc tên người gửi..."
+                  placeholder="Search by request code, title, or sender name..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -344,17 +344,17 @@ export default function AdminStaffFeedbackPage() {
                 }}
               >
                 <option value="All">All Request Types</option>
-                <option value="feedback">Feedback (Ý kiến đóng góp)</option>
+                <option value="feedback">Feedback</option>
                 <option value="leave_request">
-                  Leave Request (Xin nghỉ phép)
+                  Leave Request
                 </option>
                 <option value="class_transfer">
-                  Class Transfer (Chuyển lớp)
+                  Class Transfer
                 </option>
                 <option value="academic_support">
-                  Academic Support (Hỗ trợ học vụ)
+                  Academic Support
                 </option>
-                <option value="other">Other (Yêu cầu khác)</option>
+                <option value="other">Other</option>
               </select>
             </div>
             <div className="col-xl-2 col-lg-3 col-md-6">
@@ -382,12 +382,12 @@ export default function AdminStaffFeedbackPage() {
                 }}
               >
                 <option value="All">All Statuses</option>
-                <option value="waiting">Chờ phê duyệt (Mới gửi)</option>
+                <option value="waiting">Waiting</option>
                 <option value="pending">
-                  Pending (Đang xem xét giải quyết)
+                  Pending (Under Review)
                 </option>
-                <option value="approved">Approved (Đã giải quyết)</option>
-                <option value="rejected">Rejected (Đã từ chối)</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
           </div>
@@ -428,14 +428,14 @@ export default function AdminStaffFeedbackPage() {
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
                     />
-                    Đang nạp danh sách phản hồi và đơn từ...
+                    Loading feedback and requests...
                   </td>
                 </tr>
               ) : paginatedRequests.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
-                    Không có đơn từ hoặc phản hồi nào phù hợp với bộ lọc.
+                    No requests or feedback match the filters.
                   </td>
                 </tr>
               ) : (
@@ -459,7 +459,7 @@ export default function AdminStaffFeedbackPage() {
                       </td>
                       <td>
                         <div className="fw-semibold text-dark">
-                          {req.studentName || "Trung tâm"}
+                          {req.studentName || "Center"}
                         </div>
                         {req.className && (
                           <small className="text-muted">{req.className}</small>
@@ -482,7 +482,7 @@ export default function AdminStaffFeedbackPage() {
                       </td>
                       <td>
                         <div className="fw-semibold text-dark">
-                          {req.requesterName || req.studentName || "Người gửi"}
+                          {req.requesterName || req.studentName || "Sender"}
                         </div>
                         <small className="text-muted">
                           {formatRequesterRole(req)}
@@ -501,7 +501,7 @@ export default function AdminStaffFeedbackPage() {
                           onClick={() => handleReviewRequest(req)}
                         >
                           <i className="bi bi-shield-check" />
-                          Thẩm định
+                          Review
                         </button>
                       </td>
                     </tr>
@@ -540,7 +540,7 @@ export default function AdminStaffFeedbackPage() {
                       `AR${String(selectedRequest.requestId).padStart(4, "0")}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0">
-                    Thẩm định &amp; Giải quyết đơn từ / phản hồi
+                    Review &amp; Resolve Request / Feedback
                   </h5>
                 </div>
                 <button
@@ -557,7 +557,7 @@ export default function AdminStaffFeedbackPage() {
                       className="spinner-border spinner-border-sm text-primary"
                       role="status"
                     />
-                    <span>Đang đồng bộ dữ liệu chi tiết từ máy chủ...</span>
+                    <span>Synchronizing detailed data from server...</span>
                   </div>
                 )}
 
@@ -565,10 +565,10 @@ export default function AdminStaffFeedbackPage() {
                   <div className="alert alert-info d-flex align-items-start gap-2 mb-3 py-2 px-3">
                     <i className="bi bi-info-circle-fill mt-1" />
                     <div className="small">
-                      Đơn đang ở trạng thái <strong>Chờ phê duyệt</strong> (Người
-                      gửi vẫn có thể chỉnh sửa). Nhấn{" "}
-                      <strong>Pending (Đang xem xét giải quyết)</strong> để tiếp
-                      nhận xử lý và mở khóa chức năng Phê duyệt / Từ chối.
+                      Request status is <strong>Waiting</strong> (Sender
+                      can still edit). Click{" "}
+                      <strong>Pending (Under Review)</strong> to accept
+                      for processing and unlock Approve / Reject actions.
                     </div>
                   </div>
                 )}
@@ -577,11 +577,11 @@ export default function AdminStaffFeedbackPage() {
                   <div className="alert alert-warning d-flex align-items-start gap-2 mb-3 py-2 px-3">
                     <i className="bi bi-hourglass-split mt-1" />
                     <div className="small">
-                      Đơn đang ở trạng thái{" "}
-                      <strong>Pending (Đang xem xét giải quyết)</strong>. Người
-                      gửi đã bị khóa quyền chỉnh sửa đơn này. Bạn có thể chọn{" "}
-                      <strong>Từ chối yêu cầu</strong> hoặc{" "}
-                      <strong>Phê duyệt chấp thuận</strong>.
+                      Request status is{" "}
+                      <strong>Pending (Under Review)</strong>. Sender
+                      editing is locked. You can now select{" "}
+                      <strong>Reject Request</strong> or{" "}
+                      <strong>Approve Request</strong>.
                     </div>
                   </div>
                 )}
@@ -594,25 +594,25 @@ export default function AdminStaffFeedbackPage() {
                     </h5>
                     <div className="d-flex align-items-center gap-3 text-muted small flex-wrap">
                       <span>
-                        Loại:{" "}
+                        Type:{" "}
                         <strong>
                           {formatRequestType(selectedRequest.requestType)}
                         </strong>
                       </span>
                       <span>
-                        Người gửi:{" "}
+                        Sender:{" "}
                         <strong>
                           {selectedRequest.requesterName ||
                             selectedRequest.studentName ||
-                            "Người gửi"}{" "}
+                            "Sender"}{" "}
                           ({formatRequesterRole(selectedRequest)})
                         </strong>
                       </span>
                       <span>
-                        Thời điểm gửi:{" "}
+                        Submitted Date:{" "}
                         {selectedRequest.createdAt
                           ? new Date(selectedRequest.createdAt).toLocaleString(
-                              "vi-VN",
+                              "en-US",
                             )
                           : "—"}
                       </span>
@@ -630,10 +630,10 @@ export default function AdminStaffFeedbackPage() {
                   <div className="col-md-6">
                     <div className="p-3 bg-light rounded-3">
                       <small className="text-muted d-block mb-1">
-                        Học viên / Lớp liên quan
+                        Related Student / Class
                       </small>
                       <strong className="text-dark">
-                        {selectedRequest.studentName || "Không xác định"}
+                        {selectedRequest.studentName || "Unknown"}
                       </strong>
                       {selectedRequest.className && (
                         <div className="small text-muted">
@@ -645,7 +645,7 @@ export default function AdminStaffFeedbackPage() {
                   <div className="col-md-6">
                     <div className="p-3 bg-light rounded-3">
                       <small className="text-muted d-block mb-1">
-                        Độ ưu tiên xử lý
+                        Priority
                       </small>
                       <strong className="text-dark text-capitalize">
                         {selectedRequest.priority || "Medium"}
@@ -656,7 +656,7 @@ export default function AdminStaffFeedbackPage() {
 
                 <div className="mb-4">
                   <h6 className="fw-bold text-dark mb-2">
-                    Nội dung chi tiết &amp; Lý do từ người gửi:
+                    Details &amp; Reason from Sender:
                   </h6>
                   <div
                     className="p-3 bg-light rounded border text-secondary"
@@ -664,19 +664,18 @@ export default function AdminStaffFeedbackPage() {
                   >
                     {selectedRequest.description ||
                       selectedRequest.reason ||
-                      "Không có thêm thông tin chi tiết."}
+                      "No additional details provided."}
                   </div>
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label fw-bold text-dark">
-                    Ý kiến phản hồi &amp; Kết quả xử lý của Giáo vụ (Admin
-                    Staff):
+                    Feedback &amp; Resolution by Admin Staff:
                   </label>
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="Nhập ghi chú phản hồi cho học viên / phụ huynh / giáo viên hoặc lý do từ chối..."
+                    placeholder="Enter notes/feedback for student / parent / teacher or reason for rejection..."
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
                     readOnly={isSelectedProcessed}
@@ -690,11 +689,11 @@ export default function AdminStaffFeedbackPage() {
                   className="btn btn-outline-secondary"
                   onClick={() => setSelectedRequest(null)}
                 >
-                  Đóng
+                  Close
                 </button>
 
                 <div className="d-flex gap-2 align-items-center">
-                  {/* Step 1: When request is newly submitted ("Chờ phê duyệt"), prioritize the Pending button */}
+                  {/* Step 1: When request is newly submitted ("Waiting"), prioritize the Pending button */}
                   {isSelectedWaiting && (
                     <button
                       type="button"
@@ -704,8 +703,8 @@ export default function AdminStaffFeedbackPage() {
                     >
                       <i className="bi bi-hourglass-split" />
                       {submittingReview
-                        ? "Đang tiếp nhận..."
-                        : "Pending (Đang xem xét giải quyết)"}
+                        ? "Receiving..."
+                        : "Pending (Under Review)"}
                     </button>
                   )}
 
@@ -719,7 +718,7 @@ export default function AdminStaffFeedbackPage() {
                         onClick={() => handleProcessRequest("Rejected")}
                       >
                         <i className="bi bi-x-circle me-1" />
-                        Từ chối yêu cầu
+                        Reject Request
                       </button>
                       <button
                         type="button"
@@ -728,7 +727,7 @@ export default function AdminStaffFeedbackPage() {
                         onClick={() => handleProcessRequest("Approved")}
                       >
                         <i className="bi bi-check-circle me-1" />
-                        Phê duyệt chấp thuận
+                        Approve Request
                       </button>
                     </>
                   )}
@@ -737,7 +736,7 @@ export default function AdminStaffFeedbackPage() {
                   {isSelectedProcessed && (
                     <span className="text-muted small">
                       <i className="bi bi-check2-all me-1" />
-                      Đơn này đã hoàn tất xử lý (
+                      This request has been resolved (
                       <strong>{getDisplayStatus(selectedRequest)}</strong>).
                     </span>
                   )}

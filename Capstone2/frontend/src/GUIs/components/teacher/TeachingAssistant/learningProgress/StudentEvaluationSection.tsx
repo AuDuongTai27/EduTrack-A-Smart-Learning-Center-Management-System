@@ -16,24 +16,24 @@ export default function StudentEvaluationSection({
         <div>
           <h5 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
             <i className="bi bi-chat-square-heart text-warning" />
-            2. Đánh Giá Cá Nhân Của Trợ Giảng &amp; Giáo Viên
+            2. Teaching Assistant &amp; Teacher Individual Evaluations
           </h5>
           <small className="text-muted">
-            Đánh giá độc lập về thái độ, tư duy, sự tiến bộ và hỗ trợ học tập (không phụ thuộc vào điểm số bài tập)
+            Independent evaluation of attitude, mindset, progress, and learning support (independent of assignment scores)
           </small>
         </div>
 
-        {/* Nút tạo đánh giá bên trong (ngay trong section) */}
+        {/* Button to create evaluation inside section */}
         <button
           type="button"
           className="btn btn-primary d-inline-flex align-items-center gap-1.5 shadow-xs px-3 py-2 fw-semibold"
           onClick={onOpenEvaluationModal}
         >
-          <i className="bi bi-plus-circle" /> Tạo đánh giá mới
+          <i className="bi bi-plus-circle" /> Create New Evaluation
         </button>
       </div>
 
-      {/* Danh sách các đánh giá cá nhân đã ghi nhận */}
+      {/* List of recorded individual evaluations */}
       <div className="p-4 bg-light-subtle d-flex flex-column gap-3">
         {evaluations.length > 0 ? (
           evaluations.map((item) => {
@@ -79,7 +79,7 @@ export default function StudentEvaluationSection({
                   <div className="mt-3.5 px-3 py-2 rounded-2 bg-light-subtle border small text-muted d-flex align-items-center gap-2" style={{ marginTop: "14px" }}>
                     <i className="bi bi-lightbulb text-warning fs-6" />
                     <div>
-                      <strong className="text-secondary">Đề xuất rèn luyện: </strong>
+                      <strong className="text-secondary">Improvement suggestions: </strong>
                       <span>{item.suggestions}</span>
                     </div>
                   </div>
@@ -90,8 +90,8 @@ export default function StudentEvaluationSection({
         ) : (
           <div className="p-4 text-center text-muted bg-white rounded-3 border">
             <i className="bi bi-chat-left-text fs-3 d-block mb-1 text-secondary" />
-            Chưa có đánh giá cá nhân nào cho học viên này. Nhấn{" "}
-            <strong>"Tạo đánh giá mới"</strong> ở góc phải để thêm nhận xét.
+            No individual evaluations for this student yet. Click{" "}
+            <strong>"Create New Evaluation"</strong> in the top right to add feedback.
           </div>
         )}
       </div>

@@ -20,7 +20,7 @@ export const GRID_START = 7;
 export const GRID_END = 21;
 export const TOTAL_H = GRID_END - GRID_START; // 14 hours
 export const HOUR_PX = 80;
-export const DAY_LABELS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
+export const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export const STATUS_CLASS: Record<string, string> = {
   upcoming: 'session-card-upcoming',
@@ -30,16 +30,16 @@ export const STATUS_CLASS: Record<string, string> = {
 };
 
 export const SESSIONS: SessionItem[] = [
-  { id: 's1', className: '[FE-Mock] Lớp Toán A1', subject: 'Toán học', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 0, status: 'upcoming' },
-  { id: 's2', className: '[FE-Mock] Lớp Văn B2', subject: 'Ngữ văn', startH: 9, startM: 0, endH: 10, endM: 30, teacher: 'Trần Thị Mai', initials: 'TM', avatarBg: '#7C3AED', room: 'P.B105', day: 1, status: 'completed' },
-  { id: 's3', className: '[FE-Mock] Lớp Toán A1', subject: 'Toán học', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 1, status: 'completed' },
-  { id: 's4', className: '[FE-Mock] Lớp Anh C1', subject: 'Tiếng Anh', startH: 9, startM: 30, endH: 11, endM: 0, teacher: 'Lê Minh Tuấn', initials: 'LT', avatarBg: '#0EA5E9', room: 'P.C302', day: 2, status: 'completed' },
-  { id: 's5', className: '[FE-Mock] Lớp Lý A3', subject: 'Vật lý', startH: 17, startM: 0, endH: 18, endM: 30, teacher: 'Phạm Thu Hà', initials: 'PH', avatarBg: '#0D9488', room: 'P.D104', day: 3, status: 'upcoming' },
-  { id: 's6', className: '[FE-Mock] Lớp Hóa B1', subject: 'Hóa học', startH: 8, startM: 0, endH: 9, endM: 30, teacher: 'Hoàng Văn Nam', initials: 'HN', avatarBg: '#D97706', room: 'P.A101', day: 4, status: 'completed' },
-  { id: 's7', className: '[FE-Mock] Lớp Toán A2', subject: 'Toán học', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'P.A203', day: 4, status: 'ongoing' },
-  { id: 's8', className: '[FE-Mock] Lớp Sinh C2', subject: 'Sinh học', startH: 10, startM: 0, endH: 11, endM: 30, teacher: 'Vũ Thị Lan', initials: 'VL', avatarBg: '#059669', room: 'P.B202', day: 5, status: 'upcoming' },
-  { id: 's9', className: '[FE-Mock] Lớp Sử D1', subject: 'Lịch sử', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Đặng Minh Khoa', initials: 'ĐK', avatarBg: '#DC2626', room: 'P.C401', day: 6, status: 'cancelled' },
-  { id: 's10', className: '[FE-Mock] Lớp Địa E1', subject: 'Địa lý', startH: 8, startM: 30, endH: 10, endM: 0, teacher: 'Bùi Thị Nga', initials: 'BN', avatarBg: '#9333EA', room: 'P.E201', day: 3, status: 'completed' },
+  { id: 's1', className: '[FE-Mock] Math Class A1', subject: 'Mathematics', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'Room A203', day: 0, status: 'upcoming' },
+  { id: 's2', className: '[FE-Mock] Literature Class B2', subject: 'Literature', startH: 9, startM: 0, endH: 10, endM: 30, teacher: 'Trần Thị Mai', initials: 'TM', avatarBg: '#7C3AED', room: 'Room B105', day: 1, status: 'completed' },
+  { id: 's3', className: '[FE-Mock] Math Class A1', subject: 'Mathematics', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'Room A203', day: 1, status: 'completed' },
+  { id: 's4', className: '[FE-Mock] English Class C1', subject: 'English', startH: 9, startM: 30, endH: 11, endM: 0, teacher: 'Lê Minh Tuấn', initials: 'LT', avatarBg: '#0EA5E9', room: 'Room C302', day: 2, status: 'completed' },
+  { id: 's5', className: '[FE-Mock] Physics Class A3', subject: 'Physics', startH: 17, startM: 0, endH: 18, endM: 30, teacher: 'Phạm Thu Hà', initials: 'PH', avatarBg: '#0D9488', room: 'Room D104', day: 3, status: 'upcoming' },
+  { id: 's6', className: '[FE-Mock] Chemistry Class B1', subject: 'Chemistry', startH: 8, startM: 0, endH: 9, endM: 30, teacher: 'Hoàng Văn Nam', initials: 'HN', avatarBg: '#D97706', room: 'Room A101', day: 4, status: 'completed' },
+  { id: 's7', className: '[FE-Mock] Math Class A2', subject: 'Mathematics', startH: 15, startM: 0, endH: 16, endM: 30, teacher: 'Nguyễn Văn An', initials: 'NA', avatarBg: '#2563EB', room: 'Room A203', day: 4, status: 'ongoing' },
+  { id: 's8', className: '[FE-Mock] Biology Class C2', subject: 'Biology', startH: 10, startM: 0, endH: 11, endM: 30, teacher: 'Vũ Thị Lan', initials: 'VL', avatarBg: '#059669', room: 'Room B202', day: 5, status: 'upcoming' },
+  { id: 's9', className: '[FE-Mock] History Class D1', subject: 'History', startH: 14, startM: 0, endH: 15, endM: 30, teacher: 'Đặng Minh Khoa', initials: 'ĐK', avatarBg: '#DC2626', room: 'Room C401', day: 6, status: 'cancelled' },
+  { id: 's10', className: '[FE-Mock] Geography Class E1', subject: 'Geography', startH: 8, startM: 30, endH: 10, endM: 0, teacher: 'Bùi Thị Nga', initials: 'BN', avatarBg: '#9333EA', room: 'Room E201', day: 3, status: 'completed' },
 ];
 
 export function getMonday(d: Date): Date {
@@ -117,26 +117,26 @@ export function mapClassScheduleDtoToSessionItem(dto: ClassScheduleDto, index = 
   const endH = parseInt(endParts[0], 10) || 20;
   const endM = parseInt(endParts[1], 10) || 0;
 
-  let subject = 'Môn học';
+  let subject = 'Subject';
   let avatarBg = '#2563EB';
   const nameLower = (dto.className || '').toLowerCase();
   if (nameLower.includes('toán') || nameLower.includes('math')) {
-    subject = 'Toán học';
+    subject = 'Mathematics';
     avatarBg = '#2563EB';
   } else if (nameLower.includes('lý') || nameLower.includes('phys')) {
-    subject = 'Vật lý';
+    subject = 'Physics';
     avatarBg = '#7C3AED';
   } else if (nameLower.includes('hóa') || nameLower.includes('chem')) {
-    subject = 'Hóa học';
+    subject = 'Chemistry';
     avatarBg = '#D97706';
   } else if (nameLower.includes('anh') || nameLower.includes('eng')) {
-    subject = 'Tiếng Anh';
+    subject = 'English';
     avatarBg = '#0EA5E9';
   } else if (nameLower.includes('văn') || nameLower.includes('lit')) {
-    subject = 'Ngữ văn';
+    subject = 'Literature';
     avatarBg = '#DC2626';
   } else if (nameLower.includes('sinh') || nameLower.includes('bio')) {
-    subject = 'Sinh học';
+    subject = 'Biology';
     avatarBg = '#059669';
   }
 
@@ -148,10 +148,10 @@ export function mapClassScheduleDtoToSessionItem(dto: ClassScheduleDto, index = 
     startM,
     endH,
     endM,
-    teacher: 'Giáo viên phụ trách',
-    initials: 'GV',
+    teacher: 'Assigned Teacher',
+    initials: 'T',
     avatarBg,
-    room: dto.room || 'P.A101',
+    room: dto.room || 'Room A101',
     day,
     status: 'upcoming',
   };
@@ -176,40 +176,40 @@ export function mapTeachingScheduleDtoToSessionItem(
   const endH = parseInt(endParts[0], 10) || 10;
   const endM = parseInt(endParts[1], 10) || 0;
 
-  let subject = dto.subjectName || 'Môn học';
+  let subject = dto.subjectName || 'Subject';
   let avatarBg = '#2563EB';
   const nameLower = `${dto.subjectName || ''} ${dto.className || ''}`.toLowerCase();
   if (nameLower.includes('toán') || nameLower.includes('math')) {
-    subject = dto.subjectName || 'Toán học';
+    subject = dto.subjectName || 'Mathematics';
     avatarBg = '#2563EB';
   } else if (nameLower.includes('lý') || nameLower.includes('phys')) {
-    subject = dto.subjectName || 'Vật lý';
+    subject = dto.subjectName || 'Physics';
     avatarBg = '#7C3AED';
   } else if (nameLower.includes('hóa') || nameLower.includes('chem')) {
-    subject = dto.subjectName || 'Hóa học';
+    subject = dto.subjectName || 'Chemistry';
     avatarBg = '#D97706';
   } else if (nameLower.includes('anh') || nameLower.includes('eng')) {
-    subject = dto.subjectName || 'Tiếng Anh';
+    subject = dto.subjectName || 'English';
     avatarBg = '#0EA5E9';
   } else if (nameLower.includes('văn') || nameLower.includes('lit')) {
-    subject = dto.subjectName || 'Ngữ văn';
+    subject = dto.subjectName || 'Literature';
     avatarBg = '#DC2626';
   } else if (nameLower.includes('sinh') || nameLower.includes('bio')) {
-    subject = dto.subjectName || 'Sinh học';
+    subject = dto.subjectName || 'Biology';
     avatarBg = '#059669';
   }
 
-  // Đối tác cùng lớp:
-  // Nếu là Giáo viên chính -> hiện tên Trợ giảng (TA)
-  // Nếu là Trợ giảng -> hiện tên Giáo viên chính
+  // Partner in the same class:
+  // If main Teacher -> display Teaching Assistant (TA) name
+  // If Teaching Assistant -> display main Teacher name
   const partnerName = isTa
-    ? (dto.teacherName || dto.partnerName || 'Giáo viên phụ trách')
-    : (dto.taName || dto.partnerName || 'Trợ giảng');
+    ? (dto.teacherName || dto.partnerName || 'Assigned Teacher')
+    : (dto.taName || dto.partnerName || 'Teaching Assistant');
 
   const words = partnerName.trim().split(/\s+/).filter(Boolean);
   const initials = words.length >= 2
     ? `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase()
-    : (words[0]?.slice(0, 2).toUpperCase() || (isTa ? 'GV' : 'TG'));
+    : (words[0]?.slice(0, 2).toUpperCase() || (isTa ? 'T' : 'TA'));
 
   const stLower = (dto.status || '').toLowerCase();
   let status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled' = 'upcoming';
@@ -255,7 +255,7 @@ export function mapTeachingScheduleDtoToSessionItem(
     teacher: partnerName,
     initials,
     avatarBg,
-    room: dto.room || 'Phòng học',
+    room: dto.room || 'Classroom',
     day,
     status,
   };

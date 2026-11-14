@@ -69,7 +69,7 @@ export default function TeachingAssistantAssignmentPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title={`${assignmentTitle} (Chi Tiết Bài Tập)`}
+        title={`${assignmentTitle} (Assignment Details)`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },

@@ -82,7 +82,7 @@ export const studentDAL = {
       const subject = MOCK_SUBJECTS.find((s) => s.subjectId === cls.subjectId) || {
         subjectId: cls.subjectId,
         subjectCode: 'GEN',
-        subjectName: 'Chung',
+        subjectName: 'General',
         description: null,
       };
 
@@ -106,32 +106,32 @@ export const studentDAL = {
           ? schedules
               .map((s) => {
                 const dayMap: Record<string, string> = {
-                  monday: 'Thứ 2',
-                  tuesday: 'Thứ 3',
-                  wednesday: 'Thứ 4',
-                  thursday: 'Thứ 5',
-                  friday: 'Thứ 6',
-                  saturday: 'Thứ 7',
-                  sunday: 'Chủ nhật',
+                  monday: 'Mon',
+                  tuesday: 'Tue',
+                  wednesday: 'Wed',
+                  thursday: 'Thu',
+                  friday: 'Fri',
+                  saturday: 'Sat',
+                  sunday: 'Sun',
                 };
                 const dayName = dayMap[s.dayOfWeek.toLowerCase()] || s.dayOfWeek;
                 return `${dayName} (${s.startTime.slice(0, 5)} - ${s.endTime.slice(0, 5)})`;
               })
               .join(', ')
-          : 'Chưa có lịch';
+          : 'No schedule';
 
       // Định dạng style theo môn
       let subjectThemeClass = 'subject-toan';
-      let badge = 'Toán';
+      let badge = 'Math';
       if (subject.subjectCode === 'PHYS') {
         subjectThemeClass = 'subject-vat-ly';
-        badge = 'Vật Lý';
+        badge = 'Physics';
       } else if (subject.subjectCode === 'CHEM') {
         subjectThemeClass = 'subject-hoa-hoc';
-        badge = 'Hóa Học';
+        badge = 'Chemistry';
       } else if (subject.subjectCode === 'ENG') {
         subjectThemeClass = 'subject-tieng-anh';
-        badge = 'Tiếng Anh';
+        badge = 'English';
       }
 
       // Đếm số buổi học

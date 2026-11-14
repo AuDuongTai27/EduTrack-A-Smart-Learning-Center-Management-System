@@ -16,7 +16,7 @@ export function AssignmentDetailHeader({
       {/* 1. Back Link */}
       <Link to={`/student/classes/${asg.classId || 1}`} className="btn-back-page" id="btnBackToClass">
         <i className="bi bi-arrow-left"></i>
-        <span>Quay lại lớp học</span>
+        <span>Back to Class</span>
       </Link>
 
       {/* 2. Assignment Header */}
@@ -28,19 +28,19 @@ export function AssignmentDetailHeader({
           {currentStatus === 'not-submitted' && (
             <span className="asg-status-badge asg-status-chuanop" id="asgStatusBadge">
               <i className="bi bi-clock"></i>
-              <span>Chưa nộp</span>
+              <span>Not Submitted</span>
             </span>
           )}
           {currentStatus === 'submitted' && (
             <span className="asg-status-badge asg-status-danop" id="asgStatusBadge">
               <i className="bi bi-check-circle"></i>
-              <span>Đã nộp</span>
+              <span>Submitted</span>
             </span>
           )}
           {currentStatus === 'overdue' && (
             <span className="asg-status-badge asg-status-quahan" id="asgStatusBadge">
               <i className="bi bi-exclamation-circle"></i>
-              <span>Quá hạn</span>
+              <span>Overdue</span>
             </span>
           )}
         </div>

@@ -25,7 +25,7 @@ export default function ProgressTable({
   latestAssignmentTitle = "Homework 01: Quadratic Equations",
   progressStudents = [],
   classId = 1,
-  className = "Lớp 9A1 - Toán Nâng Cao",
+  className = "Class 9A1 - Advanced Math",
 }: ProgressTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -91,7 +91,7 @@ export default function ProgressTable({
           latestAssignmentStatus: idx % 3 === 0 ? "Late" : "Submitted",
           latestAssignmentScore: 9.0,
           maxScore: 10,
-          latestNote: updatedNotes[stu.userId] || "Tiến độ học tập và chuyên cần tốt.",
+          latestNote: updatedNotes[stu.userId] || "Good learning progress and attendance.",
         };
       });
     }
@@ -171,7 +171,7 @@ export default function ProgressTable({
       const res = await teachingDAL.createStudentEvaluation(classId, payload.studentId, {
         ...payload,
         evaluatorName: "ThS. Hoàng Quốc Việt",
-        evaluatorRole: "Giáo viên",
+        evaluatorRole: "Teacher",
       });
 
       if (res.data) {
@@ -181,10 +181,10 @@ export default function ProgressTable({
         }));
       }
 
-      setToastMessage("Đã lưu đánh giá cá nhân thành công vào hệ thống!");
+      setToastMessage("Individual evaluation saved successfully!");
     } catch (err) {
-      console.warn("Lỗi khi lưu đánh giá:", err);
-      setToastMessage("Đã lưu đánh giá cá nhân.");
+      console.warn("Error saving evaluation:", err);
+      setToastMessage("Individual evaluation saved.");
     }
     setTimeout(() => setToastMessage(null), 3500);
   };
@@ -226,9 +226,9 @@ export default function ProgressTable({
               setCurrentPage(1);
             }}
           >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="submitted">Đã nộp</option>
-            <option value="pending">Chờ nộp</option>
+            <option value="all">All Statuses</option>
+            <option value="submitted">Submitted</option>
+            <option value="pending">Pending</option>
           </select>
 
           {/* Thanh tìm kiếm */}
@@ -240,7 +240,7 @@ export default function ProgressTable({
               type="search"
               className="form-control form-control-sm border-start-0 ps-0"
               id="tableSearchInput"
-              placeholder="Tìm theo tên hoặc mã học viên..."
+              placeholder="Search by student name or ID..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -271,11 +271,11 @@ export default function ProgressTable({
                   }}
                   title={
                     sortField === "name"
-                      ? `Đang xếp theo tên: ${sortOrder === "asc" ? "A-Z" : "Z-A"}. Nhấn để đổi chiều.`
-                      : "Nhấn để sắp xếp theo Tên học viên"
+                      ? `Sorted by name: ${sortOrder === "asc" ? "A-Z" : "Z-A"}. Click to toggle.`
+                      : "Click to sort by student name"
                   }
                 >
-                  <span>Học Viên</span>
+                  <span>Student</span>
                   <i
                     className={`bi bi-arrow-down-up small ${
                       sortField === "name" ? "text-primary fw-bold" : "text-muted opacity-50"
@@ -288,7 +288,7 @@ export default function ProgressTable({
                   )}
                 </button>
               </th>
-              <th>Mã Học Viên</th>
+              <th>Student ID</th>
               <th>
                 <button
                   type="button"
@@ -303,11 +303,11 @@ export default function ProgressTable({
                   }}
                   title={
                     sortField === "attendance"
-                      ? `Đang xếp theo chuyên cần: ${sortOrder === "desc" ? "Giảm dần" : "Tăng dần"}. Nhấn để đổi chiều.`
-                      : "Nhấn để sắp xếp theo Chuyên cần & Điểm danh"
+                      ? `Sorted by attendance: ${sortOrder === "desc" ? "Descending" : "Ascending"}. Click to toggle.`
+                      : "Click to sort by Attendance"
                   }
                 >
-                  <span>Chuyên Cần &amp; Điểm Danh</span>
+                  <span>Attendance</span>
                   <i
                     className={`bi bi-arrow-down-up small ${
                       sortField === "attendance" ? "text-primary fw-bold" : "text-muted opacity-50"
@@ -315,14 +315,14 @@ export default function ProgressTable({
                   />
                   {sortField === "attendance" && (
                     <small className="text-primary fw-semibold" style={{ fontSize: "11px" }}>
-                      ({sortOrder === "asc" ? "Tăng dần" : "Giảm dần"})
+                      ({sortOrder === "asc" ? "Ascending" : "Descending"})
                     </small>
                   )}
                 </button>
               </th>
-              <th>Bài Tập Gần Nhất</th>
-              <th>Trạng Thái</th>
-              <th className="text-end">Thao Tác</th>
+              <th>Latest Assignment</th>
+              <th>Status</th>
+              <th className="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -352,7 +352,7 @@ export default function ProgressTable({
                     <td>
                       <div className="d-flex align-items-center gap-2">
                         <span className="fw-bold text-dark">
-                          {stu.presentDays}/{stu.totalDays} Buổi
+                          {stu.presentDays}/{stu.totalDays} Sessions
                         </span>
                         <span
                           className={`badge ${
@@ -371,7 +371,7 @@ export default function ProgressTable({
                       <span className="fw-medium text-dark">{stu.latestAssignmentTitle}</span>
                       {stu.latestAssignmentScore != null && (
                         <small className="d-block text-muted">
-                          Điểm: <strong className="text-primary">{stu.latestAssignmentScore}</strong>/{stu.maxScore ?? 10}
+                          Score: <strong className="text-primary">{stu.latestAssignmentScore}</strong>/{stu.maxScore ?? 10}
                         </small>
                       )}
                     </td>
@@ -379,27 +379,27 @@ export default function ProgressTable({
                       {stu.latestAssignmentStatus === "Submitted" ? (
                         <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 fw-semibold">
                           <i className="bi bi-check-circle-fill me-1" />
-                          Đã nộp
+                          Submitted
                         </span>
                       ) : stu.latestAssignmentStatus === "Graded" ? (
                         <span className="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 rounded-2 fw-semibold">
                           <i className="bi bi-award-fill me-1" />
-                          Đã chấm ({stu.latestAssignmentScore ?? 10}đ)
+                          Graded ({stu.latestAssignmentScore ?? 10} pts)
                         </span>
                       ) : stu.latestAssignmentStatus === "Late" ? (
                         <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-2 fw-semibold">
                           <i className="bi bi-exclamation-triangle-fill me-1" />
-                          Nộp trễ
+                          Late
                         </span>
                       ) : stu.latestAssignmentStatus === "Missing" ? (
                         <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-2 fw-semibold">
                           <i className="bi bi-x-circle-fill me-1" />
-                          Chưa nộp (Quá hạn)
+                          Missing (Overdue)
                         </span>
                       ) : (
                         <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-2 fw-semibold">
                           <i className="bi bi-clock-fill me-1" />
-                          Chờ nộp
+                          Pending
                         </span>
                       )}
                     </td>
@@ -409,9 +409,9 @@ export default function ProgressTable({
                         <Link
                           to={`/teacher/learning-progress/class/${classId}/student/${stu.studentId}`}
                           className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                          title="Xem toàn bộ tiến độ, bài tập & đánh giá cá nhân của học viên"
+                          title="View full progress, assignments & individual evaluation of student"
                         >
-                          <i className="bi bi-eye" /> Chi tiết
+                          <i className="bi bi-eye" /> Details
                         </Link>
                       </div>
                     </td>
@@ -422,7 +422,7 @@ export default function ProgressTable({
               <tr>
                 <td colSpan={7} className="text-center py-4 text-muted">
                   <i className="bi bi-inbox fs-3 d-block mb-1" />
-                  Không tìm thấy học viên nào phù hợp trong lớp này.
+                  No matching students found in this class.
                 </td>
               </tr>
             )}
@@ -449,7 +449,7 @@ export default function ProgressTable({
           classId={classId}
           className={className}
           evaluatorName="ThS. Hoàng Quốc Việt"
-          evaluatorRole="Giáo viên"
+          evaluatorRole="Teacher"
           onSubmit={handleEvaluationSubmit}
         />
       )}

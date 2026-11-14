@@ -71,14 +71,14 @@ export default function CenterManagerUserAccountPage() {
         setLoading(true);
         const res = await userDAL.getAllUsers();
         if (isMounted && res.data) {
-          // Lưu ý quan trọng: Chỉ quản lý nhân sự nội bộ (center_manager, admin_staff, teacher, teaching_assistant)
+          // Important note: Only manage internal staff (center_manager, admin_staff, teacher, teaching_assistant)
           const staffOnly = res.data.filter((u) =>
             u.roles && u.roles.some((r) => INTERNAL_STAFF_ROLES.includes(r.toLowerCase()))
           );
           setUsers(staffOnly);
         }
       } catch (err) {
-        console.warn("Lỗi tải danh sách tài khoản người dùng:", err);
+        console.warn("Failed to load user accounts:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -173,10 +173,10 @@ export default function CenterManagerUserAccountPage() {
         specialty: "Mathematics",
         gender: "male",
       });
-      setActionSuccessMsg(`Đã tạo tài khoản mới: "${res.data.fullName}" (${res.data.userCode}) thành công!`);
+      setActionSuccessMsg(`Created new account: "${res.data.fullName}" (${res.data.userCode}) successfully!`);
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Không thể tạo tài khoản.");
+      setActionErrorMsg(err.message || "Failed to create account.");
     } finally {
       setSubmitting(false);
     }
@@ -219,10 +219,10 @@ export default function CenterManagerUserAccountPage() {
 
       setUsers(users.map((item) => (item.userId === editForm.userId ? res.data : item)));
       setShowEditModal(false);
-      setActionSuccessMsg(`Đã cập nhật thông tin tài khoản "${res.data.fullName}" thành công!`);
+      setActionSuccessMsg(`Updated account information for "${res.data.fullName}" successfully!`);
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Không thể cập nhật tài khoản.");
+      setActionErrorMsg(err.message || "Failed to update account.");
     } finally {
       setSubmitting(false);
     }
@@ -235,10 +235,10 @@ export default function CenterManagerUserAccountPage() {
       await managementDAL.updateUserStatus(u.userId, nextStatus);
       const updated = users.map((item) => (item.userId === u.userId ? { ...item, status: nextStatus } : item));
       setUsers(updated);
-      setActionSuccessMsg(`Đã cập nhật trạng thái tài khoản ${u.fullName} thành: ${nextStatus.toUpperCase()}!`);
+      setActionSuccessMsg(`Updated account status for ${u.fullName} to: ${nextStatus.toUpperCase()}!`);
       setTimeout(() => setActionSuccessMsg(null), 3000);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Lỗi cập nhật trạng thái.");
+      setActionErrorMsg(err.message || "Failed to update status.");
     }
   };
 
@@ -260,13 +260,13 @@ export default function CenterManagerUserAccountPage() {
       if (res.success) {
         setUsers(users.filter((item) => item.userId !== userToDelete.userId));
         setShowDeleteModal(false);
-        setActionSuccessMsg(`Đã xóa tài khoản "${userToDelete.fullName}" (${userToDelete.userCode}) thành công!`);
+        setActionSuccessMsg(`Deleted account "${userToDelete.fullName}" (${userToDelete.userCode}) successfully!`);
         setTimeout(() => setActionSuccessMsg(null), 3500);
       } else {
-        setActionErrorMsg(res.message || "Không thể xóa tài khoản người dùng.");
+        setActionErrorMsg(res.message || "Failed to delete user account.");
       }
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Lỗi xóa tài khoản người dùng.");
+      setActionErrorMsg(err.message || "Error deleting user account.");
     } finally {
       setSubmitting(false);
       setUserToDelete(null);
@@ -412,14 +412,14 @@ export default function CenterManagerUserAccountPage() {
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang nạp danh sách tài khoản nhân sự...
+                    Loading staff accounts...
                   </td>
                 </tr>
               ) : paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-people fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy tài khoản nhân sự nào phù hợp.
+                    No matching staff accounts found.
                   </td>
                 </tr>
               ) : (
@@ -459,22 +459,22 @@ export default function CenterManagerUserAccountPage() {
                           <TableActionButton
                             action="View"
                             onClick={() => handleViewDetails(u)}
-                            title="Xem chi tiết"
+                            title="View details"
                           />
                           <TableActionButton
                             action="Edit"
                             onClick={() => handleOpenEditModal(u)}
-                            title="Sửa tài khoản"
+                            title="Edit account"
                           />
                           <TableActionButton
                             action={u.status === "active" ? "Lock" : "Unlock"}
                             onClick={() => handleToggleStatus(u)}
-                            title={u.status === "active" ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+                            title={u.status === "active" ? "Lock account" : "Unlock account"}
                           />
                           <TableActionButton
                             action="Delete"
                             onClick={() => handleOpenDeleteModal(u)}
-                            title="Xóa tài khoản"
+                            title="Delete account"
                           />
                         </div>
                       </td>
@@ -506,7 +506,7 @@ export default function CenterManagerUserAccountPage() {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-person-plus me-2" />
-                  Thêm tài khoản nhân sự mới (Center Manager)
+                  Add New Staff User (Center Manager)
                 </h5>
                 <button
                   type="button"
@@ -518,31 +518,31 @@ export default function CenterManagerUserAccountPage() {
                 <div className="modal-body p-4">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Họ và tên <span className="text-danger">*</span></label>
+                      <label className="form-label fw-bold">Full Name <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Nhập họ và tên..."
+                        placeholder="Enter full name..."
                         value={addForm.fullName}
                         onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })}
                         required
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Vai trò hệ thống <span className="text-danger">*</span></label>
+                      <label className="form-label fw-bold">System Role <span className="text-danger">*</span></label>
                       <select
                         className="form-select"
                         value={addForm.role}
                         onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
                       >
-                        <option value="teacher">Giáo viên (Teacher)</option>
-                        <option value="teaching_assistant">Trợ giảng (Teaching Assistant)</option>
-                        <option value="admin_staff">Giáo vụ (Admin Staff)</option>
-                        <option value="center_manager">Quản lý trung tâm (Center Manager)</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="teaching_assistant">Teaching Assistant</option>
+                        <option value="admin_staff">Admin Staff</option>
+                        <option value="center_manager">Center Manager</option>
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Số điện thoại</label>
+                      <label className="form-label fw-bold">Phone Number</label>
                       <input
                         type="tel"
                         className="form-control"
@@ -562,23 +562,23 @@ export default function CenterManagerUserAccountPage() {
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Giới tính</label>
+                      <label className="form-label fw-bold">Gender</label>
                       <select
                         className="form-select"
                         value={addForm.gender}
                         onChange={(e) => setAddForm({ ...addForm, gender: e.target.value })}
                       >
-                        <option value="male">Nam (Male)</option>
-                        <option value="female">Nữ (Female)</option>
-                        <option value="other">Khác</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Chuyên môn / Khối lớp</label>
+                      <label className="form-label fw-bold">Specialty / Grade Level</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Ví dụ: Mathematics, Physics, Lớp 12..."
+                        placeholder="e.g. Mathematics, Physics, Grade 12..."
                         value={addForm.specialty}
                         onChange={(e) => setAddForm({ ...addForm, specialty: e.target.value })}
                       />
@@ -592,16 +592,16 @@ export default function CenterManagerUserAccountPage() {
                     onClick={() => setShowAddModal(false)}
                     disabled={submitting}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-primary px-4" disabled={submitting}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Đang tạo...
+                        Creating...
                       </>
                     ) : (
-                      "Tạo tài khoản"
+                      "Create Account"
                     )}
                   </button>
                 </div>
@@ -619,7 +619,7 @@ export default function CenterManagerUserAccountPage() {
               <div className="modal-header bg-warning-subtle border-bottom">
                 <h5 className="modal-title fw-bold text-dark">
                   <i className="bi bi-pencil-square me-2 text-warning" />
-                  Chỉnh sửa tài khoản nhân sự: #{editForm.userCode}
+                  Edit Staff Account: #{editForm.userCode}
                 </h5>
                 <button
                   type="button"
@@ -631,7 +631,7 @@ export default function CenterManagerUserAccountPage() {
                 <div className="modal-body p-4">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Họ và tên <span className="text-danger">*</span></label>
+                      <label className="form-label fw-bold">Full Name <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         className="form-control"
@@ -641,20 +641,20 @@ export default function CenterManagerUserAccountPage() {
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Vai trò hệ thống <span className="text-danger">*</span></label>
+                      <label className="form-label fw-bold">System Role <span className="text-danger">*</span></label>
                       <select
                         className="form-select"
                         value={editForm.role}
                         onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                       >
-                        <option value="teacher">Giáo viên (Teacher)</option>
-                        <option value="teaching_assistant">Trợ giảng (Teaching Assistant)</option>
-                        <option value="admin_staff">Giáo vụ (Admin Staff)</option>
-                        <option value="center_manager">Quản lý trung tâm (Center Manager)</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="teaching_assistant">Teaching Assistant</option>
+                        <option value="admin_staff">Admin Staff</option>
+                        <option value="center_manager">Center Manager</option>
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Số điện thoại</label>
+                      <label className="form-label fw-bold">Phone Number</label>
                       <input
                         type="tel"
                         className="form-control"
@@ -672,19 +672,19 @@ export default function CenterManagerUserAccountPage() {
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Trạng thái tài khoản</label>
+                      <label className="form-label fw-bold">Account Status</label>
                       <select
                         className="form-select"
                         value={editForm.status}
                         onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                       >
-                        <option value="active">Active (Hoạt động)</option>
-                        <option value="inactive">Inactive (Tạm ngừng)</option>
-                        <option value="locked">Locked (Đã khóa)</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="locked">Locked</option>
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Chuyên môn / Khối lớp</label>
+                      <label className="form-label fw-bold">Specialty / Grade Level</label>
                       <input
                         type="text"
                         className="form-control"
@@ -701,16 +701,16 @@ export default function CenterManagerUserAccountPage() {
                     onClick={() => setShowEditModal(false)}
                     disabled={submitting}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Đang lưu...
+                        Saving...
                       </>
                     ) : (
-                      "Cập nhật tài khoản"
+                      "Update Account"
                     )}
                   </button>
                 </div>
@@ -728,7 +728,7 @@ export default function CenterManagerUserAccountPage() {
               <div className="modal-header bg-danger text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-exclamation-triangle-fill me-2" />
-                  Xác nhận xóa tài khoản người dùng
+                  Confirm Delete User Account
                 </h5>
                 <button
                   type="button"
@@ -738,7 +738,7 @@ export default function CenterManagerUserAccountPage() {
               </div>
               <div className="modal-body p-4">
                 <p className="mb-2">
-                  Bạn có chắc chắn muốn xóa tài khoản nhân sự sau khỏi hệ thống không?
+                  Are you sure you want to delete this staff account from the system?
                 </p>
                 <div className="p-3 bg-light rounded border mb-3">
                   <div className="d-flex align-items-center gap-2 mb-2">
@@ -755,7 +755,7 @@ export default function CenterManagerUserAccountPage() {
                 </div>
                 <div className="alert alert-warning py-2 mb-0 small">
                   <i className="bi bi-info-circle me-1" />
-                  Hành động này sẽ xóa dữ liệu vai trò và tài khoản truy cập tương ứng.
+                  This action will remove associated role and access credentials.
                 </div>
               </div>
               <div className="modal-footer bg-light">
@@ -765,7 +765,7 @@ export default function CenterManagerUserAccountPage() {
                   onClick={() => setShowDeleteModal(false)}
                   disabled={submitting}
                 >
-                  Hủy bỏ
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -776,10 +776,10 @@ export default function CenterManagerUserAccountPage() {
                   {submitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" />
-                      Đang xóa...
+                      Deleting...
                     </>
                   ) : (
-                    "Xác nhận xóa"
+                    "Confirm Delete"
                   )}
                 </button>
               </div>
@@ -799,7 +799,7 @@ export default function CenterManagerUserAccountPage() {
                     #{selectedUser.userCode || `USR${selectedUser.userId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0 text-dark">
-                    Hồ sơ chi tiết người dùng
+                    User Profile Details
                   </h5>
                 </div>
                 <button
@@ -813,7 +813,7 @@ export default function CenterManagerUserAccountPage() {
                 {loadingDetail ? (
                   <div className="text-center py-4 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang nạp hồ sơ người dùng...
+                    Loading user profile...
                   </div>
                 ) : (
                   <>
@@ -837,21 +837,21 @@ export default function CenterManagerUserAccountPage() {
                       </div>
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
-                          <small className="text-muted d-block mb-1">Số điện thoại</small>
+                          <small className="text-muted d-block mb-1">Phone Number</small>
                           <strong className="text-dark">{selectedUser.phone || "—"}</strong>
                         </div>
                       </div>
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
-                          <small className="text-muted d-block mb-1">Chuyên môn / Khối lớp</small>
-                          <strong className="text-dark">{selectedUser.specialty || "Toàn năng"}</strong>
+                          <small className="text-muted d-block mb-1">Specialty / Grade Level</small>
+                          <strong className="text-dark">{selectedUser.specialty || "All-around"}</strong>
                         </div>
                       </div>
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
-                          <small className="text-muted d-block mb-1">Ngày tham gia hệ thống</small>
+                          <small className="text-muted d-block mb-1">Date Joined</small>
                           <strong className="text-dark">
-                            {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString("vi-VN") : "01/08/2026"}
+                            {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString("en-US") : "01/08/2026"}
                           </strong>
                         </div>
                       </div>
@@ -866,7 +866,7 @@ export default function CenterManagerUserAccountPage() {
                   className="btn btn-secondary"
                   onClick={() => setSelectedUser(null)}
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>

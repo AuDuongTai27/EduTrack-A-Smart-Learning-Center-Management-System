@@ -9,7 +9,7 @@ export interface TeachingAssistantProfileEditCardProps {
 }
 
 const PRESET_AVATARS = [
-  { label: 'Avatar TA', url: '/assets/img/profiles/avatar-27.jpg' },
+  { label: 'TA Avatar', url: '/assets/img/profiles/avatar-27.jpg' },
   { label: 'Trainer 1', url: '/assets/img/trainer-1.jpg' },
   { label: 'Trainer 2', url: '/assets/img/trainer-2.jpg' },
   { label: 'Trainer 3', url: '/assets/img/trainer-3.jpg' },
@@ -35,7 +35,7 @@ export function TeachingAssistantProfileEditCard({
   const [specialty, setSpecialty] = useState(profile.specialty || '');
   const [phone, setPhone] = useState(profile.phone || '');
   const [email, setEmail] = useState(profile.email || '');
-  const [address, setAddress] = useState(profile.address || '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh');
+  const [address, setAddress] = useState(profile.address || '123 Nguyen Van Cu, District 5, Ho Chi Minh City');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || '/assets/img/profiles/avatar-27.jpg');
   const [customAvatarInput, setCustomAvatarInput] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -43,15 +43,15 @@ export function TeachingAssistantProfileEditCard({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
-      setValidationError('Họ và tên không được để trống.');
+      setValidationError('Full name cannot be empty.');
       return;
     }
     if (!email.trim()) {
-      setValidationError('Email liên hệ không được để trống.');
+      setValidationError('Contact email cannot be empty.');
       return;
     }
     if (!phone.trim()) {
-      setValidationError('Số điện thoại không được để trống.');
+      setValidationError('Phone number cannot be empty.');
       return;
     }
 
@@ -74,14 +74,14 @@ export function TeachingAssistantProfileEditCard({
         <div>
           <h5 className="mb-1 text-dark fw-bold">
             <i className="bi bi-pencil-square text-primary me-2" />
-            Chỉnh sửa thông tin Trợ giảng
+            Edit Teaching Assistant Information
           </h5>
           <p className="text-muted small mb-0">
-            Cập nhật thông tin cá nhân và tài khoản hỗ trợ giảng dạy của bạn trên hệ thống EduTrack.
+            Update your personal information and teaching assistant account on the EduTrack system.
           </p>
         </div>
         <span className="badge bg-warning-subtle text-warning-emphasis border border-warning px-3 py-2">
-          <i className="bi bi-pencil-fill me-1" /> Đang chỉnh sửa
+          <i className="bi bi-pencil-fill me-1" /> Editing
         </span>
       </div>
 
@@ -96,7 +96,7 @@ export function TeachingAssistantProfileEditCard({
       <div className="card bg-light border-0 p-3 mb-4 rounded-3">
         <label className="form-label fw-bold text-dark small mb-2">
           <i className="bi bi-person-bounding-box me-1 text-primary" />
-          Ảnh đại diện
+          Avatar
         </label>
         <div className="d-flex flex-wrap align-items-center gap-4">
           <img
@@ -109,7 +109,7 @@ export function TeachingAssistantProfileEditCard({
             }}
           />
           <div className="flex-grow-1">
-            <div className="small text-muted mb-2">Chọn ảnh có sẵn hoặc nhập link ảnh trực tiếp:</div>
+            <div className="small text-muted mb-2">Select an available avatar or enter direct image URL:</div>
             <div className="d-flex flex-wrap gap-2 mb-2">
               {PRESET_AVATARS.map((item, idx) => (
                 <button
@@ -138,7 +138,7 @@ export function TeachingAssistantProfileEditCard({
                 className={`btn btn-sm ${customAvatarInput ? 'btn-secondary' : 'btn-outline-secondary'}`}
               >
                 <i className="bi bi-link-45deg me-1" />
-                Nhập link tùy chọn
+                Enter custom URL
               </button>
             </div>
             {customAvatarInput && (
@@ -149,7 +149,7 @@ export function TeachingAssistantProfileEditCard({
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="https://... hoặc /assets/img/..."
+                  placeholder="https://... or /assets/img/..."
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
                 />
@@ -164,7 +164,7 @@ export function TeachingAssistantProfileEditCard({
         {/* Full Name */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="ta-edit-fullName">
-            Họ và tên <span className="text-danger">*</span>
+            Full Name <span className="text-danger">*</span>
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -174,7 +174,7 @@ export function TeachingAssistantProfileEditCard({
               id="ta-edit-fullName"
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="Nhập họ và tên đầy đủ"
+              placeholder="Enter full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
@@ -185,7 +185,7 @@ export function TeachingAssistantProfileEditCard({
         {/* Specialty */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="ta-edit-specialty">
-            Chuyên môn / Hỗ trợ bộ môn
+            Specialty / Subject Support
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -195,7 +195,7 @@ export function TeachingAssistantProfileEditCard({
               id="ta-edit-specialty"
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="Ví dụ: Trợ giảng Toán & Khoa học"
+              placeholder="E.g., Math & Science TA"
               value={specialty}
               onChange={(e) => setSpecialty(e.target.value)}
             />
@@ -205,7 +205,7 @@ export function TeachingAssistantProfileEditCard({
         {/* Date of Birth */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="ta-edit-dob">
-            Ngày sinh
+            Date of Birth
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -224,7 +224,7 @@ export function TeachingAssistantProfileEditCard({
         {/* Gender */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="ta-edit-gender">
-            Giới tính
+            Gender
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -236,9 +236,9 @@ export function TeachingAssistantProfileEditCard({
               value={gender}
               onChange={(e) => setGender(e.target.value)}
             >
-              <option value="Nam">Nam</option>
-              <option value="Nữ">Nữ</option>
-              <option value="Khác">Khác</option>
+              <option value="Nam">Male</option>
+              <option value="Nữ">Female</option>
+              <option value="Khác">Other</option>
             </select>
           </div>
         </div>
@@ -246,7 +246,7 @@ export function TeachingAssistantProfileEditCard({
         {/* Phone */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="ta-edit-phone">
-            Số điện thoại <span className="text-danger">*</span>
+            Phone Number <span className="text-danger">*</span>
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -267,7 +267,7 @@ export function TeachingAssistantProfileEditCard({
         {/* Email */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="ta-edit-email">
-            Email liên hệ <span className="text-danger">*</span>
+            Contact Email <span className="text-danger">*</span>
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -288,7 +288,7 @@ export function TeachingAssistantProfileEditCard({
         {/* Address */}
         <div className="col-12">
           <label className="form-label fw-bold text-dark small" htmlFor="ta-edit-address">
-            Địa chỉ công tác / liên lạc
+            Work / Contact Address
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -298,7 +298,7 @@ export function TeachingAssistantProfileEditCard({
               id="ta-edit-address"
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh"
+              placeholder="123 Nguyen Van Cu, District 5, Ho Chi Minh City"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
@@ -310,19 +310,19 @@ export function TeachingAssistantProfileEditCard({
       <div className="p-3 bg-light rounded-3 border mb-4">
         <div className="d-flex align-items-center gap-2 mb-2 text-primary fw-semibold small">
           <i className="bi bi-shield-lock-fill" />
-          <span>Thông tin do hệ thống quản trị EduTrack quản lý</span>
+          <span>Information managed by the EduTrack administrative system</span>
         </div>
         <div className="row g-2 text-muted small">
           <div className="col-md-4">
-            <span className="me-1">Mã cán bộ:</span>
+            <span className="me-1">Staff ID:</span>
             <strong className="badge bg-secondary-subtle text-secondary-emphasis">#{profile.userCode}</strong>
           </div>
           <div className="col-md-4">
-            <span className="me-1">Vai trò hệ thống:</span>
+            <span className="me-1">System Role:</span>
             <strong className="badge bg-primary-subtle text-primary">{profile.roleTitle || profile.role}</strong>
           </div>
           <div className="col-md-4">
-            <span className="me-1">Ngày tham gia:</span>
+            <span className="me-1">Joined Date:</span>
             <strong className="text-dark">{profile.enrolledSince || '15/08/2023'}</strong>
           </div>
         </div>
@@ -336,7 +336,7 @@ export function TeachingAssistantProfileEditCard({
           onClick={onCancel}
           disabled={isSaving}
         >
-          <i className="bi bi-x-lg" /> Hủy
+          <i className="bi bi-x-lg" /> Cancel
         </button>
         <button
           type="submit"
@@ -346,12 +346,12 @@ export function TeachingAssistantProfileEditCard({
           {isSaving ? (
             <>
               <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-              <span>Đang lưu...</span>
+              <span>Saving...</span>
             </>
           ) : (
             <>
               <i className="bi bi-check-lg fs-6" />
-              <span>Lưu thay đổi</span>
+              <span>Save Changes</span>
             </>
           )}
         </button>

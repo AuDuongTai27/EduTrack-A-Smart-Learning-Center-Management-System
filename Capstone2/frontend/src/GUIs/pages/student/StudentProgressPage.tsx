@@ -56,8 +56,8 @@ export function StudentProgressPage() {
   if (loading) {
     return (
       <LearnerPageLoader
-        title="Đang tải báo cáo tiến độ..."
-        message="Hệ thống đang tổng hợp dữ liệu điểm danh và nhận xét từ giáo viên."
+        title="Loading progress report..."
+        message="The system is compiling attendance data and teacher evaluations."
       />
     );
   }

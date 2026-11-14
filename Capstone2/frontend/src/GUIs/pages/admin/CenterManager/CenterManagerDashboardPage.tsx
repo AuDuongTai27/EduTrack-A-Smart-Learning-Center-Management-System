@@ -93,14 +93,14 @@ export default function CenterManagerDashboardPage() {
       setShowQuickStudentModal(false);
 
       setActionSuccessMsg(
-        `Đã tạo hồ sơ học viên "${res.data.fullName}" thành công!`,
+        `Created student profile "${res.data.fullName}" successfully!`,
       );
 
       setQuickStudentName("");
 
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err) {
-      console.error("Lỗi tạo học viên nhanh:", err);
+      console.error("Quick add student error:", err);
     }
   };
 
@@ -138,7 +138,7 @@ export default function CenterManagerDashboardPage() {
         }
       />
 
-      {loadError && <div className="alert alert-danger mb-3" role="alert">Không tải được dữ liệu Dashboard: {loadError}</div>}
+      {loadError && <div className="alert alert-danger mb-3" role="alert">Failed to load Dashboard data: {loadError}</div>}
 
       {/* Success Notification Alert */}
       {actionSuccessMsg && (
@@ -161,7 +161,7 @@ export default function CenterManagerDashboardPage() {
       {!loading && !loadError && (
         <div className="alert alert-light border d-flex align-items-center gap-2 mb-4">
           <i className="bi bi-building text-primary" />
-          <span><strong>{centerName || "Trung tâm"}</strong>{academicYear ? <> — Năm học: {academicYear}</> : null}</span>
+          <span><strong>{centerName || "Center"}</strong>{academicYear ? <> — Academic Year: {academicYear}</> : null}</span>
         </div>
       )}
 
@@ -174,7 +174,7 @@ export default function CenterManagerDashboardPage() {
           title="Active Students"
           value={usersReady ? metrics.studentCount : "—"}
           footerValue={usersReady ? metrics.totalStudents : "—"}
-          footerLabel="tổng hồ sơ học sinh"
+          footerLabel="total student profiles"
         />
 
         {/* Active Classes */}
@@ -183,7 +183,7 @@ export default function CenterManagerDashboardPage() {
           title="Active Classes"
           value={classesReady ? metrics.activeClassesCount : "—"}
           footerValue={classesReady ? metrics.totalClasses : "—"}
-          footerLabel="tổng số lớp"
+          footerLabel="total classes"
         />
 
         {/* Active Staff */}
@@ -226,12 +226,12 @@ export default function CenterManagerDashboardPage() {
               Welcome back, {manager ? manager.fullName : "Center Manager"}
             </h4>
             <p className="mb-0 text-white-50">
-              {centerName || "Trung tâm"} - Báo cáo tổng hợp hoạt động ngày hôm nay.
+              {centerName || "Center"} - Daily summary activity report.
             </p>
           </div>
           <div className="welcome-date text-white bg-white bg-opacity-25 px-3 py-2 rounded-pill">
             <i className="bi bi-calendar3 me-2" />
-            {new Date().toLocaleDateString("vi-VN", {
+            {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               year: "numeric",
               month: "long",
@@ -250,21 +250,21 @@ export default function CenterManagerDashboardPage() {
               <div>
                 <h5 className="mb-1 fw-bold text-dark">Tuition Overview</h5>
                 <small className="text-muted">
-                  Thực thu tháng hiện tại và tổng công nợ tất cả kỳ
+                  Actual collection this month and total outstanding balance across all terms
                 </small>
               </div>
               <Link
                 to="/center-manager/tuition"
                 className="btn btn-sm btn-outline-primary"
               >
-                Xem chi tiết
+                View details
               </Link>
             </div>
             <div className="card-body dashboard-card-body p-4">
               <div className="row g-3 mb-4">
                 <div className="col-6">
                   <div className="p-3 bg-light rounded-3 border-start border-4 border-success">
-                    <small className="text-muted d-block">Đã thu thực tế • {collectionLabel}</small>
+                    <small className="text-muted d-block">Actual collected • {collectionLabel}</small>
                     <h4 className="fw-bold text-success mb-0 kpi-currency-value">
                       {formatVND(monthlyCollected)}
                     </h4>
@@ -273,7 +273,7 @@ export default function CenterManagerDashboardPage() {
                 <div className="col-6">
                   <div className="p-3 bg-light rounded-3 border-start border-4 border-danger">
                     <small className="text-muted d-block">
-                      Tổng công nợ hiện tại • Tất cả kỳ
+                      Total current outstanding debt • All terms
                     </small>
                     <h4 className="fw-bold text-danger mb-0 kpi-currency-value">
                       {formatVND(tuitionMetrics?.outstanding)}
@@ -283,7 +283,7 @@ export default function CenterManagerDashboardPage() {
               </div>
               <div className="p-3 bg-light rounded-3 border text-secondary small">
                 <i className="bi bi-info-circle me-2 text-primary" />
-                Đã ghi nhận <strong>{paymentReady ? payments.data!.length : "—"}</strong> khoản thanh toán từ hệ thống (tất cả kỳ).
+                Recorded <strong>{paymentReady ? payments.data!.length : "—"}</strong> payments from the system (all terms).
               </div>
             </div>
           </div>
@@ -304,7 +304,7 @@ export default function CenterManagerDashboardPage() {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-person-plus-fill me-2" />
-                  Thêm học viên nhanh (Center Manager)
+                  Quick Add Student (Center Manager)
                 </h5>
                 <button
                   type="button"
@@ -316,12 +316,12 @@ export default function CenterManagerDashboardPage() {
                 <div className="modal-body p-4">
                   <div className="mb-3">
                     <label className="form-label fw-bold">
-                      Họ và tên học viên <span className="text-danger">*</span>
+                      Student Full Name <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Ví dụ: Hoàng Tuấn Anh..."
+                      placeholder="e.g. John Doe..."
                       value={quickStudentName}
                       onChange={(e) => setQuickStudentName(e.target.value)}
                       required
@@ -329,18 +329,18 @@ export default function CenterManagerDashboardPage() {
                   </div>
                   <div className="mb-3">
                     <label className="form-label fw-bold">
-                      Khối lớp dự kiến
+                      Expected Class Grade
                     </label>
                     <select className="form-select">
-                      <option>Class 7 - Toán & Tiếng Anh</option>
-                      <option>Class 8 - Toán & Hóa học</option>
-                      <option>Class 9 - Luyện thi vào 10</option>
-                      <option>Class 12 - Luyện thi Đại học</option>
+                      <option>Grade 7 - Math &amp; English</option>
+                      <option>Grade 8 - Math &amp; Chemistry</option>
+                      <option>Grade 9 - High School Exam Prep</option>
+                      <option>Grade 12 - University Exam Prep</option>
                     </select>
                   </div>
                   <div className="mb-3">
                     <label className="form-label fw-bold">
-                      Số điện thoại liên hệ
+                      Contact Phone Number
                     </label>
                     <input
                       type="tel"
@@ -355,10 +355,10 @@ export default function CenterManagerDashboardPage() {
                     className="btn btn-outline-secondary"
                     onClick={() => setShowQuickStudentModal(false)}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-primary px-4">
-                    Lưu học viên
+                    Save Student
                   </button>
                 </div>
               </form>

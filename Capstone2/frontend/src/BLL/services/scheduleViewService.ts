@@ -1,7 +1,7 @@
 import type { ScheduleFilters, ScheduleSession } from '../models/ScheduleSession.ts';
 
 export const SCHEDULE_TIMEZONE = 'Asia/Ho_Chi_Minh';
-export const WEEKDAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 export const emptyScheduleFilters = (): ScheduleFilters => ({search: '', weekday: '', classId: '', subjectId: '', teacherId: '', taId: '', room: '', status: ''});
 
 export function vietnamClock(now = new Date()) {
@@ -12,9 +12,9 @@ export function vietnamClock(now = new Date()) {
 }
 
 export function dateOnly(value: string): string {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Ngày lịch học không hợp lệ.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Invalid schedule date.');
   const date = new Date(`${value}T00:00:00Z`);
-  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new Error('Ngày lịch học không tồn tại.');
+  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new Error('Schedule date does not exist.');
   return value;
 }
 
@@ -46,15 +46,15 @@ export function validCalendarTime(session: ScheduleSession): boolean {
 }
 
 export function scheduleStatus(session: ScheduleSession, now = new Date()) {
-  if (session.status === 'cancelled') return {key: 'cancelled', label: 'Đã hủy'};
-  if (session.status === 'completed') return {key: 'completed', label: 'Đã hoàn thành'};
+  if (session.status === 'cancelled') return {key: 'cancelled', label: 'Cancelled'};
+  if (session.status === 'completed') return {key: 'completed', label: 'Completed'};
   if (session.status === 'scheduled' || session.status === 'in_progress') {
     const clock = vietnamClock(now);
     if (session.sessionDate === clock.date && clock.minutes >= timeMinutes(session.startTime) && clock.minutes < timeMinutes(session.endTime))
-      return {key: 'ongoing', label: 'Đang trong giờ học'};
-    return {key: 'scheduled', label: 'Đã xếp lịch'};
+      return {key: 'ongoing', label: 'Ongoing'};
+    return {key: 'scheduled', label: 'Scheduled'};
   }
-  return {key: 'unknown', label: `Trạng thái khác: ${session.status || 'Chưa xác định'}`};
+  return {key: 'unknown', label: `Other status: ${session.status || 'Unknown'}`};
 }
 
 export function filterSchedule(sessions: ScheduleSession[], from: string, toExclusive: string, filters: ScheduleFilters): ScheduleSession[] {

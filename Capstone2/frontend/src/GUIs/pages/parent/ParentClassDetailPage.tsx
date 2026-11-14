@@ -65,15 +65,15 @@ export function ParentClassDetailPage() {
 
   useEffect(() => {
     if (cls) {
-      document.title = `${cls.name} – Chi tiết lớp (Phụ huynh) – EduTrack`;
+      document.title = `${cls.name} – Class Details (Parent) – EduTrack`;
     }
   }, [cls]);
 
   if (parentLoading || loading) {
     return (
       <LearnerPageLoader
-        title="Đang tải chi tiết lớp học..."
-        message="Hệ thống đang tải thông tin lớp học và nhật ký điểm danh của con."
+        title="Loading class details..."
+        message="The system is loading class information and attendance log."
       />
     );
   }
@@ -82,9 +82,9 @@ export function ParentClassDetailPage() {
     return (
       <main className="main-content">
         <div className="content-container py-5 text-center">
-          <p className="text-muted">Không tìm thấy thông tin lớp học của học sinh.</p>
+          <p className="text-muted">No student class information found.</p>
           <Link to="/parent/classes" className="btn btn-primary btn-sm rounded-pill">
-            Quay lại danh sách lớp
+            Back to Class List
           </Link>
         </div>
       </main>
@@ -132,7 +132,7 @@ export function ParentClassDetailPage() {
               }}
             >
               <i className="bi bi-arrow-left"></i>
-              <span className="fw-medium">Quay lại danh sách lớp</span>
+              <span className="fw-medium">Back to Class List</span>
             </Link>
 
             {/* Breadcrumbs */}
@@ -142,7 +142,7 @@ export function ParentClassDetailPage() {
               </Link>
               <i className="bi bi-chevron-right fs-xs"></i>
               <Link to="/parent/classes" className="text-white text-decoration-none opacity-75">
-                Lớp học của con
+                Child's Classes
               </Link>
               <i className="bi bi-chevron-right fs-xs"></i>
               <span className="fw-semibold text-white">{cls.name}</span>
@@ -156,9 +156,9 @@ export function ParentClassDetailPage() {
                 </span>
                 <h1 className="h3 fw-bold mb-2 text-white">{cls.name}</h1>
                 <p className="mb-0 text-white-50 small">
-                  <span>Học sinh: <strong className="text-white">{selectedChild.name}</strong> ({selectedChild.grade})</span>
+                  <span>Student: <strong className="text-white">{selectedChild.name}</strong> ({selectedChild.grade})</span>
                   <span className="mx-2">·</span>
-                  <span>Giáo viên phụ trách: <strong className="text-white">{cls.teacher}</strong></span>
+                  <span>Teacher: <strong className="text-white">{cls.teacher}</strong></span>
                 </p>
               </div>
 
@@ -175,7 +175,7 @@ export function ParentClassDetailPage() {
                   <div className="h4 fw-bold mb-0 text-white">
                     {actualAttended}/{totalLessons}
                   </div>
-                  <div className="small text-white-50">Tiến độ buổi học</div>
+                  <div className="small text-white-50">Session Progress</div>
                 </div>
                 <div
                   style={{
@@ -196,7 +196,7 @@ export function ParentClassDetailPage() {
                   >
                     {attendanceRate}%
                   </div>
-                  <div className="small text-white-50">Chuyên cần</div>
+                  <div className="small text-white-50">Attendance</div>
                 </div>
               </div>
             </div>
@@ -209,7 +209,7 @@ export function ParentClassDetailPage() {
             <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
               <h3 className="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
                 <i className="bi bi-info-circle-fill text-primary"></i>
-                Thông tin lớp học cơ bản
+                Basic Class Information
               </h3>
 
               <div className="d-flex flex-column gap-3">
@@ -218,7 +218,7 @@ export function ParentClassDetailPage() {
                     <i className="bi bi-calendar-week fs-5"></i>
                   </div>
                   <div>
-                    <div className="small text-muted">Lịch học hàng tuần</div>
+                    <div className="small text-muted">Weekly Schedule</div>
                     <div className="fw-semibold text-dark">{cls.schedule}</div>
                   </div>
                 </div>
@@ -228,8 +228,8 @@ export function ParentClassDetailPage() {
                     <i className="bi bi-geo-alt fs-5"></i>
                   </div>
                   <div>
-                    <div className="small text-muted">Phòng học</div>
-                    <div className="fw-semibold text-dark">{cls.room || 'Phòng học Trung tâm'}</div>
+                    <div className="small text-muted">Room</div>
+                    <div className="fw-semibold text-dark">{cls.room || 'Center Classroom'}</div>
                   </div>
                 </div>
 
@@ -238,7 +238,7 @@ export function ParentClassDetailPage() {
                     <i className="bi bi-person-workspace fs-5"></i>
                   </div>
                   <div>
-                    <div className="small text-muted">Giáo viên đứng lớp</div>
+                    <div className="small text-muted">Teacher</div>
                     <div className="fw-semibold text-dark">{cls.teacher}</div>
                   </div>
                 </div>
@@ -250,24 +250,24 @@ export function ParentClassDetailPage() {
             <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
               <h3 className="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
                 <i className="bi bi-chat-heart-fill text-danger"></i>
-                Nhận xét &amp; Đánh giá của giáo viên về con
+                Teacher Evaluation &amp; Feedback
               </h3>
 
               <div className="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary-subtle mb-3">
                 <div className="d-flex align-items-center gap-2 mb-2">
                   <div className="badge bg-primary text-white rounded-pill px-2.5 py-1">
-                    Đánh giá gần nhất
+                    Latest Evaluation
                   </div>
-                  <small className="text-muted">Học kỳ hiện tại</small>
+                  <small className="text-muted">Current Semester</small>
                 </div>
                 <p className="fw-medium text-dark mb-0 fst-italic">
-                  "{cls.notes || 'Điểm danh đầy đủ, tương tác tích cực trên lớp.'}"
+                  "{cls.notes || 'Full attendance, actively participates in class.'}"
                 </p>
               </div>
 
               <div className="d-flex align-items-center justify-content-between small text-muted border-top pt-3 mt-auto">
-                <span>Hỗ trợ học tập: <strong>Ban Học vụ &amp; Trợ giảng bộ môn</strong></span>
-                <span className="badge bg-success-subtle text-success">Đang đồng hành</span>
+                <span>Academic Support: <strong>Academic Affairs &amp; Course Teaching Assistants</strong></span>
+                <span className="badge bg-success-subtle text-success">Active Support</span>
               </div>
             </div>
           </div>
@@ -279,14 +279,14 @@ export function ParentClassDetailPage() {
             <div>
               <h3 className="h6 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
                 <i className="bi bi-check2-square text-success fs-5"></i>
-                Nhật ký điểm danh & Nội dung các buổi học
+                Attendance Log &amp; Session Content
               </h3>
               <p className="small text-muted mb-0">
-                Ghi nhận tình trạng tham gia từng buổi học của con để phụ huynh an tâm nắm bắt
+                Track your child's attendance for each session to stay informed
               </p>
             </div>
             <span className="badge bg-light text-secondary border px-3 py-1.5 rounded-pill">
-              Cập nhật tự động sau mỗi buổi
+              Automatically updated after each session
             </span>
           </div>
 
@@ -294,18 +294,18 @@ export function ParentClassDetailPage() {
             <table className="table table-hover align-middle mb-0">
               <thead className="table-light">
                 <tr className="small text-secondary">
-                  <th style={{ width: '80px' }}>Buổi</th>
-                  <th style={{ width: '160px' }}>Thời gian</th>
-                  <th>Chủ đề bài học</th>
-                  <th style={{ width: '130px' }}>Điểm danh</th>
-                  <th>Ghi chú của lớp</th>
+                  <th style={{ width: '80px' }}>Session</th>
+                  <th style={{ width: '160px' }}>Time</th>
+                  <th>Topic</th>
+                  <th style={{ width: '130px' }}>Attendance</th>
+                  <th>Class Notes</th>
                 </tr>
               </thead>
               <tbody>
                 {sessions.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center text-muted py-4">
-                      Chưa có nhật ký buổi học nào được ghi nhận cho lớp này.
+                      No session log has been recorded for this class yet.
                     </td>
                   </tr>
                 ) : (
@@ -317,15 +317,15 @@ export function ParentClassDetailPage() {
                       <td>
                         {ses.status === 'present' ? (
                           <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                            <i className="bi bi-check-circle-fill me-1"></i> {ses.statusLabel}
+                            <i className="bi bi-check-circle-fill me-1"></i> {ses.statusLabel === 'Có mặt' ? 'Present' : (ses.statusLabel || 'Present')}
                           </span>
                         ) : ses.status === 'scheduled' ? (
                           <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1">
-                            <i className="bi bi-clock-history me-1"></i> {ses.statusLabel}
+                            <i className="bi bi-clock-history me-1"></i> {ses.statusLabel === 'Đã xếp lịch' ? 'Scheduled' : (ses.statusLabel || 'Scheduled')}
                           </span>
                         ) : (
                           <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
-                            <i className="bi bi-exclamation-circle-fill me-1"></i> {ses.statusLabel}
+                            <i className="bi bi-exclamation-circle-fill me-1"></i> {ses.statusLabel === 'Vắng mặt' ? 'Absent' : ses.statusLabel === 'Đi muộn' ? 'Late' : (ses.statusLabel || 'Absent')}
                           </span>
                         )}
                       </td>
@@ -342,7 +342,7 @@ export function ParentClassDetailPage() {
         <div className="alert alert-light border rounded-4 d-flex align-items-center gap-3 p-3">
           <i className="bi bi-shield-check fs-4 text-primary"></i>
           <div className="small text-secondary">
-            <strong>Ghi chú dành cho Phụ huynh:</strong> Trang chi tiết lớp học này chỉ cung cấp thông tin tổng quan, lịch học, điểm danh và tiến độ của con. Các tài liệu bài giảng và bài tập thực hành được bảo lưu trong tài khoản của học sinh để con chủ động làm bài và nộp bài trực tiếp.
+            <strong>Parent Note:</strong> This class details page provides an overview of your child's schedule, attendance, and progress. Lecture materials and practice assignments are retained in the student's account so they can independently complete and submit assignments.
           </div>
         </div>
       </div>

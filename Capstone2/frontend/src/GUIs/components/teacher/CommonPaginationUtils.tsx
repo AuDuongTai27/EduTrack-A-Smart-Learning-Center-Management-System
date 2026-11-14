@@ -48,7 +48,7 @@ function PaginationJumpInput({ totalPages, onPageChange }: JumpInputProps) {
       onChange={(e) => setVal(e.target.value)}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
-      title={`Nhập số trang (1 - ${totalPages}) rồi nhấn Enter để chuyển nhanh`}
+      title={`Enter page number (1 - ${totalPages}) and press Enter to jump`}
     />
   );
 }

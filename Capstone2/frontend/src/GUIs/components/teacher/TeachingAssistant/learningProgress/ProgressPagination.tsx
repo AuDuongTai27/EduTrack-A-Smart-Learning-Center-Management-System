@@ -18,7 +18,7 @@ export default function ProgressPagination({
 
   return (
     <div className="table-pagination-footer d-flex align-items-center justify-content-between p-3 border-top flex-wrap gap-2">
-      <span className="small text-muted">Hiển thị {totalItems} học viên</span>
+      <span className="small text-muted">Showing {totalItems} students</span>
 
       <div className="d-flex align-items-center gap-2">
         <button

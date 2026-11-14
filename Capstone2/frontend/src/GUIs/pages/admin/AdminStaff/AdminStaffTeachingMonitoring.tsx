@@ -69,9 +69,9 @@ function makeRows(data: TeachingMonitoringData): MonitoringRow[] {
       return {
         teacherClassId: assignment.teacherClassId,
         teacherId: assignment.teacherId,
-        teacherName: assignment.teacherName || `Giáo viên #${assignment.teacherId}`,
-        className: cls?.className || assignment.className || `Lớp #${assignment.classId}`,
-        subjectName: cls?.subjectName || "Chưa có môn học",
+        teacherName: assignment.teacherName || `Teacher #${assignment.teacherId}`,
+        className: cls?.className || assignment.className || `Class #${assignment.classId}`,
+        subjectName: cls?.subjectName || "No subject",
         assignedStatus: assignment.status,
         scheduled: validSessions.length,
         completed: validSessions.filter(isCompleted).length,
@@ -80,7 +80,7 @@ function makeRows(data: TeachingMonitoringData): MonitoringRow[] {
         room,
       };
     })
-    .sort((a, b) => a.teacherName.localeCompare(b.teacherName, "vi"));
+    .sort((a, b) => a.teacherName.localeCompare(b.teacherName, "en"));
 }
 
 export default function AdminStaffTeachingMonitoring() {
@@ -99,7 +99,7 @@ export default function AdminStaffTeachingMonitoring() {
     } catch (cause) {
       if (isMounted()) {
         setData(EMPTY_DATA);
-        setError(cause instanceof Error ? cause.message : "Không thể tải dữ liệu giám sát.");
+        setError(cause instanceof Error ? cause.message : "Failed to load monitoring data.");
       }
     } finally {
       if (isMounted()) setLoading(false);
@@ -127,27 +127,27 @@ export default function AdminStaffTeachingMonitoring() {
   return (
     <>
       <PageHeader
-        title="Giám Sát Giảng Dạy & Lớp Học (Teaching Monitoring)"
+        title="Teaching &amp; Class Monitoring"
         breadcrumbItems={[
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Teaching Monitoring" },
         ]}
         action={
           <button type="button" className="btn btn-outline-primary" disabled={loading} onClick={() => void refresh()}>
-            <i className="bi bi-arrow-clockwise me-1" /> Tải lại dữ liệu
+            <i className="bi bi-arrow-clockwise me-1" /> Refresh
           </button>
         }
       />
 
       {loading && (
         <div className="alert alert-info d-flex align-items-center gap-2" role="status">
-          <span className="spinner-border spinner-border-sm" /> Đang tải dữ liệu giảng dạy từ Backend...
+          <span className="spinner-border spinner-border-sm" /> Loading teaching data from Backend...
         </div>
       )}
       {error && (
         <div className="alert alert-danger" role="alert">
           <i className="bi bi-exclamation-triangle me-2" />
-          {error} Không hiển thị dữ liệu mẫu khi API lỗi.
+          {error} Not displaying sample data when API errors.
         </div>
       )}
 
@@ -157,13 +157,13 @@ export default function AdminStaffTeachingMonitoring() {
             <li className="nav-item">
               <button className={`nav-link ${activeTab === "teacher" ? "active" : ""}`}
                 type="button" onClick={() => setActiveTab("teacher")}>
-                <i className="bi bi-person-workspace me-2" /> Theo Giáo Viên (By Teacher)
+                <i className="bi bi-person-workspace me-2" /> By Teacher
               </button>
             </li>
             <li className="nav-item">
               <button className={`nav-link ${activeTab === "class" ? "active" : ""}`}
                 type="button" onClick={() => setActiveTab("class")}>
-                <i className="bi bi-collection me-2" /> Theo Lớp & Lịch Học (By Class)
+                <i className="bi bi-collection me-2" /> By Class &amp; Schedule
               </button>
             </li>
           </ul>
@@ -173,9 +173,9 @@ export default function AdminStaffTeachingMonitoring() {
             <div className="table-responsive">
               <table className="table user-table align-middle mb-0">
                 <thead><tr>
-                  <th>STT</th><th>Giáo viên được phân công</th><th>Lớp phụ trách</th>
-                  <th>Số buổi đã xếp</th><th>Đã hoàn thành</th><th>Tỷ lệ có mặt (đã ghi)</th>
-                  <th>Trạng thái phân công</th><th className="text-center">Thao tác</th>
+                  <th>No.</th><th>Assigned Teacher</th><th>Assigned Class</th>
+                  <th>Scheduled Sessions</th><th>Completed</th><th>Attendance Rate (Recorded)</th>
+                  <th>Assignment Status</th><th className="text-center">Action</th>
                 </tr></thead>
                 <tbody>
                   {!loading && !error && rows.map((row, idx) => (
@@ -184,29 +184,29 @@ export default function AdminStaffTeachingMonitoring() {
                       <td><strong className="text-dark d-block">{row.teacherName}</strong>
                         <small className="text-muted">ID: #{row.teacherId}</small></td>
                       <td><div className="d-flex align-items-center gap-2">
-                        {row.subjectName !== "Chưa có môn học" && <SubjectBadge subject={row.subjectName} />}
+                        {row.subjectName !== "No subject" && <SubjectBadge subject={row.subjectName} />}
                         <span>{row.className}</span></div></td>
-                      <td>{row.scheduled} buổi</td>
-                      <td><span className="fw-semibold text-primary">{row.completed} buổi</span></td>
+                      <td>{row.scheduled} sessions</td>
+                      <td><span className="fw-semibold text-primary">{row.completed} sessions</span></td>
                       <td><strong>{row.attendanceRate}</strong>
-                        {row.attendanceSample > 0 && <small className="text-muted d-block">{row.attendanceSample} lượt điểm danh</small>}</td>
-                      <td><span className="badge bg-success bg-opacity-10 text-success">Đang phân công</span></td>
+                        {row.attendanceSample > 0 && <small className="text-muted d-block">{row.attendanceSample} attendance records</small>}</td>
+                      <td><span className="badge bg-success bg-opacity-10 text-success">Assigned</span></td>
                       <td className="text-center">
                         <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setSelectedRow(row)}>
-                          <i className="bi bi-eye me-1" /> Chi tiết
+                          <i className="bi bi-eye me-1" /> Details
                         </button>
                       </td>
                     </tr>
                   ))}
                   {!loading && !error && rows.length === 0 &&
-                    <tr><td colSpan={8} className="text-center text-muted py-4">Chưa có phân công giảng dạy đang hoạt động.</td></tr>}
+                    <tr><td colSpan={8} className="text-center text-muted py-4">No active teaching assignments found.</td></tr>}
                 </tbody>
               </table>
             </div>
           ) : (
             <div className="table-responsive">
               <table className="table user-table align-middle mb-0">
-                <thead><tr><th>Mã lịch</th><th>Lớp học</th><th>Thứ</th><th>Khung giờ</th><th>Phòng học</th><th>Buổi thực tế</th></tr></thead>
+                <thead><tr><th>Schedule Code</th><th>Class</th><th>Day of Week</th><th>Time Slot</th><th>Room</th><th>Actual Sessions</th></tr></thead>
                 <tbody>
                   {!loading && !error && data.schedules.map((schedule) => {
                     const sessions = (sessionsBySchedule.get(schedule.scheduleId) ?? []).filter((s) => !isCancelled(s));
@@ -214,16 +214,16 @@ export default function AdminStaffTeachingMonitoring() {
                     return (
                       <tr key={schedule.scheduleId}>
                         <td>#{schedule.scheduleId}</td>
-                        <td><strong>{schedule.className || `Lớp #${schedule.classId}`}</strong></td>
+                        <td><strong>{schedule.className || `Class #${schedule.classId}`}</strong></td>
                         <td>{schedule.dayOfWeek || "—"}</td>
                         <td>{schedule.startTime ? schedule.startTime.slice(0, 5) : "—"} - {schedule.endTime ? schedule.endTime.slice(0, 5) : "—"}</td>
                         <td>{schedule.room || "—"}</td>
-                        <td>{completeCount}/{sessions.length} buổi hoàn thành</td>
+                        <td>{completeCount}/{sessions.length} sessions completed</td>
                       </tr>
                     );
                   })}
                   {!loading && !error && data.schedules.length === 0 &&
-                    <tr><td colSpan={6} className="text-center text-muted py-4">Chưa có lịch giảng dạy được ghi nhận.</td></tr>}
+                    <tr><td colSpan={6} className="text-center text-muted py-4">No teaching schedules recorded.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -236,21 +236,21 @@ export default function AdminStaffTeachingMonitoring() {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content shadow border-0">
               <div className="modal-header bg-light">
-                <h5 className="modal-title fw-bold text-dark">Chi tiết lớp phụ trách — {selectedRow.teacherName}</h5>
-                <button type="button" className="btn-close" onClick={() => setSelectedRow(null)} aria-label="Đóng" />
+                <h5 className="modal-title fw-bold text-dark">Assigned Class Details — {selectedRow.teacherName}</h5>
+                <button type="button" className="btn-close" onClick={() => setSelectedRow(null)} aria-label="Close" />
               </div>
               <div className="modal-body p-4">
                 <div className="row g-3">
-                  <div className="col-md-6"><small className="text-muted d-block">Giáo viên</small><strong>{selectedRow.teacherName}</strong></div>
-                  <div className="col-md-6"><small className="text-muted d-block">Lớp</small><strong>{selectedRow.className}</strong></div>
-                  <div className="col-md-6"><small className="text-muted d-block">Môn</small>{selectedRow.subjectName}</div>
-                  <div className="col-md-6"><small className="text-muted d-block">Phòng</small>{selectedRow.room}</div>
-                  <div className="col-md-6"><small className="text-muted d-block">Buổi học hoàn thành</small>{selectedRow.completed}/{selectedRow.scheduled}</div>
-                  <div className="col-md-6"><small className="text-muted d-block">Tỷ lệ có mặt (lớp)</small>{selectedRow.attendanceRate}</div>
-                  <div className="col-12"><small className="text-muted">Chỉ thống kê các buổi và điểm danh đã được Backend ghi nhận. Không xác định giáo viên đứng lớp theo buổi.</small></div>
+                  <div className="col-md-6"><small className="text-muted d-block">Teacher</small><strong>{selectedRow.teacherName}</strong></div>
+                  <div className="col-md-6"><small className="text-muted d-block">Class</small><strong>{selectedRow.className}</strong></div>
+                  <div className="col-md-6"><small className="text-muted d-block">Subject</small>{selectedRow.subjectName}</div>
+                  <div className="col-md-6"><small className="text-muted d-block">Room</small>{selectedRow.room}</div>
+                  <div className="col-md-6"><small className="text-muted d-block">Completed Sessions</small>{selectedRow.completed}/{selectedRow.scheduled}</div>
+                  <div className="col-md-6"><small className="text-muted d-block">Attendance Rate (Class)</small>{selectedRow.attendanceRate}</div>
+                  <div className="col-12"><small className="text-muted">Only statistics for sessions and attendance recorded by the Backend are included. Teacher per session is not determined.</small></div>
                 </div>
               </div>
-              <div className="modal-footer bg-light"><button type="button" className="btn btn-secondary" onClick={() => setSelectedRow(null)}>Đóng</button></div>
+              <div className="modal-footer bg-light"><button type="button" className="btn btn-secondary" onClick={() => setSelectedRow(null)}>Close</button></div>
             </div>
           </div>
         </div>

@@ -14,14 +14,14 @@ export default function StudentAssignmentsSection({
         <div>
           <h5 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
             <i className="bi bi-journals text-primary" />
-            1. Bảng Tổng Hợp Bài Tập Trong Môn Học
+            1. Subject Assignments Summary
           </h5>
           <small className="text-muted">
-            Theo dõi chi tiết tất cả các bài tập theo tuần, trạng thái nộp bài, điểm số và nhận xét trợ giảng
+            Track details of all assignments by week, submission status, scores, and teaching assistant feedback
           </small>
         </div>
         <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill">
-          Tổng cộng: {assignments.length} bài tập
+          Total: {assignments.length} assignments
         </span>
       </div>
 
@@ -29,11 +29,11 @@ export default function StudentAssignmentsSection({
         <table className="table custom-table align-middle mb-0">
           <thead className="table-light">
             <tr>
-              <th style={{ width: "26%" }}>Tên Bài Tập &amp; Tuần Học</th>
-              <th style={{ width: "16%" }}>Hạn Nộp / Ngày Nộp</th>
-              <th style={{ width: "14%" }}>Trạng Thái</th>
-              <th style={{ width: "12%" }}>Điểm Số</th>
-              <th style={{ width: "32%" }}>Nhận Xét &amp; Đánh Giá Bài Làm</th>
+              <th style={{ width: "26%" }}>Assignment Title &amp; Week</th>
+              <th style={{ width: "16%" }}>Due Date / Submission Date</th>
+              <th style={{ width: "14%" }}>Status</th>
+              <th style={{ width: "12%" }}>Score</th>
+              <th style={{ width: "32%" }}>Feedback &amp; Evaluation</th>
             </tr>
           </thead>
           <tbody>
@@ -42,23 +42,23 @@ export default function StudentAssignmentsSection({
                 const statusBadge =
                   item.status === "graded" ? (
                     <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2">
-                      <i className="bi bi-check-circle-fill me-1" /> Đã chấm điểm
+                      <i className="bi bi-check-circle-fill me-1" /> Graded
                     </span>
                   ) : item.status === "submitted" ? (
                     <span className="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 rounded-2">
-                      <i className="bi bi-file-earmark-check me-1" /> Đã nộp (Chờ chấm)
+                      <i className="bi bi-file-earmark-check me-1" /> Submitted (Pending grading)
                     </span>
                   ) : item.status === "late" ? (
                     <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-2">
-                      <i className="bi bi-clock-history me-1" /> Nộp trễ hạn
+                      <i className="bi bi-clock-history me-1" /> Submitted late
                     </span>
                   ) : item.status === "missing" ? (
                     <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-2">
-                      <i className="bi bi-x-circle-fill me-1" /> Chưa nộp
+                      <i className="bi bi-x-circle-fill me-1" /> Missing
                     </span>
                   ) : (
                     <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-2">
-                      <i className="bi bi-hourglass-split me-1" /> Đang giao
+                      <i className="bi bi-hourglass-split me-1" /> Assigned
                     </span>
                   );
 
@@ -76,22 +76,22 @@ export default function StudentAssignmentsSection({
                           rel="noreferrer"
                           className="small text-primary text-decoration-none d-inline-flex align-items-center gap-1 mt-1"
                         >
-                          <i className="bi bi-paperclip" /> Xem bài nộp của học viên
+                          <i className="bi bi-paperclip" /> View student submission
                         </a>
                       )}
                     </td>
 
                     <td>
                       <small className="text-muted d-block">
-                        Hạn: <span className="text-dark fw-medium">{item.dueDate}</span>
+                        Due: <span className="text-dark fw-medium">{item.dueDate}</span>
                       </small>
                       {item.submittedAt ? (
                         <small className="text-success d-block mt-0.5">
                           <i className="bi bi-check2 me-1" />
-                          Nộp lúc: {item.submittedAt}
+                          Submitted at: {item.submittedAt}
                         </small>
                       ) : (
-                        <small className="text-muted fst-italic d-block mt-0.5">Chưa có bài nộp</small>
+                        <small className="text-muted fst-italic d-block mt-0.5">No submission yet</small>
                       )}
                     </td>
 
@@ -104,7 +104,7 @@ export default function StudentAssignmentsSection({
                           <span className="text-muted small">/{item.maxScore}</span>
                           {item.aiScore != null && (
                             <small className="d-block text-muted" style={{ fontSize: "11px" }}>
-                              AI chấm: {item.aiScore}đ
+                              AI graded: {item.aiScore} pts
                             </small>
                           )}
                         </div>
@@ -117,12 +117,12 @@ export default function StudentAssignmentsSection({
                       {item.teacherFeedback ? (
                         <div className="p-2 rounded-2 bg-light border small text-dark mb-1">
                           <strong className="text-primary d-block mb-0.5">
-                            <i className="bi bi-chat-quote-fill me-1" /> Nhận xét:
+                            <i className="bi bi-chat-quote-fill me-1" /> Feedback:
                           </strong>
                           {item.teacherFeedback}
                         </div>
                       ) : (
-                        <span className="text-muted small fst-italic">Chưa có nhận xét bài tập.</span>
+                        <span className="text-muted small fst-italic">No assignment feedback yet.</span>
                       )}
 
                       {item.aiFeedback && (
@@ -143,7 +143,7 @@ export default function StudentAssignmentsSection({
             ) : (
               <tr>
                 <td colSpan={5} className="text-center py-4 text-muted">
-                  Chưa có bài tập nào được giao cho lớp này.
+                  No assignments have been assigned to this class yet.
                 </td>
               </tr>
             )}

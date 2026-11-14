@@ -17,11 +17,11 @@ export function formatDate(iso: string): string {
 }
 
 export const INITIAL_PROFILE: StudentProfileData = {
-  fullName: '[FE-Mock] Lê Văn An',
+  fullName: '[FE-Mock] Le Van An',
   dob: '2010-02-14',
   gender: 'Nam',
   enrollDate: '2025-01-05',
-  address: '45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh',
+  address: '45 Tran Hung Dao, District 1, Ho Chi Minh City',
   phone: '0956 789 012',
   email: 'an.le@student.edutrack.vn',
   avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=an',

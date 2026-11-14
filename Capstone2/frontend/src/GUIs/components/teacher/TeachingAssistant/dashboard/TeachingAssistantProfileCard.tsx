@@ -14,8 +14,8 @@ export const teachingAssistantProfileData: TeachingAssistantProfileCardProps = {
   id: "#TA001",
   name: "[FE-Mock] Âu Dương Tài",
   avatar: "/assets/img/profiles/avatar-27.jpg",
-  role: "Trợ giảng chuyên môn",
-  classes: "Toán 12, Vật lý 12",
+  role: "Teaching Assistant",
+  classes: "Math 12, Physics 12",
   subject: "Teaching Assistant",
   profileUrl: "/teaching-assistant/profile",
 };
@@ -73,7 +73,7 @@ export function TeachingAssistantProfileCard({
           to={profileUrl ?? "/teaching-assistant/profile"}
           className="btn btn-primary d-inline-flex align-items-center gap-2"
         >
-          <i className="bi bi-pencil-square" /> Xem hồ sơ
+          <i className="bi bi-pencil-square" /> View Profile
         </Link>
       </div>
     </div>

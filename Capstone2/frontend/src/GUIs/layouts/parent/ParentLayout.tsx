@@ -57,7 +57,7 @@ function ParentLayoutContent() {
               </div>
               <div>
                 <div className="brand-title">EduTrack</div>
-                <div className="brand-subtitle text-primary fw-bold">Cổng phụ huynh</div>
+                <div className="brand-subtitle text-primary fw-bold">Parent Portal</div>
               </div>
             </Link>
             <button
@@ -81,7 +81,7 @@ function ParentLayoutContent() {
               className="btn-hamburger"
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              aria-label="Mở menu"
+              aria-label="Open menu"
             >
               <i className="bi bi-list fs-5"></i>
             </button>
@@ -107,7 +107,7 @@ function ParentLayoutContent() {
                 fontSize: '11px',
                 background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
               }}
-              title="Phụ huynh: Lê Văn Nam"
+              title="Parent: Lê Văn Nam"
             >
               VN
             </div>
@@ -116,8 +116,8 @@ function ParentLayoutContent() {
           {/* Main Content Area */}
           {loading && !isFeedbackOrProfile ? (
             <LearnerPageLoader
-              title="Đang tải hồ sơ học sinh..."
-              message="Hệ thống đang đồng bộ danh sách con và dữ liệu học tập mới nhất."
+              title="Loading student profile..."
+              message="The system is syncing the children list and latest learning data."
             />
           ) : showEmptyState ? (
             <ParentEmptyState />

@@ -18,7 +18,7 @@ export function AssignmentMetaCards({
           <i className="bi bi-calendar-event"></i>
         </div>
         <div>
-          <div className="asg-meta-title">Hạn nộp</div>
+          <div className="asg-meta-title">Due Date</div>
           <div className="asg-meta-val" id="asgDueDate">{asg.dueDate}</div>
         </div>
       </div>
@@ -30,7 +30,7 @@ export function AssignmentMetaCards({
             <i className="bi bi-star-fill"></i>
           </div>
           <div>
-            <div className="asg-meta-title">Điểm số</div>
+            <div className="asg-meta-title">Score</div>
             <div className="asg-meta-val" id="asgScoreValue">{asg.score || '8.5 / 10'}</div>
           </div>
         </div>

@@ -59,10 +59,10 @@ export default function TeacherRequestPage() {
     <>
       {/* Page Header Title & Breadcrumb */}
       <PageHeader
-        title="Đơn Từ &amp; Yêu Cầu Giảng Dạy"
+        title="Teaching Requests"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "Yêu cầu" },
+          { label: "Requests" },
         ]}
       />
 
@@ -76,13 +76,13 @@ export default function TeacherRequestPage() {
           onSortOrderChange={(o) => setSortOrder(o)}
           onRequestCreated={handleRequestCreated}
           defaultRequestedBy={DEFAULT_TEACHER_ID}
-          userRoleName="Giáo viên"
+          userRoleName="Teacher"
         />
 
         {loading ? (
           <div className="p-5 text-center">
             <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-            <p className="text-muted mb-0">Đang tải danh sách đơn từ...</p>
+            <p className="text-muted mb-0">Loading requests list...</p>
           </div>
         ) : (
           <>

@@ -19,16 +19,16 @@ export default function LearningProgressHeader({
     <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
       <div>
         <h4 className="class-list-title mb-1">
-          {classNameTitle ? `Tiến Độ: ${classNameTitle}` : "Danh Sách Tiến Độ Học Viên"}
+          {classNameTitle ? `Progress: ${classNameTitle}` : "Student Progress List"}
         </h4>
         <small className="text-muted">
-          Theo dõi chuyên cần, tỉ lệ điểm danh và tình hình làm bài tập theo từng lớp
+          Track attendance, attendance rates, and assignment completion by class
         </small>
       </div>
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <div className="d-flex align-items-center gap-2">
           <label htmlFor="filterClassSelect" className="form-label mb-0 small fw-bold text-nowrap">
-            Chọn lớp học:
+            Select Class:
           </label>
           <select
             className="form-select form-select-sm"
@@ -45,8 +45,8 @@ export default function LearningProgressHeader({
               ))
             ) : (
               <>
-                <option value="1">Lớp 9A1 - Toán Nâng Cao</option>
-                <option value="2">Lớp 9B1 - Vật Lý Chuyên Sâu</option>
+                <option value="1">Class 9A1 - Advanced Math</option>
+                <option value="2">Class 9B1 - Intensive Physics</option>
               </>
             )}
           </select>

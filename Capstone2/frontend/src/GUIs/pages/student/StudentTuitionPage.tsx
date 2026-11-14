@@ -26,7 +26,7 @@ export function StudentTuitionPage() {
       }
     } catch (err) {
       console.warn('Lỗi khi tải thông tin học phí học sinh:', err);
-      setErrorMsg(err instanceof Error ? err.message : 'Không tải được thông tin học phí từ hệ thống.');
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to load tuition information from the system.');
     } finally {
       setLoading(false);
     }
@@ -39,8 +39,8 @@ export function StudentTuitionPage() {
   if (loading && !bill) {
     return (
       <LearnerPageLoader
-        title="Đang tải thông tin học phí..."
-        message="Hệ thống đang kiểm tra hóa đơn kỳ hiện tại và lịch sử thanh toán của bạn."
+        title="Loading tuition information..."
+        message="The system is checking current term invoices and your payment history."
         containerClassName="tuition-container"
       />
     );
@@ -63,7 +63,7 @@ export function StudentTuitionPage() {
               className="btn btn-sm btn-outline-danger rounded-pill px-3"
               onClick={() => void loadTuition()}
             >
-              Thử lại
+              Retry
             </button>
           </div>
         )}
@@ -77,7 +77,7 @@ export function StudentTuitionPage() {
             <div className="alert alert-info border-0 rounded-4 p-3 d-flex align-items-center gap-3 my-4 bg-primary bg-opacity-10 text-primary">
               <i className="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
               <div className="small">
-                <strong>Thông báo học phí:</strong> Học sinh chỉ xem chi tiết hóa đơn và lịch sử giao dịch của mình. Chức năng thanh toán trực tuyến do <strong>Phụ huynh</strong> thực hiện trên Cổng phụ huynh hoặc đóng trực tiếp tại bàn Giáo vụ trung tâm EduTrack.
+                <strong>Tuition Notice:</strong> Students can only view their invoice details and transaction history. Online payment is carried out by <strong>Parents</strong> on the Parent Portal or paid directly at the EduTrack Center Admin Staff desk.
               </div>
             </div>
 

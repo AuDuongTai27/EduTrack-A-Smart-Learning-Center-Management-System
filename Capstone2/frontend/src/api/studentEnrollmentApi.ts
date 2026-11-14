@@ -19,16 +19,16 @@ export function readStudentEnrollments(data: unknown, studentId: number): Studen
     || typeof row.className !== "string" || typeof row.status !== "string" || !row.status.trim())
     || new Set(data.map(row => row.scId)).size !== data.length
     || new Set(data.map(row => row.classId)).size !== data.length)
-    throw new Error("Chưa xác nhận được danh sách lớp đã lưu. Vui lòng tải lại lớp để kiểm tra.");
+    throw new Error("Could not confirm saved class list. Please reload classes to verify.");
   return data as StudentCenterEnrollment[];
 }
 
 async function call(studentId: number, path: string, init?: RequestInit): Promise<StudentCenterEnrollment[]> {
-  if (!Number.isSafeInteger(studentId) || studentId <= 0) throw new Error("Học sinh không hợp lệ.");
+  if (!Number.isSafeInteger(studentId) || studentId <= 0) throw new Error("Invalid student.");
   let response: Response;
   try { response = await fetch(`${API_BASE_URL}/${path}`, { ...init, headers: { "Content-Type": "application/json" } }); }
-  catch { throw new Error("Chưa xác nhận được kết quả cập nhật lớp do lỗi kết nối. Tải lại lớp để kiểm tra trước khi thử lại."); }
-  if (!response.ok) throw await apiError(response, "Không cập nhật được lớp của học sinh.");
+  catch { throw new Error("Could not confirm class update result due to connection error. Reload classes to verify before retrying."); }
+  if (!response.ok) throw await apiError(response, "Failed to update student's classes.");
   return readStudentEnrollments(await response.json(), studentId);
 }
 
@@ -37,13 +37,13 @@ export const studentEnrollmentApi = {
   async add(studentId: number, gradeId: number, classIds: number[]) {
     const result = await call(studentId, `users/${studentId}/enrollments`, { method: "POST", body: JSON.stringify({ gradeId, classIds }) });
     if (!classIds.every(id => result.some(row => row.classId === id && row.status.trim().toLowerCase() === "active")))
-      throw new Error("Phản hồi chưa xác nhận đủ các lớp đã chọn. Tải lại lớp để kiểm tra kết quả.");
+      throw new Error("Response did not confirm all selected classes. Reload classes to verify the result.");
     return result;
   },
   async drop(studentId: number, scId: number, reason: string) {
     const result = await call(studentId, `users/${studentId}/enrollments/${scId}/drop`, { method: "PATCH", body: JSON.stringify({ reason }) });
     if (!result.some(row => row.scId === scId && row.status.trim().toLowerCase() === "dropped"))
-      throw new Error("Chưa xác nhận lớp đã ngừng học. Tải lại lớp để kiểm tra kết quả.");
+      throw new Error("Could not confirm class was dropped. Reload classes to verify the result.");
     return result;
   },
 };

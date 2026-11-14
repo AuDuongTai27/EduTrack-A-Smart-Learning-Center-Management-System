@@ -55,14 +55,14 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
 
   return (
     <section className="past-progress-section pb-5 mb-4">
-      {/* Section Header đồng bộ với Tiến độ hiện tại */}
+      {/* Section Header synced with Current Progress */}
       <div className="progress-section-header flex-wrap gap-2">
         <div>
-          <h2 className="progress-section-title">Lớp đã học xong</h2>
+          <h2 className="progress-section-title">Completed Classes</h2>
           <div className="progress-section-subtitle">
             {classes.length > 0
-              ? `${classes.length} khóa học đã hoàn thành · Tất cả các kỳ trước · Chuyên cần đạt ${avgPastRate}%`
-              : '0 khóa học đã hoàn thành · Tất cả các kỳ trước'}
+              ? `${classes.length} completed ${classes.length === 1 ? 'course' : 'courses'} · All previous terms · Attendance rate ${avgPastRate}%`
+              : '0 completed courses · All previous terms'}
           </div>
         </div>
 
@@ -75,7 +75,7 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
                   className={`progress-filter-btn ${filter === 'all' ? 'active' : ''}`}
                   onClick={() => setFilter('all')}
                 >
-                  <span>Tất cả</span>
+                  <span>All</span>
                   <span className="progress-filter-count">{totalFeedbacks}</span>
                 </button>
                 <button
@@ -84,7 +84,7 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
                   onClick={() => setFilter('evaluation')}
                 >
                   <i className="bi bi-person-badge-fill me-1"></i>
-                  <span>Đánh giá</span>
+                  <span>Evaluations</span>
                   <span className="progress-filter-count">{totalEvaluations}</span>
                 </button>
                 <button
@@ -93,7 +93,7 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
                   onClick={() => setFilter('assignment')}
                 >
                   <i className="bi bi-journal-check me-1"></i>
-                  <span>Bài tập</span>
+                  <span>Assignments</span>
                   <span className="progress-filter-count">{totalAssignments}</span>
                 </button>
               </div>
@@ -101,7 +101,7 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
 
             <div className="past-completed-summary-badge d-none d-sm-inline-flex">
               <i className="bi bi-award-fill"></i>
-              <span>Đã hoàn tất {totalPastAttended}/{totalPastSessions} buổi</span>
+              <span>Completed {totalPastAttended}/{totalPastSessions} sessions</span>
             </div>
 
             <button
@@ -111,27 +111,27 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
               onClick={() => setShowPast((prev) => !prev)}
             >
               <i className={`bi ${showPast ? 'bi-eye-slash' : 'bi-clock-history'}`}></i>
-              <span>{showPast ? 'Thu gọn danh sách' : `Xem ${classes.length} lớp đã học`}</span>
+              <span>{showPast ? 'Collapse list' : `View ${classes.length} completed ${classes.length === 1 ? 'class' : 'classes'}`}</span>
               <i className={`bi bi-chevron-down toggle-arrow ${showPast ? 'rotate' : ''}`}></i>
             </button>
           </div>
         )}
       </div>
 
-      {/* Khi không có lớp nào hoàn thành */}
+      {/* When no classes are completed */}
       {classes.length === 0 ? (
         <div className="past-empty-state">
           <div className="past-empty-icon-box">
             <i className="bi bi-mortarboard-fill"></i>
           </div>
-          <h6 className="past-empty-title">Chưa có khóa học nào đã kết thúc</h6>
+          <h6 className="past-empty-title">No completed courses yet</h6>
           <p className="past-empty-desc">
-            Học sinh hiện đang tham gia các lớp học trong chương trình hiện tại. Khi khóa học hoàn thành, toàn bộ hồ sơ chuyên cần và nhận xét tổng kết sẽ được lưu trữ tại đây.
+            The student is currently enrolled in classes in the ongoing program. When a course is completed, all attendance records and final evaluations will be archived here.
           </p>
         </div>
       ) : (
         <>
-          {/* Khi thu gọn: Hiển thị thẻ tóm tắt gọn gàng, đồng bộ với layout card */}
+          {/* When collapsed: Display concise summary card matching card layout */}
           {!showPast && (
             <div
               className="past-collapsed-preview-card"
@@ -148,20 +148,20 @@ export function ProgressPastHistorySection({ classes = [] }: ProgressPastHistory
                 </div>
                 <div>
                   <div className="past-preview-title">
-                    Hồ sơ các khóa học đã kết thúc ({classes.length} lớp học)
+                    Completed Course Records ({classes.length} {classes.length === 1 ? 'class' : 'classes'})
                   </div>
                   <div className="past-preview-subtitle">
-                    Bao gồm: {classes.map((c) => c.className).join(', ')} &middot; Nhấn để xem lại toàn bộ nhận xét tổng kết
+                    Includes: {classes.map((c) => c.className).join(', ')} &middot; Click to review all final feedback
                   </div>
                 </div>
               </div>
               <span className="past-preview-action">
-                Mở rộng <i className="bi bi-chevron-right ms-1"></i>
+                Expand <i className="bi bi-chevron-right ms-1"></i>
               </span>
             </div>
           )}
 
-          {/* Khi mở rộng: Danh sách các lớp đã hoàn thành */}
+          {/* When expanded: List of completed classes */}
           <div
             className={`past-history-container ${showPast ? 'is-open' : ''}`}
             id="pastHistoryContainer"

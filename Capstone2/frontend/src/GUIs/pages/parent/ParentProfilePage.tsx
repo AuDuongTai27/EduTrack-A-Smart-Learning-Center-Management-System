@@ -18,9 +18,9 @@ const FALLBACK_PARENT_PROFILE: ParentProfileState = {
   fullName: 'Lê Văn Nam',
   phone: '0981 112 233',
   email: 'nam.le@example.com',
-  address: 'Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội',
+  address: 'No. 45 Le Van Luong St, Cau Giay Dist, Hanoi',
   identityCard: '001085012345',
-  relationship: 'Phụ huynh',
+  relationship: 'Parent',
 };
 
 export function ParentProfilePage() {
@@ -34,7 +34,7 @@ export function ParentProfilePage() {
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
-    document.title = 'Hồ sơ phụ huynh – EduTrack';
+    document.title = 'Parent Profile – EduTrack';
     let isMounted = true;
 
     async function loadParentProfile() {
@@ -110,8 +110,8 @@ export function ParentProfilePage() {
   if (parentLoading || loading || !parentInfo || !formData) {
     return (
       <LearnerPageLoader
-        title="Đang tải hồ sơ phụ huynh..."
-        message="Hệ thống đang đồng bộ thông tin liên hệ và danh sách học sinh đã liên kết."
+        title="Loading parent profile..."
+        message="The system is synchronizing contact information and linked students list."
         containerClassName="profile-container"
       />
     );
@@ -123,9 +123,9 @@ export function ParentProfilePage() {
         {/* Header */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="page-title mb-1">Hồ sơ phụ huynh</h1>
+            <h1 className="page-title mb-1">Parent Profile</h1>
             <p className="page-subtitle text-muted mb-0">
-              Quản lý thông tin liên hệ và các hồ sơ học sinh đã liên kết
+              Manage contact information and linked student profiles
             </p>
           </div>
 
@@ -140,7 +140,7 @@ export function ParentProfilePage() {
                 }}
               >
                 <i className="bi bi-pencil-square"></i>
-                <span>Chỉnh sửa thông tin</span>
+                <span>Edit Information</span>
               </button>
             ) : (
               <div className="d-flex gap-2">
@@ -149,14 +149,14 @@ export function ParentProfilePage() {
                   className="btn btn-outline-secondary rounded-pill px-3"
                   onClick={() => setIsEditing(false)}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="button"
                   className="btn btn-success rounded-pill px-3 fw-semibold"
                   onClick={handleSave}
                 >
-                  <i className="bi bi-check-lg me-1"></i> Lưu thay đổi
+                  <i className="bi bi-check-lg me-1"></i> Save Changes
                 </button>
               </div>
             )}
@@ -167,7 +167,7 @@ export function ParentProfilePage() {
         {showToast && (
           <div className="alert alert-success border-0 rounded-4 shadow-sm d-flex align-items-center gap-2 mb-4">
             <i className="bi bi-check-circle-fill fs-5"></i>
-            <span>Đã cập nhật thông tin phụ huynh thành công!</span>
+            <span>Parent profile updated successfully!</span>
           </div>
         )}
 
@@ -189,7 +189,7 @@ export function ParentProfilePage() {
                 <div>
                   <h3 className="h5 fw-bold text-dark mb-1">{parentInfo.fullName}</h3>
                   <div className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
-                    Phụ huynh học sinh · {parentInfo.relationship}
+                    Parent · {parentInfo.relationship === 'Phụ huynh' || parentInfo.relationship === 'Parent' ? 'Parent' : parentInfo.relationship === 'Bố' ? 'Father' : parentInfo.relationship === 'Mẹ' ? 'Mother' : parentInfo.relationship}
                   </div>
                 </div>
               </div>
@@ -197,7 +197,7 @@ export function ParentProfilePage() {
               {!isEditing ? (
                 <div className="d-flex flex-column gap-3">
                   <div>
-                    <span className="small text-muted d-block">Số điện thoại liên hệ</span>
+                    <span className="small text-muted d-block">Phone Number</span>
                     <strong className="text-dark">{parentInfo.phone}</strong>
                   </div>
                   <div>
@@ -205,18 +205,18 @@ export function ParentProfilePage() {
                     <strong className="text-dark">{parentInfo.email}</strong>
                   </div>
                   <div>
-                    <span className="small text-muted d-block">Số CCCD / CMND</span>
+                    <span className="small text-muted d-block">Citizen ID / National ID</span>
                     <strong className="text-dark">{parentInfo.identityCard}</strong>
                   </div>
                   <div>
-                    <span className="small text-muted d-block">Địa chỉ liên hệ</span>
+                    <span className="small text-muted d-block">Contact Address</span>
                     <strong className="text-dark">{parentInfo.address}</strong>
                   </div>
                 </div>
               ) : (
                 <div className="d-flex flex-column gap-3">
                   <div>
-                    <label className="form-label small fw-semibold text-secondary">Họ và tên</label>
+                    <label className="form-label small fw-semibold text-secondary">Full Name</label>
                     <input
                       type="text"
                       className="form-control"
@@ -225,7 +225,7 @@ export function ParentProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="form-label small fw-semibold text-secondary">Số điện thoại</label>
+                    <label className="form-label small fw-semibold text-secondary">Phone Number</label>
                     <input
                       type="text"
                       className="form-control"
@@ -243,7 +243,7 @@ export function ParentProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="form-label small fw-semibold text-secondary">Địa chỉ</label>
+                    <label className="form-label small fw-semibold text-secondary">Address</label>
                     <input
                       type="text"
                       className="form-control"
@@ -263,30 +263,30 @@ export function ParentProfilePage() {
                 <div>
                   <h3 className="h6 fw-bold text-dark mb-1">
                     <i className="bi bi-people-fill text-primary me-2"></i>
-                    Hồ sơ các con ({childrenList.length})
+                    Linked Children ({childrenList.length})
                   </h3>
-                  <small className="text-muted">Các học sinh được liên kết với tài khoản này</small>
+                  <small className="text-muted">Students linked to this account</small>
                 </div>
 
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-primary rounded-pill px-3"
                   onClick={handleGoToFeedbackForLinking}
-                  title="Chuyển đến trang Phản hồi để gửi yêu cầu liên kết con tới Admin Staff"
+                  title="Go to Feedback to request linking a child with Admin Staff"
                 >
-                  <i className="bi bi-plus-lg me-1"></i> Thêm con
+                  <i className="bi bi-plus-lg me-1"></i> Add Child
                 </button>
               </div>
 
               {childrenList.length === 0 ? (
                 <div className="text-center py-4 text-muted">
-                  <p>Chưa có học sinh nào được liên kết.</p>
+                  <p>No students linked yet.</p>
                   <button
                     type="button"
                     className="btn btn-primary btn-sm rounded-pill px-3"
                     onClick={handleGoToFeedbackForLinking}
                   >
-                    Liên kết học sinh ngay
+                    Link Student Now
                   </button>
                 </div>
               ) : (
@@ -311,14 +311,14 @@ export function ParentProfilePage() {
                         <div>
                           <div className="fw-bold text-dark">{child.name}</div>
                           <div className="small text-muted">
-                            Mã: <strong>{child.code}</strong> · {child.grade}
+                            Code: <strong>{child.code}</strong> · {child.grade}
                           </div>
                           <div className="small text-secondary">{child.school}</div>
                         </div>
                       </div>
 
                       <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-                        Đang theo học
+                        Studying
                       </span>
                     </div>
                   ))}
@@ -333,7 +333,7 @@ export function ParentProfilePage() {
                   style={{ fontSize: '11px' }}
                   onClick={resetDemoChildren}
                 >
-                  <i className="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
+                  <i className="bi bi-arrow-counterclockwise me-1"></i> Reset Demo Data
                 </button>
                 <button
                   type="button"
@@ -341,7 +341,7 @@ export function ParentProfilePage() {
                   style={{ fontSize: '11px' }}
                   onClick={setDemoEmptyState}
                 >
-                  <i className="bi bi-trash me-1"></i> Thử nghiệm 0 học sinh
+                  <i className="bi bi-trash me-1"></i> Test 0 Students
                 </button>
               </div>
             </div>

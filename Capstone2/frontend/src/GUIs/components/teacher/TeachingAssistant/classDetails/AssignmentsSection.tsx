@@ -83,8 +83,8 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       {
         id: 104,
         weekNumber: 4,
-        fileName: "EIKARY - Cây k phân & Định lý Viète.pdf",
-        description: "Tài liệu chuyên đề giải bài toán đa thức và cây phân cấp k-phân",
+        fileName: "EIKARY - K-ary Trees & Vieta Theorem.pdf",
+        description: "Specialized material on polynomial problem solving and k-ary hierarchical trees",
         type: "PDF",
         uploadDate: "20/09/2026",
         sizeMb: 1.8,
@@ -99,22 +99,22 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       {
         weekNumber: 1,
         title: "Introduction to Quadratic Equations & Systems",
-        description: "Nền tảng phương trình bậc hai và phương pháp phân tích nghiệm",
+        description: "Foundations of quadratic equations and root analysis methods",
       },
       {
         weekNumber: 2,
         title: "Connectivity & Vieta Theorem Applications",
-        description: "Định lý Viète, biểu thức đối xứng giữa các nghiệm của phương trình",
+        description: "Vieta's theorem, symmetric expressions between polynomial roots",
       },
       {
         weekNumber: 3,
         title: "Advanced Systems of Equations",
-        description: "Hệ phương trình bậc cao và các phương pháp giải nâng cao",
+        description: "Higher-degree systems of equations and advanced solution methods",
       },
       {
         weekNumber: 4,
         title: "Plane Trigonometry & Midterm Review",
-        description: "Hệ thức lượng giác, ôn tập tổng hợp và bài tập đánh giá",
+        description: "Trigonometric relations, comprehensive review and evaluation exercises",
       },
     ];
 
@@ -179,9 +179,9 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-collection-play-fill text-primary fs-5" />
           <div>
-            <h4 className="class-list-title mb-0">Nội Dung Khóa Học &amp; Ca Trực Theo Tuần</h4>
+            <h4 className="class-list-title mb-0">Course Content &amp; Weekly Schedule</h4>
             <span className="text-muted small">
-              Theo dõi tài liệu bài giảng và hỗ trợ chấm chữa bài tập theo tuần (Content Units)
+              Track lecture materials and support assignment grading by week (Content Units)
             </span>
           </div>
         </div>
@@ -213,7 +213,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
 
         <div className="d-flex align-items-center gap-2 text-muted small">
           <span>
-            Tổng cộng: <strong>{totalMaterials}</strong> tài liệu &middot; <strong>{totalAssignments}</strong> bài tập
+            Total: <strong>{totalMaterials}</strong> materials &middot; <strong>{totalAssignments}</strong> assignments
           </span>
         </div>
       </div>
@@ -253,11 +253,11 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                 <div className="d-flex align-items-center gap-2 flex-shrink-0">
                   <span className="badge bg-light text-secondary border px-2 py-1 small">
                     <i className="bi bi-file-earmark-text me-1 text-danger" />
-                    {week.materials.length} tài liệu
+                    {week.materials.length} materials
                   </span>
                   <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
                     <i className="bi bi-journal-check me-1" />
-                    {week.assignments.length} bài tập
+                    {week.assignments.length} assignments
                   </span>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                   <div className="mb-4">
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                       <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
-                        <i className="bi bi-folder2-open text-primary" /> Tài liệu &amp; Bài giảng trong tuần
+                        <i className="bi bi-folder2-open text-primary" /> Weekly Materials &amp; Lectures
                       </span>
                     </div>
 
@@ -318,12 +318,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                 onClick={(e) => {
                                   if (!mat.fileUrl) {
                                     e.preventDefault();
-                                    alert(`Đang tải xuống tài liệu: ${mat.fileName}`);
+                                    alert(`Downloading material: ${mat.fileName}`);
                                   }
                                 }}
                                 className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center"
                                 style={{ height: "32px", width: "32px", padding: 0 }}
-                                title="Tải xuống tài liệu"
+                                title="Download material"
                               >
                                 <i className="bi bi-download" />
                               </a>
@@ -333,7 +333,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                       </div>
                     ) : (
                       <div className="p-3 text-center text-muted small bg-light-subtle rounded-2 border border-dashed">
-                        Chưa có tài liệu đính kèm cho tuần này.
+                        No attached materials for this week.
                       </div>
                     )}
                   </div>
@@ -342,7 +342,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                   <div>
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                       <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
-                        <i className="bi bi-journal-text text-primary" /> Bài tập &amp; Đề kiểm tra
+                        <i className="bi bi-journal-text text-primary" /> Assignments &amp; Tests
                       </span>
                     </div>
 
@@ -351,12 +351,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                         <table className="table custom-table align-middle mb-0">
                           <thead>
                             <tr>
-                              <th style={{ width: "32%" }}>Tiêu đề bài tập</th>
-                              <th style={{ width: "13%" }}>Ngày giao</th>
-                              <th style={{ width: "20%" }}>Hạn nộp</th>
-                              <th style={{ width: "20%" }}>Nộp bài &amp; Chấm điểm</th>
-                              <th style={{ width: "10%" }}>Điểm tối đa</th>
-                              <th className="text-end" style={{ width: "5%" }}>Thao tác</th>
+                              <th style={{ width: "32%" }}>Assignment Title</th>
+                              <th style={{ width: "13%" }}>Assigned Date</th>
+                              <th style={{ width: "20%" }}>Due Date</th>
+                              <th style={{ width: "20%" }}>Submissions &amp; Grading</th>
+                              <th style={{ width: "10%" }}>Max Score</th>
+                              <th className="text-end" style={{ width: "5%" }}>Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -416,14 +416,14 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                         {asg.dueDateFormatted ||
                                           (asg.dueDate
                                             ? new Date(asg.dueDate).toLocaleDateString("vi-VN")
-                                            : "Không có hạn")}
+                                            : "No due date")}
                                       </span>
                                       <span
                                         className={`badge ${
                                           isOverdue ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success"
                                         } fw-normal`}
                                       >
-                                        {isOverdue ? "Quá hạn" : "Đang mở"}
+                                        {isOverdue ? "Overdue" : "Open"}
                                       </span>
                                     </div>
                                   </td>
@@ -438,7 +438,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                             borderColor: "#dee2e6",
                                           }}
                                         >
-                                          Chờ chấm ({gradedCount}/{submissionCount})
+                                          Pending Grading ({gradedCount}/{submissionCount})
                                         </span>
                                       ) : (
                                         <span
@@ -448,18 +448,18 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                               : "bg-warning-subtle text-warning"
                                           } fw-medium px-2 py-1`}
                                         >
-                                          {isGradedDone ? "Đã chấm" : "Chờ chấm"} ({gradedCount}/{submissionCount})
+                                          {isGradedDone ? "Graded" : "Pending Grading"} ({gradedCount}/{submissionCount})
                                         </span>
                                       )
                                     ) : (
                                       <span className="badge bg-secondary-subtle text-secondary fw-normal">
-                                        Chưa có bài nộp
+                                        No submissions
                                       </span>
                                     )}
                                   </td>
                                   <td style={rowBg ? { backgroundColor: "inherit" } : undefined}>
                                     <span className="fw-bold text-dark">{asg.maxScore ?? "10.0"}</span>{" "}
-                                    <small className="text-muted">điểm</small>
+                                    <small className="text-muted">pts</small>
                                   </td>
                                   <td
                                     className="text-end"
@@ -470,7 +470,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                         to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId}`}
                                         className="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center"
                                         style={{ height: "32px", width: "32px", padding: 0 }}
-                                        title="Hỗ trợ chấm"
+                                        title="Support grading"
                                       >
                                         <i className="bi bi-eye" />
                                       </Link>
@@ -484,7 +484,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                       </div>
                     ) : (
                       <div className="p-3 text-center text-muted small bg-light-subtle rounded-2 border border-dashed">
-                        Chưa có bài tập nào được giao cho tuần này.
+                        No assignments assigned for this week.
                       </div>
                     )}
                   </div>

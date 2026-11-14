@@ -19,11 +19,11 @@ export function createScheduleSessionApi(baseUrl: string, selectedUserId?: numbe
       const query = new URLSearchParams({from: dateOnly(from), toExclusive: dateOnly(toExclusive)});
       const response = await fetch(await selectedUrl(`${baseUrl}/schedule/sessions?${query}`, 'userId', userIdOverride ?? selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json'}});
       if (!response.ok) {
-        throw new Error(`Không tải được lịch học (HTTP ${response.status}). Vui lòng thử lại.`);
+        throw new Error(`Failed to load schedule (HTTP ${response.status}). Please try again.`);
       }
       const data: unknown = await response.json();
       if (!Array.isArray(data) || !data.every(isSession) || new Set(data.map(s => s.sessionId)).size !== data.length)
-        throw new Error('Dữ liệu lịch học từ máy chủ không hợp lệ. Vui lòng thử lại.');
+        throw new Error('Invalid schedule data from server. Please try again.');
       return data;
     },
   };

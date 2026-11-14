@@ -20,16 +20,16 @@ export default function AdminTopBar() {
           <i className="bi bi-search" />
           <input
             type="text"
-            placeholder={isAdminStaff ? "Tìm học sinh, lớp học, đơn từ..." : "Tìm kiếm toàn hệ thống EduTrack..."}
+            placeholder={isAdminStaff ? "Search students, classes, requests..." : "Search across EduTrack system..."}
           />
         </div>
       </div>
       <div className="topbar-actions">
         <button className="academic-year-btn" type="button">
           <i className="bi bi-calendar3" />
-          <span>Năm học: {academicYear || (settingsLoading ? "Đang tải..." : settingsError ? "Không tải được" : "Chưa cấu hình")}</span>
+          <span>Academic Year: {academicYear || (settingsLoading ? "Loading..." : settingsError ? "Failed to load" : "Not configured")}</span>
         </button>
-        <button className="icon-btn" type="button" title="Giao diện">
+        <button className="icon-btn" type="button" title="Theme">
           <i className="bi bi-moon-stars" />
         </button>
         <NotificationBellDropdown />

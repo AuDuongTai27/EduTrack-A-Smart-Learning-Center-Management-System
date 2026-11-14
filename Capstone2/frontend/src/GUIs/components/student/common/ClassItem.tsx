@@ -30,7 +30,7 @@ export function ClassItem({ classItem: cls }: ClassItemProps) {
         <div className="teacher-row">
           <div className="teacher-avatar-mini">{cls.teacherInitials}</div>
           <span className="teacher-name">
-            <span className="teacher-label">GV:</span> {cls.teacherName || 'Chưa phân công'}
+            <span className="teacher-label">Teacher:</span> {cls.teacherName || 'Unassigned'}
           </span>
         </div>
         <div className="meta-row">
@@ -39,11 +39,11 @@ export function ClassItem({ classItem: cls }: ClassItemProps) {
         </div>
         <div className="meta-row room">
           <i className="bi bi-geo-alt"></i>
-          <span>{cls.room || 'Chưa xếp phòng'}</span>
+          <span>{cls.room || 'No room assigned'}</span>
         </div>
       </div>
       <div className="class-card-footer">
-        <span>Xem chi tiết</span>
+        <span>View Details</span>
         <i className="bi bi-chevron-right"></i>
       </div>
     </Link>

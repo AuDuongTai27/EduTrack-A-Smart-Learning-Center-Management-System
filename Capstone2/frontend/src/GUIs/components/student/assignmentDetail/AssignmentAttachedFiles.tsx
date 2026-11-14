@@ -11,7 +11,7 @@ export function AssignmentAttachedFiles({
 }: AssignmentAttachedFilesProps) {
   return (
     <section className="mb-4">
-      <h2 className="asg-section-heading">Tài liệu đính kèm</h2>
+      <h2 className="asg-section-heading">Attached Materials</h2>
       <div className="asg-attached-files-card">
         {ATTACHED_FILES.map((file: AttachedFileItem) => (
           <div key={file.id} className="asg-file-item">
@@ -33,7 +33,7 @@ export function AssignmentAttachedFiles({
               onClick={() => onDownload(file.name)}
             >
               <i className="bi bi-download"></i>
-              <span>Tải xuống</span>
+              <span>Download</span>
             </button>
           </div>
         ))}

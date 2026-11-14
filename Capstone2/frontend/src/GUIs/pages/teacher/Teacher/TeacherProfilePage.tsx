@@ -58,10 +58,10 @@ export default function TeacherProfilePage() {
       const updated = await teachingDAL.updateProfile(DEFAULT_TEACHER_ID, payload);
       setProfile(updated);
       setIsEditing(false);
-      showToast("Cập nhật thông tin hồ sơ Giáo viên thành công và đã lưu vào hệ thống!", "success");
+      showToast("Teacher profile updated successfully!", "success");
     } catch (err: any) {
       console.error("Lỗi khi cập nhật hồ sơ Giáo viên:", err);
-      showToast(err?.message || "Không thể cập nhật hồ sơ. Vui lòng kiểm tra lại kết nối máy chủ.", "danger");
+      showToast(err?.message || "Failed to update profile. Please check server connection.", "danger");
     } finally {
       setIsSaving(false);
     }
@@ -71,10 +71,10 @@ export default function TeacherProfilePage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Hồ sơ Giáo viên"
+        title="Teacher Profile"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "Hồ sơ cá nhân" },
+          { label: "Profile" },
         ]}
       />
 
@@ -104,7 +104,7 @@ export default function TeacherProfilePage() {
       {loading && (
         <div className="alert alert-info py-2 px-3 mb-4 d-flex align-items-center gap-2">
           <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang tải thông tin hồ sơ Giáo viên từ máy chủ...</span>
+          <span>Loading teacher profile from server...</span>
         </div>
       )}
 
@@ -119,9 +119,9 @@ export default function TeacherProfilePage() {
       ) : (
         <div className="card class-list-card border-0 mb-4 shadow-sm">
           <div className="class-list-header d-flex align-items-center justify-content-between p-3 border-bottom">
-            <h4 className="class-list-title mb-0">Thông tin tài khoản Giáo viên</h4>
+            <h4 className="class-list-title mb-0">Teacher Account Information</h4>
             <span className="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1">
-              <i className="bi bi-shield-check me-1" /> Tài khoản hoạt động
+              <i className="bi bi-shield-check me-1" /> Active Account
             </span>
           </div>
           <div className="card-body p-4">

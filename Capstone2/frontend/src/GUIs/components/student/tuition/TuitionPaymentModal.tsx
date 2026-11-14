@@ -15,8 +15,8 @@ export function TuitionPaymentModal({
   isOpen,
   onClose,
   studentName = 'Lê Văn An',
-  period = 'Kỳ tháng 10 / 2026',
-  totalAmountText = '0 đ',
+  period = 'October 2026 Term',
+  totalAmountText = '0 VND',
   unpaidInvoices = [],
   onConfirmPayment,
 }: TuitionPaymentModalProps) {
@@ -112,10 +112,10 @@ export function TuitionPaymentModal({
             <div className="modal-header payment-modal-header border-0">
               <div>
                 <h5 className="modal-title fw-bold" id="paymentModalLabel">
-                  Chuyển khoản thanh toán học phí
+                  Tuition Bank Transfer
                 </h5>
                 <p className="mb-0 text-white-50 small">
-                  {period} &middot; Học sinh {studentName}
+                  {period} &middot; Student {studentName}
                 </p>
               </div>
               <button
@@ -131,14 +131,14 @@ export function TuitionPaymentModal({
                 <div className="mb-3">
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <label className="form-label small fw-bold text-dark mb-0">
-                      Chọn kỳ học phí muốn đóng ({selectedInvoiceIds.length}/{unpaidInvoices.length}):
+                      Select tuition terms to pay ({selectedInvoiceIds.length}/{unpaidInvoices.length}):
                     </label>
                     <button
                       type="button"
                       className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold"
                       onClick={toggleSelectAll}
                     >
-                      {selectedInvoiceIds.length === unpaidInvoices.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                      {selectedInvoiceIds.length === unpaidInvoices.length ? 'Deselect all' : 'Select all'}
                     </button>
                   </div>
                   <div
@@ -173,7 +173,7 @@ export function TuitionPaymentModal({
                             >
                               {inv.className} &middot;{' '}
                               <span className="text-secondary">
-                                Tháng {inv.periodMonth}/{inv.periodYear}
+                                Month {inv.periodMonth}/{inv.periodYear}
                               </span>
                             </label>
                           </div>
@@ -186,7 +186,7 @@ export function TuitionPaymentModal({
                   </div>
                   {selectedInvoiceIds.length === 0 && (
                     <div className="small text-danger mt-1">
-                      * Vui lòng chọn ít nhất một kỳ để tiến hành chuyển khoản.
+                      * Please select at least one term to proceed with transfer.
                     </div>
                   )}
                 </div>
@@ -196,12 +196,12 @@ export function TuitionPaymentModal({
               <div className="p-3 bg-light rounded-3 mb-3 d-flex justify-content-between align-items-center border">
                 <div>
                   <span className="text-muted small fw-semibold d-block">
-                    Tổng số tiền thanh toán (Toàn phần 100%):
+                    Total payment amount (100% in full):
                   </span>
                   <span className="small text-secondary">
                     {hasMultipleInvoices
-                      ? `Đã chọn ${selectedInvoiceIds.length} kỳ`
-                      : 'Cố định theo dư nợ hóa đơn'}
+                      ? `Selected ${selectedInvoiceIds.length} term(s)`
+                      : 'Fixed based on invoice balance'}
                   </span>
                 </div>
                 <span className="fs-4 fw-extrabold text-primary font-monospace">
@@ -213,23 +213,23 @@ export function TuitionPaymentModal({
               <div className="p-3 rounded-3 border border-primary-subtle bg-primary-subtle bg-opacity-25 mb-3">
                 <div className="d-flex align-items-center gap-2 mb-2 text-primary fw-bold small text-uppercase">
                   <i className="bi bi-bank2 fs-6" />
-                  <span>Thông tin tài khoản nhận học phí Trung tâm</span>
+                  <span>Center Tuition Bank Account Details</span>
                 </div>
                 <div className="small d-grid gap-2 text-dark">
                   <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Ngân hàng:</span>
-                    <strong className="text-end">Vietcombank (CN TP.HCM)</strong>
+                    <span className="text-muted">Bank:</span>
+                    <strong className="text-end">Vietcombank (HCMC Branch)</strong>
                   </div>
                   <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Số tài khoản:</span>
+                    <span className="text-muted">Account Number:</span>
                     <strong className="font-monospace text-primary">1029 3847 56</strong>
                   </div>
                   <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Chủ tài khoản:</span>
+                    <span className="text-muted">Account Holder:</span>
                     <strong className="text-end">TRUNG TAM DAO TAO EDUTRACK</strong>
                   </div>
                   <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Nội dung CK:</span>
+                    <span className="text-muted">Transfer Memo:</span>
                     <strong className="font-monospace text-end">{transferNote}</strong>
                   </div>
                 </div>
@@ -237,20 +237,20 @@ export function TuitionPaymentModal({
 
               <div className="mb-2">
                 <label htmlFor="txCodeInput" className="form-label small fw-bold text-dark mb-1">
-                  Mã giao dịch ngân hàng (Tùy chọn)
+                  Bank Transaction Code (Optional)
                 </label>
                 <input
                   id="txCodeInput"
                   type="text"
                   className="form-control"
-                  placeholder="VD: FT26314981234 (Để trống hệ thống sẽ tự cấp mã tham chiếu)"
+                  placeholder="e.g. FT26314981234 (Leave blank for system auto-reference)"
                   value={transactionCode}
                   onChange={(e) => setTransactionCode(e.target.value)}
                   maxLength={80}
                   disabled={isProcessing}
                 />
                 <small className="text-muted d-block mt-1">
-                  Khoản thanh toán sẽ được ghi nhận trực tiếp vào hóa đơn và lịch sử giao dịch trên hệ thống.
+                  Payment will be recorded directly to invoice and transaction history in the system.
                 </small>
               </div>
             </div>
@@ -262,7 +262,7 @@ export function TuitionPaymentModal({
                 onClick={onClose}
                 disabled={isProcessing}
               >
-                Hủy
+                Cancel
               </button>
               <button
                 type="button"
@@ -271,7 +271,7 @@ export function TuitionPaymentModal({
                 disabled={isProcessing || (hasMultipleInvoices && selectedInvoiceIds.length === 0)}
               >
                 {isProcessing && <span className="spinner-border spinner-border-sm"></span>}
-                <span>{isProcessing ? 'Đang ghi nhận...' : 'Xác nhận đã chuyển khoản'}</span>
+                <span>{isProcessing ? 'Processing...' : 'Confirm Bank Transfer'}</span>
               </button>
             </div>
           </div>

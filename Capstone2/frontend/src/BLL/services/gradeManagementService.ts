@@ -6,7 +6,7 @@ export function normalizeGradeName(value: string): string {
 export function gradeNameError(value: string): string | null {
   const name = normalizeGradeName(value);
   return !name || name.length > 50 || Array.from(name).some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
-    ? "Tên khối lớp là bắt buộc, tối đa 50 ký tự và không chứa ký tự điều khiển." : null;
+    ? "Grade level name is required, max 50 characters, and must not contain control characters." : null;
 }
 export function filterGrades(items: ManagedGradeDto[], search: string, sort: string) {
   const query = normalizeGradeName(search).toLocaleLowerCase("vi-VN");

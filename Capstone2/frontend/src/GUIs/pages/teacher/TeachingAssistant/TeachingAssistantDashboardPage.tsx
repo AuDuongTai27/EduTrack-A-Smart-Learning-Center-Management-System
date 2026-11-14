@@ -45,7 +45,7 @@ export default function TeachingAssistantDashboardPage() {
   const userCode = profile?.userCode ? `#${profile.userCode}` : "#TA001";
   const specialty = profile?.specialty || "Teaching Assistant";
   const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const roleTitle = profile?.roleTitle || "Trợ giảng chuyên môn";
+  const roleTitle = profile?.roleTitle || "Teaching Assistant";
 
   const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || [])
     .filter((cls) => {
@@ -106,22 +106,22 @@ export default function TeachingAssistantDashboardPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Bảng Điều Khiển Trợ Giảng"
+        title="Teaching Assistant Dashboard"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Tổng quan trợ giảng" },
+          { label: "Teaching Assistant Overview" },
         ]}
       />
 
       {/* Greeting section */}
-      <GreetingSection name={taName} message="Chúc bạn một ngày làm việc hỗ trợ lớp học thật hiệu quả tại EduTrack!" />
+      <GreetingSection name={taName} message="Wishing you an effective day supporting classes at EduTrack!" />
 
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Đang tải...</span>
+            <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="text-muted mt-2">Đang tải thông tin bảng điều khiển...</p>
+          <p className="text-muted mt-2">Loading dashboard information...</p>
         </div>
       ) : (
         <>

@@ -38,10 +38,10 @@ const EMPTY_FORM: FormData = {
 
 const GRADE_OPTIONS = [7, 8, 9, 10, 11, 12];
 const TAB_LABELS: Record<Tab, string> = {
-  general: "Thông tin trung tâm",
-  academic: "Cấu hình học vụ",
-  tuition: "Cấu hình học phí",
-  notifications: "Cấu hình thông báo",
+  general: "Center Information",
+  academic: "Academic Settings",
+  tuition: "Tuition Settings",
+  notifications: "Notification Settings",
 };
 
 function loadForm(settings: CenterSettingDto[]): FormData {
@@ -124,7 +124,7 @@ export default function CenterManagerSettingPage() {
       const response = await centerSettingDAL.getAllSettings();
       setForm(loadForm(response.data));
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Không tải được cấu hình từ Backend.");
+      setLoadError(error instanceof Error ? error.message : "Failed to load settings from Backend.");
     } finally {
       setLoading(false);
     }
@@ -141,21 +141,21 @@ export default function CenterManagerSettingPage() {
     setSaveSuccess(null);
 
     if (tab === "general" && !form.centerName.trim()) {
-      setSaveError("Vui lòng nhập tên trung tâm.");
+      setSaveError("Please enter the center name.");
       return;
     }
     if (tab === "general" && form.centerEmail.trim() &&
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.centerEmail.trim())) {
-      setSaveError("Email trung tâm không hợp lệ.");
+      setSaveError("Invalid center email.");
       return;
     }
     if (tab === "academic" && (!form.academicYear.trim() || !form.defaultClassStatus)) {
-      setSaveError("Vui lòng nhập năm học và chọn trạng thái lớp mặc định.");
+      setSaveError("Please enter the academic year and select the default class status.");
       return;
     }
     if (tab === "tuition" &&
         (!form.tuitionCycle || !/^(?:[1-9]|1\d|2[0-8])$/.test(form.tuitionDueDay))) {
-      setSaveError("Vui lòng chọn chu kỳ học phí và ngày thu phí từ 1 đến 28.");
+      setSaveError("Please select the tuition cycle and payment due day between 1 and 28.");
       return;
     }
 
@@ -163,9 +163,9 @@ export default function CenterManagerSettingPage() {
     try {
       await centerSettingDAL.saveSettings(settingsForTab(tab, form));
       window.dispatchEvent(new Event("edutrack:center-settings-updated"));
-      setSaveSuccess(`Đã lưu ${TAB_LABELS[tab]} vào database thành công.`);
+      setSaveSuccess(`Saved ${TAB_LABELS[tab]} to database successfully.`);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Lưu cấu hình thất bại.");
+      setSaveError(error instanceof Error ? error.message : "Failed to save settings.");
     } finally {
       setSaving(false);
     }
@@ -189,7 +189,7 @@ export default function CenterManagerSettingPage() {
         disabled={saving || loading || !!loadError}
         onClick={() => void handleSave(tab)}>
         <i className="bi bi-save me-1" />
-        {saving ? "Đang lưu..." : "Lưu thay đổi"}
+        {saving ? "Saving..." : "Save Changes"}
       </button>
     </div>
   );
@@ -211,9 +211,9 @@ export default function CenterManagerSettingPage() {
       {saveError && <div className="alert alert-danger" role="alert">{saveError}</div>}
       {loadError && (
         <div className="alert alert-danger" role="alert">
-          Không tải được dữ liệu thật từ Backend: {loadError}
+          Failed to load real data from Backend: {loadError}
           <button type="button" className="btn btn-sm btn-outline-danger ms-3" onClick={() => void refresh()}>
-            Thử lại
+            Retry
           </button>
         </div>
       )}
@@ -243,11 +243,11 @@ export default function CenterManagerSettingPage() {
           {loading ? (
             <div className="text-center py-5 text-muted">
               <div className="spinner-border text-primary mb-3" role="status" />
-              <p>Đang tải cấu hình từ database...</p>
+              <p>Loading settings from database...</p>
             </div>
           ) : loadError ? (
             <div className="text-center py-4 text-muted">
-              Không hiển thị dữ liệu mẫu khi Backend gặp lỗi.
+              Sample data is not displayed when Backend encounters an error.
             </div>
           ) : (
             <div className="tab-content">
@@ -255,8 +255,8 @@ export default function CenterManagerSettingPage() {
                 <div className="tab-pane fade show active">
                   <div className="settings-section mb-4">
                     <div className="settings-section-header mb-3 pb-2 border-bottom">
-                      <h5 className="fw-bold text-dark">Thông tin trung tâm (General Information)</h5>
-                      <p className="text-muted small">Dữ liệu được đọc và lưu qua bảng center_settings.</p>
+                      <h5 className="fw-bold text-dark">General Information</h5>
+                      <p className="text-muted small">Data is loaded and saved via the center_settings table.</p>
                     </div>
                     <div className="row g-3">
                       <div className="col-md-6">
@@ -275,13 +275,13 @@ export default function CenterManagerSettingPage() {
                           onChange={e => setField("centerEmail", e.target.value)} />
                       </div>
                       <div className="col-md-6">
-                        <label className="form-label fw-bold">Logo Trung Tâm</label>
+                        <label className="form-label fw-bold">Center Logo</label>
                         <div className="form-control text-muted bg-light">
-                          Chưa hỗ trợ: Backend hiện chưa có API upload logo.
+                          Not supported: Backend currently does not have a logo upload API.
                         </div>
                       </div>
                       <div className="col-12">
-                        <label className="form-label fw-bold">Địa chỉ trụ sở</label>
+                        <label className="form-label fw-bold">Headquarters Address</label>
                         <input className="form-control" value={form.centerAddress}
                           onChange={e => setField("centerAddress", e.target.value)} />
                       </div>
@@ -295,26 +295,26 @@ export default function CenterManagerSettingPage() {
                 <div className="tab-pane fade show active">
                   <div className="settings-section mb-4">
                     <div className="settings-section-header mb-3 pb-2 border-bottom">
-                      <h5 className="fw-bold text-dark">Cấu hình học vụ (Academic Settings)</h5>
+                      <h5 className="fw-bold text-dark">Academic Settings</h5>
                     </div>
                     <div className="row g-3">
                       <div className="col-md-6">
                         <label className="form-label fw-bold">Current Academic Year *</label>
                         <input className="form-control" value={form.academicYear}
-                          placeholder="VD: 2026 - 2027"
+                          placeholder="e.g. 2026 - 2027"
                           onChange={e => setField("academicYear", e.target.value)} />
                       </div>
                       <div className="col-md-6">
                         <label className="form-label fw-bold">Default Class Status *</label>
                         <select className="form-select" value={form.defaultClassStatus}
                           onChange={e => setField("defaultClassStatus", e.target.value)}>
-                          <option value="">Chọn trạng thái...</option>
+                          <option value="">Select status...</option>
                           <option value="active">Active</option>
                           <option value="inactive">Inactive</option>
                         </select>
                       </div>
                       <div className="col-12">
-                        <label className="form-label fw-bold">Khối lớp vận hành tại trung tâm</label>
+                        <label className="form-label fw-bold">Operating Grades at Center</label>
                         <div className="d-flex flex-wrap gap-4 p-3 bg-light rounded border">
                           {GRADE_OPTIONS.map(grade => (
                             <label className="form-check-label d-flex align-items-center gap-2" key={grade}>
@@ -336,31 +336,31 @@ export default function CenterManagerSettingPage() {
                 <div className="tab-pane fade show active">
                   <div className="settings-section mb-4">
                     <div className="settings-section-header mb-3 pb-2 border-bottom">
-                      <h5 className="fw-bold text-dark">Cấu hình học phí & Thu phí (Tuition Settings)</h5>
+                      <h5 className="fw-bold text-dark">Tuition &amp; Billing Settings</h5>
                     </div>
                     <div className="row g-3">
                       <div className="col-md-6">
                         <label className="form-label fw-bold">Tuition Cycle *</label>
                         <select className="form-select" value={form.tuitionCycle}
                           onChange={e => setField("tuitionCycle", e.target.value)}>
-                          <option value="">Chọn chu kỳ...</option>
-                          <option value="Monthly">Theo tháng (Monthly)</option>
-                          <option value="Quarterly">Theo quý (Quarterly)</option>
+                          <option value="">Select cycle...</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="Quarterly">Quarterly</option>
                         </select>
                       </div>
                       <div className="col-md-6">
-                        <label className="form-label fw-bold">Hạn chót đóng phí hàng tháng *</label>
+                        <label className="form-label fw-bold">Monthly Tuition Due Day *</label>
                         <select className="form-select" value={form.tuitionDueDay}
                           onChange={e => setField("tuitionDueDay", e.target.value)}>
-                          <option value="">Chọn ngày...</option>
+                          <option value="">Select day...</option>
                           {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
-                            <option key={day} value={day}>Ngày {day} hàng tháng</option>
+                            <option key={day} value={day}>Day {day} of each month</option>
                           ))}
                         </select>
                       </div>
                     </div>
                     <p className="small text-muted mt-3 mb-0">
-                      Lưu chu kỳ và hạn thu phí trong cấu hình; tự động phát hành hóa đơn theo chu kỳ chưa được triển khai.
+                      Saves cycle and due day in configuration; automated recurring invoice generation is not yet implemented.
                     </p>
                   </div>
                   {saveButton("tuition")}
@@ -371,16 +371,16 @@ export default function CenterManagerSettingPage() {
                 <div className="tab-pane fade show active">
                   <div className="settings-section mb-4">
                     <div className="settings-section-header mb-3 pb-2 border-bottom">
-                      <h5 className="fw-bold text-dark">Cảnh báo & Thông báo hệ thống</h5>
+                      <h5 className="fw-bold text-dark">System Alerts &amp; Notifications</h5>
                       <p className="text-muted small">
-                        Các lựa chọn được lưu vào database. Tính năng gửi tự động (scheduled jobs) chưa được kết nối với những lựa chọn này.
+                        Preferences are saved to database. Automated scheduled jobs are not yet connected to these options.
                       </p>
                     </div>
                     <div className="d-flex flex-column gap-3">
                       {([
-                        ["tuitionReminder", "tuitionReminderSwitch", "Nhắc học phí trước hạn"],
-                        ["absenceAlert", "absenceAlertSwitch", "Cảnh báo học sinh vắng mặt"],
-                        ["gradeNotification", "gradeNotificationSwitch", "Thông báo kết quả kiểm tra"],
+                        ["tuitionReminder", "tuitionReminderSwitch", "Tuition Due Reminder"],
+                        ["absenceAlert", "absenceAlertSwitch", "Student Absence Alert"],
+                        ["gradeNotification", "gradeNotificationSwitch", "Exam Grade Notification"],
                       ] as const).map(([key, id, label]) => (
                         <div className="form-check form-switch" key={key}>
                           <input className="form-check-input" type="checkbox" id={id}

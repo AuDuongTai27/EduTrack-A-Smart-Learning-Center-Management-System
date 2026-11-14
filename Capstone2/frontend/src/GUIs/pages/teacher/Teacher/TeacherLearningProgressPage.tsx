@@ -68,10 +68,10 @@ export default function TeacherLearningProgressPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Tiến Độ Học Tập & Chuyên Cần"
+        title="Learning Progress & Attendance"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "Tiến độ học tập" },
+          { label: "Learning Progress" },
         ]}
       />
 
@@ -97,8 +97,8 @@ export default function TeacherLearningProgressPage() {
                       <i className="bi bi-people-fill fs-4" />
                     </div>
                     <div>
-                      <small className="text-muted d-block">Sĩ số lớp</small>
-                      <h4 className="mb-0 fw-bold">{classProgress.totalStudents} học viên</h4>
+                      <small className="text-muted d-block">Class Size</small>
+                      <h4 className="mb-0 fw-bold">{classProgress.totalStudents} students</h4>
                     </div>
                   </div>
                 </div>
@@ -110,8 +110,8 @@ export default function TeacherLearningProgressPage() {
                       <i className="bi bi-calendar-check-fill fs-4" />
                     </div>
                     <div>
-                      <small className="text-muted d-block">Tiến độ buổi học</small>
-                      <h4 className="mb-0 fw-bold">{classProgress.completedSessions}/{classProgress.totalSessions} buổi</h4>
+                      <small className="text-muted d-block">Session Progress</small>
+                      <h4 className="mb-0 fw-bold">{classProgress.completedSessions}/{classProgress.totalSessions} sessions</h4>
                     </div>
                   </div>
                 </div>
@@ -123,7 +123,7 @@ export default function TeacherLearningProgressPage() {
                       <i className="bi bi-journal-text fs-4" />
                     </div>
                     <div>
-                      <small className="text-muted d-block">Bài tập gần nhất</small>
+                      <small className="text-muted d-block">Latest Assignment</small>
                       <h6 className="mb-0 fw-bold text-truncate" style={{ maxWidth: 380 }}>
                         {classProgress.latestAssignmentTitle}
                       </h6>
@@ -138,7 +138,7 @@ export default function TeacherLearningProgressPage() {
         {loadingClasses || loadingProgress ? (
           <div className="p-5 text-center">
             <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-            <p className="text-muted mb-0">Đang tải tiến độ học tập và chuyên cần của học viên...</p>
+            <p className="text-muted mb-0">Loading student learning progress and attendance...</p>
           </div>
         ) : (
           <>

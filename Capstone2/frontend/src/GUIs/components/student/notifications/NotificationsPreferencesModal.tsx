@@ -32,10 +32,10 @@ export function NotificationsPreferencesModal({
             <div className="modal-header payment-modal-header border-0">
               <div>
                 <h5 className="modal-title fw-bold" id="preferencesModalLabel">
-                  Cài đặt nhận thông báo
+                  Notification Preferences
                 </h5>
                 <p className="mb-0 text-white-50 small">
-                  Tùy chỉnh các loại thông báo bạn muốn nhận trên hệ thống
+                  Customize the types of notifications you want to receive on the system
                 </p>
               </div>
               <button
@@ -49,10 +49,10 @@ export function NotificationsPreferencesModal({
               <div className="d-flex align-items-center justify-content-between py-3 border-bottom">
                 <div>
                   <div className="fw-semibold text-dark">
-                    Nhắc nhở lịch học & Đổi phòng
+                    Schedule Reminders & Room Changes
                   </div>
                   <div className="text-muted small">
-                    Thông báo trước 30 phút khi có buổi học sắp diễn ra
+                    Notify 30 minutes before an upcoming session starts
                   </div>
                 </div>
                 <div className="form-check form-switch fs-5">
@@ -68,10 +68,10 @@ export function NotificationsPreferencesModal({
               <div className="d-flex align-items-center justify-content-between py-3 border-bottom">
                 <div>
                   <div className="fw-semibold text-dark">
-                    Hạn nộp bài tập & Tài liệu mới
+                    Assignment Deadlines & New Materials
                   </div>
                   <div className="text-muted small">
-                    Nhắc nhở khi giáo viên đăng bài hoặc bài tập sắp hết hạn
+                    Remind when teachers post lessons or assignments are due soon
                   </div>
                 </div>
                 <div className="form-check form-switch fs-5">
@@ -87,10 +87,10 @@ export function NotificationsPreferencesModal({
               <div className="d-flex align-items-center justify-content-between py-3 border-bottom">
                 <div>
                   <div className="fw-semibold text-dark">
-                    Nhắc hạn đóng học phí
+                    Tuition Payment Reminders
                   </div>
                   <div className="text-muted small">
-                    Nhận thông báo khi phát hành hóa đơn học phí mới
+                    Receive notifications when a new tuition invoice is issued
                   </div>
                 </div>
                 <div className="form-check form-switch fs-5">
@@ -106,10 +106,10 @@ export function NotificationsPreferencesModal({
               <div className="d-flex align-items-center justify-content-between py-3">
                 <div>
                   <div className="fw-semibold text-dark">
-                    Thông báo hệ thống & Bảo trì
+                    System Notifications & Maintenance
                   </div>
                   <div className="text-muted small">
-                    Cảnh báo bảo trì hoặc cập nhật tính năng mới
+                    Maintenance alerts or new feature updates
                   </div>
                 </div>
                 <div className="form-check form-switch fs-5">
@@ -128,7 +128,7 @@ export function NotificationsPreferencesModal({
                 className="btn btn-primary px-4 fw-semibold w-100"
                 onClick={onClose}
               >
-                Lưu tùy chọn
+                Save Preferences
               </button>
             </div>
           </div>

@@ -97,8 +97,8 @@ export default function AssignmentsSection({
       {
         id: 104,
         weekNumber: 4,
-        fileName: "EIKARY - Cây k phân & Định lý Viète.pdf",
-        description: "Tài liệu chuyên đề giải bài toán đa thức và cây phân cấp k-phân",
+        fileName: "EIKARY - K-ary Tree & Vieta Theorem.pdf",
+        description: "Specialized material on polynomial problems and k-ary hierarchical trees",
         type: "PDF",
         uploadDate: "20/09/2026",
         sizeMb: 1.8,
@@ -113,22 +113,22 @@ export default function AssignmentsSection({
       {
         weekNumber: 1,
         title: "Introduction to Quadratic Equations & Systems",
-        description: "Nền tảng phương trình bậc hai và phương pháp phân tích nghiệm",
+        description: "Foundations of quadratic equations and root analysis methods",
       },
       {
         weekNumber: 2,
         title: "Connectivity & Vieta Theorem Applications",
-        description: "Định lý Viète, biểu thức đối xứng giữa các nghiệm của phương trình",
+        description: "Vieta's theorem, symmetric expressions among roots of equations",
       },
       {
         weekNumber: 3,
         title: "Advanced Systems of Equations",
-        description: "Hệ phương trình bậc cao và các phương pháp giải nâng cao",
+        description: "Advanced systems of equations and advanced solution methods",
       },
       {
         weekNumber: 4,
         title: "Plane Trigonometry & Midterm Review",
-        description: "Hệ thức lượng giác, ôn tập tổng hợp và bài tập đánh giá",
+        description: "Trigonometric identities, comprehensive review, and assessment exercises",
       },
     ];
 
@@ -188,7 +188,7 @@ export default function AssignmentsSection({
   };
 
   const handleDelete = async (asgId: number, title: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa bài tập "${title}"? Thao tác này không thể hoàn tác.`)) {
+    if (!window.confirm(`Are you sure you want to delete assignment "${title}"? This action cannot be undone.`)) {
       return;
     }
 
@@ -199,7 +199,7 @@ export default function AssignmentsSection({
         onAssignmentDeleted(asgId);
       }
     } catch (err: any) {
-      alert(err?.message || "Lỗi khi xóa bài tập.");
+      alert(err?.message || "Error deleting assignment.");
     } finally {
       setDeletingId(null);
     }
@@ -208,16 +208,16 @@ export default function AssignmentsSection({
   const handleAddMaterialSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMaterialTitle.trim()) {
-      alert("Vui lòng nhập tên tài liệu");
+      alert("Please enter the material title.");
       return;
     }
     const newMat: WeekMaterialItem = {
       id: Date.now(),
       weekNumber: targetWeek,
       fileName: newMaterialTitle.trim(),
-      description: newMaterialDesc.trim() || `Tài liệu bài giảng tuần ${targetWeek}`,
+      description: newMaterialDesc.trim() || `Lecture material for Week ${targetWeek}`,
       type: newMaterialType,
-      uploadDate: new Date().toLocaleDateString("vi-VN"),
+      uploadDate: new Date().toLocaleDateString("en-US"),
       sizeMb: 1.5,
       fileUrl: "/assets/docs/assignment_default.pdf",
     };
@@ -239,9 +239,9 @@ export default function AssignmentsSection({
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-collection-play-fill text-primary fs-5" />
           <div>
-            <h4 className="class-list-title mb-0">Nội Dung Khóa Học &amp; Bài Tập Theo Tuần</h4>
+            <h4 className="class-list-title mb-0">Course Content &amp; Weekly Assignments</h4>
             <span className="text-muted small">
-              Quản lý tài liệu bài giảng, tài nguyên học tập và bài tập theo từng tuần (Content Units)
+              Manage lecture materials, learning resources, and assignments by week (Content Units)
             </span>
           </div>
         </div>
@@ -253,14 +253,14 @@ export default function AssignmentsSection({
             style={{ height: "36px", fontSize: "13.5px", fontWeight: 500, padding: "0 14px", lineHeight: 1 }}
             onClick={() => setShowUploadModal(true)}
           >
-            <i className="bi bi-cloud-upload" /> Thêm tài liệu
+            <i className="bi bi-cloud-upload" /> Add Material
           </button>
           <Link
             to={`/teacher/classes/${classId}/assignment/new-assignment`}
             className="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-1.5 shadow-sm text-decoration-none"
             style={{ height: "36px", fontSize: "13.5px", fontWeight: 500, padding: "0 14px", lineHeight: 1 }}
           >
-            <i className="bi bi-plus-lg" /> Thêm bài tập mới
+            <i className="bi bi-plus-lg" /> Add New Assignment
           </Link>
         </div>
       </div>
@@ -291,7 +291,7 @@ export default function AssignmentsSection({
 
         <div className="d-flex align-items-center gap-2 text-muted small">
           <span>
-            Tổng cộng: <strong>{totalMaterials}</strong> tài liệu &middot; <strong>{totalAssignments}</strong> bài tập
+            Total: <strong>{totalMaterials}</strong> materials &middot; <strong>{totalAssignments}</strong> assignments
           </span>
         </div>
       </div>
@@ -331,11 +331,11 @@ export default function AssignmentsSection({
                 <div className="d-flex align-items-center gap-2 flex-shrink-0">
                   <span className="badge bg-light text-secondary border px-2 py-1 small">
                     <i className="bi bi-file-earmark-text me-1 text-danger" />
-                    {week.materials.length} tài liệu
+                    {week.materials.length} materials
                   </span>
                   <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
                     <i className="bi bi-journal-check me-1" />
-                    {week.assignments.length} bài tập
+                    {week.assignments.length} assignments
                   </span>
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function AssignmentsSection({
                   <div className="mb-4">
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                       <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
-                        <i className="bi bi-folder2-open text-primary" /> Tài liệu &amp; Bài giảng trong tuần
+                        <i className="bi bi-folder2-open text-primary" /> Weekly Lecture Materials &amp; Resources
                       </span>
                       <button
                         type="button"
@@ -358,7 +358,7 @@ export default function AssignmentsSection({
                           setShowUploadModal(true);
                         }}
                       >
-                        <i className="bi bi-plus-circle" /> Thêm file
+                        <i className="bi bi-plus-circle" /> Add File
                       </button>
                     </div>
 
@@ -407,12 +407,12 @@ export default function AssignmentsSection({
                                 onClick={(e) => {
                                   if (!mat.fileUrl) {
                                     e.preventDefault();
-                                    alert(`Đang tải xuống tài liệu: ${mat.fileName}`);
+                                    alert(`Downloading document: ${mat.fileName}`);
                                   }
                                 }}
                                 className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center"
                                 style={{ height: "32px", width: "32px", padding: 0 }}
-                                title="Tải xuống tài liệu"
+                                title="Download material"
                               >
                                 <i className="bi bi-download" />
                               </a>
@@ -422,7 +422,7 @@ export default function AssignmentsSection({
                       </div>
                     ) : (
                       <div className="p-3 text-center text-muted small bg-light-subtle rounded-2 border border-dashed">
-                        Chưa có tài liệu đính kèm cho tuần này. Nhấn <strong>"Thêm file"</strong> để đính kèm bài giảng.
+                        No materials attached for this week. Click <strong>"Add File"</strong> to attach lecture materials.
                       </div>
                     )}
                   </div>
@@ -431,13 +431,13 @@ export default function AssignmentsSection({
                   <div>
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                       <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
-                        <i className="bi bi-journal-text text-primary" /> Bài tập &amp; Đề kiểm tra
+                        <i className="bi bi-journal-text text-primary" /> Assignments &amp; Tests
                       </span>
                       <Link
                         to={`/teacher/classes/${classId}/assignment/new-assignment`}
                         className="btn btn-link btn-sm text-decoration-none p-0 text-primary small d-inline-flex align-items-center gap-1"
                       >
-                        <i className="bi bi-plus-circle" /> Thêm bài tập
+                        <i className="bi bi-plus-circle" /> Add Assignment
                       </Link>
                     </div>
 
@@ -446,12 +446,12 @@ export default function AssignmentsSection({
                         <table className="table custom-table align-middle mb-0">
                           <thead>
                             <tr>
-                              <th style={{ width: "32%" }}>Tiêu đề bài tập</th>
-                              <th style={{ width: "13%" }}>Ngày giao</th>
-                              <th style={{ width: "20%" }}>Hạn nộp</th>
-                              <th style={{ width: "20%" }}>Nộp bài &amp; Chấm điểm</th>
-                              <th style={{ width: "10%" }}>Điểm tối đa</th>
-                              <th className="text-end" style={{ width: "5%" }}>Thao tác</th>
+                              <th style={{ width: "32%" }}>Assignment Title</th>
+                              <th style={{ width: "13%" }}>Assigned Date</th>
+                              <th style={{ width: "20%" }}>Deadline</th>
+                              <th style={{ width: "20%" }}>Submissions &amp; Grading</th>
+                              <th style={{ width: "10%" }}>Max Score</th>
+                              <th className="text-end" style={{ width: "5%" }}>Action</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -511,15 +511,15 @@ export default function AssignmentsSection({
                                       <span>
                                         {asg.dueDateFormatted ||
                                           (asg.dueDate
-                                            ? new Date(asg.dueDate).toLocaleDateString("vi-VN")
-                                            : "Không có hạn")}
+                                            ? new Date(asg.dueDate).toLocaleDateString("en-US")
+                                            : "No deadline")}
                                       </span>
                                       <span
                                         className={`badge ${
                                           isOverdue ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success"
                                         } fw-normal`}
                                       >
-                                        {isOverdue ? "Quá hạn" : "Đang mở"}
+                                        {isOverdue ? "Overdue" : "Open"}
                                       </span>
                                     </div>
                                   </td>
@@ -534,7 +534,7 @@ export default function AssignmentsSection({
                                             borderColor: "#dee2e6",
                                           }}
                                         >
-                                          Chờ chấm ({gradedCount}/{submissionCount})
+                                          Pending grading ({gradedCount}/{submissionCount})
                                         </span>
                                       ) : (
                                         <span
@@ -544,18 +544,18 @@ export default function AssignmentsSection({
                                               : "bg-warning-subtle text-warning"
                                           } fw-medium px-2 py-1`}
                                         >
-                                          {isGradedDone ? "Đã chấm" : "Chờ chấm"} ({gradedCount}/{submissionCount})
+                                          {isGradedDone ? "Graded" : "Pending grading"} ({gradedCount}/{submissionCount})
                                         </span>
                                       )
                                     ) : (
                                       <span className="badge bg-secondary-subtle text-secondary fw-normal">
-                                        Chưa có bài nộp
+                                        No submissions
                                       </span>
                                     )}
                                   </td>
                                   <td style={rowBg ? { backgroundColor: "inherit" } : undefined}>
                                     <span className="fw-bold text-dark">{asg.maxScore ?? "10.0"}</span>{" "}
-                                    <small className="text-muted">điểm</small>
+                                    <small className="text-muted">pts</small>
                                   </td>
                                   <td
                                     className="text-end"
@@ -566,7 +566,7 @@ export default function AssignmentsSection({
                                         to={`/teacher/classes/${classId}/assignment/${asg.assignmentId}`}
                                         className="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center"
                                         style={{ height: "32px", width: "32px", padding: 0 }}
-                                        title="Chấm bài"
+                                        title="Grade"
                                       >
                                         <i className="bi bi-eye" />
                                       </Link>
@@ -580,7 +580,7 @@ export default function AssignmentsSection({
                       </div>
                     ) : (
                       <div className="p-3 text-center text-muted small bg-light-subtle rounded-2 border border-dashed">
-                        Chưa có bài tập nào được giao cho tuần này. Nhấn <strong>"Thêm bài tập"</strong> để tạo bài tập mới.
+                        No assignments assigned for this week yet. Click <strong>"Add Assignment"</strong> to create a new assignment.
                       </div>
                     )}
                   </div>
@@ -609,8 +609,8 @@ export default function AssignmentsSection({
                     <i className="bi bi-cloud-arrow-up-fill fs-5" />
                   </div>
                   <div>
-                    <h5 className="modal-title fw-bold text-dark mb-0">Thêm Tài Liệu Tuần Học</h5>
-                    <span className="text-muted small">Đính kèm slide bài giảng hoặc tài liệu tham khảo</span>
+                    <h5 className="modal-title fw-bold text-dark mb-0">Add Weekly Study Material</h5>
+                    <span className="text-muted small">Attach lecture slides or reference materials</span>
                   </div>
                 </div>
                 <button
@@ -623,7 +623,7 @@ export default function AssignmentsSection({
               <form onSubmit={handleAddMaterialSubmit}>
                 <div className="modal-body px-4 py-3">
                   <div className="mb-3">
-                    <label className="form-label small fw-bold text-secondary">Chọn tuần học</label>
+                    <label className="form-label small fw-bold text-secondary">Select Week</label>
                     <select
                       className="form-select"
                       value={targetWeek}
@@ -638,11 +638,11 @@ export default function AssignmentsSection({
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label small fw-bold text-secondary">Tên tài liệu / Tiêu đề file</label>
+                    <label className="form-label small fw-bold text-secondary">Material Title / File Name</label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="VD: Slide Bài Giảng Tuần 1.pdf"
+                      placeholder="e.g. Week 1 Lecture Slides.pdf"
                       value={newMaterialTitle}
                       onChange={(e) => setNewMaterialTitle(e.target.value)}
                       required
@@ -650,7 +650,7 @@ export default function AssignmentsSection({
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label small fw-bold text-secondary">Định dạng file</label>
+                    <label className="form-label small fw-bold text-secondary">File Format</label>
                     <select
                       className="form-select"
                       value={newMaterialType}
@@ -659,16 +659,16 @@ export default function AssignmentsSection({
                       <option value="PDF">PDF Document (.pdf)</option>
                       <option value="DOC">Word Document (.docx)</option>
                       <option value="PPT">PowerPoint Presentation (.pptx)</option>
-                      <option value="IMG">Hình ảnh / Sơ đồ (.png, .jpg)</option>
+                      <option value="IMG">Images / Diagrams (.png, .jpg)</option>
                     </select>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label small fw-bold text-secondary">Mô tả tóm tắt nội dung</label>
+                    <label className="form-label small fw-bold text-secondary">Brief Description</label>
                     <textarea
                       className="form-control"
                       rows={2}
-                      placeholder="Ghi chú nội dung trọng tâm của tài liệu..."
+                      placeholder="Notes on key topics covered in this material..."
                       value={newMaterialDesc}
                       onChange={(e) => setNewMaterialDesc(e.target.value)}
                     />
@@ -682,14 +682,14 @@ export default function AssignmentsSection({
                     style={{ height: "34px", fontSize: "13.5px" }}
                     onClick={() => setShowUploadModal(false)}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     className="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-1"
                     style={{ height: "34px", fontSize: "13.5px" }}
                   >
-                    <i className="bi bi-check-lg" /> Lưu tài liệu
+                    <i className="bi bi-check-lg" /> Save Material
                   </button>
                 </div>
               </form>

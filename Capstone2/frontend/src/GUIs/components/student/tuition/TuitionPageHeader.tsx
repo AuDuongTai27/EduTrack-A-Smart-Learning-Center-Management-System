@@ -4,15 +4,15 @@ import { StudentPageHeader } from '../common/StudentPageHeader';
 export function TuitionPageHeader() {
   return (
     <StudentPageHeader
-      title="Học phí và Thanh toán"
+      title="Tuition & Payments"
       subtitle={
         <>
-          Kỳ học <span className="fw-semibold text-dark">Tháng 8 / 2026</span> · Xem chi tiết chi phí và lịch sử đóng học phí của bạn.
+          Billing period <span className="fw-semibold text-dark">August 2026</span> · View fee details and your payment history.
         </>
       }
       breadcrumbs={[
-        { label: 'Trang chủ', href: '/student/dashboard' },
-        { label: 'Học phí và Thanh toán' },
+        { label: 'Home', href: '/student/dashboard' },
+        { label: 'Tuition & Payments' },
       ]}
     />
   );

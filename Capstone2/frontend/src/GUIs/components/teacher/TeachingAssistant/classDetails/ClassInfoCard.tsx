@@ -8,7 +8,7 @@ export interface ClassInfoCardProps {
 
 export default function ClassInfoCard({
   classInfo,
-  teacherName = "ThS. Hoàng Quốc Việt",
+  teacherName = "MSc. Hoàng Quốc Việt",
   taName = "Âu Dương Tài",
 }: ClassInfoCardProps) {
   return (

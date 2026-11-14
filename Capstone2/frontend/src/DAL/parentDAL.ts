@@ -119,13 +119,13 @@ export const parentDAL = {
         const scheduleText = schedules
           .map((s) => {
             const dayMap: Record<string, string> = {
-              monday: 'Thứ 2',
-              tuesday: 'Thứ 3',
-              wednesday: 'Thứ 4',
-              thursday: 'Thứ 5',
-              friday: 'Thứ 6',
-              saturday: 'Thứ 7',
-              sunday: 'Chủ nhật',
+              monday: 'Mon',
+              tuesday: 'Tue',
+              wednesday: 'Wed',
+              thursday: 'Thu',
+              friday: 'Fri',
+              saturday: 'Sat',
+              sunday: 'Sun',
             };
             return `${dayMap[s.dayOfWeek.toLowerCase()] || s.dayOfWeek} (${s.startTime.slice(0, 5)} - ${s.endTime.slice(0, 5)})`;
           })
@@ -138,32 +138,32 @@ export const parentDAL = {
         );
         const attendedLessons = attendances.filter((a) => a.status === 'present').length;
 
-        let badge = 'Toán';
+        let badge = 'Math';
         let subjectClass = 'subject-toan';
         if (subject?.subjectCode === 'PHYS') {
-          badge = 'Vật Lý';
+          badge = 'Physics';
           subjectClass = 'subject-vat-ly';
         } else if (subject?.subjectCode === 'CHEM') {
-          badge = 'Hóa Học';
+          badge = 'Chemistry';
           subjectClass = 'subject-hoa-hoc';
         } else if (subject?.subjectCode === 'ENG') {
-          badge = 'Tiếng Anh';
+          badge = 'English';
           subjectClass = 'subject-tieng-anh';
         }
 
         classItems.push({
           id: cls.classId,
           name: cls.className,
-          subject: subject ? subject.subjectName : 'Chung',
+          subject: subject ? subject.subjectName : 'General',
           subjectClass,
           badge,
-          teacher: teacher ? teacher.fullName : 'Chưa phân công',
+          teacher: teacher ? teacher.fullName : 'Unassigned',
           teacherInitials,
-          schedule: scheduleText || 'Chưa xếp lịch',
-          room: cls.room || 'Chưa có phòng',
+          schedule: scheduleText || 'Unscheduled',
+          room: cls.room || 'No room assigned',
           attendedLessons,
           totalLessons: sessions.length || 10,
-          notes: 'Điểm danh đầy đủ, tương tác tích cực trên lớp.',
+          notes: 'Full attendance, actively participates in class.',
         });
       }
 
@@ -202,8 +202,8 @@ export const parentDAL = {
         code: studentUser.userCode,
         name: studentUser.fullName,
         avatar: avatarInitials,
-        grade: 'Lớp 9',
-        school: 'THCS Lê Quý Đôn',
+        grade: 'Grade 9',
+        school: 'Le Quy Don Secondary School',
         dob: studentUser.dateOfBirth ? studentUser.dateOfBirth.slice(0, 10) : '2010-02-14',
         phone: studentUser.phone ?? undefined,
         classesCount: classItems.length,
@@ -243,7 +243,7 @@ export const parentDAL = {
   ): Promise<{ success: boolean; payment: Payment; invoice: TuitionInvoice }> {
     const invoice = MOCK_TUITION_INVOICES.find((i) => i.invoiceId === invoiceId);
     if (!invoice) {
-      throw new Error(`Không tìm thấy hóa đơn #${invoiceId}`);
+      throw new Error(`Invoice #${invoiceId} not found`);
     }
 
     invoice.status = 'paid';
@@ -258,7 +258,7 @@ export const parentDAL = {
       paidAt: new Date().toISOString(),
       paidByUserId: parentId,
       recordedBy: 2, // Admin staff tự động xác nhận
-      note: `Thanh toán online qua ${paymentMethod.toUpperCase()} bởi phụ huynh ID ${parentId}`,
+      note: `Online payment via ${paymentMethod.toUpperCase()} by parent ID ${parentId}`,
     };
 
     MOCK_PAYMENTS.push(newPayment);
@@ -382,40 +382,40 @@ export function mapClassDtoToChildClassItem(
   dto: ClassDto,
   fallbackItem?: ChildClassItem
 ): ChildClassItem {
-  let badge = 'Toán';
+  let badge = 'Math';
   let subjectClass = 'subject-toan';
   const code = (dto.subjectCode || '').toUpperCase();
 
   if (code.includes('PHYS') || code.includes('VAT') || code.includes('LY')) {
-    badge = 'Vật Lý';
+    badge = 'Physics';
     subjectClass = 'subject-vat-ly';
   } else if (code.includes('CHEM') || code.includes('HOA')) {
-    badge = 'Hóa Học';
+    badge = 'Chemistry';
     subjectClass = 'subject-hoa-hoc';
   } else if (code.includes('ENG') || code.includes('ANH')) {
-    badge = 'Tiếng Anh';
+    badge = 'English';
     subjectClass = 'subject-tieng-anh';
   } else if (code.includes('LIT') || code.includes('VAN')) {
-    badge = 'Ngữ Văn';
+    badge = 'Literature';
     subjectClass = 'subject-ngu-van';
   } else if (code.includes('BIO') || code.includes('SINH')) {
-    badge = 'Sinh Học';
+    badge = 'Biology';
     subjectClass = 'subject-sinh-hoc';
   }
 
   return {
     id: dto.classId,
     name: dto.className,
-    subject: dto.subjectName || fallbackItem?.subject || 'Chung',
+    subject: dto.subjectName || fallbackItem?.subject || 'General',
     subjectClass,
     badge,
-    teacher: fallbackItem?.teacher || 'Giáo viên trung tâm',
-    teacherInitials: fallbackItem?.teacherInitials || 'GV',
-    schedule: fallbackItem?.schedule || 'Lịch học cập nhật theo khóa',
-    room: dto.room || fallbackItem?.room || 'Phòng học trung tâm',
+    teacher: fallbackItem?.teacher || 'Center Teacher',
+    teacherInitials: fallbackItem?.teacherInitials || 'TC',
+    schedule: fallbackItem?.schedule || 'Schedule updated by course',
+    room: dto.room || fallbackItem?.room || 'Center Classroom',
     attendedLessons: fallbackItem?.attendedLessons || 6,
     totalLessons: fallbackItem?.totalLessons || 10,
-    notes: fallbackItem?.notes || 'Điểm danh đầy đủ, tương tác tích cực trên lớp.',
+    notes: fallbackItem?.notes || 'Full attendance, actively participates in class.',
   };
 }
 

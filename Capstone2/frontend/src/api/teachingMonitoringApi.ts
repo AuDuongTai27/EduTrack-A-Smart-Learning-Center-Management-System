@@ -42,12 +42,12 @@ async function getAll<T>(endpoint: string): Promise<T[]> {
   });
 
   if (!response.ok) {
-    throw new Error(`Không tải được ${endpoint} (HTTP ${response.status}).`);
+    throw new Error(`Failed to load ${endpoint} (HTTP ${response.status}).`);
   }
 
   const data: unknown = await response.json();
   if (!Array.isArray(data)) {
-    throw new Error(`API ${endpoint} trả về dữ liệu không phải danh sách.`);
+    throw new Error(`API ${endpoint} returned non-array data.`);
   }
   return data as T[];
 }

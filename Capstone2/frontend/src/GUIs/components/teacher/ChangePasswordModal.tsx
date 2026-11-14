@@ -39,23 +39,23 @@ export function ChangePasswordModal({
     setError(null);
 
     if (!currentPassword.trim()) {
-      setError("Vui lòng nhập mật khẩu hiện tại.");
+      setError("Please enter your current password.");
       return;
     }
     if (!newPassword.trim()) {
-      setError("Vui lòng nhập mật khẩu mới.");
+      setError("Please enter a new password.");
       return;
     }
     if (newPassword.length < 6) {
-      setError("Mật khẩu mới phải có ít nhất 6 ký tự.");
+      setError("New password must be at least 6 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Xác nhận mật khẩu mới không khớp với mật khẩu mới.");
+      setError("New password confirmation does not match the new password.");
       return;
     }
     if (currentPassword === newPassword) {
-      setError("Mật khẩu mới không được trùng với mật khẩu hiện tại.");
+      setError("New password cannot be the same as the current password.");
       return;
     }
 
@@ -66,10 +66,10 @@ export function ChangePasswordModal({
         newPassword: newPassword.trim(),
         confirmPassword: confirmPassword.trim(),
       });
-      onSuccess(res?.message || "Đổi mật khẩu thành công!");
+      onSuccess(res?.message || "Password changed successfully!");
       handleClose();
     } catch (err: any) {
-      setError(err?.message || "Đổi mật khẩu thất bại. Vui lòng thử lại.");
+      setError(err?.message || "Failed to change password. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export function ChangePasswordModal({
           <div className="modal-header bg-light border-bottom py-3">
             <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
               <i className="bi bi-shield-lock-fill text-primary" />
-              Đổi mật khẩu tài khoản
+              Change Account Password
             </h5>
             <button
               type="button"
@@ -100,7 +100,7 @@ export function ChangePasswordModal({
           <form onSubmit={handleSubmit}>
             <div className="modal-body p-4">
               <p className="text-muted small mb-3">
-                Để bảo vệ an toàn tài khoản giảng dạy của bạn, vui lòng không chia sẻ mật khẩu cho người khác.
+                To protect your teaching account security, please do not share your password with others.
               </p>
 
               {error && (
@@ -113,7 +113,7 @@ export function ChangePasswordModal({
               {/* Current Password */}
               <div className="mb-3">
                 <label className="form-label small fw-bold text-dark">
-                  Mật khẩu hiện tại <span className="text-danger">*</span>
+                  Current Password <span className="text-danger">*</span>
                 </label>
                 <div className="input-group">
                   <span className="input-group-text bg-light border-end-0">
@@ -122,7 +122,7 @@ export function ChangePasswordModal({
                   <input
                     type={showCurrent ? "text" : "password"}
                     className="form-control border-start-0 border-end-0 ps-0"
-                    placeholder="Nhập mật khẩu đang dùng"
+                    placeholder="Enter current password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
@@ -142,7 +142,7 @@ export function ChangePasswordModal({
               {/* New Password */}
               <div className="mb-3">
                 <label className="form-label small fw-bold text-dark">
-                  Mật khẩu mới <span className="text-danger">*</span>
+                  New Password <span className="text-danger">*</span>
                 </label>
                 <div className="input-group">
                   <span className="input-group-text bg-light border-end-0">
@@ -151,7 +151,7 @@ export function ChangePasswordModal({
                   <input
                     type={showNew ? "text" : "password"}
                     className="form-control border-start-0 border-end-0 ps-0"
-                    placeholder="Tối thiểu 6 ký tự"
+                    placeholder="Minimum 6 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
@@ -172,7 +172,7 @@ export function ChangePasswordModal({
               {/* Confirm Password */}
               <div className="mb-2">
                 <label className="form-label small fw-bold text-dark">
-                  Xác nhận mật khẩu mới <span className="text-danger">*</span>
+                  Confirm New Password <span className="text-danger">*</span>
                 </label>
                 <div className="input-group">
                   <span className="input-group-text bg-light border-end-0">
@@ -181,7 +181,7 @@ export function ChangePasswordModal({
                   <input
                     type={showConfirm ? "text" : "password"}
                     className="form-control border-start-0 border-end-0 ps-0"
-                    placeholder="Nhập lại mật khẩu mới"
+                    placeholder="Re-enter new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -206,7 +206,7 @@ export function ChangePasswordModal({
                 onClick={handleClose}
                 disabled={loading}
               >
-                Hủy bỏ
+                Cancel
               </button>
               <button
                 type="submit"
@@ -216,12 +216,12 @@ export function ChangePasswordModal({
                 {loading ? (
                   <>
                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                    <span>Đang cập nhật...</span>
+                    <span>Updating...</span>
                   </>
                 ) : (
                   <>
                     <i className="bi bi-check-lg" />
-                    <span>Lưu mật khẩu mới</span>
+                    <span>Save New Password</span>
                   </>
                 )}
               </button>

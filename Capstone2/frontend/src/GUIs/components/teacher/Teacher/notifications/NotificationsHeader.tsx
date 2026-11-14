@@ -24,12 +24,12 @@ export default function NotificationsHeader({
     <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
       <div>
         <h4 className="class-list-title mb-1 d-flex align-items-center gap-2">
-          Thông Báo
+          Notifications
           {unreadCount > 0 && (
-            <span className="badge bg-danger rounded-pill fs-6">{unreadCount} mới</span>
+            <span className="badge bg-danger rounded-pill fs-6">{unreadCount} new</span>
           )}
         </h4>
-        <small className="text-muted">Xem và quản lý các thông báo công việc từ trung tâm EduTrack</small>
+        <small className="text-muted">View and manage work notifications from EduTrack Center</small>
       </div>
 
       <div className="d-flex align-items-center gap-2 flex-wrap position-relative">
@@ -47,10 +47,10 @@ export default function NotificationsHeader({
             <i className="bi bi-funnel" />
             <span>
               {filterStatus === "all"
-                ? "Tất cả"
+                ? "All"
                 : filterStatus === "unread"
-                ? "Chưa đọc"
-                : "Đã đọc"}
+                ? "Unread"
+                : "Read"}
             </span>
             <i className="bi bi-chevron-down ms-1" />
           </button>
@@ -60,7 +60,7 @@ export default function NotificationsHeader({
               className="dropdown-menu dropdown-menu-end show p-3 shadow border-0"
               style={{ minWidth: 200, zIndex: 1050, position: "absolute", right: 0 }}
             >
-              <label className="form-label small fw-bold mb-2">Trạng thái đọc:</label>
+              <label className="form-label small fw-bold mb-2">Read status:</label>
               <div className="d-flex flex-column gap-1">
                 <button
                   type="button"
@@ -70,7 +70,7 @@ export default function NotificationsHeader({
                     setFilterOpen(false);
                   }}
                 >
-                  Tất cả thông báo
+                  All notifications
                 </button>
                 <button
                   type="button"
@@ -80,7 +80,7 @@ export default function NotificationsHeader({
                     setFilterOpen(false);
                   }}
                 >
-                  Chưa đọc
+                  Unread
                 </button>
                 <button
                   type="button"
@@ -90,7 +90,7 @@ export default function NotificationsHeader({
                     setFilterOpen(false);
                   }}
                 >
-                  Đã đọc
+                  Read
                 </button>
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function NotificationsHeader({
             }}
           >
             <i className="bi bi-arrow-down-up" />
-            <span>{sortOrder === "desc" ? "Mới nhất" : "Cũ nhất"}</span>
+            <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
             <i className="bi bi-chevron-down ms-1" />
           </button>
 
@@ -127,7 +127,7 @@ export default function NotificationsHeader({
                     setSortOpen(false);
                   }}
                 >
-                  <i className="bi bi-arrow-down me-1" /> Mới nhất trước
+                  <i className="bi bi-arrow-down me-1" /> Newest first
                 </button>
               </li>
               <li>
@@ -139,7 +139,7 @@ export default function NotificationsHeader({
                     setSortOpen(false);
                   }}
                 >
-                  <i className="bi bi-arrow-up me-1" /> Cũ nhất trước
+                  <i className="bi bi-arrow-up me-1" /> Oldest first
                 </button>
               </li>
             </ul>
@@ -154,7 +154,7 @@ export default function NotificationsHeader({
           onClick={onMarkAllAsRead}
         >
           <i className="bi bi-check2-all" />
-          <span>Đánh dấu tất cả đã đọc</span>
+          <span>Mark all as read</span>
         </button>
       </div>
     </div>

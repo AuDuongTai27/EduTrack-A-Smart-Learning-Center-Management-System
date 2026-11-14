@@ -19,9 +19,9 @@ export function NotificationsList({
         <div className="notif-empty-icon-box">
           <i className="bi bi-bell-slash"></i>
         </div>
-        <h3 className="notif-empty-title">Không có thông báo nào</h3>
+        <h3 className="notif-empty-title">No notifications</h3>
         <p className="notif-empty-desc">
-          Bạn đã cập nhật hết mọi thông tin hoặc thử chọn bộ lọc khác.
+          You are all caught up, or try selecting a different filter.
         </p>
       </div>
     );
@@ -44,7 +44,7 @@ export function NotificationsList({
       </div>
 
       <p className="text-center text-muted small mt-4" id="notifFooterNote">
-        Hiển thị {notifications.length} thông báo &middot; Nhấn vào thông báo để đánh dấu đã đọc
+        Showing {notifications.length} notifications &middot; Click on a notification to mark as read
       </p>
     </>
   );

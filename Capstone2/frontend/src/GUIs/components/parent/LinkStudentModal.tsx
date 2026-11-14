@@ -47,7 +47,7 @@ export function LinkStudentModal({
     if (!studentCode.trim()) {
       setAlert({
         type: 'danger',
-        message: 'Vui lòng nhập Mã học sinh (VD: HS-2026-003).',
+        message: 'Please enter Student Code (e.g., HS-2026-003).',
       });
       return;
     }
@@ -78,7 +78,7 @@ export function LinkStudentModal({
     if (!reqFullName.trim() || !reqDob.trim()) {
       setAlert({
         type: 'danger',
-        message: 'Vui lòng nhập đầy đủ Họ tên và Ngày sinh của học sinh.',
+        message: 'Please enter both Student Full Name and Date of Birth.',
       });
       return;
     }
@@ -124,10 +124,10 @@ export function LinkStudentModal({
               </div>
               <div>
                 <h5 className="modal-title fw-bold mb-0 text-dark">
-                  Liên kết hồ sơ học sinh
+                  Link Student Profile
                 </h5>
                 <small className="text-muted">
-                  Chọn phương thức kết nối thuận tiện nhất cho bạn
+                  Choose the most convenient connection method for you
                 </small>
               </div>
             </div>
@@ -156,7 +156,7 @@ export function LinkStudentModal({
                   }}
                 >
                   <i className="bi bi-upc-scan fs-5"></i>
-                  <span>Cách 1: Nhập Mã học sinh (Tức thì)</span>
+                  <span>Method 1: Enter Student Code (Instant)</span>
                 </button>
               </li>
               <li className="nav-item">
@@ -173,7 +173,7 @@ export function LinkStudentModal({
                   }}
                 >
                   <i className="bi bi-headset fs-5"></i>
-                  <span>Cách 2: Gửi yêu cầu tới Trung tâm</span>
+                  <span>Method 2: Send Request to Center</span>
                 </button>
               </li>
             </ul>
@@ -197,8 +197,8 @@ export function LinkStudentModal({
                   <div>{alert.message}</div>
                   {alert.ticketId && (
                     <small className="text-muted d-block mt-1">
-                      Mã phiếu hỗ trợ: <strong>#{alert.ticketId}</strong>. Bạn
-                      có thể tra cứu tình trạng phiếu với Giáo vụ.
+                      Support ticket ID: <strong>#{alert.ticketId}</strong>. You
+                      can check ticket status with Admin Staff.
                     </small>
                   )}
                 </div>
@@ -211,16 +211,16 @@ export function LinkStudentModal({
                 <div className="bg-light p-3 rounded-3 mb-3 border">
                   <div className="d-flex align-items-center gap-2 text-primary fw-semibold mb-1">
                     <i className="bi bi-lightning-charge-fill"></i>
-                    <span>Liên kết tức thì trong 3 giây</span>
+                    <span>Instant link in 3 seconds</span>
                   </div>
                   <p className="small text-muted mb-0">
-                    Phù hợp khi bạn đã có Mã học sinh được in trên <strong>Thẻ học viên</strong>, hóa đơn học phí hoặc phiếu báo điểm từ EduTrack.
+                    Suitable if you already have the Student Code printed on the <strong>Student Card</strong>, tuition invoice, or report card from EduTrack.
                   </p>
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label fw-semibold text-secondary">
-                    Mã học sinh <span className="text-danger">*</span>
+                    Student Code <span className="text-danger">*</span>
                   </label>
                   <div className="input-group">
                     <span className="input-group-text bg-white">
@@ -229,21 +229,21 @@ export function LinkStudentModal({
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="VD: HS-2026-003 hoặc HS2026001"
+                      placeholder="e.g., HS-2026-003 or HS2026001"
                       value={studentCode}
                       onChange={(e) => setStudentCode(e.target.value)}
                       required
                     />
                   </div>
                   <small className="text-muted">
-                    Gợi ý thử nghiệm: Gõ <code>HS-2026-003</code> hoặc bất kỳ mã học sinh nào.
+                    Test suggestion: Type <code>HS-2026-003</code> or any student code.
                   </small>
                 </div>
 
                 <div className="row g-3 mb-3">
                   <div className="col-md-6">
                     <label className="form-label fw-semibold text-secondary">
-                      Ngày sinh học sinh
+                      Student Date of Birth
                     </label>
                     <input
                       type="date"
@@ -251,11 +251,11 @@ export function LinkStudentModal({
                       value={studentDob}
                       onChange={(e) => setStudentDob(e.target.value)}
                     />
-                    <small className="text-muted">Dùng để xác thực mối quan hệ</small>
+                    <small className="text-muted">Used to verify relationship</small>
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-semibold text-secondary">
-                      Số điện thoại phụ huynh đăng ký
+                      Registered Parent Phone Number
                     </label>
                     <input
                       type="tel"
@@ -272,11 +272,11 @@ export function LinkStudentModal({
                     className="btn btn-outline-secondary px-4"
                     onClick={onClose}
                   >
-                    Hủy
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-primary px-4 fw-semibold">
                     <i className="bi bi-link-45deg me-1"></i>
-                    Xác nhận liên kết
+                    Confirm Link
                   </button>
                 </div>
               </form>
@@ -288,22 +288,22 @@ export function LinkStudentModal({
                 <div className="bg-light p-3 rounded-3 mb-3 border">
                   <div className="d-flex align-items-center gap-2 text-primary fw-semibold mb-1">
                     <i className="bi bi-shield-check"></i>
-                    <span>Dành cho phụ huynh chưa có hoặc quên Mã học sinh</span>
+                    <span>For parents who do not have or forgot the Student Code</span>
                   </div>
                   <p className="small text-muted mb-0">
-                    Bạn chỉ cần cung cấp thông tin cơ bản của học sinh, bộ phận Giáo vụ EduTrack sẽ đối chiếu với cơ sở dữ liệu và kích hoạt liên kết cho bạn trong vòng 24 giờ.
+                    You only need to provide basic student information; EduTrack Admin Staff will verify it against the database and activate the link for you within 24 hours.
                   </p>
                 </div>
 
                 <div className="row g-3 mb-3">
                   <div className="col-md-7">
                     <label className="form-label fw-semibold text-secondary">
-                      Họ và tên học sinh <span className="text-danger">*</span>
+                      Student Full Name <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="VD: Nguyễn Đăng Khoa"
+                      placeholder="e.g., Nguyen Dang Khoa"
                       value={reqFullName}
                       onChange={(e) => setReqFullName(e.target.value)}
                       required
@@ -311,7 +311,7 @@ export function LinkStudentModal({
                   </div>
                   <div className="col-md-5">
                     <label className="form-label fw-semibold text-secondary">
-                      Ngày tháng năm sinh <span className="text-danger">*</span>
+                      Date of Birth <span className="text-danger">*</span>
                     </label>
                     <input
                       type="date"
@@ -326,19 +326,19 @@ export function LinkStudentModal({
                 <div className="row g-3 mb-3">
                   <div className="col-md-6">
                     <label className="form-label fw-semibold text-secondary">
-                      Trường phổ thông đang theo học
+                      Current School
                     </label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="VD: THPT Chu Văn An"
+                      placeholder="e.g., Chu Van An High School"
                       value={reqSchool}
                       onChange={(e) => setReqSchool(e.target.value)}
                     />
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-semibold text-secondary">
-                      Số điện thoại phụ huynh nhận phản hồi <span className="text-danger">*</span>
+                      Parent Contact Phone Number <span className="text-danger">*</span>
                     </label>
                     <input
                       type="tel"
@@ -352,12 +352,12 @@ export function LinkStudentModal({
 
                 <div className="mb-3">
                   <label className="form-label fw-semibold text-secondary">
-                    Ghi chú / Lớp học đang quan tâm
+                    Notes / Interested Classes
                   </label>
                   <textarea
                     className="form-control"
                     rows={2}
-                    placeholder="VD: Cháu đang học lớp Toán thầy An chiều thứ 2-4-6..."
+                    placeholder="e.g., The student is attending Mr. An's Math class on Mon-Wed-Fri afternoon..."
                     value={reqNote}
                     onChange={(e) => setReqNote(e.target.value)}
                   ></textarea>
@@ -369,11 +369,11 @@ export function LinkStudentModal({
                     className="btn btn-outline-secondary px-4"
                     onClick={onClose}
                   >
-                    Hủy
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-primary px-4 fw-semibold">
                     <i className="bi bi-send-fill me-1"></i>
-                    Gửi yêu cầu tới Trung tâm
+                    Send Request to Center
                   </button>
                 </div>
               </form>

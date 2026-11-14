@@ -65,10 +65,10 @@ export function AssignmentDropzone({ onSubmit }: AssignmentDropzoneProps) {
         </div>
         <div>
           <div className="upload-text-main">
-            Kéo thả file vào đây hoặc <span className="upload-link">nhấn để chọn file</span>
+            Drag and drop file here or <span className="upload-link">click to browse</span>
           </div>
           <div className="upload-text-sub">
-            PDF, DOCX, JPG, PNG &mdash; Tối đa 50 MB
+            PDF, DOCX, JPG, PNG &mdash; Maximum 50 MB
           </div>
         </div>
         <input
@@ -107,7 +107,7 @@ export function AssignmentDropzone({ onSubmit }: AssignmentDropzoneProps) {
         id="btnSubmitAssignment"
         onClick={handleSubmit}
       >
-        Nộp bài
+        Submit Assignment
       </button>
     </div>
   );

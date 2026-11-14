@@ -32,14 +32,14 @@ export class NotificationInboxStore {
   };
   private accept(data: InboxSnapshot) {
     const roles = this.role === 'teaching_assistant' ? ['teaching_assistant', 'ta'] : [this.role];
-    if (!data.identity.roles.some(r => roles.includes(r))) throw new Error('Tài khoản không có vai trò của trang hiện tại.');
+    if (!data.identity.roles.some(r => roles.includes(r))) throw new Error('Account does not have the required role for the current page.');
     this.serverTime = Date.parse(data.serverNowUtc); this.monotonic = this.elapsed();
     this.publish({ data, loading: false, error: null }); this.updateQuick();
   }
   private fail(error: unknown) {
     // Failed identity verification must never leave the preceding user's inbox visible.
     clearTimeout(this.timer);
-    this.publish({ data: null, quick: [], loading: false, error: error instanceof Error ? error.message : 'Không tải được thông báo.' });
+    this.publish({ data: null, quick: [], loading: false, error: error instanceof Error ? error.message : 'Failed to load notifications.' });
   }
   refresh = async () => {
     if (this.state.busy) return;
@@ -49,19 +49,19 @@ export class NotificationInboxStore {
     catch (error) { if (!controller.signal.aborted && generation === this.generation) this.fail(error); }
   };
   mutate = async (operation: 'read' | 'read-all' | 'delete' | 'restore', id?: number) => {
-    if (this.state.busy) throw new Error('Đang xử lý thông báo.');
+    if (this.state.busy) throw new Error('Processing notifications.');
     this.controller?.abort(); const controller = this.controller = new AbortController(); const generation = ++this.generation;
     this.publish({ busy: true });
     try {
       const data = await this.api.mutate(operation, id, controller.signal);
-      if (generation !== this.generation) throw new Error('Danh tính đã thay đổi.');
+      if (generation !== this.generation) throw new Error('Identity has changed.');
       this.accept(data);
       try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* Storage may be disabled; same-tab state is already shared. */ }
     } catch (error) {
       if (generation === this.generation) {
         const status = (error as { status?: number })?.status;
         if (status === 401 || status === 403) this.fail(error);
-        else this.publish({ error: error instanceof Error ? error.message : 'Thao tác thất bại.' });
+        else this.publish({ error: error instanceof Error ? error.message : 'Operation failed.' });
       }
       throw error;
     } finally { if (generation === this.generation) this.publish({ busy: false }); }

@@ -15,7 +15,7 @@ export function StudentProfilePage() {
   const [showToast, setShowToast] = useState<boolean>(false);
 
   useEffect(() => {
-    document.title = 'Hồ sơ cá nhân – EduTrack';
+    document.title = 'Profile – EduTrack';
     let isMounted = true;
 
     async function loadProfile() {
@@ -72,8 +72,8 @@ export function StudentProfilePage() {
   if (loading || !profile || !formData) {
     return (
       <LearnerPageLoader
-        title="Đang tải hồ sơ cá nhân..."
-        message="Hệ thống đang tải thông tin học sinh của bạn."
+        title="Loading profile..."
+        message="The system is loading your student information."
         containerClassName="profile-container"
       />
     );
@@ -105,7 +105,7 @@ export function StudentProfilePage() {
               id="profileModeBadge"
             >
               <i className="bi bi-pencil-fill me-1"></i>
-              <span>Chế độ chỉnh sửa</span>
+              <span>Edit Mode</span>
             </span>
           ) : (
             <span
@@ -113,7 +113,7 @@ export function StudentProfilePage() {
               id="profileModeBadge"
             >
               <i className="bi bi-check-circle-fill me-1"></i>
-              <span>Chế độ xem</span>
+              <span>View Mode</span>
             </span>
           )}
         </div>

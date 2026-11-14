@@ -19,20 +19,20 @@ export function ClassAssignmentsSection({
     <section className="assignments-section">
       <div className="section-header flex-wrap gap-2">
         <div className="section-title-wrap">
-          <h2 className="section-title">Bài tập</h2>
+          <h2 className="section-title">Assignments</h2>
           <span className="section-count-badge" id="assignmentsCountBadge">
-            {assignments.length} bài
+            {assignments.length} {assignments.length === 1 ? 'assignment' : 'assignments'}
           </span>
         </div>
         <div className="d-flex align-items-center gap-2" id="asgSummaryBadges">
           <span className="asg-status-badge asg-status-danop">
-            {asgCounts.submitted} Đã nộp
+            {asgCounts.submitted} Submitted
           </span>
           <span className="asg-status-badge asg-status-chuanop">
-            {asgCounts.pending} Chưa nộp
+            {asgCounts.pending} Not Submitted
           </span>
           <span className="asg-status-badge asg-status-quahan">
-            {asgCounts.overdue} Quá hạn
+            {asgCounts.overdue} Overdue
           </span>
         </div>
       </div>

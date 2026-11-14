@@ -72,7 +72,7 @@ export function StudentAssignmentDetailPage() {
   };
 
   const handleDownload = (fileName: string) => {
-    showToast(`Đang tải xuống tài liệu: ${fileName}`);
+    showToast(`Downloading material: ${fileName}`);
   };
 
   const handleSubmit = async (file: File | null) => {
@@ -88,33 +88,33 @@ export function StudentAssignmentDetailPage() {
       );
 
       setSubmittedFileName(savedSub.fileName || name);
-      setSubmittedMeta(`Đã nộp lúc ${savedSub.submittedAt} • ${sizeMb} MB`);
+      setSubmittedMeta(`Submitted at ${savedSub.submittedAt} • ${sizeMb} MB`);
       setSubmission(savedSub);
       setStatus('submitted');
 
       if (savedSub.score !== null && savedSub.score !== undefined) {
-        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.score} / 10 (GV đã chấm)` } : prev));
+        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.score} / 10 (Graded by Teacher)` } : prev));
       } else if (savedSub.aiScore !== null && savedSub.aiScore !== undefined) {
-        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.aiScore} / 10 (AI chấm sơ bộ)` } : prev));
+        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.aiScore} / 10 (AI Preliminary Grading)` } : prev));
       }
 
-      showToast('Nộp bài tập lên hệ thống thành công! AI đã chấm sơ bộ bài làm.');
+      showToast('Assignment submitted successfully! AI has provided preliminary grading.');
     } catch (err) {
       console.warn('Không kết nối được Backend khi nộp bài, cập nhật local state:', err);
       setSubmittedFileName(name);
-      setSubmittedMeta(`Đã nộp lúc vừa xong • ${sizeMb} MB`);
+      setSubmittedMeta(`Submitted just now • ${sizeMb} MB`);
       setStatus('submitted');
-      showToast('Nộp bài tập thành công!');
+      showToast('Assignment submitted successfully!');
     }
   };
 
   const handleEdit = () => {
     setStatus('not-submitted');
-    showToast('Chọn file mới để cập nhật bài nộp');
+    showToast('Select a new file to update your submission');
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài nộp này không?')) {
+    if (window.confirm('Are you sure you want to delete this submission?')) {
       try {
         await learningDAL.deleteSubmission(asgId, DEFAULT_STUDENT_ID);
       } catch (err) {
@@ -122,15 +122,15 @@ export function StudentAssignmentDetailPage() {
       }
       setSubmission(null);
       setStatus('not-submitted');
-      showToast('Đã xóa bài nộp trên hệ thống');
+      showToast('Submission deleted successfully');
     }
   };
 
   if (loading || !asg) {
     return (
       <LearnerPageLoader
-        title="Đang tải chi tiết bài tập..."
-        message="Hệ thống đang tải đề bài, hướng dẫn và trạng thái nộp bài của bạn."
+        title="Loading assignment details..."
+        message="The system is loading the prompt, instructions, and your submission status."
       />
     );
   }

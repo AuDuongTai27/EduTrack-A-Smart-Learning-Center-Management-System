@@ -83,7 +83,7 @@ export default function TeachingAssistantClassDetailsPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title={classInfo ? `${classInfo.className} (Chi Tiết Lớp Học)` : `Class Details #${targetClassId}`}
+        title={classInfo ? `${classInfo.className} (Class Details)` : `Class Details #${targetClassId}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },

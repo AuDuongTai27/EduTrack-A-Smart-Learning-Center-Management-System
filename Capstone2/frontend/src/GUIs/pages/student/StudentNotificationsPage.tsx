@@ -21,54 +21,54 @@ interface CategoryStyle {
 
 const CATEGORY_STYLES: Record<string, CategoryStyle> = {
   class: {
-    label: "Lớp học & Bài tập",
-    sender: "Giáo viên & Ban đào tạo",
+    label: "Classes & Assignments",
+    sender: "Teachers & Academic Affairs",
     icon: "bi-journal-bookmark-fill",
     badgeBg: "bg-primary-subtle",
     badgeText: "text-primary",
     circleBg: "bg-primary-subtle",
     circleText: "text-primary",
-    tip: "Mẹo nhỏ: Bạn có thể vào mục Lớp học hoặc Lịch học để xem chi tiết tài liệu, lịch học bù và hạn nộp bài tập nhé!",
+    tip: "Tip: You can visit Classes or Schedule to see material details, makeup classes, and assignment deadlines!",
   },
   payment: {
-    label: "Học phí",
-    sender: "Phòng Tài vụ EduTrack",
+    label: "Tuition",
+    sender: "EduTrack Accounting Office",
     icon: "bi-wallet2",
     badgeBg: "bg-warning-subtle",
     badgeText: "text-warning-emphasis",
     circleBg: "bg-warning-subtle",
     circleText: "text-warning-emphasis",
-    tip: "Gợi ý: Bạn hoặc Phụ huynh có thể kiểm tra chi tiết hóa đơn tại mục Học phí trên thanh menu.",
+    tip: "Tip: You or your Parent can check invoice details in the Tuition section on the menu.",
   },
   achievement: {
-    label: "Thành tích học tập",
-    sender: "Hệ thống Đánh giá EduTrack",
+    label: "Academic Achievement",
+    sender: "EduTrack Evaluation System",
     icon: "bi-trophy-fill",
     badgeBg: "bg-success-subtle",
     badgeText: "text-success",
     circleBg: "bg-success-subtle",
     circleText: "text-success",
-    tip: "Tuyệt vời! Hãy tiếp tục duy trì chuyên cần và hoàn thành bài tập đúng hạn để đạt kết quả cao hơn nữa nhé.",
+    tip: "Great job! Keep maintaining attendance and completing assignments on time to achieve even better results.",
   },
   message: {
-    label: "Tin nhắn từ Giáo viên",
-    sender: "Giáo viên phụ trách lớp",
+    label: "Messages from Teacher",
+    sender: "Class Teacher",
     icon: "bi-chat-heart-fill",
     badgeBg: "bg-info-subtle",
     badgeText: "text-info-emphasis",
     circleBg: "bg-info-subtle",
     circleText: "text-info-emphasis",
-    tip: "Lời nhắn trực tiếp từ thầy cô phụ trách lớp học của bạn. Hãy lưu ý chuẩn bị bài trước khi đến lớp nhé!",
+    tip: "Direct message from your teacher. Please prepare lessons before coming to class!",
   },
   system: {
-    label: "Hệ thống & Trung tâm",
-    sender: "Trung tâm EduTrack",
+    label: "System & Center",
+    sender: "EduTrack Center",
     icon: "bi-shield-check",
     badgeBg: "bg-secondary-subtle",
     badgeText: "text-secondary-emphasis",
     circleBg: "bg-secondary-subtle",
     circleText: "text-secondary-emphasis",
-    tip: "Thông báo từ hệ thống quản lý học tập EduTrack.",
+    tip: "Notification from EduTrack learning management system.",
   },
 };
 
@@ -121,7 +121,7 @@ export function StudentNotificationsPage() {
   };
 
   useEffect(() => {
-    document.title = "Thông báo học tập – EduTrack";
+    document.title = "Notifications – EduTrack";
     void loadNotifications();
   }, []);
 
@@ -150,7 +150,7 @@ export function StudentNotificationsPage() {
       );
       await learningDAL.markNotificationRead(id, DEFAULT_STUDENT_ID);
       if (!silent) {
-        setSuccessMsg("Đã đánh dấu thông báo là đã đọc.");
+        setSuccessMsg("Notification marked as read.");
       }
     } finally {
       setMarkingRead(false);
@@ -179,7 +179,7 @@ export function StudentNotificationsPage() {
       DEFAULT_STUDENT_ID,
       allIds
     );
-    setSuccessMsg("Tuyệt vời! Bạn đã đánh dấu đọc tất cả thông báo.");
+    setSuccessMsg("Great! You have marked all notifications as read.");
   };
 
   const filteredNotifications = useMemo(() => {
@@ -230,8 +230,8 @@ export function StudentNotificationsPage() {
   if (loading && notifications.length === 0) {
     return (
       <LearnerPageLoader
-        title="Đang tải thông báo học tập..."
-        message="Hệ thống đang đồng bộ hộp thư thông báo của bạn."
+        title="Loading notifications..."
+        message="The system is synchronizing your notification inbox."
         containerClassName="notifications-container"
       />
     );
@@ -251,19 +251,19 @@ export function StudentNotificationsPage() {
             </div>
             <div>
               <div className="d-flex align-items-center gap-2 flex-wrap">
-                <h1 className="h3 fw-bold mb-0 text-dark">Thông báo học tập</h1>
+                <h1 className="h3 fw-bold mb-0 text-dark">Notifications</h1>
                 {unreadCount > 0 ? (
                   <span className="badge rounded-pill bg-danger px-3 py-1">
-                    {unreadCount} mới
+                    {unreadCount} new
                   </span>
                 ) : (
                   <span className="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-1">
-                    Đã xem hết
+                    All read
                   </span>
                 )}
               </div>
               <p className="text-muted small mb-0 mt-1">
-                Cập nhật bài tập, lịch học, kết quả học tập và lời nhắn từ thầy cô
+                Updates on assignments, schedule, academic results, and teacher messages
               </p>
             </div>
           </div>
@@ -275,7 +275,7 @@ export function StudentNotificationsPage() {
                 className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
                 onClick={() => void handleMarkAllRead()}
               >
-                <i className="bi bi-check2-all me-1" /> Đánh dấu tất cả đã đọc
+                <i className="bi bi-check2-all me-1" /> Mark all as read
               </button>
             )}
             <button
@@ -284,14 +284,14 @@ export function StudentNotificationsPage() {
               onClick={() => void loadNotifications()}
               disabled={loading}
             >
-              <i className="bi bi-arrow-clockwise me-1" /> Làm mới
+              <i className="bi bi-arrow-clockwise me-1" /> Refresh
             </button>
             <button
               type="button"
               className="btn btn-light border btn-sm rounded-pill px-3"
               onClick={() => setPrefsOpen(true)}
             >
-              <i className="bi bi-sliders me-1" /> Tùy chỉnh
+              <i className="bi bi-sliders me-1" /> Preferences
             </button>
           </div>
         </div>
@@ -320,27 +320,27 @@ export function StudentNotificationsPage() {
                 [
                   {
                     key: "all",
-                    label: "Tất cả",
+                    label: "All",
                     icon: "bi-grid-fill",
                   },
                   {
                     key: "unread",
-                    label: `Chưa đọc (${unreadCount})`,
+                    label: `Unread (${unreadCount})`,
                     icon: "bi-envelope-exclamation-fill",
                   },
                   {
                     key: "class",
-                    label: "Lớp học & Bài tập",
+                    label: "Classes & Assignments",
                     icon: "bi-journal-bookmark-fill",
                   },
                   {
                     key: "payment",
-                    label: "Học phí",
+                    label: "Tuition",
                     icon: "bi-wallet2",
                   },
                   {
                     key: "system",
-                    label: "Hệ thống",
+                    label: "System",
                     icon: "bi-shield-check",
                   },
                 ] as { key: StudentFilterCategory; label: string; icon: string }[]
@@ -375,7 +375,7 @@ export function StudentNotificationsPage() {
                   </span>
                   <input
                     className="form-control border-start-0 bg-light"
-                    placeholder="Tìm kiếm theo môn học, bài tập, lịch học hoặc nội dung thông báo..."
+                    placeholder="Search by subject, assignment, schedule, or notification content..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
@@ -390,10 +390,10 @@ export function StudentNotificationsPage() {
                   value={selectedSort}
                   onChange={(e) => setSelectedSort(e.target.value)}
                 >
-                  <option value="newest">Sắp xếp: Mới nhất trước</option>
-                  <option value="oldest">Sắp xếp: Cũ nhất trước</option>
-                  <option value="title-asc">Tiêu đề: A – Z</option>
-                  <option value="title-desc">Tiêu đề: Z – A</option>
+                  <option value="newest">Sort: Newest first</option>
+                  <option value="oldest">Sort: Oldest first</option>
+                  <option value="title-asc">Title: A – Z</option>
+                  <option value="title-desc">Title: Z – A</option>
                 </select>
               </div>
             </div>
@@ -407,14 +407,14 @@ export function StudentNotificationsPage() {
             <div className="card notification-card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
               <div className="notification-card-header d-flex align-items-center justify-content-between p-3 border-bottom bg-white">
                 <div>
-                  <h5 className="mb-0 fw-bold text-dark">Hộp thư học tập</h5>
+                  <h5 className="mb-0 fw-bold text-dark">Learning Inbox</h5>
                   <small className="text-muted">
-                    Hiển thị {filteredNotifications.length} thông báo
+                    Showing {filteredNotifications.length} notifications
                   </small>
                 </div>
                 {unreadCount > 0 && (
                   <span className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle">
-                    {unreadCount} chưa đọc
+                    {unreadCount} unread
                   </span>
                 )}
               </div>
@@ -426,16 +426,16 @@ export function StudentNotificationsPage() {
                 {loading ? (
                   <div className="text-center text-muted py-5">
                     <span className="spinner-border spinner-border-sm me-2" />
-                    Đang tải thông báo...
+                    Loading notifications...
                   </div>
                 ) : paginatedNotifications.length === 0 ? (
                   <div className="text-center text-muted py-5 px-3">
                     <i className="bi bi-bell-slash fs-2 d-block mb-2 text-secondary" />
                     <p className="mb-0 fw-semibold">
-                      Không tìm thấy thông báo nào phù hợp
+                      No matching notifications found
                     </p>
                     <small>
-                      Hãy thử đổi bộ lọc hoặc từ khóa tìm kiếm khác nhé.
+                      Try changing filters or search keywords.
                     </small>
                   </div>
                 ) : (
@@ -501,7 +501,7 @@ export function StudentNotificationsPage() {
                                   className="badge rounded-pill bg-primary"
                                   style={{ flexShrink: 0 }}
                                 >
-                                  Chưa đọc
+                                  Unread
                                 </span>
                               )}
                             </div>
@@ -518,7 +518,7 @@ export function StudentNotificationsPage() {
                   currentPage={currentPage}
                   totalItems={filteredNotifications.length}
                   entriesPerPage={entriesPerPage}
-                  itemLabel="thông báo"
+                  itemLabel="notifications"
                   onPageChange={setCurrentPage}
                 />
               </div>
@@ -554,7 +554,7 @@ export function StudentNotificationsPage() {
                           </h4>
                           <small className="text-muted">
                             <i className="bi bi-calendar3 me-1" />
-                            Thời gian nhận: {selectedNotification.timestamp}
+                            Received: {selectedNotification.timestamp}
                           </small>
                         </div>
                       </div>
@@ -573,9 +573,9 @@ export function StudentNotificationsPage() {
                           type="button"
                           className="btn btn-sm btn-outline-secondary rounded-pill px-3 d-inline-flex align-items-center gap-1"
                           onClick={() => setSelectedNotification(null)}
-                          title="Đóng chi tiết thông báo"
+                          title="Close notification details"
                         >
-                          <i className="bi bi-x-lg" /> Đóng
+                          <i className="bi bi-x-lg" /> Close
                         </button>
                       </div>
                     </div>
@@ -586,7 +586,7 @@ export function StudentNotificationsPage() {
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 h-100">
                           <small className="d-block text-primary fw-bold mb-1">
-                            Người gửi
+                            Sender
                           </small>
                           <strong className="text-dark text-break">
                             {selectedStyle.sender}
@@ -596,7 +596,7 @@ export function StudentNotificationsPage() {
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 h-100">
                           <small className="d-block text-primary fw-bold mb-1">
-                            Chuyên mục
+                            Category
                           </small>
                           <strong className="text-dark text-break">
                             {selectedStyle.label}
@@ -606,21 +606,21 @@ export function StudentNotificationsPage() {
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 h-100">
                           <small className="d-block text-primary fw-bold mb-1">
-                            Trạng thái đọc
+                            Read Status
                           </small>
                           <strong
                             className={
                               selectedIsUnread ? "text-primary" : "text-success"
                             }
                           >
-                            {selectedIsUnread ? "Chưa đọc" : "Đã xem"}
+                            {selectedIsUnread ? "Unread" : "Read"}
                           </strong>
                         </div>
                       </div>
                     </div>
 
                     <h6 className="fw-bold text-dark fs-5 mb-3 border-start border-4 border-primary ps-3">
-                      Nội dung thông báo
+                      Notification Content
                     </h6>
                     <div
                       className="p-4 bg-light rounded-4 border text-dark text-break mb-3"
@@ -647,7 +647,7 @@ export function StudentNotificationsPage() {
                       className="btn btn-outline-secondary rounded-pill px-3"
                       onClick={() => setSelectedNotification(null)}
                     >
-                      <i className="bi bi-arrow-left me-1" /> Thoát xem chi tiết
+                      <i className="bi bi-arrow-left me-1" /> Close Details
                     </button>
                     {selectedIsUnread ? (
                       <button
@@ -659,12 +659,12 @@ export function StudentNotificationsPage() {
                         }
                       >
                         <i className="bi bi-check2-circle me-1" />
-                        {markingRead ? "Đang cập nhật..." : "Đánh dấu đã đọc"}
+                        {markingRead ? "Updating..." : "Mark as Read"}
                       </button>
                     ) : (
                       <span className="text-success small fw-semibold d-inline-flex align-items-center">
                         <i className="bi bi-check-circle-fill me-1" />
-                        Bạn đã đọc thông báo này
+                        You have read this notification
                       </span>
                     )}
                   </div>
@@ -673,10 +673,10 @@ export function StudentNotificationsPage() {
                 <div className="text-center py-5 text-muted p-4 my-auto">
                   <i className="bi bi-bell fs-1 d-block mb-3 text-primary" />
                   <h6 className="fw-bold text-dark mb-1">
-                    Chọn một thông báo để xem chi tiết
+                    Select a notification to view details
                   </h6>
                   <p className="small mb-0">
-                    Hãy nhấn vào một thông báo bất kỳ ở danh sách bên trái để đọc toàn bộ nội dung nhé!
+                    Click on any notification in the left list to read its full content!
                   </p>
                 </div>
               )}

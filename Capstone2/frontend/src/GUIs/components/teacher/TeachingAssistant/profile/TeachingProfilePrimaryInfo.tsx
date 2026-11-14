@@ -13,9 +13,9 @@ export function TeachingProfilePrimaryInfo({ ta, profile }: TeachingProfilePrima
   const userCode = data?.userCode || "TA001";
   const roleName =
     (data as any)?.roleTitle ||
-    ((data as any)?.roles && (data as any).roles.length > 0 ? (data as any).roles[0] : "Trợ giảng");
+    ((data as any)?.roles && (data as any).roles.length > 0 ? (data as any).roles[0] : "Teaching Assistant");
   const avatarUrl = data?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const specialty = data?.specialty || "Trợ giảng Toán & Khoa học";
+  const specialty = data?.specialty || "Math & Science Teaching Assistant";
   const activeClasses = (data as any)?.activeClassesCount;
   const totalStudents = (data as any)?.totalStudentsCount;
 
@@ -41,7 +41,7 @@ export function TeachingProfilePrimaryInfo({ ta, profile }: TeachingProfilePrima
           </div>
           <p className="text-muted mb-0 small">
             <i className="bi bi-buildings me-1 text-primary" />
-            EduTrack Smart Learning Center • Chuyên môn: <strong>{specialty}</strong>
+            EduTrack Smart Learning Center • Specialty: <strong>{specialty}</strong>
           </p>
         </div>
       </div>
@@ -51,13 +51,13 @@ export function TeachingProfilePrimaryInfo({ ta, profile }: TeachingProfilePrima
           {activeClasses !== undefined && (
             <div className="px-3 py-2 bg-light border rounded-3 text-center">
               <span className="d-block fw-bold text-primary fs-5 lh-1">{activeClasses}</span>
-              <small className="text-muted" style={{ fontSize: '11px' }}>Lớp hỗ trợ</small>
+              <small className="text-muted" style={{ fontSize: '11px' }}>Assisted Classes</small>
             </div>
           )}
           {totalStudents !== undefined && (
             <div className="px-3 py-2 bg-light border rounded-3 text-center">
               <span className="d-block fw-bold text-success fs-5 lh-1">{totalStudents}</span>
-              <small className="text-muted" style={{ fontSize: '11px' }}>Học viên</small>
+              <small className="text-muted" style={{ fontSize: '11px' }}>Students</small>
             </div>
           )}
         </div>

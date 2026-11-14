@@ -51,7 +51,7 @@ function getDisplayStatus(req: ApprovalRequestDto): string {
   if (s === "approved") return "Approved";
   if (s === "rejected") return "Rejected";
   if (req.reviewedBy != null) return "Pending";
-  return "Chờ phê duyệt";
+  return "Waiting";
 }
 
 export default function AdminStaffApprovalRequestPage() {
@@ -159,7 +159,7 @@ export default function AdminStaffApprovalRequestPage() {
           setReferenceError(
             error instanceof Error
               ? error.message
-              : "Không tải được học sinh hoặc hóa đơn từ Backend.",
+              : "Failed to load students or invoices from Backend.",
           );
         }
       } finally {
@@ -184,12 +184,12 @@ export default function AdminStaffApprovalRequestPage() {
           setRequests(res.data.filter(isFromAdminStaff));
         }
       } catch (err) {
-        console.warn("Lỗi tải danh sách yêu cầu phê duyệt:", err);
+        console.warn("Failed to load approval request list:", err);
         if (isMounted) {
           setLoadError(
             err instanceof Error
               ? err.message
-              : "Không thể tải danh sách yêu cầu từ Backend.",
+              : "Failed to load request list from Backend.",
           );
         }
       } finally {
@@ -311,7 +311,7 @@ export default function AdminStaffApprovalRequestPage() {
   const handleOpenEditModal = (req: ApprovalRequestDto) => {
     if (!canEditRequest(req)) {
       alert(
-        "Đơn yêu cầu này đang được Quản lý trung tâm xem xét hoặc đã xử lý nên không thể chỉnh sửa.",
+        "This request is being reviewed by Center Manager or has been processed, so it cannot be edited.",
       );
       return;
     }
@@ -336,30 +336,30 @@ export default function AdminStaffApprovalRequestPage() {
     if (creating) return;
 
     if (!newRequestForm.title.trim() || !newRequestForm.reason.trim()) {
-      alert("Vui lòng nhập đầy đủ tiêu đề và lý do yêu cầu.");
+      alert("Please enter the request title and reason.");
       return;
     }
     if (referenceLoading || referenceError) {
-      alert("Chưa tải được dữ liệu học sinh và hóa đơn. Vui lòng thử lại.");
+      alert("Student and invoice data have not loaded yet. Please try again.");
       return;
     }
     if ((requiresInvoice || requiresStudent) && !selectedStudent) {
-      alert("Vui lòng chọn một học sinh hợp lệ từ danh sách gợi ý.");
+      alert("Please select a valid student from the suggestion list.");
       return;
     }
     if (newRequestForm.studentId && !selectedStudent) {
-      alert("Học sinh đã chọn không còn hợp lệ. Vui lòng tìm lại.");
+      alert("The selected student is no longer valid. Please search again.");
       return;
     }
     if (requiresInvoice && !selectedInvoice) {
-      alert("Vui lòng chọn hóa đơn thuộc đúng học sinh đã chọn.");
+      alert("Please select an invoice belonging to the selected student.");
       return;
     }
 
     setCreating(true);
     try {
       const payload = {
-        requestedBy: 2, // Tài khoản Admin Staff seed để test; thay bằng auth khi có đăng nhập thật.
+        requestedBy: 2, // Admin Staff test seed account
         requestType: newRequestForm.requestType,
         title: newRequestForm.title.trim(),
         reason: newRequestForm.reason.trim(),
@@ -385,7 +385,7 @@ export default function AdminStaffApprovalRequestPage() {
           ),
         );
         setActionSuccessMsg(
-          `Đã cập nhật yêu cầu ${updated.requestCode} thành công!`,
+          `Request ${updated.requestCode} updated successfully!`,
         );
       } else {
         const created = await feedbackDAL.createRequest(payload);
@@ -399,7 +399,7 @@ export default function AdminStaffApprovalRequestPage() {
         setSelectedStatus("All");
         setCurrentPage(1);
         setActionSuccessMsg(
-          `Đã tạo yêu cầu ${created.requestCode} thành công (Trạng thái: Chờ phê duyệt)!`,
+          `Request ${created.requestCode} created successfully (Status: Waiting)!`,
         );
       }
 
@@ -420,8 +420,8 @@ export default function AdminStaffApprovalRequestPage() {
         error instanceof Error
           ? error.message
           : editingRequestId != null
-            ? "Cập nhật yêu cầu thất bại."
-            : "Tạo yêu cầu thất bại.",
+            ? "Failed to update request."
+            : "Failed to create request.",
       );
     } finally {
       setCreating(false);
@@ -468,7 +468,7 @@ export default function AdminStaffApprovalRequestPage() {
 
       {loadError && (
         <div className="alert alert-danger" role="alert">
-          Không thể kết nối Backend Approval Requests: {loadError}
+          Failed to connect to Approval Requests Backend: {loadError}
         </div>
       )}
 
@@ -536,9 +536,9 @@ export default function AdminStaffApprovalRequestPage() {
                 }}
               >
                 <option value="All">All Statuses</option>
-                <option value="waiting">Chờ phê duyệt (Có thể sửa)</option>
+                <option value="waiting">Waiting (Editable)</option>
                 <option value="pending">
-                  Pending (Đang xem xét giải quyết)
+                  Pending (Under Review)
                 </option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
@@ -606,14 +606,14 @@ export default function AdminStaffApprovalRequestPage() {
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
                     />
-                    Đang tải danh sách yêu cầu phê duyệt...
+                    Loading approval requests...
                   </td>
                 </tr>
               ) : paginatedRequests.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy yêu cầu phê duyệt nào phù hợp.
+                    No matching approval requests found.
                   </td>
                 </tr>
               ) : (
@@ -621,7 +621,7 @@ export default function AdminStaffApprovalRequestPage() {
                   const itemIndex =
                     (currentPage - 1) * entriesPerPage + idx + 1;
                   const dateStr = req.createdAt
-                    ? new Date(req.createdAt).toLocaleDateString("vi-VN", {
+                    ? new Date(req.createdAt).toLocaleDateString("en-US", {
                         day: "2-digit",
                         month: "2-digit",
                         year: "numeric",
@@ -644,7 +644,7 @@ export default function AdminStaffApprovalRequestPage() {
                       </td>
                       <td>
                         <div className="fw-semibold text-dark">
-                          {req.studentName || "Trung tâm"}
+                          {req.studentName || "Center"}
                         </div>
                         {req.className && (
                           <small className="text-muted">{req.className}</small>
@@ -676,13 +676,13 @@ export default function AdminStaffApprovalRequestPage() {
                         <div className="d-flex align-items-center justify-content-center gap-1">
                           <TableActionButton
                             action="View Details"
-                            title="Xem chi tiết đơn yêu cầu"
+                            title="View request details"
                             onClick={() => handleViewDetails(req)}
                           />
                           {editable && (
                             <TableActionButton
                               action="Edit"
-                              title="Chỉnh sửa yêu cầu (đang chờ phê duyệt)"
+                              title="Edit request (Waiting)"
                               onClick={() => handleOpenEditModal(req)}
                             />
                           )}
@@ -721,8 +721,8 @@ export default function AdminStaffApprovalRequestPage() {
                     className={`bi ${editingRequestId != null ? "bi-pencil-square" : "bi-plus-circle"} me-2`}
                   />
                   {editingRequestId != null
-                    ? "Chỉnh sửa yêu cầu phê duyệt (Chờ phê duyệt)"
-                    : "Tạo yêu cầu phê duyệt mới lên Quản lý trung tâm"}
+                    ? "Edit Approval Request (Waiting)"
+                    : "Create New Approval Request to Center Manager"}
                 </h5>
                 <button
                   type="button"
@@ -738,7 +738,7 @@ export default function AdminStaffApprovalRequestPage() {
                   <div className="row g-3">
                     <div className="col-md-6">
                       <label className="form-label fw-bold">
-                        Loại yêu cầu <span className="text-danger">*</span>
+                        Request Type <span className="text-danger">*</span>
                       </label>
                       <select
                         className="form-select"
@@ -753,25 +753,25 @@ export default function AdminStaffApprovalRequestPage() {
                         required
                       >
                         <option value="tuition_adjustment">
-                          Tuition Adjustment (Miễn giảm / Điều chỉnh học phí)
+                          Tuition Adjustment
                         </option>
                         <option value="due_date_extension">
-                          Due Date Extension (Gia hạn đóng học phí)
+                          Due Date Extension
                         </option>
                         <option value="refund_request">
-                          Refund Request (Yêu cầu hoàn trả học phí)
+                          Refund Request
                         </option>
                         <option value="student_information_change">
-                          Student Information Change (Sửa thông tin học viên)
+                          Student Information Change
                         </option>
                         <option value="other">
-                          Other (Yêu cầu đặc biệt khác)
+                          Other
                         </option>
                       </select>
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Độ ưu tiên</label>
+                      <label className="form-label fw-bold">Priority</label>
                       <select
                         className="form-select"
                         value={newRequestForm.priority}
@@ -782,15 +782,15 @@ export default function AdminStaffApprovalRequestPage() {
                           })
                         }
                       >
-                        <option value="low">Low (Thấp)</option>
-                        <option value="medium">Medium (Trung bình)</option>
-                        <option value="high">High (Khẩn cấp / Cao)</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
                       </select>
                     </div>
 
                     <div className={requiresInvoice ? "col-md-6" : "col-md-12"}>
                       <label className="form-label fw-bold">
-                        Học sinh liên quan
+                        Related Student
                         {(requiresStudent || requiresInvoice) && (
                           <span className="text-danger"> *</span>
                         )}
@@ -799,7 +799,7 @@ export default function AdminStaffApprovalRequestPage() {
                         <input
                           type="search"
                           className="form-control"
-                          placeholder="Tìm tên, mã học sinh hoặc số điện thoại..."
+                          placeholder="Search by name, student code, or phone number..."
                           autoComplete="off"
                           value={studentSearch}
                           onFocus={() => setShowStudentSuggestions(true)}
@@ -861,7 +861,7 @@ export default function AdminStaffApprovalRequestPage() {
                                 ))
                               ) : (
                                 <div className="list-group-item text-muted">
-                                  Không tìm thấy học sinh phù hợp.
+                                  No matching students found.
                                 </div>
                               )}
                             </div>
@@ -870,13 +870,13 @@ export default function AdminStaffApprovalRequestPage() {
                       {selectedStudent && (
                         <div className="small text-success mt-1">
                           <i className="bi bi-check-circle me-1" />
-                          Đã xác nhận: {selectedStudent.fullName} —{" "}
+                          Confirmed: {selectedStudent.fullName} —{" "}
                           {selectedStudent.userCode}
                         </div>
                       )}
                       {referenceLoading && (
                         <small className="text-muted">
-                          Đang tải danh sách học sinh...
+                          Loading student list...
                         </small>
                       )}
                       {referenceError && (
@@ -886,7 +886,7 @@ export default function AdminStaffApprovalRequestPage() {
                     {requiresInvoice && (
                       <div className="col-md-6">
                         <label className="form-label fw-bold">
-                          Hóa đơn liên quan{" "}
+                          Related Invoice{" "}
                           <span className="text-danger">*</span>
                         </label>
                         <select
@@ -905,64 +905,59 @@ export default function AdminStaffApprovalRequestPage() {
                           }
                           required
                         >
-                          <option value="">Chọn hóa đơn của học sinh...</option>
+                          <option value="">Select student's invoice...</option>
                           {studentInvoices.map((invoice) => (
                             <option
                               key={invoice.invoiceId}
                               value={invoice.invoiceId}
                             >
-                              HĐ #{invoice.invoiceId} — {invoice.className}
+                              Inv #{invoice.invoiceId} — {invoice.className}
                               {invoice.periodMonth && invoice.periodYear
                                 ? ` — ${invoice.periodMonth}/${invoice.periodYear}`
                                 : ""}
-                              {` — ${invoice.amountDue.toLocaleString("vi-VN")}đ`}
+                              {` — $${invoice.amountDue.toLocaleString()}`}
                             </option>
                           ))}
                         </select>
                         {selectedStudent && studentInvoices.length === 0 && (
                           <small className="text-danger">
-                            Học sinh chưa có hóa đơn. Không thể tạo yêu cầu học
-                            phí.
+                            Student has no invoices. Cannot create tuition request.
                           </small>
                         )}
                         {selectedInvoice && (
                           <div className="small bg-light border rounded p-2 mt-2">
                             <div>
-                              <strong>Học sinh:</strong>{" "}
+                              <strong>Student:</strong>{" "}
                               {selectedInvoice.studentName} (
                               {selectedInvoice.studentCode})
                             </div>
                             <div>
-                              <strong>Lớp:</strong> {selectedInvoice.className}
+                              <strong>Class:</strong> {selectedInvoice.className}
                             </div>
                             <div>
-                              <strong>Số tiền:</strong>{" "}
-                              {selectedInvoice.amountDue.toLocaleString(
-                                "vi-VN",
-                              )}{" "}
-                              đ
+                              <strong>Amount:</strong>{" "}
+                              ${selectedInvoice.amountDue.toLocaleString()}
                             </div>
                             <div>
-                              <strong>Trạng thái:</strong>{" "}
+                              <strong>Status:</strong>{" "}
                               {selectedInvoice.status}
                             </div>
                           </div>
                         )}
                         <small className="text-muted d-block mt-1">
-                          Hiện Backend chỉ cung cấp Invoice ID; HĐ # là mã tham
-                          chiếu tạm trên giao diện.
+                          Currently Backend only provides Invoice ID; Inv # is a temporary UI reference.
                         </small>
                       </div>
                     )}
 
                     <div className="col-md-12">
                       <label className="form-label fw-bold">
-                        Tiêu đề yêu cầu <span className="text-danger">*</span>
+                        Request Title <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Ví dụ: Xin gia hạn đóng học phí tháng 8 cho học sinh Nguyễn Minh An..."
+                        placeholder="e.g. Request tuition payment extension for student..."
                         value={newRequestForm.title}
                         onChange={(e) =>
                           setNewRequestForm({
@@ -976,13 +971,13 @@ export default function AdminStaffApprovalRequestPage() {
 
                     <div className="col-md-12">
                       <label className="form-label fw-bold">
-                        Nội dung chi tiết &amp; Lý do đề xuất
+                        Details &amp; Reason
                       </label>
                       <textarea
                         className="form-control"
                         rows={4}
                         required
-                        placeholder="Nêu rõ lý do, bằng chứng hoặc căn cứ cần Center Manager phê duyệt..."
+                        placeholder="State the reason, evidence, or basis for Center Manager approval..."
                         value={newRequestForm.reason}
                         onChange={(e) =>
                           setNewRequestForm({
@@ -1003,7 +998,7 @@ export default function AdminStaffApprovalRequestPage() {
                       setEditingRequestId(null);
                     }}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button
                     type="submit"
@@ -1012,10 +1007,10 @@ export default function AdminStaffApprovalRequestPage() {
                   >
                     <i className="bi bi-send me-1" />
                     {creating
-                      ? "Đang lưu..."
+                      ? "Saving..."
                       : editingRequestId != null
-                        ? "Lưu thay đổi"
-                        : "Gửi yêu cầu phê duyệt"}
+                        ? "Save Changes"
+                        : "Submit Request"}
                   </button>
                 </div>
               </form>
@@ -1040,7 +1035,7 @@ export default function AdminStaffApprovalRequestPage() {
                       `AR${selectedRequest.requestId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0 text-dark">
-                    Chi tiết yêu cầu phê duyệt
+                    Approval Request Details
                   </h5>
                 </div>
                 <button
@@ -1057,7 +1052,7 @@ export default function AdminStaffApprovalRequestPage() {
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
                     />
-                    Đang tải chi tiết yêu cầu...
+                    Loading request details...
                   </div>
                 ) : (
                   <>
@@ -1076,12 +1071,12 @@ export default function AdminStaffApprovalRequestPage() {
                             {selectedRequest.createdAt
                               ? new Date(
                                   selectedRequest.createdAt,
-                                ).toLocaleString("vi-VN")
+                                ).toLocaleString("en-US")
                               : "—"}
                           </span>
                           <span>
                             <i className="bi bi-person me-1" />
-                            Người gửi:{" "}
+                            Requester:{" "}
                             <strong>
                               {selectedRequest.requesterName || "Admin Staff"}
                             </strong>
@@ -1102,14 +1097,14 @@ export default function AdminStaffApprovalRequestPage() {
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
                           <small className="text-muted d-block mb-1">
-                            Học sinh / Đối tượng áp dụng
+                            Student / Target Subject
                           </small>
                           <div className="fw-bold text-dark">
-                            {selectedRequest.studentName || "Không xác định"}
+                            {selectedRequest.studentName || "Unknown"}
                           </div>
                           {selectedRequest.className && (
                             <small className="text-muted">
-                              Lớp: {selectedRequest.className}
+                              Class: {selectedRequest.className}
                             </small>
                           )}
                         </div>
@@ -1117,23 +1112,23 @@ export default function AdminStaffApprovalRequestPage() {
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
                           <small className="text-muted d-block mb-1">
-                            Người phê duyệt (Center Manager)
+                            Approver (Center Manager)
                           </small>
                           <div className="fw-bold text-dark">
                             {selectedRequest.reviewerName ||
                               (selectedRequest.status?.toLowerCase() ===
                               "pending"
                                 ? selectedRequest.reviewedBy != null
-                                  ? "Đang xem xét giải quyết (Pending)"
-                                  : "Đang chờ phê duyệt"
-                                : "Chưa có thông tin người duyệt")}
+                                  ? "Pending (Under Review)"
+                                  : "Waiting for Approval"
+                                : "No approver information")}
                           </div>
                           {selectedRequest.reviewedAt && (
                             <small className="text-muted">
-                              Thời gian:{" "}
+                              Time:{" "}
                               {new Date(
                                 selectedRequest.reviewedAt,
-                              ).toLocaleDateString("vi-VN")}
+                              ).toLocaleDateString("en-US")}
                             </small>
                           )}
                         </div>
@@ -1142,7 +1137,7 @@ export default function AdminStaffApprovalRequestPage() {
 
                     <div className="mb-4">
                       <h6 className="fw-bold text-dark mb-2">
-                        Nội dung chi tiết &amp; Căn cứ đề xuất:
+                        Details &amp; Justification:
                       </h6>
                       <div
                         className="p-3 bg-light rounded border text-secondary"
@@ -1150,14 +1145,14 @@ export default function AdminStaffApprovalRequestPage() {
                       >
                         {selectedRequest.description ||
                           selectedRequest.reason ||
-                          "Không có ghi chú thêm."}
+                          "No additional notes."}
                       </div>
                     </div>
 
                     {selectedRequest.reviewNotes && (
                       <div className="mb-3">
                         <h6 className="fw-bold text-dark mb-2">
-                          Phản hồi từ Center Manager:
+                          Feedback from Center Manager:
                         </h6>
                         <div
                           className="p-3 bg-warning-subtle text-dark rounded border border-warning"
@@ -1178,7 +1173,7 @@ export default function AdminStaffApprovalRequestPage() {
                   className="btn btn-secondary"
                   onClick={() => setSelectedRequest(null)}
                 >
-                  Đóng
+                  Close
                 </button>
                 {canEditRequest(selectedRequest) && (
                   <button
@@ -1187,7 +1182,7 @@ export default function AdminStaffApprovalRequestPage() {
                     onClick={() => handleOpenEditModal(selectedRequest)}
                   >
                     <i className="bi bi-pencil-square" />
-                    Chỉnh sửa yêu cầu
+                    Edit Request
                   </button>
                 )}
               </div>

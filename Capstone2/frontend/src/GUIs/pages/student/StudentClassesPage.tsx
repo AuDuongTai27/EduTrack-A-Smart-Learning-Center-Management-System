@@ -38,8 +38,8 @@ export function StudentClassesPage() {
   if (loading) {
     return (
       <LearnerPageLoader
-        title="Đang tải danh sách lớp học..."
-        message="Vui lòng đợi trong giây lát, hệ thống đang tải các lớp học bạn đang tham gia."
+        title="Loading classes list..."
+        message="Please wait a moment, the system is loading the classes you are enrolled in."
       />
     );
   }
@@ -49,11 +49,11 @@ export function StudentClassesPage() {
       <div className="content-container">
         {/* Page Header */}
         <StudentPageHeader
-          title="Lớp học của tôi"
-          subtitle="Tất cả lớp học bạn đang tham gia trong kỳ học này"
+          title="My Classes"
+          subtitle="All classes you are enrolled in this semester"
           breadcrumbs={[
-            { label: 'Trang chủ', href: '/student/dashboard' },
-            { label: 'Lớp học của tôi' },
+            { label: 'Home', href: '/student/dashboard' },
+            { label: 'My Classes' },
           ]}
         />
 

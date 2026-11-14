@@ -27,7 +27,7 @@ export async function loadDashboardSection<T>(request: Promise<T>): Promise<Dash
   } catch (cause) {
     return {
       data: null,
-      error: cause instanceof Error ? cause.message : "Không tải được dữ liệu. Vui lòng thử lại.",
+      error: cause instanceof Error ? cause.message : "Failed to load data. Please try again.",
     };
   }
 }
@@ -80,7 +80,7 @@ export function getSessionStatus(session: MonitoringSessionDto, now: Date): stri
   if (time < session.startTime) return "Upcoming";
   if (time < session.endTime) return "Ongoing";
   // Passing the end time does not prove a lesson was completed.
-  return "Chưa cập nhật";
+  return "Not updated";
 }
 
 export function getMyRequests(requests: ApprovalRequestDto[], userId: number) {
@@ -89,19 +89,19 @@ export function getMyRequests(requests: ApprovalRequestDto[], userId: number) {
 }
 
 export const REQUEST_TYPE_LABELS: Record<string, string> = {
-  tuition_adjustment: "Điều chỉnh học phí",
-  refund_request: "Yêu cầu hoàn phí",
-  due_date_extension: "Gia hạn hạn nộp",
-  student_information_change: "Thay đổi thông tin HV",
-  class_transfer: "Chuyển lớp học",
-  academic_support: "Hỗ trợ học vụ",
-  leave_request: "Đơn xin nghỉ",
-  feedback: "Ý kiến / Phản hồi",
-  other: "Yêu cầu khác",
+  tuition_adjustment: "Tuition Adjustment",
+  refund_request: "Refund Request",
+  due_date_extension: "Due Date Extension",
+  student_information_change: "Student Information Change",
+  class_transfer: "Class Transfer",
+  academic_support: "Academic Support",
+  leave_request: "Leave Request",
+  feedback: "Feedback",
+  other: "Other Request",
 };
 
 export function formatRequestType(type?: string | null): string {
-  if (!type) return "Khác";
+  if (!type) return "Other";
   const key = normalize(type);
   return REQUEST_TYPE_LABELS[key] || type;
 }
@@ -110,9 +110,9 @@ export function getRequestContent(request: { description?: string | null; reason
   const desc = (request.description || "").trim();
   const reason = (request.reason || "").trim();
   if (desc && reason && desc !== reason) {
-    return `${desc}\n\nLý do: ${reason}`;
+    return `${desc}\n\nReason: ${reason}`;
   }
-  return desc || reason || "Không có nội dung thêm.";
+  return desc || reason || "No additional content.";
 }
 
 export function getReviewerDisplayInfo(request: ApprovalRequestDto): {
@@ -124,9 +124,9 @@ export function getReviewerDisplayInfo(request: ApprovalRequestDto): {
   const status = normalize(request.status);
   const isReviewed = status === "approved" || status === "rejected";
   const reviewerText = request.reviewerName?.trim()
-    || (request.reviewedBy != null ? `Người duyệt #${request.reviewedBy}` : (status === "pending" ? "Đang chờ Giám đốc duyệt" : "Chưa có"));
+    || (request.reviewedBy != null ? `Reviewer #${request.reviewedBy}` : (status === "pending" ? "Pending Director Approval" : "None"));
   const reviewedAtText = request.reviewedAt
-    ? new Date(request.reviewedAt).toLocaleString("vi-VN", { timeZone: CENTER_TIME_ZONE })
+    ? new Date(request.reviewedAt).toLocaleString("en-US", { timeZone: CENTER_TIME_ZONE })
     : "—";
   const reviewNotes = request.reviewNotes?.trim() || null;
   return { reviewerText, isReviewed, reviewedAtText, reviewNotes };
@@ -134,7 +134,7 @@ export function getReviewerDisplayInfo(request: ApprovalRequestDto): {
 
 export function getRequestStatus(request: ApprovalRequestDto): string {
   if (normalize(request.status) === "pending") {
-    return request.reviewedBy == null ? "Waiting" : "Đang xem xét giải quyết";
+    return request.reviewedBy == null ? "Waiting" : "In Review";
   }
   return request.status || "—";
 }

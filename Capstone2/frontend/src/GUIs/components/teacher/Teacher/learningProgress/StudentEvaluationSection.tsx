@@ -16,10 +16,10 @@ export default function StudentEvaluationSection({
         <div>
           <h5 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
             <i className="bi bi-chat-square-heart text-warning" />
-            2. Đánh Giá Cá Nhân Của Giáo Viên &amp; Trợ Giảng
+            2. Individual Evaluations from Teacher &amp; Teaching Assistant
           </h5>
           <small className="text-muted">
-            Đánh giá độc lập về thái độ, tư duy, sự tiến bộ và nhắn nhủ phụ huynh (không phụ thuộc vào điểm số bài tập)
+            Independent evaluation of attitude, thinking, progress, and notes to parents (independent of assignment scores)
           </small>
         </div>
 
@@ -29,7 +29,7 @@ export default function StudentEvaluationSection({
           className="btn btn-primary d-inline-flex align-items-center gap-1.5 shadow-xs px-3 py-2 fw-semibold"
           onClick={onOpenEvaluationModal}
         >
-          <i className="bi bi-plus-circle" /> Tạo đánh giá mới
+          <i className="bi bi-plus-circle" /> Create New Evaluation
         </button>
       </div>
 
@@ -79,7 +79,7 @@ export default function StudentEvaluationSection({
                   <div className="mt-3.5 px-3 py-2 rounded-2 bg-light-subtle border small text-muted d-flex align-items-center gap-2" style={{ marginTop: "14px" }}>
                     <i className="bi bi-lightbulb text-warning fs-6" />
                     <div>
-                      <strong className="text-secondary">Đề xuất rèn luyện: </strong>
+                      <strong className="text-secondary">Recommendations: </strong>
                       <span>{item.suggestions}</span>
                     </div>
                   </div>
@@ -90,8 +90,8 @@ export default function StudentEvaluationSection({
         ) : (
           <div className="p-4 text-center text-muted bg-white rounded-3 border">
             <i className="bi bi-chat-left-text fs-3 d-block mb-1 text-secondary" />
-            Chưa có đánh giá cá nhân nào cho học sinh này. Nhấn{" "}
-            <strong>"Tạo đánh giá mới"</strong> ở góc phải để thêm nhận xét.
+            No individual evaluations for this student yet. Click{" "}
+            <strong>"Create New Evaluation"</strong> on the top right to add feedback.
           </div>
         )}
       </div>

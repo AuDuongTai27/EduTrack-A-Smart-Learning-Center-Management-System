@@ -49,7 +49,7 @@ export default function TeachingAssistantAttendancePage() {
         console.error("Lỗi khi tải bảng điểm danh cho Trợ giảng:", err);
         if (isMounted) {
           setToast({
-            message: err?.message || "Không thể tải dữ liệu điểm danh từ máy chủ.",
+            message: err?.message || "Failed to load attendance data from the server.",
             type: "danger",
           });
         }
@@ -133,13 +133,13 @@ export default function TeachingAssistantAttendancePage() {
   const handleSaveAttendance = async () => {
     const currentSessionId = selectedSessionId || sheet?.currentSession?.sessionId;
     if (!currentSessionId) {
-      setToast({ message: "Không tìm thấy thông tin buổi học cần điểm danh.", type: "danger" });
+      setToast({ message: "Session information for attendance not found.", type: "danger" });
       return;
     }
 
     if (!canTakeAttendance) {
       setToast({
-        message: "Buổi học này chưa bắt đầu. Chỉ có buổi học đã bắt đầu mới có thể điểm danh.",
+        message: "This session has not started yet. Attendance can only be taken for sessions that have started.",
         type: "danger",
       });
       return;
@@ -162,14 +162,14 @@ export default function TeachingAssistantAttendancePage() {
       setSheet(updatedSheet);
       setStudents(updatedSheet.students);
       setToast({
-        message: "Trợ giảng lưu điểm danh buổi học thành công vào hệ thống!",
+        message: "Teaching assistant saved session attendance successfully!",
         type: "success",
       });
       setTimeout(() => setToast(null), 4000);
     } catch (err: any) {
       console.error("Lỗi khi lưu điểm danh:", err);
       setToast({
-        message: err?.message || "Không thể lưu điểm danh. Vui lòng kiểm tra lại kết nối.",
+        message: err?.message || "Failed to save attendance. Please check your connection.",
         type: "danger",
       });
     } finally {
@@ -177,18 +177,18 @@ export default function TeachingAssistantAttendancePage() {
     }
   };
 
-  const className = sheet?.className || `Lớp học #${targetClassId}`;
+  const className = sheet?.className || `Class #${targetClassId}`;
 
   return (
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title={`Điểm danh Trợ giảng: ${className}`}
+        title={`Teaching Assistant Attendance: ${className}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },
           { label: className, path: `/teaching-assistant/classes/${targetClassId}` },
-          { label: "Điểm danh buổi học" },
+          { label: "Session Attendance" },
         ]}
         action={
           <div className="d-flex align-items-center gap-2">
@@ -196,7 +196,7 @@ export default function TeachingAssistantAttendancePage() {
               to={`/teaching-assistant/classes/${targetClassId}`}
               className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 shadow-sm"
             >
-              <i className="bi bi-arrow-left" /> Chi tiết lớp học
+              <i className="bi bi-arrow-left" /> Class Details
             </Link>
           </div>
         }
@@ -232,9 +232,9 @@ export default function TeachingAssistantAttendancePage() {
         <div className="alert alert-warning border-warning d-flex align-items-center gap-2 shadow-sm mb-4" role="alert">
           <i className="bi bi-clock-history fs-5 text-warning flex-shrink-0" />
           <div className="flex-grow-1">
-            <strong>Buổi học chưa bắt đầu:</strong> Buổi học này được lên lịch vào{" "}
-            <strong>{sheet.currentSession.timePeriod || sheet.currentSession.startTime}</strong> ngày{" "}
-            <strong>{sheet.currentSession.sessionDate}</strong>. Chỉ có buổi học đã bắt đầu mới có thể thực hiện điểm danh.
+            <strong>Session not started:</strong> This session is scheduled for{" "}
+            <strong>{sheet.currentSession.timePeriod || sheet.currentSession.startTime}</strong> on{" "}
+            <strong>{sheet.currentSession.sessionDate}</strong>. Attendance can only be taken for sessions that have started.
           </div>
         </div>
       )}
@@ -263,7 +263,7 @@ export default function TeachingAssistantAttendancePage() {
         {loading ? (
           <div className="p-5 text-center">
             <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-            <p className="text-muted mb-0">Đang tải danh sách học sinh và dữ liệu điểm danh...</p>
+            <p className="text-muted mb-0">Loading student list and attendance data...</p>
           </div>
         ) : (
           <>

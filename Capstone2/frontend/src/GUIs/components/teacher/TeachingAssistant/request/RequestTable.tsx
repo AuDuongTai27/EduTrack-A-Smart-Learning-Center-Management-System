@@ -15,37 +15,45 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
   const [selectedRequest, setSelectedRequest] = useState<ApprovalRequestDto | null>(null);
   const [editingRequest, setEditingRequest] = useState<ApprovalRequestDto | null>(null);
 
+  const getStatusLabel = (req: ApprovalRequestDto) => {
+    if (req.statusLabel === "Chưa xem xét giải quyết") return "Unreviewed";
+    if (req.statusLabel === "Chờ duyệt") return "Pending";
+    if (req.statusLabel === "Đã duyệt") return "Approved";
+    if (req.statusLabel === "Từ chối") return "Rejected";
+    return req.statusLabel;
+  };
+
   const getStatusBadge = (req: ApprovalRequestDto) => {
     const s = (req.status || "pending").toLowerCase();
     if (s === "approved") {
       return (
         <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 fw-semibold">
-          <i className="bi bi-check-circle-fill me-1" /> Đã duyệt
+          <i className="bi bi-check-circle-fill me-1" /> Approved
         </span>
       );
     }
     if (s === "rejected") {
       return (
         <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-2 fw-semibold">
-          <i className="bi bi-x-circle-fill me-1" /> Từ chối
+          <i className="bi bi-x-circle-fill me-1" /> Rejected
         </span>
       );
     }
 
-    // Nếu chưa có reviewer tiếp nhận hoặc canEdit = true -> "Chưa xem xét giải quyết"
+    // If reviewer has not received or canEdit = true -> Unreviewed
     const isUnreviewed = req.canEdit || (!req.reviewedBy && s === "pending");
     if (isUnreviewed) {
       return (
         <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-2 fw-semibold">
-          <i className="bi bi-clock-history me-1" /> {req.statusLabel || "Chưa xem xét giải quyết"}
+          <i className="bi bi-clock-history me-1" /> {getStatusLabel(req) || "Unreviewed"}
         </span>
       );
     }
 
-    // Admin/Giáo vụ đã xem / tiếp nhận -> "Chờ duyệt"
+    // Admin/Staff viewed/received -> Pending
     return (
       <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-2 fw-semibold">
-        <i className="bi bi-hourglass-split me-1" /> {req.statusLabel || "Chờ duyệt"}
+        <i className="bi bi-hourglass-split me-1" /> {getStatusLabel(req) || "Pending"}
       </span>
     );
   };
@@ -53,30 +61,30 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
   const getPriorityBadge = (priority?: string) => {
     const p = (priority || "medium").toLowerCase();
     if (p === "high") {
-      return <span className="badge bg-danger-subtle text-danger border border-danger-subtle">Khẩn cấp</span>;
+      return <span className="badge bg-danger-subtle text-danger border border-danger-subtle">High</span>;
     }
     if (p === "low") {
-      return <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Thấp</span>;
+      return <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Low</span>;
     }
-    return <span className="badge bg-primary-subtle text-primary border border-primary-subtle">Bình thường</span>;
+    return <span className="badge bg-primary-subtle text-primary border border-primary-subtle">Normal</span>;
   };
 
   const getRequestTypeLabel = (type?: string) => {
     switch (type?.toLowerCase()) {
       case "leave_request":
-        return "Nghỉ trực";
+        return "Leave Request";
       case "schedule_change":
-        return "Đổi ca trực";
+        return "Shift Change";
       case "facility_request":
-        return "Thiết bị/Phòng";
+        return "Facility / Room";
       case "teaching_support":
-        return "Hỗ trợ lớp";
+        return "Class Support";
       default:
-        return "Yêu cầu";
+        return "Request";
     }
   };
 
-  // Lọc theo từ khóa tìm kiếm
+  // Filter by search term
   const filteredRequests = useMemo(() => {
     if (!searchTerm.trim()) return requests;
     const term = searchTerm.toLowerCase();
@@ -89,7 +97,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
     );
   }, [requests, searchTerm]);
 
-  // Phân trang
+  // Pagination
   const paginatedRequests = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
     return filteredRequests.slice(start, start + rowsPerPage);
@@ -100,7 +108,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
       {/* Toolbar */}
       <div className="table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom">
         <div className="table-entries-select d-flex align-items-center gap-2">
-          <span className="small text-muted">Hiển thị</span>
+          <span className="small text-muted">Show</span>
           <select
             className="form-select form-select-sm"
             id="entriesSelect"
@@ -116,7 +124,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
             <option value="25">25</option>
             <option value="50">50</option>
           </select>
-          <span className="small text-muted">yêu cầu / trang</span>
+          <span className="small text-muted">requests / page</span>
         </div>
         <div>
           <div className="input-group input-group-sm" style={{ width: 260 }}>
@@ -127,7 +135,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
               type="search"
               className="form-control form-control-sm border-start-0 ps-0"
               id="tableSearchInput"
-              placeholder="Tìm theo mã hoặc tiêu đề..."
+              placeholder="Search by code or title..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -148,13 +156,13 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                   <input className="form-check-input" type="checkbox" id="selectAllRequests" />
                 </div>
               </th>
-              <th>Mã Đơn</th>
-              <th>Loại Đơn</th>
-              <th>Tiêu Đề Yêu Cầu</th>
-              <th>Mức Ưu Tiên</th>
-              <th>Ngày Gửi</th>
-              <th>Trạng Thái</th>
-              <th className="text-end">Thao Tác</th>
+              <th>Request Code</th>
+              <th>Request Type</th>
+              <th>Request Title</th>
+              <th>Priority</th>
+              <th>Submitted Date</th>
+              <th>Status</th>
+              <th className="text-end">Actions</th>
             </tr>
           </thead>
           <tbody id="requestTableBody">
@@ -168,7 +176,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                       hour: "2-digit",
                       minute: "2-digit",
                     })
-                  : "Vừa gửi";
+                  : "Just submitted";
 
                 const isEditable = req.canEdit || (!req.reviewedBy && (req.status || "pending").toLowerCase() === "pending");
 
@@ -191,7 +199,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                     </td>
                     <td>
                       <span className="text-dark fw-semibold d-block">
-                        {req.title || req.description || "Yêu cầu từ trợ giảng"}
+                        {req.title || req.description || "Teaching Assistant Request"}
                       </span>
                       {req.className && (
                         <small className="text-muted d-block">{req.className}</small>
@@ -207,16 +215,16 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                             type="button"
                             className="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1"
                             onClick={() => setEditingRequest(req)}
-                            title="Chỉnh sửa đơn (Chưa xem xét giải quyết)"
+                            title="Edit request (Unreviewed)"
                           >
-                            <i className="bi bi-pencil-square" /> Sửa
+                            <i className="bi bi-pencil-square" /> Edit
                           </button>
                         ) : (
                           <span
                             className="badge bg-light text-muted border py-1.5 px-2"
-                            title="Đơn đã được Ban Giám Đốc/Giáo vụ tiếp nhận xem xét nên đã khóa chỉnh sửa"
+                            title="Request has been received and reviewed by Management/Admin Staff, editing is locked"
                           >
-                            <i className="bi bi-lock-fill me-1" /> Đã khóa
+                            <i className="bi bi-lock-fill me-1" /> Locked
                           </span>
                         )}
                         <button
@@ -224,7 +232,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                           className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                           onClick={() => setSelectedRequest(req)}
                         >
-                          <i className="bi bi-eye" /> Chi tiết
+                          <i className="bi bi-eye" /> Details
                         </button>
                       </div>
                     </td>
@@ -235,7 +243,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
               <tr>
                 <td colSpan={8} className="text-center py-4 text-muted">
                   <i className="bi bi-inbox fs-3 d-block mb-1" />
-                  Chưa có đơn từ hoặc yêu cầu nào phù hợp.
+                  No matching requests or proposals found.
                 </td>
               </tr>
             )}
@@ -251,7 +259,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
         onPageChange={(page) => setCurrentPage(page)}
       />
 
-      {/* Modal chỉnh sửa đơn từ */}
+      {/* Edit Request Modal */}
       <EditRequestModal
         isOpen={editingRequest !== null}
         request={editingRequest}
@@ -260,10 +268,10 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
           setEditingRequest(null);
           onRequestUpdated?.(updated);
         }}
-        userRoleName="Trợ giảng"
+        userRoleName="Teaching Assistant"
       />
 
-      {/* Modal xem chi tiết đơn từ */}
+      {/* View Request Details Modal */}
       {selectedRequest && (
         <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex={-1}>
           <div className="modal-dialog modal-dialog-centered">
@@ -271,7 +279,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
               <div className="modal-header">
                 <h5 className="modal-title d-flex align-items-center gap-2">
                   <i className="bi bi-file-earmark-text text-primary" />
-                  Chi Tiết Đơn: {selectedRequest.requestCode}
+                  Request Details: {selectedRequest.requestCode}
                 </h5>
                 <button
                   type="button"
@@ -291,31 +299,31 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                   </div>
                 </div>
 
-                {/* Gợi ý trạng thái xử lý */}
+                {/* Processing status tip */}
                 {((selectedRequest.canEdit || (!selectedRequest.reviewedBy && (selectedRequest.status || "pending").toLowerCase() === "pending"))) ? (
                   <div className="alert alert-info py-2 px-3 small mb-3">
-                    <i className="bi bi-info-circle me-1" /> Đơn đang ở trạng thái <strong>Chưa xem xét giải quyết</strong>. Bạn vẫn có thể chỉnh sửa nội dung đơn trước khi ban quản lý tiếp nhận.
+                    <i className="bi bi-info-circle me-1" /> The request is currently <strong>Unreviewed</strong>. You can still edit the request details before management reviews it.
                   </div>
                 ) : (selectedRequest.status || "pending").toLowerCase() === "pending" && selectedRequest.reviewedBy ? (
                   <div className="alert alert-warning py-2 px-3 small mb-3">
-                    <i className="bi bi-hourglass-split me-1" /> Đơn đã được tiếp nhận bởi <strong>{selectedRequest.reviewerName || "Ban Quản lý"}</strong> và đang trong trạng thái <strong>Chờ duyệt</strong> (đã khóa quyền chỉnh sửa).
+                    <i className="bi bi-hourglass-split me-1" /> The request has been received by <strong>{selectedRequest.reviewerName || "Management"}</strong> and is currently <strong>Pending</strong> (editing is locked).
                   </div>
                 ) : null}
 
                 <div className="p-3 bg-light rounded-3 mb-3 border">
-                  <label className="form-label small fw-bold text-muted mb-1">Nội dung chi tiết:</label>
+                  <label className="form-label small fw-bold text-muted mb-1">Detailed content:</label>
                   <p className="mb-0 text-dark small" style={{ whiteSpace: "pre-wrap" }}>
-                    {selectedRequest.description || "Không có nội dung chi tiết."}
+                    {selectedRequest.description || "No detailed content."}
                   </p>
                 </div>
 
                 <div className="row g-2 mb-3">
                   <div className="col-6">
-                    <small className="text-muted d-block">Người gửi:</small>
-                    <strong className="text-dark small">{selectedRequest.requesterName || "Trợ giảng"}</strong>
+                    <small className="text-muted d-block">Sender:</small>
+                    <strong className="text-dark small">{selectedRequest.requesterName || "Teaching Assistant"}</strong>
                   </div>
                   <div className="col-6">
-                    <small className="text-muted d-block">Ngày gửi:</small>
+                    <small className="text-muted d-block">Submitted date:</small>
                     <span className="text-dark small">
                       {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleString("vi-VN") : "N/A"}
                     </span>
@@ -327,7 +335,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                     <div className="d-flex align-items-center justify-content-between mb-1">
                       <span className="small fw-bold text-success">
                         <i className="bi bi-person-check me-1" />
-                        Người duyệt: {selectedRequest.reviewerName || "Ban Giám Đốc"}
+                        Reviewer: {selectedRequest.reviewerName || "Board of Directors"}
                       </span>
                       <small className="text-muted">
                         {new Date(selectedRequest.reviewedAt).toLocaleString("vi-VN")}
@@ -335,7 +343,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                     </div>
                     {selectedRequest.reviewNotes && (
                       <p className="small mb-0 text-secondary fst-italic">
-                        Phản hồi: "{selectedRequest.reviewNotes}"
+                        Feedback: "{selectedRequest.reviewNotes}"
                       </p>
                     )}
                   </div>
@@ -352,7 +360,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                       setEditingRequest(req);
                     }}
                   >
-                    <i className="bi bi-pencil-square" /> Chỉnh sửa đơn này
+                    <i className="bi bi-pencil-square" /> Edit this request
                   </button>
                 )}
                 <button
@@ -360,7 +368,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                   className="btn btn-secondary btn-sm"
                   onClick={() => setSelectedRequest(null)}
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>

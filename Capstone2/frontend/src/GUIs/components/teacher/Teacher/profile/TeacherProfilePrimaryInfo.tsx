@@ -9,13 +9,14 @@ export interface TeacherProfilePrimaryInfoProps {
 
 export function TeacherProfilePrimaryInfo({ teacher, profile }: TeacherProfilePrimaryInfoProps) {
   const data = profile || teacher;
-  const fullName = data?.fullName || "ThS. Hoàng Quốc Việt";
+  const fullName = data?.fullName || "Hoang Quoc Viet, M.Sc.";
   const userCode = data?.userCode || "TC001";
-  const roleName =
+  const roleRaw =
     (data as any)?.roleTitle ||
-    ((data as any)?.roles && (data as any).roles.length > 0 ? (data as any).roles[0] : "Giáo viên");
+    ((data as any)?.roles && (data as any).roles.length > 0 ? (data as any).roles[0] : "Teacher");
+  const roleName = roleRaw === "Giáo viên" ? "Teacher" : roleRaw === "Trợ giảng" ? "Teaching Assistant" : roleRaw;
   const avatarUrl = data?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const specialty = data?.specialty || "Toán Học & Phương Pháp Giảng Dạy";
+  const specialty = data?.specialty || "Mathematics & Teaching Methodology";
   const activeClasses = (data as any)?.activeClassesCount;
   const totalStudents = (data as any)?.totalStudentsCount;
 
@@ -41,7 +42,7 @@ export function TeacherProfilePrimaryInfo({ teacher, profile }: TeacherProfilePr
           </div>
           <p className="text-muted mb-0 small">
             <i className="bi bi-buildings me-1 text-primary" />
-            EduTrack Smart Learning Center • Chuyên môn: <strong>{specialty}</strong>
+            EduTrack Smart Learning Center • Specialty: <strong>{specialty}</strong>
           </p>
         </div>
       </div>
@@ -51,13 +52,13 @@ export function TeacherProfilePrimaryInfo({ teacher, profile }: TeacherProfilePr
           {activeClasses !== undefined && (
             <div className="px-3 py-2 bg-light border rounded-3 text-center">
               <span className="d-block fw-bold text-primary fs-5 lh-1">{activeClasses}</span>
-              <small className="text-muted" style={{ fontSize: '11px' }}>Lớp phụ trách</small>
+              <small className="text-muted" style={{ fontSize: '11px' }}>Assigned Classes</small>
             </div>
           )}
           {totalStudents !== undefined && (
             <div className="px-3 py-2 bg-light border rounded-3 text-center">
               <span className="d-block fw-bold text-success fs-5 lh-1">{totalStudents}</span>
-              <small className="text-muted" style={{ fontSize: '11px' }}>Học viên</small>
+              <small className="text-muted" style={{ fontSize: '11px' }}>Students</small>
             </div>
           )}
         </div>

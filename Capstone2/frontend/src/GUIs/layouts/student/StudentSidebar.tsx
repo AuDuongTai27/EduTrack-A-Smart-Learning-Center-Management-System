@@ -13,7 +13,7 @@ export function StudentSidebar() {
           </div>
           <div>
             <div className="brand-title">EduTrack</div>
-            <div className="brand-subtitle">Cổng học sinh</div>
+            <div className="brand-subtitle">Student Portal</div>
           </div>
         </Link>
       </div>

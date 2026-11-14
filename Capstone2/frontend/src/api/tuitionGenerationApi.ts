@@ -21,18 +21,18 @@ export interface GenerationPreview {
 async function call(action: "preview" | "confirm", request: GenerationRequest): Promise<GenerationPreview> {
   let response: Response;
   try { response = await fetch(`${import.meta.env.VITE_API_URL || "/api"}/tuitioninvoices/generation/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) }); }
-  catch { throw new Error("Chưa xác nhận được kết quả. Xem Preview lại để đối chiếu hóa đơn đã có trước khi thử lại; không tự ghi nhận Payment."); }
-  if (!response.ok) throw await apiError(response, "Không xử lý được yêu cầu lập hóa đơn.");
+  catch { throw new Error("Could not confirm result. Review Preview again to check existing invoices before retrying; do not record Payment automatically."); }
+  if (!response.ok) throw await apiError(response, "Failed to process invoice generation request.");
   const result = await response.json();
   if (!result || result.mode !== request.mode || result.gradeId !== request.gradeId || result.periodMonth !== request.periodMonth || result.periodYear !== request.periodYear
     || typeof result.previewToken !== "string" || !Array.isArray(result.rows) || !Array.isArray(result.classes)
     || ![result.created, result.eligibleCount, result.alreadyExists, result.ineligible, result.failed, result.classCount, result.studentCount, result.totalAmount].every(n => Number.isFinite(n) && n >= 0))
-    throw new Error("Phản hồi chưa xác nhận kết quả hợp lệ. Tải Preview và danh sách hóa đơn để kiểm tra.");
+    throw new Error("Response did not confirm valid result. Load Preview and invoice list to verify.");
   if (result.billingPolicy !== "monthly-fixed-v1" || result.rows.some((row: GenerationRow) =>
     !["eligible", "created", "already_exists", "ineligible"].includes(row.outcome)
     || !Number.isFinite(row.amountDue) || row.amountDue < 0
     || (["eligible", "created"].includes(row.outcome) && row.amountDue === 0)))
-    throw new Error("Backend chưa xác nhận chính sách học phí tháng hiện hành. Tải lại Preview bằng Backend mới.");
+    throw new Error("Backend has not confirmed current monthly tuition policy. Reload Preview with updated backend.");
   return result;
 }
 export const tuitionGenerationApi = { preview: (request: GenerationRequest) => call("preview", request), confirm: (request: GenerationRequest) => call("confirm", request) };

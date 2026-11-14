@@ -38,7 +38,7 @@ export const assignmentDAL = {
         return {
           assignmentId: asg.assignmentId,
           classId: asg.classId,
-          className: cls?.className || 'Lớp học',
+          className: cls?.className || 'Class',
           contentUnitId: asg.contentUnitId,
           contentUnitTitle: unit?.title || null,
           title: asg.title,
@@ -47,7 +47,7 @@ export const assignmentDAL = {
           dueDate: asg.dueDate,
           maxScore: asg.maxScore,
           createdBy: asg.createdBy,
-          creatorName: creator?.fullName || 'Giáo viên',
+          creatorName: creator?.fullName || 'Teacher',
           isAiGradingEnabled: asg.isAiGradingEnabled,
         };
       });
@@ -55,7 +55,7 @@ export const assignmentDAL = {
       return {
         data: fallbackData,
         isLiveApi: false,
-        error: 'Backend API chưa bật (Đang dùng dữ liệu dự phòng mockData)',
+        error: 'Backend API is not active (Using fallback mockData)',
       };
     }
   },
@@ -78,7 +78,7 @@ export const assignmentDAL = {
       return {
         assignmentId: found.assignmentId,
         classId: found.classId,
-        className: cls?.className || 'Lớp học',
+        className: cls?.className || 'Class',
         contentUnitId: found.contentUnitId,
         contentUnitTitle: unit?.title || null,
         title: found.title,
@@ -87,7 +87,7 @@ export const assignmentDAL = {
         dueDate: found.dueDate,
         maxScore: found.maxScore,
         createdBy: found.createdBy,
-        creatorName: creator?.fullName || 'Giáo viên',
+        creatorName: creator?.fullName || 'Teacher',
         isAiGradingEnabled: found.isAiGradingEnabled,
       };
     }

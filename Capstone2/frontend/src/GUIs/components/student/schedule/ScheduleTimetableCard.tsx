@@ -43,18 +43,18 @@ export function ScheduleTimetableCard(props: Props) {
     const people = official.partner === 'ta' ? session.teachingAssistants : session.teachers;
     const name = people.map(p => p.name).join(', ');
     const start = timeMinutes(session.startTime), end = timeMinutes(session.endTime);
-    return {id: String(session.sessionId), className: session.className, subject: session.subjectName || 'Chưa có môn học',
+    return {id: String(session.sessionId), className: session.className, subject: session.subjectName || 'No subject assigned',
       startH: Math.floor(start / 60), startM: start % 60, endH: Math.floor(end / 60), endM: end % 60,
-      teacher: name || 'Chưa phân công', initials: name ? name.trim().split(/\s+/).map(word => word[0]).slice(-2).join('') : '',
-      avatarBg: '#2563EB', room: session.room || 'Chưa xếp phòng', day: dateKeys.indexOf(session.sessionDate),
-      actual: session, status: visual, statusLabel: status.label, staffLabel: official.partner === 'ta' ? 'TA' : 'GV'};
+      teacher: name || 'Unassigned', initials: name ? name.trim().split(/\s+/).map(word => word[0]).slice(-2).join('') : '',
+      avatarBg: '#2563EB', room: session.room || 'No room assigned', day: dateKeys.indexOf(session.sessionDate),
+      actual: session, status: visual, statusLabel: status.label, staffLabel: official.partner === 'ta' ? 'TA' : 'Teacher'};
   }) : (legacy?.sessions ?? SESSIONS);
   const invalidCount = official?.sessions.filter(s => !validCalendarTime(s)).length ?? 0;
   return <>
-    {invalidCount > 0 && <p className="et-schedule-warning" role="alert">{invalidCount} phiên có giờ không hợp lệ. Xem dữ liệu trong List.</p>}
+    {invalidCount > 0 && <p className="et-schedule-warning" role="alert">{invalidCount} session(s) have invalid time. View data in List.</p>}
     <div className={'schedule-calendar-card' + (official ? ' schedule-calendar-official et-schedule-scroll' : '')}
       ref={official ? scrollRef : undefined} tabIndex={official ? 0 : undefined}
-      aria-label={official ? 'Lịch tuần, cuộn ngang và dọc để xem ngày giờ' : undefined}>
+      aria-label={official ? 'Weekly schedule, scroll horizontally and vertically to view dates and times' : undefined}>
       <div className="day-header-row" id={official ? undefined : 'dayHeaderRow'}>
         <div className="day-header-corner">{official ? 'UTC+7' : ''}</div>
         {days.map((date, index) => {

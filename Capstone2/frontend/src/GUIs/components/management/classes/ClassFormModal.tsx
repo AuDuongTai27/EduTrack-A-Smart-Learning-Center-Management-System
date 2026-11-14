@@ -17,9 +17,9 @@ interface Props {
   onSaved: (item: ClassDto) => void;
 }
 const FIELD_PLACEHOLDERS: Partial<Record<keyof ClassFormValues, string>> = {
-  className: "VD: Lớp 9 - Toán",
-  tuitionFee: "VD: 1.700.000",
-  room: "VD: Phòng A101",
+  className: "e.g., Grade 9 - Math",
+  tuitionFee: "e.g., 1,700,000",
+  room: "e.g., Room A101",
 };
 export default function ClassFormModal({classId, subjects, grades, onRetrySubjects, onClose, onSaved}: Props) {
   const statusOptions = classId ? CLASS_STATUSES : CREATE_CLASS_STATUSES;
@@ -38,7 +38,7 @@ export default function ClassFormModal({classId, subjects, grades, onRetrySubjec
     if (classId) {
       setForm(null); setLoading(true); setError(null);
       classDAL.getClassById(classId).then(item => {
-        if (!item) throw new Error("Không tìm thấy lớp học.");
+        if (!item) throw new Error("Class not found.");
         if (active) {setForm(classToForm(item)); setAllowUnclassified(item.gradeId == null);}
       }).catch(cause => {if (active) setError(classError(cause));})
         .finally(() => {if (active) setLoading(false);});
@@ -78,7 +78,7 @@ export default function ClassFormModal({classId, subjects, grades, onRetrySubjec
     try {
       const payload = classFormPayload(form);
       const result = classId ? await managementDAL.updateClass(classId, payload) : await managementDAL.createClass(payload);
-      if (!result.success || !result.data) throw new Error(result.message || "Máy chủ chưa xác nhận lưu lớp học.");
+      if (!result.success || !result.data) throw new Error(result.message || "Server did not confirm saving class.");
       if (mounted.current) onSaved(result.data);
     } catch (cause) {if (mounted.current) setError(classError(cause));}
     finally {savingRef.current = false; if (mounted.current) setSaving(false);}
@@ -88,61 +88,61 @@ export default function ClassFormModal({classId, subjects, grades, onRetrySubjec
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div className="modal-content border-0 shadow-lg">
           <div className="modal-header bg-primary text-white">
-            <h5 id="class-form-title" className="modal-title fw-bold">{classId ? "Chỉnh sửa lớp học" : "Mở lớp học mới"}</h5>
-            <button type="button" className="btn-close btn-close-white" aria-label="Đóng" disabled={saving} onClick={onClose} />
+            <h5 id="class-form-title" className="modal-title fw-bold">{classId ? "Edit Class" : "Open New Class"}</h5>
+            <button type="button" className="btn-close btn-close-white" aria-label="Close" disabled={saving} onClick={onClose} />
           </div>
           <form onSubmit={submit} noValidate className="d-flex flex-column overflow-hidden">
             <div className="modal-body p-4">
-              {loading && <div className="text-muted py-4" role="status"><span className="spinner-border spinner-border-sm me-2" />Đang tải dữ liệu lớp mới nhất...</div>}
+              {loading && <div className="text-muted py-4" role="status"><span className="spinner-border spinner-border-sm me-2" />Loading latest class data...</div>}
               {error && <div className="alert alert-danger" role="alert">{error}
-                {!form && <button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => setRetry(value => value + 1)}>Thử lại</button>}
+                {!form && <button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => setRetry(value => value + 1)}>Retry</button>}
               </div>}
               {form && <fieldset disabled={saving}>
-                <h6 className="fw-bold mb-3">A. Thông tin lớp học</h6>
+                <h6 className="fw-bold mb-3">A. Class Information</h6>
                 <div className="row g-3">
-                  {input("className", "Tên lớp học", "text", true, 150)}
+                  {input("className", "Class Name", "text", true, 150)}
                   <div className="col-md-6">
-                    <label className="form-label fw-semibold" htmlFor="class-gradeId">Khối lớp (Grade){!allowUnclassified && <span className="text-danger"> *</span>}</label>
+                    <label className="form-label fw-semibold" htmlFor="class-gradeId">Grade{!allowUnclassified && <span className="text-danger"> *</span>}</label>
                     <select id="class-gradeId" name="gradeId" className={`form-select${errors.gradeId ? " is-invalid" : ""}`}
                       value={form.gradeId} disabled={grades.loading || !grades.data?.length} required={!allowUnclassified}
                       aria-invalid={!!errors.gradeId} aria-describedby={errors.gradeId ? "error-gradeId" : undefined}
                       onChange={event => change("gradeId", event.target.value)}>
-                      <option value="" disabled={!allowUnclassified}>{allowUnclassified ? "Chưa phân loại" : "Chọn khối lớp"}</option>
+                      <option value="" disabled={!allowUnclassified}>{allowUnclassified ? "Unclassified" : "Select Grade"}</option>
                       {form.gradeId && !grades.data?.some(grade => String(grade.gradeId) === form.gradeId)
-                        && <option value={form.gradeId} disabled>Khối hiện tại #{form.gradeId} chưa có trong danh mục</option>}
+                        && <option value={form.gradeId} disabled>Current grade #{form.gradeId} is not in the list</option>}
                       {grades.data?.map(grade => <option key={grade.gradeId} value={String(grade.gradeId)}>{grade.gradeName}</option>)}
                     </select>
                     {errors.gradeId && <div id="error-gradeId" className="invalid-feedback">{errors.gradeId}</div>}
-                    {grades.loading ? <div className="small text-muted" role="status">Đang tải khối lớp...</div>
-                      : grades.error ? <div className="alert alert-warning mt-2" role="alert">{grades.error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onRetrySubjects}>Tải lại khối lớp</button></div>
-                        : grades.data?.length === 0 && <div className="alert alert-warning mt-2">Chưa có danh mục khối lớp. Vui lòng tải lại sau.</div>}
+                    {grades.loading ? <div className="small text-muted" role="status">Loading grades...</div>
+                      : grades.error ? <div className="alert alert-warning mt-2" role="alert">{grades.error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onRetrySubjects}>Reload grades</button></div>
+                        : grades.data?.length === 0 && <div className="alert alert-warning mt-2">No grade list available. Please reload later.</div>}
                   </div>
                 </div>
-                <h6 className="fw-bold mt-4 mb-3">B. Môn học và học phí</h6>
-                {subjects.loading ? <div className="text-muted small" role="status">Đang tải danh sách môn học...</div>
-                  : subjects.error ? <div className="alert alert-warning" role="alert">{subjects.error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onRetrySubjects}>Tải lại môn học</button></div>
-                    : subjects.data?.length === 0 && <div className="alert alert-warning">Chưa có môn học. Vui lòng bổ sung môn học trước khi mở lớp.</div>}
+                <h6 className="fw-bold mt-4 mb-3">B. Subject and Tuition</h6>
+                {subjects.loading ? <div className="text-muted small" role="status">Loading subjects...</div>
+                  : subjects.error ? <div className="alert alert-warning" role="alert">{subjects.error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onRetrySubjects}>Reload subjects</button></div>
+                    : subjects.data?.length === 0 && <div className="alert alert-warning">No subjects available. Please add subjects before opening a class.</div>}
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <label className="form-label fw-semibold" htmlFor="class-subjectId">Môn học <span className="text-danger">*</span></label>
+                    <label className="form-label fw-semibold" htmlFor="class-subjectId">Subject <span className="text-danger">*</span></label>
                     <select id="class-subjectId" name="subjectId" className={`form-select${errors.subjectId ? " is-invalid" : ""}`} value={form.subjectId}
                       disabled={subjects.loading || !subjects.data?.length} onChange={event => change("subjectId", event.target.value)} required>
-                      <option value="">Chọn môn học</option>
+                      <option value="">Select Subject</option>
                       {form.subjectId && !subjects.data?.some(item => String(item.subjectId) === form.subjectId)
-                        && <option value={form.subjectId} disabled>Môn hiện tại #{form.subjectId} chưa có trong danh sách</option>}
+                        && <option value={form.subjectId} disabled>Current subject #{form.subjectId} is not in the list</option>}
                       {subjects.data?.map(subject => <option key={subject.subjectId} value={String(subject.subjectId)}>{subject.subjectName} ({subject.subjectCode})</option>)}
                     </select>
                     {errors.subjectId && <div className="invalid-feedback">{errors.subjectId}</div>}
                   </div>
-                  {input("tuitionFee", "Học phí/tháng", "text", true)}
+                  {input("tuitionFee", "Monthly Tuition", "text", true)}
                 </div>
-                <h6 className="fw-bold mt-4 mb-3">C. Phòng học và lịch học</h6>
+                <h6 className="fw-bold mt-4 mb-3">C. Room and Schedule</h6>
                 <div className="row g-3">
-                  {input("startDate", "Ngày khai giảng", "date", true)}
-                  {input("endDate", "Ngày kết thúc dự kiến", "date")}
-                  {input("room", "Phòng học (tùy chọn)", "text", false, 50)}
+                  {input("startDate", "Start Date", "date", true)}
+                  {input("endDate", "Expected End Date", "date")}
+                  {input("room", "Room (optional)", "text", false, 50)}
                   <div className="col-md-6">
-                    <label className="form-label fw-semibold" htmlFor="class-status">Trạng thái lớp <span className="text-danger">*</span></label>
+                    <label className="form-label fw-semibold" htmlFor="class-status">Class Status <span className="text-danger">*</span></label>
                     <select id="class-status" name="status" className="form-select" value={form.status} onChange={event => change("status", event.target.value)}>
                       {classId && !statusOptions.includes(form.status) && <option value={form.status}>{form.status}</option>}
                       {statusOptions.map(status => <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>)}
@@ -153,9 +153,9 @@ export default function ClassFormModal({classId, subjects, grades, onRetrySubjec
               </fieldset>}
             </div>
             <div className="modal-footer bg-light">
-              <button type="button" className="btn btn-outline-secondary" disabled={saving} onClick={onClose}>Hủy bỏ</button>
+              <button type="button" className="btn btn-outline-secondary" disabled={saving} onClick={onClose}>Cancel</button>
               <button type="submit" className="btn btn-primary" disabled={saving || loading || !form || subjects.loading || !subjects.data?.length || grades.loading || !grades.data?.length}>
-                {saving ? "Đang lưu..." : classId ? "Lưu thay đổi" : "Tạo lớp học"}
+                {saving ? "Saving..." : classId ? "Save Changes" : "Create Class"}
               </button>
             </div>
           </form>

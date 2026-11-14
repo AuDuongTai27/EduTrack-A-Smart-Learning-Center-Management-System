@@ -17,7 +17,7 @@ export function TeacherProfileBottomAction({
           className="btn btn-outline-primary d-inline-flex align-items-center gap-2 px-3 py-2"
           onClick={onChangePassword}
         >
-          <i className="bi bi-shield-lock" /> Đổi mật khẩu
+          <i className="bi bi-shield-lock" /> Change Password
         </button>
       )}
       <button
@@ -25,7 +25,7 @@ export function TeacherProfileBottomAction({
         className="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2"
         onClick={onEdit}
       >
-        <i className="bi bi-pencil-square" /> Chỉnh sửa hồ sơ
+        <i className="bi bi-pencil-square" /> Edit Profile
       </button>
     </div>
   );
