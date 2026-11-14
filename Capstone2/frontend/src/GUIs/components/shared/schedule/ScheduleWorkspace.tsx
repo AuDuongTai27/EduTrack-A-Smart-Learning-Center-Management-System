@@ -7,7 +7,6 @@ import {ScheduleCalendar} from './ScheduleCalendar';
 import {ScheduleList} from './ScheduleList';
 import {ScheduleSessionDetail} from './ScheduleSessionDetail';
 import {ScheduleManagement} from './ScheduleManagement';
-import {ScheduleLegendStrip} from '../../student/schedule/ScheduleLegendStrip';
 import ScheduleListHeader from '../../teacher/Teacher/schedule/ScheduleListHeader';
 import TaListHeader from '../../teacher/TeachingAssistant/schedule/ScheduleListHeader';
 import ScheduleListToolbar from '../../teacher/Teacher/schedule/ScheduleListToolbar';
@@ -277,7 +276,6 @@ export function ScheduleWorkspace({
               page={model.page} pageSize={model.pageSize} onPage={model.setPage} onOpen={model.open} />}
         </>}
       </div>
-      {model.view === 'calendar' && <ScheduleLegendStrip official />}
       {model.selected && (
         <ScheduleSessionDetail
           session={model.selected}
