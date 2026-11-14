@@ -194,7 +194,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               onClick={handleHome}
             >
               <i className="bi bi-box-arrow-right fs-6" />
-              <span>Về trang chủ</span>
+              <span>Đăng xuất</span>
             </button>
           </div>
         )}

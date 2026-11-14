@@ -1,5 +1,7 @@
 import { Navigate, type RouteObject } from "react-router-dom";
 import CenterManagerLayout from "../GUIs/layouts/admin/CenterManagerLayout";
+import { RoleRouteGuard } from "./RoleRouteGuard";
+import { NotFoundPage } from "../GUIs/pages/shared/NotFoundPage";
 import CenterManagerDashboardPage from "../GUIs/pages/admin/CenterManager/CenterManagerDashboardPage";
 import CenterManagerUserAccountPage from "../GUIs/pages/admin/CenterManager/CenterManagerUserAccountPage";
 import CenterManagerStudentPage from "../GUIs/pages/admin/CenterManager/CenterManagerStudentPage";
@@ -16,9 +18,13 @@ import CenterManagerSettingPage from "../GUIs/pages/admin/CenterManager/CenterMa
 
 export const centerManagerRoutes: RouteObject = {
   path: "/center-manager",
-  element: <CenterManagerLayout />,
+  element: (
+    <RoleRouteGuard allowedRole="center_manager">
+      <CenterManagerLayout />
+    </RoleRouteGuard>
+  ),
   children: [
-    {path: "schedule", element: <ManagementSchedulePage role="center-manager" />},
+    { path: "schedule", element: <ManagementSchedulePage role="center-manager" /> },
     {
       index: true,
       element: <Navigate to="dashboard" replace />,
@@ -70,6 +76,10 @@ export const centerManagerRoutes: RouteObject = {
     {
       path: "settings",
       element: <CenterManagerSettingPage />,
+    },
+    {
+      path: "*",
+      element: <NotFoundPage />,
     },
   ],
 };

@@ -1,6 +1,8 @@
 import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 import { StudentLayout } from "../GUIs/layouts/student/Student-layout";
+import { RoleRouteGuard } from "./RoleRouteGuard";
+import { NotFoundPage } from "../GUIs/pages/shared/NotFoundPage";
 import { StudentDashboardPage } from "../GUIs/pages/student/StudentDashboardPage";
 import { StudentClassesPage } from "../GUIs/pages/student/StudentClassesPage";
 import { StudentSchedulePage } from "../GUIs/pages/student/StudentSchedulePage";
@@ -14,7 +16,11 @@ import { StudentFeedbackPage } from "../GUIs/pages/student/StudentFeedbackPage";
 
 export const studentRoutes: RouteObject = {
   path: "/student",
-  element: <StudentLayout />,
+  element: (
+    <RoleRouteGuard allowedRole="student">
+      <StudentLayout />
+    </RoleRouteGuard>
+  ),
   children: [
     { index: true, element: <Navigate to="/student/dashboard" replace /> },
     { path: "dashboard", element: <StudentDashboardPage /> },
@@ -29,6 +35,7 @@ export const studentRoutes: RouteObject = {
     { path: "class-detail", element: <StudentClassDetailPage /> },
     { path: "assignments/:id", element: <StudentAssignmentDetailPage /> },
     { path: "assignment-detail", element: <StudentAssignmentDetailPage /> },
+    { path: "*", element: <NotFoundPage /> },
   ],
 };
 
