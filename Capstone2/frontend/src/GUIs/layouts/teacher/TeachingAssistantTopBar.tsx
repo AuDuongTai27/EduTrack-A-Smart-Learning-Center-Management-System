@@ -2,6 +2,7 @@ import { NotificationBellDropdown } from '../../components/shared/notifications/
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {useSelectedUser} from '../../hooks/useSelectedUser';
+import { authApi } from '../../../api/authApi';
 
 export function TeachingAssistantTopBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -25,6 +26,7 @@ export function TeachingAssistantTopBar() {
   const handleHome = () => {
     setIsDropdownOpen(false);
 
+    authApi.logout();
     navigate("/");
   };
 
@@ -153,7 +155,7 @@ export function TeachingAssistantTopBar() {
                   onClick={handleHome}
                 >
                   <i className="bi bi-box-arrow-right fs-6" />
-                  <span>Back to Home</span>
+                  <span>Logout</span>
                 </button>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { useRoutes, Navigate } from "react-router-dom";
+import { useRoutes } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 import { landingRoutes } from "./landing.routes";
 import { studentRoutes } from "./student.routes";
@@ -8,6 +8,7 @@ import { centerManagerRoutes } from "./centerManager.routes";
 import { adminStaffRoutes } from "./adminStaff.routes";
 import { teacherRoutes } from "./teacher.routes";
 import { teachingAssistantRoutes } from "./teachingAssistant.routes";
+import { NotFoundPage } from "../GUIs/pages/shared/NotFoundPage";
 
 export const routes: RouteObject[] = [
   landingRoutes,
@@ -19,7 +20,7 @@ export const routes: RouteObject[] = [
   teachingAssistantRoutes,
   {
     path: "*",
-    element: <Navigate to="/" replace />,
+    element: <NotFoundPage />,
   },
 ];
 

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
+import { authApi, getAuthUser, subscribeAuth } from "../../../api/authApi";
 
 interface StudentNavMenuProps {
   onLinkClick?: () => void;
@@ -11,6 +12,22 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
   const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
   const footerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
+
+  const isStudentAuth =
+    authUser &&
+    (authUser.primaryRole === "student" || authUser.roles?.includes("student"));
+
+  const displayName = isStudentAuth ? authUser.fullName : "Lê Văn An";
+  const displayGrade = isStudentAuth
+    ? `Student · ${authUser.gradeName || authUser.userCode}`
+    : "Student · Grade 9";
+  const displayInitials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(-2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("") || "VA";
 
   useEffect(() => {
     let mounted = true;
@@ -27,7 +44,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
       window.removeEventListener("notifications-updated", onUpdate);
       window.removeEventListener("focus", onUpdate);
     };
-  }, []);
+  }, [authUser?.userId]);
 
   // Đóng dropup khi click bên ngoài
   useEffect(() => {
@@ -51,6 +68,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
   const handleHome = () => {
     setIsDropupOpen(false);
     onLinkClick?.();
+    authApi.logout();
     navigate("/");
   };
   return (
@@ -152,10 +170,10 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
           <div className="sidebar-user-dropup">
             <div className="px-3 py-2 border-bottom mb-1">
               <div className="fw-bold text-dark text-truncate" style={{ fontSize: "13px" }}>
-                Lê Văn An
+                {displayName}
               </div>
               <div className="text-muted text-truncate" style={{ fontSize: "11px" }}>
-                Student · Grade 9
+                {displayGrade}
               </div>
             </div>
 
@@ -176,7 +194,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               onClick={handleHome}
             >
               <i className="bi bi-box-arrow-right fs-6" />
-              <span>Back to Home</span>
+              <span>Logout</span>
             </button>
           </div>
         )}
@@ -189,16 +207,16 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
           title="Student Account"
           aria-expanded={isDropupOpen}
         >
-          <div className="student-avatar">VA</div>
+          <div className="student-avatar">{displayInitials}</div>
           <div className="student-info">
-            <div className="student-name" title="Lê Văn An">Lê Văn An</div>
-            <div className="student-grade">Student · Grade 9</div>
+            <div className="student-name" title={displayName}>{displayName}</div>
+            <div className="student-grade">{displayGrade}</div>
           </div>
           <i className="bi bi-three-dots-vertical text-muted ms-auto small" />
         </button>
       </div>
     </>
   );
-};
+}
 
 export default StudentNavMenu;

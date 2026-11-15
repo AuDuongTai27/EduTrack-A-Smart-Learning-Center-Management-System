@@ -1,4 +1,5 @@
 import type { CenterSettingDto } from '../BLL/models/CenterSettingDto';
+import { getAuthHeaders } from './authApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -17,19 +18,19 @@ async function responseJson<T>(res: Response): Promise<T> {
 
 export const centerSettingApi = {
   async getAll(): Promise<CenterSettingDto[]> {
-    const res = await fetch(`${API_BASE_URL}/centersettings`, { method: 'GET' });
+    const res = await fetch(`${API_BASE_URL}/centersettings`, { method: 'GET', headers: { ...getAuthHeaders() } });
     return responseJson<CenterSettingDto[]>(res);
   },
 
   async getById(id: number): Promise<CenterSettingDto> {
-    const res = await fetch(`${API_BASE_URL}/centersettings/${id}`, { method: 'GET' });
+    const res = await fetch(`${API_BASE_URL}/centersettings/${id}`, { method: 'GET', headers: { ...getAuthHeaders() } });
     return responseJson<CenterSettingDto>(res);
   },
 
   async updateBulk(settings: CenterSettingChange[]): Promise<CenterSettingDto[]> {
     const res = await fetch(`${API_BASE_URL}/centersettings/bulk`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ settings }),
     });
     return responseJson<CenterSettingDto[]>(res);

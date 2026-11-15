@@ -1,5 +1,7 @@
 import { Navigate, type RouteObject } from "react-router-dom";
 import AdminStaffLayout from "../GUIs/layouts/admin/AdminStaffLayout";
+import { RoleRouteGuard } from "./RoleRouteGuard";
+import { NotFoundPage } from "../GUIs/pages/shared/NotFoundPage";
 import AdminStaffDashboardPage from "../GUIs/pages/admin/AdminStaff/AdminStaffDashboardPage";
 import AdminStaffNotificationPage from "../GUIs/pages/admin/AdminStaff/AdminStaffNotificationPage";
 import AdminStaffStudentPage from "../GUIs/pages/admin/AdminStaff/AdminStaffStudentPage";
@@ -14,9 +16,13 @@ import AdminStaffReportPage from "../GUIs/pages/admin/AdminStaff/AdminStaffRepor
 
 export const adminStaffRoutes: RouteObject = {
   path: "/admin-staff",
-  element: <AdminStaffLayout />,
+  element: (
+    <RoleRouteGuard allowedRole="admin_staff">
+      <AdminStaffLayout />
+    </RoleRouteGuard>
+  ),
   children: [
-    {path: "schedule", element: <ManagementSchedulePage role="admin-staff" />},
+    { path: "schedule", element: <ManagementSchedulePage role="admin-staff" /> },
     {
       index: true,
       element: <Navigate to="dashboard" replace />,
@@ -60,6 +66,10 @@ export const adminStaffRoutes: RouteObject = {
     {
       path: "reports",
       element: <AdminStaffReportPage />,
+    },
+    {
+      path: "*",
+      element: <NotFoundPage />,
     },
   ],
 };

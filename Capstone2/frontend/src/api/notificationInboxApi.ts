@@ -1,11 +1,12 @@
 import {selectedUrl, currentSelectedUser} from '../BLL/services/userSelection';
 import { validateSnapshot, validateRows, type InboxSnapshot } from '../BLL/services/notificationInbox';
+import { getAuthHeaders } from './authApi';
 const base = import.meta.env.VITE_API_URL || '/api';
 export async function notificationRequest(path: string, method = 'GET', signal?: AbortSignal, body?: unknown): Promise<unknown> {
   if (body && path === 'management/notifications') body = { ...body as object, senderId: (await currentSelectedUser()).userId };
   const url = await selectedUrl(`${base}/${path}`, path.startsWith('management/notifications') ? 'senderId' : 'userId');
   const response = await fetch(url, { method, signal, credentials: 'omit', cache: 'no-store',
-    headers: { Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { Accept: 'application/json', ...getAuthHeaders(), ...(body ? { 'Content-Type': 'application/json' } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}) });
   const value: unknown = await response.json().catch(() => null);
   if (!response.ok) {

@@ -1,6 +1,9 @@
+using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs.Learning;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Learning.Interfaces;
@@ -12,6 +15,7 @@ namespace EduTrack.API.Controllers.Learning
     /// Phụ trách: Nhóm Student & Parent (Thành viên 3)
     /// </summary>
     [ApiController]
+    [Authorize(Roles = JwtAuthHelper.RolesLearning)]
     [Route("api/learning/parent")]
     [Tags("Learning - Parent Portal & Tuition Payment")]
     public class ParentPortalController : ControllerBase
@@ -39,7 +43,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{parentId:int}/children-overview")]
         public async Task<IActionResult> GetChildrenOverview(int parentId)
         {
-            var data = await _dashboardService.GetParentChildrenOverviewAsync(parentId);
+            var effectiveParentId = JwtAuthHelper.ResolveEffectiveUserId(User, parentId, JwtAuthHelper.RoleParent);
+            var data = await _dashboardService.GetParentChildrenOverviewAsync(effectiveParentId);
             return Ok(new { success = true, data });
         }
 
@@ -49,10 +54,11 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("tuition/{studentId:int}")]
         public async Task<IActionResult> GetStudentTuition(int studentId)
         {
-            var data = await _dashboardService.GetStudentTuitionOverviewAsync(studentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _dashboardService.GetStudentTuitionOverviewAsync(effectiveStudentId);
             if (data == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy thông tin học phí của học sinh ID = {studentId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy thông tin học phí của học sinh ID = {effectiveStudentId}" });
             }
 
             return Ok(new { success = true, data });
@@ -67,6 +73,11 @@ namespace EduTrack.API.Controllers.Learning
             if (request == null || request.StudentId <= 0)
             {
                 return BadRequest(new { success = false, message = "Thông tin thanh toán không hợp lệ." });
+            }
+
+            if (User.IsInRole(JwtAuthHelper.RoleParent) && !JwtAuthHelper.IsManagementUser(User))
+            {
+                request.ParentId = JwtAuthHelper.ResolveEffectiveUserId(User, request.ParentId, JwtAuthHelper.RoleParent);
             }
 
             try
@@ -101,13 +112,13 @@ namespace EduTrack.API.Controllers.Learning
         {
             try
             {
-            var updated = await _dashboardService.ResetDemoUnpaidTuitionAsync(studentId);
-            return Ok(new
-            {
-                success = true,
-                message = "Đã tạo lại hóa đơn học phí chờ thanh toán cho kỳ hiện tại.",
-                data = updated
-            });
+                var updated = await _dashboardService.ResetDemoUnpaidTuitionAsync(studentId);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đã tạo lại hóa đơn học phí chờ thanh toán cho kỳ hiện tại.",
+                    data = updated
+                });
             }
             catch (NotSupportedException)
             {
@@ -121,7 +132,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{parentId:int}/notifications")]
         public async Task<IActionResult> GetParentNotifications(int parentId, [FromQuery] int? studentId = null)
         {
-            var data = await _dashboardService.GetParentNotificationsAsync(parentId, studentId);
+            var effectiveParentId = JwtAuthHelper.ResolveEffectiveUserId(User, parentId, JwtAuthHelper.RoleParent);
+            var data = await _dashboardService.GetParentNotificationsAsync(effectiveParentId, studentId);
             return Ok(new { success = true, data });
         }
 
@@ -131,10 +143,11 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{parentId:int}/profile")]
         public async Task<IActionResult> GetParentProfile(int parentId)
         {
-            var data = await _dashboardService.GetLearnerProfileAsync(parentId);
+            var effectiveParentId = JwtAuthHelper.ResolveEffectiveUserId(User, parentId, JwtAuthHelper.RoleParent);
+            var data = await _dashboardService.GetLearnerProfileAsync(effectiveParentId);
             if (data == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ phụ huynh ID = {parentId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ phụ huynh ID = {effectiveParentId}" });
             }
 
             return Ok(new { success = true, data });
@@ -151,10 +164,11 @@ namespace EduTrack.API.Controllers.Learning
                 return BadRequest(new { success = false, message = "Họ và tên phụ huynh không được để trống." });
             }
 
-            var updated = await _dashboardService.UpdateLearnerProfileAsync(parentId, request);
+            var effectiveParentId = JwtAuthHelper.ResolveEffectiveUserId(User, parentId, JwtAuthHelper.RoleParent);
+            var updated = await _dashboardService.UpdateLearnerProfileAsync(effectiveParentId, request);
             if (updated == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ phụ huynh ID = {parentId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ phụ huynh ID = {effectiveParentId}" });
             }
 
             return Ok(new

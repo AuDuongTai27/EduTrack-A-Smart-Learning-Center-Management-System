@@ -3,8 +3,7 @@ import type { TuitionInvoice } from '../BLL/models/TuitionInvoice';
 import type { Payment } from '../BLL/models/Payment';
 import type { ApprovalRequest } from '../BLL/models/ApprovalRequest';
 import type { Notification } from '../BLL/models/Notification';
-import type { ClassDto } from '../BLL/models/ClassDto';
-import { classDAL } from './classDAL';
+import { learningApi } from '../api/learningApi';
 
 import {
   MOCK_USERS,
@@ -23,8 +22,14 @@ import {
   MOCK_NOTIFICATIONS,
 } from './mockData';
 
+import { getSelectedUserId } from '../BLL/services/userSelection';
+
 // Mặc định phụ huynh đang đăng nhập là Lê Văn Nam (PAR001, UserId = 9)
 export const DEFAULT_PARENT_ID = 9;
+
+export function getActiveParentId(): number {
+  return getSelectedUserId('parent');
+}
 
 export interface ChildClassItem {
   id: number;
@@ -153,17 +158,17 @@ export const parentDAL = {
 
         classItems.push({
           id: cls.classId,
-          name: cls.className,
+          name: `[MOCK] ${cls.className}`,
           subject: subject ? subject.subjectName : 'General',
           subjectClass,
           badge,
-          teacher: teacher ? teacher.fullName : 'Unassigned',
+          teacher: teacher ? `[MOCK] ${teacher.fullName}` : 'Unassigned',
           teacherInitials,
           schedule: scheduleText || 'Unscheduled',
           room: cls.room || 'No room assigned',
           attendedLessons,
           totalLessons: sessions.length || 10,
-          notes: 'Full attendance, actively participates in class.',
+          notes: '[MOCK] Full attendance, actively participates in class.',
         });
       }
 
@@ -200,10 +205,10 @@ export const parentDAL = {
       children.push({
         id: studentUser.userId,
         code: studentUser.userCode,
-        name: studentUser.fullName,
+        name: `[MOCK] ${studentUser.fullName}`,
         avatar: avatarInitials,
-        grade: 'Grade 9',
-        school: 'Le Quy Don Secondary School',
+        grade: '[MOCK] Grade 9',
+        school: '[MOCK] Le Quy Don Secondary School',
         dob: studentUser.dateOfBirth ? studentUser.dateOfBirth.slice(0, 10) : '2010-02-14',
         phone: studentUser.phone ?? undefined,
         classesCount: classItems.length,
@@ -336,86 +341,61 @@ export const parentDAL = {
   },
 
   /**
-   * Lấy danh sách tất cả lớp học liên kết cho phụ huynh (gọi Backend qua classDAL với fallback)
+   * Lấy danh sách tất cả lớp học liên kết cho phụ huynh
    */
-  async getAllClasses(): Promise<ChildClassItem[]> {
-    const res = await classDAL.getAllClasses();
-    const linkedChildren = this.getLinkedChildrenSync();
-    const fallbackClasses = linkedChildren[0]?.classes || [];
-
-    if (res.data && res.data.length > 0) {
-      return res.data.map((dto) => {
-        const fb = fallbackClasses.find((c) => c.id === dto.classId);
-        return mapClassDtoToChildClassItem(dto, fb);
-      });
+  async getAllClasses(parentId = DEFAULT_PARENT_ID): Promise<ChildClassItem[]> {
+    const targetParentId = parentId || getActiveParentId() || DEFAULT_PARENT_ID;
+    try {
+      const apiChildren = await learningApi.getParentChildrenOverview(targetParentId);
+      if (Array.isArray(apiChildren) && apiChildren.length > 0) {
+        const allClasses: ChildClassItem[] = [];
+        const seen = new Set<number>();
+        for (const child of apiChildren) {
+          for (const cls of child.classes || []) {
+            if (!seen.has(cls.id)) {
+              seen.add(cls.id);
+              allClasses.push({
+                id: cls.id,
+                name: cls.name,
+                subject: cls.subject,
+                subjectClass: cls.subjectClass,
+                badge: cls.badge,
+                teacher: cls.teacher,
+                teacherInitials: cls.teacherInitials,
+                schedule: cls.schedule,
+                room: cls.room,
+                attendedLessons: cls.attendedLessons,
+                totalLessons: cls.totalLessons,
+                notes: cls.notes,
+              });
+            }
+          }
+        }
+        if (allClasses.length > 0) return allClasses;
+      }
+    } catch {
+      // Fallback to local mock data below
     }
+    const linkedChildren = this.getLinkedChildrenSync(targetParentId);
+    const fallbackClasses = linkedChildren[0]?.classes || [];
     return fallbackClasses;
   },
 
   /**
-   * Lấy chi tiết lớp học theo ID (gọi Backend qua classDAL với fallback)
+   * Lấy chi tiết lớp học theo ID trong phạm vi các con phụ huynh
    */
-  async getChildClassById(classId: number): Promise<ChildClassItem | null> {
-    const dto = await classDAL.getClassById(classId);
-    const linkedChildren = this.getLinkedChildrenSync();
-    let fallbackCls: ChildClassItem | undefined;
+  async getChildClassById(classId: number, parentId = DEFAULT_PARENT_ID): Promise<ChildClassItem | null> {
+    const classes = await this.getAllClasses(parentId);
+    const match = classes.find((c) => c.id === classId);
+    if (match) return match;
 
+    const linkedChildren = this.getLinkedChildrenSync(parentId);
     for (const child of linkedChildren) {
-      const match = child.classes.find((c) => c.id === classId);
-      if (match) {
-        fallbackCls = match;
-        break;
-      }
+      const c = child.classes.find((item) => item.id === classId);
+      if (c) return c;
     }
-
-    if (dto) {
-      return mapClassDtoToChildClassItem(dto, fallbackCls);
-    }
-    return fallbackCls || null;
+    return null;
   },
 };
 
-/**
- * Helper chuyển đổi ClassDto sang ChildClassItem cho giao diện phụ huynh
- */
-export function mapClassDtoToChildClassItem(
-  dto: ClassDto,
-  fallbackItem?: ChildClassItem
-): ChildClassItem {
-  let badge = 'Math';
-  let subjectClass = 'subject-toan';
-  const code = (dto.subjectCode || '').toUpperCase();
-
-  if (code.includes('PHYS') || code.includes('VAT') || code.includes('LY')) {
-    badge = 'Physics';
-    subjectClass = 'subject-vat-ly';
-  } else if (code.includes('CHEM') || code.includes('HOA')) {
-    badge = 'Chemistry';
-    subjectClass = 'subject-hoa-hoc';
-  } else if (code.includes('ENG') || code.includes('ANH')) {
-    badge = 'English';
-    subjectClass = 'subject-tieng-anh';
-  } else if (code.includes('LIT') || code.includes('VAN')) {
-    badge = 'Literature';
-    subjectClass = 'subject-ngu-van';
-  } else if (code.includes('BIO') || code.includes('SINH')) {
-    badge = 'Biology';
-    subjectClass = 'subject-sinh-hoc';
-  }
-
-  return {
-    id: dto.classId,
-    name: dto.className,
-    subject: dto.subjectName || fallbackItem?.subject || 'General',
-    subjectClass,
-    badge,
-    teacher: fallbackItem?.teacher || 'Center Teacher',
-    teacherInitials: fallbackItem?.teacherInitials || 'TC',
-    schedule: fallbackItem?.schedule || 'Schedule updated by course',
-    room: dto.room || fallbackItem?.room || 'Center Classroom',
-    attendedLessons: fallbackItem?.attendedLessons || 6,
-    totalLessons: fallbackItem?.totalLessons || 10,
-    notes: fallbackItem?.notes || 'Full attendance, actively participates in class.',
-  };
-}
 

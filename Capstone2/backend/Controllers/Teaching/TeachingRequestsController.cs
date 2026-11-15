@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Teaching;
 using EduTrack.API.Services.Teaching.Interfaces;
@@ -14,6 +16,7 @@ namespace EduTrack.API.Controllers.Teaching
     /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
     /// </summary>
     [ApiController]
+    [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
     [Route("api/teaching/requests")]
     [Tags("Teaching - Teacher & TA Requests")]
     public class TeachingRequestsController : ControllerBase
@@ -31,12 +34,13 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpGet]
         public async Task<ActionResult<List<ApprovalRequestDto>>> GetRequests([FromQuery] int userId, [FromQuery] string? status)
         {
-            if (userId <= 0)
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
             }
 
-            var result = await _requestService.GetTeachingRequestsAsync(userId, status);
+            var result = await _requestService.GetTeachingRequestsAsync(effectiveUserId, status);
             return Ok(new { success = true, data = result });
         }
 
@@ -50,6 +54,8 @@ namespace EduTrack.API.Controllers.Teaching
             {
                 return BadRequest(ModelState);
             }
+
+            dto.RequestedBy = JwtAuthHelper.ResolveEffectiveUserId(User, dto.RequestedBy, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
 
             var result = await _requestService.CreateTeachingRequestAsync(dto);
             return StatusCode(StatusCodes.Status201Created, new

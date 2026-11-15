@@ -10,11 +10,12 @@ import {
   type DashboardSection,
 } from "../BLL/services/adminStaffDashboardService";
 import type { MonitoringSessionDto, TeacherClassAssignmentDto } from "../api/teachingMonitoringApi";
+import { getAuthHeaders } from "../api/authApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 async function getList<T>(endpoint: string): Promise<T[]> {
-  const response = await fetch(`${API_BASE_URL}/${endpoint}`, { headers: { Accept: "application/json" } });
+  const response = await fetch(`${API_BASE_URL}/${endpoint}`, { headers: { Accept: "application/json", ...getAuthHeaders() } });
   if (!response.ok) throw new Error(`Failed to load schedule (HTTP ${response.status}). Please try again.`);
   const data: unknown = await response.json();
   if (!Array.isArray(data)) throw new Error("Failed to load schedule. Please try again.");

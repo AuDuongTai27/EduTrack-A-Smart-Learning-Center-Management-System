@@ -60,9 +60,31 @@ import {
   DEFAULT_PARENT_ID,
   type ChildStudent,
 } from './parentDAL';
+import { getSelectedUserId } from '../BLL/services/userSelection';
+import { getAuthUser } from '../api/authApi';
 
 // Mặc định học sinh đang đăng nhập trong bản demo là Lê Văn An (STU001, UserId = 6)
 export const DEFAULT_STUDENT_ID = 6;
+
+function resolveStudentId(studentId?: number): number {
+  const authUser = getAuthUser();
+  if (authUser && authUser.primaryRole === 'student') {
+    if (!studentId || studentId === DEFAULT_STUDENT_ID) {
+      return authUser.userId;
+    }
+  }
+  return studentId || getSelectedUserId('student');
+}
+
+function resolveParentId(parentId?: number): number {
+  const authUser = getAuthUser();
+  if (authUser && authUser.primaryRole === 'parent') {
+    if (!parentId || parentId === DEFAULT_PARENT_ID) {
+      return authUser.userId;
+    }
+  }
+  return parentId || getSelectedUserId('parent');
+}
 
 export interface StudentDashboardViewModel {
   studentId: number;
@@ -142,11 +164,11 @@ function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): Studen
       unpaidItems.length > 0
         ? unpaidItems
         : [
-            {
-              name: 'Completed tuition for all subjects this term',
-              amount: '0 đ',
-            },
-          ],
+          {
+            name: 'Completed tuition for all subjects this term',
+            amount: '0 đ',
+          },
+        ],
     subTotal: fmtVnd(totalUnpaid),
   };
 
@@ -313,8 +335,8 @@ export function mapApiFeedbackToViewModel(
     dto.requesterRole === 'parent'
       ? 'parent'
       : dto.requesterRole === 'student'
-      ? 'student'
-      : fallbackRole;
+        ? 'student'
+        : fallbackRole;
 
   return {
     id: dto.requestId,
@@ -461,9 +483,10 @@ export const learningDAL = {
    * Lấy số lượng thông báo chưa đọc của Học sinh
    */
   async getStudentUnreadCount(studentId = DEFAULT_STUDENT_ID): Promise<number> {
+    const targetStudentId = resolveStudentId(studentId);
     try {
-      const notifs = await this.getStudentNotifications(studentId);
-      const readSet = getLocalReadNotificationIds(studentId);
+      const notifs = await this.getStudentNotifications(targetStudentId);
+      const readSet = getLocalReadNotificationIds(targetStudentId);
       return notifs.filter((n) => n.unread && !readSet.has(n.id)).length;
     } catch {
       return 0;
@@ -477,9 +500,10 @@ export const learningDAL = {
     parentId = DEFAULT_PARENT_ID,
     studentId?: number
   ): Promise<number> {
+    const targetParentId = resolveParentId(parentId);
     try {
-      const notifs = await this.getParentNotifications(parentId, studentId);
-      const readSet = getLocalReadNotificationIds(parentId);
+      const notifs = await this.getParentNotifications(targetParentId, studentId);
+      const readSet = getLocalReadNotificationIds(targetParentId);
       return notifs.filter((n) => !n.isRead && !readSet.has(n.notificationId)).length;
     } catch {
       return 0;
@@ -489,8 +513,9 @@ export const learningDAL = {
    * Lấy toàn bộ dữ liệu Dashboard của Học sinh từ Backend (kèm fallback an toàn khi offline)
    */
   async getStudentDashboard(studentId = DEFAULT_STUDENT_ID): Promise<StudentDashboardViewModel> {
+    const targetStudentId = resolveStudentId(studentId);
     try {
-      const apiData = await learningApi.getStudentDashboard(studentId);
+      const apiData = await learningApi.getStudentDashboard(targetStudentId);
       if (apiData) {
         const mappedClasses = (apiData.classes || []).map(mapApiClassToEnrolledItem);
         return {
@@ -509,13 +534,17 @@ export const learningDAL = {
     }
 
     return {
-      studentId,
+      studentId: targetStudentId,
       studentCode: 'STU001',
-      fullName: 'Lê Văn An',
+      fullName: '[MOCK] Lê Văn An',
       avatarInitials: 'VA',
       enrolledClassesCount: MOCK_ENROLLED_CLASSES.length,
       pendingAssignmentsCount: 2,
-      classes: MOCK_ENROLLED_CLASSES,
+      classes: MOCK_ENROLLED_CLASSES.map((c) => ({
+        ...c,
+        className: `[MOCK] ${c.className}`,
+        teacherName: `[MOCK] ${c.teacherName}`,
+      })),
       source: 'mock',
     };
   },
@@ -524,8 +553,9 @@ export const learningDAL = {
    * Lấy danh sách các con đã liên kết kèm chỉ số học tập & lớp học từ Backend cho Phụ huynh
    */
   async getParentChildrenOverview(parentId = DEFAULT_PARENT_ID): Promise<ChildStudent[]> {
+    const targetParentId = resolveParentId(parentId);
     try {
-      const apiChildren = await learningApi.getParentChildrenOverview(parentId);
+      const apiChildren = await learningApi.getParentChildrenOverview(targetParentId);
       if (Array.isArray(apiChildren)) {
         return apiChildren.map((child) => ({
           id: child.id,
@@ -560,7 +590,7 @@ export const learningDAL = {
       console.warn('[learningDAL] Không kết nối được Backend Parent Children Overview, dùng mock fallback:', error);
     }
 
-    return parentDAL.getLinkedChildrenSync(parentId);
+    return parentDAL.getLinkedChildrenSync(targetParentId);
   },
 
   /**
@@ -570,12 +600,13 @@ export const learningDAL = {
     classId: number,
     studentId = DEFAULT_STUDENT_ID
   ): Promise<StudentClassDetailViewModel> {
+    const targetStudentId = resolveStudentId(studentId);
     const fallbackCls = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
     const fallbackMaterials = MATERIALS_DATA.filter((m) => m.classId === classId);
     const fallbackAssignments = ASSIGNMENTS_DATA.filter((a) => a.classId === classId);
 
     try {
-      const apiData = await learningApi.getStudentClassDetail(studentId, classId);
+      const apiData = await learningApi.getStudentClassDetail(targetStudentId, classId);
       if (apiData) {
         const theme = mapSubjectBannerTheme(apiData.subjectCode, apiData.subjectName);
         const cls: ClassDetailItem = {
@@ -585,47 +616,47 @@ export const learningDAL = {
           subjectClass: theme.subjectClass,
           grad: theme.grad,
           accent: theme.accent,
-          teacher: apiData.teacherName || fallbackCls.teacher,
-          teacherInitials: apiData.teacherInitials || fallbackCls.teacherInitials,
-          schedule: apiData.schedule || fallbackCls.schedule,
-          room: apiData.room || fallbackCls.room,
-          email: apiData.teacherEmail || fallbackCls.email,
-          phone: apiData.teacherPhone || fallbackCls.phone,
-          description: apiData.description || fallbackCls.description,
-          studentCount: apiData.studentCount || fallbackCls.studentCount,
+          teacher: apiData.teacherName || 'Chưa phân công',
+          teacherInitials: apiData.teacherInitials || 'GV',
+          schedule: apiData.schedule || 'Chưa xếp lịch',
+          room: apiData.room || 'Chưa xếp phòng',
+          email: apiData.teacherEmail || '',
+          phone: apiData.teacherPhone || '',
+          description: apiData.description || '',
+          studentCount: apiData.studentCount ?? 0,
         };
 
         const materials: MaterialItem[] = Array.isArray(apiData.materials)
           ? apiData.materials.map((m) => ({
-              id: m.id,
-              classId: m.classId,
-              type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
-              fileName: m.fileName,
-              description: m.description,
-              uploadDate: m.uploadDate,
-              uploadedBy: m.uploadedBy,
-              sizeMb: m.sizeMb,
-            }))
-          : fallbackMaterials;
+            id: m.id,
+            classId: m.classId,
+            type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
+            fileName: m.fileName,
+            description: m.description,
+            uploadDate: m.uploadDate,
+            uploadedBy: m.uploadedBy,
+            sizeMb: m.sizeMb,
+          }))
+          : [];
 
         const assignments: AssignmentItem[] = Array.isArray(apiData.assignments)
           ? apiData.assignments.map((a) => ({
-              id: a.id,
-              classId: a.classId,
-              title: a.title,
-              dueDate: a.dueDate,
-              status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
-            }))
-          : fallbackAssignments;
+            id: a.id,
+            classId: a.classId,
+            title: a.title,
+            dueDate: a.dueDate,
+            status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
+          }))
+          : [];
 
         return {
           cls,
           materials,
           assignments,
           sessions: apiData.sessions || [],
-          attendedLessons: apiData.attendedLessons,
-          totalLessons: apiData.totalLessons,
-          latestTeacherNote: apiData.latestTeacherNote,
+          attendedLessons: apiData.attendedLessons ?? 0,
+          totalLessons: apiData.totalLessons ?? 0,
+          latestTeacherNote: apiData.latestTeacherNote || 'Chưa có nhận xét từ giáo viên.',
           source: 'api',
         };
       }
@@ -634,13 +665,23 @@ export const learningDAL = {
     }
 
     return {
-      cls: fallbackCls,
-      materials: fallbackMaterials,
-      assignments: fallbackAssignments,
+      cls: {
+        ...fallbackCls,
+        name: `[MOCK] ${fallbackCls.name}`,
+        teacher: `[MOCK] ${fallbackCls.teacher}`,
+      },
+      materials: fallbackMaterials.map((m) => ({
+        ...m,
+        fileName: `[MOCK] ${m.fileName}`,
+      })),
+      assignments: fallbackAssignments.map((a) => ({
+        ...a,
+        title: `[MOCK] ${a.title}`,
+      })),
       sessions: [],
       attendedLessons: 5,
       totalLessons: 6,
-      latestTeacherNote: 'Full attendance, actively participates in class.',
+      latestTeacherNote: '[MOCK] Full attendance, actively participates in class.',
       source: 'mock',
     };
   },
@@ -649,8 +690,9 @@ export const learningDAL = {
    * Lấy thời khóa biểu tuần của Học sinh (hoặc Con của Phụ huynh)
    */
   async getStudentSchedule(studentId = DEFAULT_STUDENT_ID): Promise<SessionItem[]> {
+    const targetStudentId = resolveStudentId(studentId);
     try {
-      const apiSlots = await learningApi.getStudentSchedule(studentId);
+      const apiSlots = await learningApi.getStudentSchedule(targetStudentId);
       if (Array.isArray(apiSlots)) {
         return apiSlots.map((slot) => {
           const theme = mapSubjectBannerTheme(slot.subjectCode, slot.subject);
@@ -675,15 +717,20 @@ export const learningDAL = {
       console.warn('[learningDAL] Không kết nối được Backend Student Schedule, dùng mock fallback:', error);
     }
 
-    return SESSIONS;
+    return SESSIONS.map((s) => ({
+      ...s,
+      className: `[MOCK] ${s.className}`,
+      teacher: `[MOCK] ${s.teacher}`,
+    }));
   },
 
   /**
    * Lấy báo cáo Tiến độ học tập & Điểm danh của Học sinh (hoặc Con của Phụ huynh)
    */
   async getStudentProgress(studentId = DEFAULT_STUDENT_ID): Promise<StudentProgressViewModel> {
+    const targetStudentId = resolveStudentId(studentId);
     try {
-      const apiData = await learningApi.getStudentProgress(studentId);
+      const apiData = await learningApi.getStudentProgress(targetStudentId);
       if (apiData) {
         const mappedClasses: ProgressClassItem[] = (apiData.currentClasses || []).map(
           (cls, idx) => {
@@ -722,7 +769,7 @@ export const learningDAL = {
         const overallAttendanceRate =
           totalSessionsCount > 0
             ? Math.round((presentCount * 100) / totalSessionsCount)
-            : 100;
+            : 0;
 
         return {
           studentId: apiData.studentId,
@@ -744,8 +791,8 @@ export const learningDAL = {
     }
 
     return {
-      studentId,
-      studentName: 'Lê Văn An',
+      studentId: targetStudentId,
+      studentName: '[MOCK] Lê Văn An',
       overallAttendanceRate: 80,
       attendedSessionsCount: 35,
       presentCount: 35,
@@ -753,7 +800,10 @@ export const learningDAL = {
       lateCount: 5,
       totalSessionsCount: 44,
       enrolledClassesCount: CURRENT_PROGRESS_CLASSES.length,
-      currentClasses: CURRENT_PROGRESS_CLASSES,
+      currentClasses: CURRENT_PROGRESS_CLASSES.map((c) => ({
+        ...c,
+        className: `[MOCK] ${c.className}`,
+      })),
       pastClasses: [],
       source: 'mock',
     };
@@ -763,7 +813,8 @@ export const learningDAL = {
    * Lấy thông tin Hóa đơn học phí & Lịch sử giao dịch của đúng Học sinh đó
    */
   async getStudentTuition(studentId = DEFAULT_STUDENT_ID): Promise<StudentTuitionViewModel> {
-    const apiData = await learningApi.getStudentTuition(studentId);
+    const targetStudentId = resolveStudentId(studentId);
+    const apiData = await learningApi.getStudentTuition(targetStudentId);
     if (!apiData) {
       throw new Error('Failed to load tuition data from the system.');
     }
@@ -780,9 +831,11 @@ export const learningDAL = {
     transactionCode?: string,
     invoiceIds?: number[]
   ): Promise<StudentTuitionViewModel> {
+    const targetStudentId = resolveStudentId(studentId);
+    const targetParentId = resolveParentId(parentId);
     const apiData = await learningApi.payStudentTuition({
-      studentId,
-      parentId,
+      studentId: targetStudentId,
+      parentId: targetParentId,
       paymentMethod,
       transactionCode,
       invoiceIds,
@@ -799,7 +852,8 @@ export const learningDAL = {
    * Khôi phục hóa đơn kỳ hiện tại về trạng thái chờ thanh toán (Phục vụ Demo)
    */
   async resetDemoTuition(studentId = DEFAULT_STUDENT_ID): Promise<StudentTuitionViewModel> {
-    const apiData = await learningApi.resetDemoTuition(studentId);
+    const targetStudentId = resolveStudentId(studentId);
+    const apiData = await learningApi.resetDemoTuition(targetStudentId);
     return mapApiTuitionToViewModel(apiData);
   },
 
@@ -810,10 +864,11 @@ export const learningDAL = {
     assignmentId: number,
     studentId = DEFAULT_STUDENT_ID
   ): Promise<StudentAssignmentDetailViewModel> {
+    const targetStudentId = resolveStudentId(studentId);
     const fallbackAsg = ASSIGNMENTS_DB[assignmentId] || DEFAULT_ASG;
 
     try {
-      const apiData = await learningApi.getStudentAssignmentDetail(studentId, assignmentId);
+      const apiData = await learningApi.getStudentAssignmentDetail(targetStudentId, assignmentId);
       if (apiData) {
         const sub = apiData.submission;
         const hasSubmitted = Boolean(sub);
@@ -836,7 +891,7 @@ export const learningDAL = {
           defaultStatus: status,
           classId: apiData.classId,
           score: scoreText,
-          description: apiData.description ?? fallbackAsg.description,
+          description: apiData.description ?? '',
         };
 
         return {
@@ -853,10 +908,14 @@ export const learningDAL = {
     }
 
     return {
-      asg: fallbackAsg,
+      asg: {
+        ...fallbackAsg,
+        title: `[MOCK] ${fallbackAsg.title}`,
+        class: `[MOCK] ${fallbackAsg.class}`,
+      },
       status: fallbackAsg.defaultStatus || 'not-submitted',
-      submittedFileName: 'HW_Quadratic_Equation_LeVanAn.pdf',
-      submittedMeta: 'Submitted at 18:42, 13/09/2026 • 2.4 MB',
+      submittedFileName: '[MOCK] HW_Quadratic_Equation_LeVanAn.pdf',
+      submittedMeta: '[MOCK] Submitted at 18:42, 13/09/2026 • 2.4 MB',
       submission: null,
       source: 'mock',
     };
@@ -871,9 +930,10 @@ export const learningDAL = {
     fileSizeMb: string,
     studentId = DEFAULT_STUDENT_ID
   ): Promise<StudentSubmissionDetailApiDto> {
+    const targetStudentId = resolveStudentId(studentId);
     return await learningApi.submitHomework({
       assignmentId,
-      studentId,
+      studentId: targetStudentId,
       fileName,
       fileUrl: `https://storage.edutrack.edu.vn/submissions/${encodeURIComponent(fileName)}`,
       fileSizeText: `${fileSizeMb} MB`,
@@ -887,7 +947,8 @@ export const learningDAL = {
     assignmentId: number,
     studentId = DEFAULT_STUDENT_ID
   ): Promise<boolean> {
-    return await learningApi.deleteSubmission(studentId, assignmentId);
+    const targetStudentId = resolveStudentId(studentId);
+    return await learningApi.deleteSubmission(targetStudentId, assignmentId);
   },
 
   /**
@@ -899,8 +960,10 @@ export const learningDAL = {
     userName: string,
     studentId?: number
   ): Promise<FeedbackApprovalRequest[]> {
+    const resolvedUser = userRole === 'parent' ? resolveParentId(userId) : resolveStudentId(userId);
+    const resolvedStudent = userRole === 'parent' ? studentId : resolveStudentId(studentId);
     try {
-      const apiList = await learningApi.getLearnerFeedbacks(userId, studentId);
+      const apiList = await learningApi.getLearnerFeedbacks(resolvedUser, resolvedStudent);
       if (Array.isArray(apiList)) {
         return apiList.map((item) => mapApiFeedbackToViewModel(item, userRole, userName));
       }
@@ -910,7 +973,8 @@ export const learningDAL = {
 
     return INITIAL_FEEDBACK_REQUESTS.map((r) => ({
       ...r,
-      senderName: userName,
+      title: `[MOCK] ${r.title}`,
+      senderName: `[MOCK] ${userName}`,
       senderRole: userRole,
     }));
   },
@@ -923,7 +987,11 @@ export const learningDAL = {
     userRole: 'parent' | 'student',
     userName: string
   ): Promise<FeedbackApprovalRequest> {
-    const createdDto = await learningApi.createLearnerFeedback(payload);
+    const resolvedUser = userRole === 'parent' ? resolveParentId(payload.userId) : resolveStudentId(payload.userId);
+    const createdDto = await learningApi.createLearnerFeedback({
+      ...payload,
+      userId: resolvedUser,
+    });
     return mapApiFeedbackToViewModel(createdDto, userRole, userName);
   },
 
@@ -936,7 +1004,11 @@ export const learningDAL = {
     userRole: 'parent' | 'student',
     userName: string
   ): Promise<FeedbackApprovalRequest> {
-    const updatedDto = await learningApi.updateLearnerFeedback(requestId, payload);
+    const resolvedUser = userRole === 'parent' ? resolveParentId(payload.userId) : resolveStudentId(payload.userId);
+    const updatedDto = await learningApi.updateLearnerFeedback(requestId, {
+      ...payload,
+      userId: resolvedUser,
+    });
     return mapApiFeedbackToViewModel(updatedDto, userRole, userName);
   },
 
@@ -944,8 +1016,9 @@ export const learningDAL = {
    * Lấy danh sách Thông báo của Học sinh từ Backend
    */
   async getStudentNotifications(studentId = DEFAULT_STUDENT_ID): Promise<NotificationItem[]> {
+    const targetStudentId = resolveStudentId(studentId);
     try {
-      const apiList = await learningApi.getStudentNotifications(studentId);
+      const apiList = await learningApi.getStudentNotifications(targetStudentId);
       if (Array.isArray(apiList)) {
         return apiList.map(mapApiLearnerNotifToStudentItem);
       }
@@ -953,7 +1026,10 @@ export const learningDAL = {
       console.warn('[learningDAL] Không kết nối được Backend Student Notifications, dùng mock fallback:', error);
     }
 
-    return INITIAL_NOTIFICATIONS;
+    return INITIAL_NOTIFICATIONS.map((n) => ({
+      ...n,
+      title: `[MOCK] ${n.title}`,
+    }));
   },
 
   /**
@@ -963,8 +1039,9 @@ export const learningDAL = {
     parentId = DEFAULT_PARENT_ID,
     studentId?: number
   ): Promise<LearnerNotificationItemApiDto[]> {
+    const targetParentId = resolveParentId(parentId);
     try {
-      const list = await learningApi.getParentNotifications(parentId, studentId);
+      const list = await learningApi.getParentNotifications(targetParentId, studentId);
       if (Array.isArray(list)) {
         return list;
       }
@@ -975,26 +1052,26 @@ export const learningDAL = {
     return [
       {
         notificationId: 1,
-        title: 'New tuition notice for October 2026',
-        content: 'Tuition invoice for October 2026 for student Le Van An has been issued. Parents can check and pay online in the Tuition section.',
+        title: '[MOCK] New tuition notice for October 2026',
+        content: '[MOCK] Tuition invoice for October 2026 for student Le Van An has been issued. Parents can check and pay online in the Tuition section.',
         type: 'tuition',
-        className: 'Advanced Math 9',
-        createdAt: '2026-10-14T09:00:00Z',
+        className: '[MOCK] Advanced Math 9',
+        createdAt: '2026-10-15T08:00:00Z',
         isRead: false,
       },
       {
         notificationId: 2,
-        title: 'Periodic feedback update from Teacher',
-        content: 'The teacher in charge of Advanced Math 9 has updated the October progress and attendance evaluation for student Le Van An.',
+        title: '[MOCK] Periodic feedback update from Teacher',
+        content: '[MOCK] The teacher in charge of Advanced Math 9 has updated the October progress and attendance evaluation for student Le Van An.',
         type: 'class_review',
-        className: 'Advanced Math 9',
-        createdAt: '2026-10-13T17:45:00Z',
+        className: '[MOCK] Advanced Math 9',
+        createdAt: '2026-10-12T09:30:00Z',
         isRead: false,
       },
       {
         notificationId: 3,
-        title: 'Notice of holiday schedule and make-up classes',
-        content: 'EduTrack would like to send parents the holiday schedule and make-up class plan for next week.',
+        title: '[MOCK] Notice of holiday schedule and make-up classes',
+        content: '[MOCK] EduTrack would like to send parents the holiday schedule and make-up class plan for next week.',
         type: 'system',
         className: undefined,
         createdAt: '2026-10-10T08:00:00Z',
@@ -1045,15 +1122,19 @@ export const learningDAL = {
    * Lấy thông tin Hồ sơ cá nhân của Học sinh
    */
   async getStudentProfile(studentId = DEFAULT_STUDENT_ID): Promise<StudentProfileData> {
+    const targetStudentId = resolveStudentId(studentId);
     try {
-      const dto = await learningApi.getStudentProfile(studentId);
+      const dto = await learningApi.getStudentProfile(targetStudentId);
       if (dto) {
         return mapApiProfileToStudentProfile(dto);
       }
     } catch (error) {
       console.warn('[learningDAL] Không kết nối được Backend Student Profile, dùng mock fallback:', error);
     }
-    return INITIAL_PROFILE;
+    return {
+      ...INITIAL_PROFILE,
+      fullName: `[MOCK] ${INITIAL_PROFILE.fullName}`,
+    };
   },
 
   /**
@@ -1063,6 +1144,7 @@ export const learningDAL = {
     data: StudentProfileData,
     studentId = DEFAULT_STUDENT_ID
   ): Promise<StudentProfileData> {
+    const targetStudentId = resolveStudentId(studentId);
     const payload: UpdateLearnerProfilePayload = {
       fullName: data.fullName,
       email: data.email,
@@ -1072,7 +1154,7 @@ export const learningDAL = {
       avatarUrl: data.avatarUrl,
       address: data.address,
     };
-    const dto = await learningApi.updateStudentProfile(studentId, payload);
+    const dto = await learningApi.updateStudentProfile(targetStudentId, payload);
     return mapApiProfileToStudentProfile(dto);
   },
 
@@ -1080,7 +1162,8 @@ export const learningDAL = {
    * Lấy thông tin Hồ sơ cá nhân của Phụ huynh
    */
   async getParentProfile(parentId = DEFAULT_PARENT_ID): Promise<LearnerProfileApiDto> {
-    const dto = await learningApi.getParentProfile(parentId);
+    const targetParentId = resolveParentId(parentId);
+    const dto = await learningApi.getParentProfile(targetParentId);
     if (!dto) {
       throw new Error('Parent profile not found');
     }
@@ -1094,7 +1177,8 @@ export const learningDAL = {
     payload: UpdateLearnerProfilePayload,
     parentId = DEFAULT_PARENT_ID
   ): Promise<LearnerProfileApiDto> {
-    return await learningApi.updateParentProfile(parentId, payload);
+    const targetParentId = resolveParentId(parentId);
+    return await learningApi.updateParentProfile(targetParentId, payload);
   },
 };
 

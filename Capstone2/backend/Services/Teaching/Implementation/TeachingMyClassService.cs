@@ -109,8 +109,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             var result = assignedClasses.Select(cls =>
             {
-                var teacherName = cls.TeacherClasses?.FirstOrDefault(tc => tc.Status == "active")?.Teacher?.FullName ?? "ThS. Hoàng Quốc Việt";
-                var taName = cls.TaClasses?.FirstOrDefault(tac => tac.Status == "active")?.Ta?.FullName ?? "Âu Dương Tài";
+                var teacherName = cls.TeacherClasses?.FirstOrDefault(tc => tc.Status == "active")?.Teacher?.FullName ?? "Chưa phân công";
+                var taName = cls.TaClasses?.FirstOrDefault(tac => tac.Status == "active")?.Ta?.FullName ?? "Chưa phân công";
                 var studentCount = cls.StudentClasses?.Count(sc => sc.Status == "active") ?? 0;
 
                 var schedules = ScheduleTimeline.At(cls.ClassSchedules, ScheduleTimeline.ListingDate(cls.StartDate))
@@ -136,12 +136,12 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     SubjectId = cls.SubjectId,
                     SubjectName = cls.Subject?.SubjectName ?? "Môn học",
                     SubjectCode = cls.Subject?.SubjectCode ?? "SUB",
-                    Room = cls.Room ?? "Phòng 101",
+                    Room = cls.Room ?? "Chưa xếp phòng",
                     TuitionFee = cls.TuitionFee,
                     StartDate = cls.StartDate,
                     EndDate = cls.EndDate,
                     Status = cls.Status ?? "active",
-                    StudentCount = studentCount > 0 ? studentCount : 30,
+                    StudentCount = studentCount,
                     TeacherName = teacherName,
                     TaName = taName,
                     PartnerName = isTa ? teacherName : taName,
@@ -163,43 +163,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             if (!scList.Any())
             {
-                // Fallback: lấy các học sinh trong hệ thống để demo khi DB chưa seed student_classes cho lớp này
-                var allStudents = await _context.Users
-                    .AsNoTracking()
-                    .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
-                    .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == "student") || (u.Email != null && u.Email.Contains("student")))
-                    .Take(5)
-                    .ToListAsync();
-
-                var fallbackStudentIds = allStudents.Select(s => s.UserId).ToList();
-                var fallbackParentLinks = await _context.ParentStudents
-                    .AsNoTracking()
-                    .Include(ps => ps.Parent)
-                    .Where(ps => fallbackStudentIds.Contains(ps.StudentId))
-                    .ToListAsync();
-
-                return allStudents.Select((s, idx) =>
-                {
-                    var primaryParent = fallbackParentLinks.FirstOrDefault(ps => ps.StudentId == s.UserId)?.Parent;
-
-                    return new TeachingClassStudentItemDto
-                    {
-                        StudentId = s.UserId,
-                        StudentCode = s.UserCode ?? $"STU{s.UserId:D3}",
-                        FullName = s.FullName,
-                        Email = s.Email,
-                        Phone = s.Phone ?? "0901 234 567",
-                        Gender = s.Gender ?? "Nam",
-                        Dob = s.DateOfBirth?.ToString("dd/MM/yyyy") ?? "15/08/2011",
-                        EnrollmentDate = "01/09/2026",
-                        Status = "active",
-                        ParentName = primaryParent?.FullName ?? "Nguyễn Văn Phụ Huynh",
-                        ParentPhone = primaryParent?.Phone ?? "0912 345 678",
-                        AttendanceRate = 95 - (idx * 5),
-                        TotalAttendedSessions = 18 - idx,
-                        TotalSessions = 20
-                    };
-                }).ToList();
+                return new List<TeachingClassStudentItemDto>();
             }
 
             var studentIds = scList.Select(sc => sc.StudentId).ToList();
@@ -215,7 +179,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .Select(cs => cs.SessionId)
                 .ToListAsync();
 
-            int totalSessions = classSessions.Count > 0 ? classSessions.Count : 20;
+            int totalSessions = classSessions.Count;
 
             var attendances = await _context.Attendances
                 .AsNoTracking()
@@ -233,7 +197,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
                 var studentAtts = attendances.Where(a => a.StudentId == s.UserId).ToList();
                 int attendedCount = studentAtts.Count(a => a.Status == "present" || a.Status == "late");
-                int rate = studentAtts.Count > 0 ? (int)Math.Round((double)attendedCount / studentAtts.Count * 100) : 100;
+                int rate = studentAtts.Count > 0 ? (int)Math.Round((double)attendedCount / studentAtts.Count * 100) : 0;
 
                 result.Add(new TeachingClassStudentItemDto
                 {
@@ -241,13 +205,13 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     StudentCode = s.UserCode ?? $"STU{s.UserId:D3}",
                     FullName = s.FullName,
                     Email = s.Email,
-                    Phone = s.Phone ?? "0901 234 567",
+                    Phone = s.Phone ?? string.Empty,
                     Gender = s.Gender ?? "Nam",
-                    Dob = s.DateOfBirth?.ToString("dd/MM/yyyy") ?? "15/08/2011",
-                    EnrollmentDate = sc.EnrolledDate?.ToString("dd/MM/yyyy") ?? "01/09/2026",
+                    Dob = s.DateOfBirth?.ToString("dd/MM/yyyy") ?? string.Empty,
+                    EnrollmentDate = sc.EnrolledDate?.ToString("dd/MM/yyyy") ?? string.Empty,
                     Status = sc.Status ?? "active",
-                    ParentName = primaryParent?.FullName ?? "Nguyễn Văn Phụ Huynh",
-                    ParentPhone = primaryParent?.Phone ?? "0912 345 678",
+                    ParentName = primaryParent?.FullName ?? "Chưa liên kết",
+                    ParentPhone = primaryParent?.Phone ?? string.Empty,
                     AttendanceRate = rate,
                     TotalAttendedSessions = attendedCount > 0 ? attendedCount : 18,
                     TotalSessions = totalSessions

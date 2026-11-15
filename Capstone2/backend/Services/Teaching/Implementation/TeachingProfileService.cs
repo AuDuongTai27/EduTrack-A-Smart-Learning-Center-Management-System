@@ -128,7 +128,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
             }
 
             // Lưu mật khẩu mới (trong DB seed dùng chuỗi hash/mock)
-            user.PasswordHash = request.NewPassword.Trim();
+            if (!EduTrack.API.Helpers.Auth.JwtAuthHelper.VerifyPassword(request.CurrentPassword, user.PasswordHash)) return (false, "Mật khẩu hiện tại không chính xác."); user.PasswordHash = EduTrack.API.Helpers.Auth.JwtAuthHelper.HashPassword(request.NewPassword);
             await _context.SaveChangesAsync();
 
             return (true, "Đổi mật khẩu thành công!");

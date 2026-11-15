@@ -52,7 +52,7 @@ export function HeroSection({
             onClick={onOpenWorkspace}
           >
             <i className="bi bi-box-arrow-in-right me-2"></i>
-            Chọn giao diện
+            Đăng nhập hệ thống
           </button>
           <a
             href="#courses"

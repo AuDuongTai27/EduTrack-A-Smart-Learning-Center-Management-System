@@ -1,5 +1,6 @@
 import type { GradeDto } from "../BLL/models/GradeDto";
 import { apiError } from "./apiError";
+import { getAuthHeaders } from "./authApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -13,7 +14,7 @@ export function readGradeResponse(item: unknown): GradeDto {
 
 export const gradeApi = {
   async getAll(): Promise<GradeDto[]> {
-    const response = await fetch(`${API_BASE_URL}/grades`, {headers: {Accept: "application/json"}});
+    const response = await fetch(`${API_BASE_URL}/grades`, {headers: {Accept: "application/json", ...getAuthHeaders()}});
     if (!response.ok) throw await apiError(response, "Failed to load grade levels.");
     const data: unknown = await response.json();
     if (!Array.isArray(data))
@@ -25,7 +26,7 @@ export const gradeApi = {
   },
   async getById(id: number): Promise<GradeDto> {
     if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Invalid grade level ID.");
-    const response = await fetch(`${API_BASE_URL}/grades/${id}`, {headers: {Accept: "application/json"}});
+    const response = await fetch(`${API_BASE_URL}/grades/${id}`, {headers: {Accept: "application/json", ...getAuthHeaders()}});
     if (!response.ok) throw await apiError(response, "Failed to load grade level.");
     const item = readGradeResponse(await response.json());
     if (item.gradeId !== id) throw new Error("Server returned the wrong grade level. Please reload.");

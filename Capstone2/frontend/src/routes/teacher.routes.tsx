@@ -1,5 +1,7 @@
 import { Navigate, type RouteObject } from "react-router-dom";
 import TeacherLayout from "../GUIs/layouts/teacher/TeacherLayout";
+import { RoleRouteGuard } from "./RoleRouteGuard";
+import { NotFoundPage } from "../GUIs/pages/shared/NotFoundPage";
 import TeacherDashboardPage from "../GUIs/pages/teacher/Teacher/TeacherDashboardPage";
 import TeacherClassesPage from "../GUIs/pages/teacher/Teacher/TeacherClassesPage";
 import TeacherClassDetailsPage from "../GUIs/pages/teacher/Teacher/TeacherClassDetailsPage";
@@ -15,7 +17,11 @@ import TeacherProfilePage from "../GUIs/pages/teacher/Teacher/TeacherProfilePage
 
 export const teacherRoutes: RouteObject = {
   path: "/teacher",
-  element: <TeacherLayout />,
+  element: (
+    <RoleRouteGuard allowedRole="teacher">
+      <TeacherLayout />
+    </RoleRouteGuard>
+  ),
   children: [
     { index: true, element: <Navigate to="/teacher/dashboard" replace /> },
     { path: "dashboard", element: <TeacherDashboardPage /> },
@@ -34,6 +40,7 @@ export const teacherRoutes: RouteObject = {
     { path: "notifications", element: <TeacherNotificationPage /> },
     { path: "request", element: <TeacherRequestPage /> },
     { path: "profile", element: <TeacherProfilePage /> },
+    { path: "*", element: <NotFoundPage /> },
   ],
 };
 

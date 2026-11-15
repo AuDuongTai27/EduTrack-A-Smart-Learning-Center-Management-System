@@ -5,8 +5,10 @@ import type { TuitionDto, PaymentDto } from "../BLL/models/TuitionDto";
 import type { ParentStudentDto } from "./parentStudentApi";
 import { apiError } from "./apiError";
 import { readClassResponse } from "./classApi";
+import { getAuthHeaders } from "./authApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const defaultHeaders = () => ({ "Content-Type": "application/json", ...getAuthHeaders() });
 
 export interface CreateStudentRequest {
   userCode: string;
@@ -90,7 +92,7 @@ export const managementApi = {
     let response: Response;
     try {
       response = await fetch(`${API_BASE_URL}/users/students`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        method: "POST", headers: defaultHeaders(), body: JSON.stringify(data),
       });
     } catch {
       throw new Error("Connection lost while saving student and enrolling in classes. Keep the form open and click Save Profile to safely retry with the same request.");
@@ -125,7 +127,7 @@ export const managementApi = {
   }): Promise<UserDto> {
     const res = await fetch(`${API_BASE_URL}/users`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -152,7 +154,7 @@ export const managementApi = {
   ): Promise<UserDto> {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) throw await apiError(res, "Failed to update profile.");
@@ -168,7 +170,7 @@ export const managementApi = {
   ): Promise<{ success: boolean; status: string; message: string }> {
     const res = await fetch(`${API_BASE_URL}/users/${id}/status`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify({ status }),
     });
     if (!res.ok) {
@@ -183,7 +185,7 @@ export const managementApi = {
   async deleteUser(id: number): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
@@ -206,7 +208,7 @@ export const managementApi = {
   }): Promise<ParentStudentDto> {
     const res = await fetch(`${API_BASE_URL}/parentstudents`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(dto),
     });
     if (!res.ok) {
@@ -226,7 +228,7 @@ export const managementApi = {
       `${API_BASE_URL}/parentstudents/${parentId}/${studentId}`,
       {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: defaultHeaders(),
       },
     );
     if (!res.ok) {
@@ -248,7 +250,7 @@ export const managementApi = {
   }): Promise<SubjectDto> {
     const res = await fetch(`${API_BASE_URL}/subjects`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -266,7 +268,7 @@ export const managementApi = {
   ): Promise<SubjectDto> {
     const res = await fetch(`${API_BASE_URL}/subjects/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -283,7 +285,7 @@ export const managementApi = {
   ): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`${API_BASE_URL}/subjects/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
@@ -300,7 +302,7 @@ export const managementApi = {
   async createClass(data: CreateClassRequest): Promise<ClassDto> {
     const res = await fetch(`${API_BASE_URL}/classes`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -312,7 +314,7 @@ export const managementApi = {
   async updateClass(id: number, data: UpdateClassRequest): Promise<ClassDto> {
     const res = await fetch(`${API_BASE_URL}/classes/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -326,7 +328,7 @@ export const managementApi = {
   async deleteClass(id: number): Promise<{ message: string }> {
     const res = await fetch(`${API_BASE_URL}/classes/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
     });
     if (!res.ok) {
       throw await apiError(res, "Failed to delete class.");
@@ -344,7 +346,7 @@ export const managementApi = {
   ): Promise<TuitionDto> {
     const res = await fetch(`${API_BASE_URL}/tuitioninvoices`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
 
@@ -365,7 +367,7 @@ export const managementApi = {
   ): Promise<TuitionDto> {
     const res = await fetch(`${API_BASE_URL}/tuitioninvoices/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
 
@@ -388,7 +390,7 @@ export const managementApi = {
       `${API_BASE_URL}/tuitioninvoices/${invoiceId}/payments`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: defaultHeaders(),
         body: JSON.stringify(data),
       },
     );

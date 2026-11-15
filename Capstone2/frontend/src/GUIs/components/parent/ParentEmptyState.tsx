@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useParent } from '../../../contexts/ParentContext';
 
 /**
  * ParentEmptyState: Giao diện hiển thị khi Phụ huynh chưa có tài khoản liên kết nào.
@@ -9,8 +8,6 @@ import { useParent } from '../../../contexts/ParentContext';
  * để nhân viên đối soát hồ sơ và liên kết thủ công bằng tay.
  */
 export function ParentEmptyState() {
-  const { resetDemoChildren } = useParent();
-
   return (
     <main className="main-content">
       <div className="content-container py-4">
@@ -43,15 +40,7 @@ export function ParentEmptyState() {
                     <i className="bi bi-chat-dots-fill"></i>
                     <span>Send Feedback to Request Profile Link</span>
                   </Link>
-                  <button
-                    type="button"
-                    className="btn btn-outline-light px-3.5 py-2.5 rounded-3"
-                    onClick={resetDemoChildren}
-                    title="Restore demo data (2 students)"
-                  >
-                    <i className="bi bi-arrow-counterclockwise me-1"></i>
-                    Restore Demo Data (2 Students)
-                  </button>
+
                 </div>
               </div>
 
@@ -165,18 +154,10 @@ export function ParentEmptyState() {
             <span>Admin Staff quick support hotline: <strong>1900 6868</strong> (8:00 – 21:00 daily)</span>
           </div>
 
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary rounded-pill px-3"
-            onClick={resetDemoChildren}
-          >
-            <i className="bi bi-arrow-counterclockwise me-1"></i>
-            Restore 2 Sample Students (Demo)
-          </button>
         </div>
       </div>
     </main>
   );
-};
+}
 
 export default ParentEmptyState;

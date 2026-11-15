@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs.Learning;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Learning.Interfaces;
@@ -13,6 +15,7 @@ namespace EduTrack.API.Controllers.Learning
     /// Phụ trách: Nhóm Student & Parent (Thành viên 3)
     /// </summary>
     [ApiController]
+    [Authorize(Roles = JwtAuthHelper.RolesLearning)]
     [Route("api/learning/submissions")]
     [Tags("Learning - Student Homework & Submissions")]
     public class StudentHomeworkController : ControllerBase
@@ -37,7 +40,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("student/{studentId:int}/assignment/{assignmentId:int}")]
         public async Task<IActionResult> GetStudentAssignmentDetail(int studentId, int assignmentId)
         {
-            var data = await _learningService.GetStudentAssignmentDetailAsync(studentId, assignmentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _learningService.GetStudentAssignmentDetailAsync(effectiveStudentId, assignmentId);
             if (data == null)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy bài tập có ID = {assignmentId}" });
@@ -56,6 +60,8 @@ namespace EduTrack.API.Controllers.Learning
             {
                 return BadRequest(new { success = false, message = "Thông tin bài tập không hợp lệ." });
             }
+
+            request.StudentId = JwtAuthHelper.ResolveEffectiveUserId(User, request.StudentId, JwtAuthHelper.RoleStudent);
 
             try
             {
@@ -79,7 +85,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpDelete("student/{studentId:int}/assignment/{assignmentId:int}")]
         public async Task<IActionResult> DeleteSubmission(int studentId, int assignmentId)
         {
-            var deleted = await _learningService.DeleteSubmissionAsync(assignmentId, studentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var deleted = await _learningService.DeleteSubmissionAsync(assignmentId, effectiveStudentId);
             if (!deleted)
             {
                 return NotFound(new { success = false, message = "Không tìm thấy bài nộp để xóa." });

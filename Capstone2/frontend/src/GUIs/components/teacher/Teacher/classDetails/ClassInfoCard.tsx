@@ -1,7 +1,8 @@
 import type { ClassDto } from "../../../../../BLL/models/ClassDto";
+import type { TeachingClassItemDto } from "../../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export interface ClassInfoCardProps {
-  classInfo?: ClassDto | null;
+  classInfo?: ClassDto | TeachingClassItemDto | null;
   teacherName?: string;
   taName?: string;
 }

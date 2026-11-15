@@ -1,4 +1,5 @@
 import { apiError } from "./apiError";
+import { getAuthHeaders } from "./authApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 export interface StudentCenterEnrollment {
@@ -26,7 +27,7 @@ export function readStudentEnrollments(data: unknown, studentId: number): Studen
 async function call(studentId: number, path: string, init?: RequestInit): Promise<StudentCenterEnrollment[]> {
   if (!Number.isSafeInteger(studentId) || studentId <= 0) throw new Error("Invalid student.");
   let response: Response;
-  try { response = await fetch(`${API_BASE_URL}/${path}`, { ...init, headers: { "Content-Type": "application/json" } }); }
+  try { response = await fetch(`${API_BASE_URL}/${path}`, { ...init, headers: { "Content-Type": "application/json", ...getAuthHeaders() } }); }
   catch { throw new Error("Could not confirm class update result due to connection error. Reload classes to verify before retrying."); }
   if (!response.ok) throw await apiError(response, "Failed to update student's classes.");
   return readStudentEnrollments(await response.json(), studentId);

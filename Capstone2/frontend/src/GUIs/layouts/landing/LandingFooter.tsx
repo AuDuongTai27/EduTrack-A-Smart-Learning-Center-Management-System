@@ -1,67 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { CenterSettingDto } from '../../../BLL/models/CenterSettingDto';
 import type { LandingCenterInfoDto } from '../../../BLL/models/LandingOverviewDto';
 import { centerSettingDAL } from '../../../DAL/centerSettingDAL';
-import { landingDAL } from '../../../DAL/landingDAL';
 
 export interface LandingFooterProps {
   settings?: CenterSettingDto[];
   centerInfo?: LandingCenterInfoDto;
 }
 
-export function LandingFooter({ settings: propSettings, centerInfo: propCenterInfo }: LandingFooterProps) {
-  const [centerInfo, setCenterInfo] = useState<LandingCenterInfoDto | undefined>(propCenterInfo);
-  const [settings, setSettings] = useState<CenterSettingDto[]>(propSettings || []);
+export function LandingFooter({ settings = [], centerInfo }: LandingFooterProps) {
   const [emailInput, setEmailInput] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [subscribedMsg, setSubscribedMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (propCenterInfo) {
-      setCenterInfo(propCenterInfo);
-      return;
-    }
-
-    let isMounted = true;
-    async function loadCenterData() {
-      try {
-        const res = await landingDAL.getLandingOverview();
-        if (isMounted && res.data?.centerInfo) {
-          setCenterInfo(res.data.centerInfo);
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải thông tin trung tâm cho Footer:', err);
-      }
-    }
-    loadCenterData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [propCenterInfo]);
 
   const centerName = centerInfo?.centerName || centerSettingDAL.getSettingValue(settings, 'center_name', 'EduTrack Smart Learning Center');
   const address = centerInfo?.address || centerSettingDAL.getSettingValue(settings, 'center_address', '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh');
   const phone = centerInfo?.hotline || centerSettingDAL.getSettingValue(settings, 'center_hotline', '1900 6868');
   const email = centerInfo?.email || 'contact@edutrack.edu.vn';
 
-  const handleSubscribe = async (e: React.FormEvent) => {
+  const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput.trim()) return;
 
-    setIsSubmitting(true);
-    try {
-      const res = await landingDAL.subscribeNewsletter(emailInput.trim());
-      setSubscribedMsg(res.message || 'Đăng ký nhận bản tin thành công!');
-      setEmailInput('');
-      setTimeout(() => setSubscribedMsg(null), 5000);
-    } catch {
-      setSubscribedMsg('Đăng ký nhận tin thành công! EduTrack sẽ liên hệ bạn sớm nhất.');
-      setEmailInput('');
-      setTimeout(() => setSubscribedMsg(null), 5000);
-    } finally {
-      setIsSubmitting(false);
-    }
+    setSubscribedMsg('Đăng ký nhận bản tin thành công! EduTrack sẽ gửi thông tin sớm nhất đến bạn.');
+    setEmailInput('');
+    setTimeout(() => setSubscribedMsg(null), 5000);
   };
 
   return (
@@ -136,18 +98,12 @@ export function LandingFooter({ settings: propSettings, centerInfo: propCenterIn
                   placeholder="Nhập email của bạn..."
                   className="form-control form-control-sm rounded-pill px-3 bg-white text-dark border-0 shadow-sm"
                   required
-                  disabled={isSubmitting}
                 />
                 <button
                   type="submit"
-                  disabled={isSubmitting}
                   className="btn btn-success btn-sm rounded-pill px-3 fw-semibold flex-shrink-0 shadow-sm"
                 >
-                  {isSubmitting ? (
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  ) : (
-                    'Đăng ký'
-                  )}
+                  Đăng ký
                 </button>
               </form>
             )}

@@ -116,7 +116,15 @@ export function ParentDashboardPage() {
                 </div>
               </div>
               <div className="h3 fw-bold text-success mb-0">{selectedChild.attendanceRate}%</div>
-              <small className="text-muted">Very diligent</small>
+              <small className="text-muted">
+                {selectedChild.attendanceRate >= 90
+                  ? 'Very diligent'
+                  : selectedChild.attendanceRate >= 75
+                  ? 'Good attendance'
+                  : selectedChild.attendanceRate > 0
+                  ? 'Needs improvement'
+                  : 'No attendance data yet'}
+              </small>
             </div>
           </div>
 
@@ -132,7 +140,15 @@ export function ParentDashboardPage() {
                 </div>
               </div>
               <div className="h3 fw-bold text-dark mb-0">{selectedChild.averageScore} <span className="fs-6 text-muted fw-normal">/ 10</span></div>
-              <small className="text-muted">Rank: Excellent</small>
+              <small className="text-muted">
+                {selectedChild.averageScore >= 8
+                  ? 'Rank: Excellent'
+                  : selectedChild.averageScore >= 6.5
+                  ? 'Rank: Good'
+                  : selectedChild.averageScore > 0
+                  ? 'Rank: Average'
+                  : 'No graded assignments yet'}
+              </small>
             </div>
           </div>
 

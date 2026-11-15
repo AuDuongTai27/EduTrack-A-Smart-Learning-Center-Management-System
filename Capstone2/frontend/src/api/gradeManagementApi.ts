@@ -1,6 +1,7 @@
 import type { GradeDto, ManagedGradeDto } from "../BLL/models/GradeDto";
 import { gradeApi, readGradeResponse } from "./gradeApi";
 import { apiError } from "./apiError";
+import { getAuthHeaders } from "./authApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 function summary(grade: GradeDto): ManagedGradeDto {
@@ -10,7 +11,7 @@ function summary(grade: GradeDto): ManagedGradeDto {
 }
 async function save(method: "POST" | "PUT", gradeName: string, id?: number) {
   const response = await fetch(`${API_BASE_URL}/grades${id === undefined ? "" : `/${id}`}`, {
-    method, headers: {Accept: "application/json", "Content-Type": "application/json"}, body: JSON.stringify({gradeName}),
+    method, headers: {Accept: "application/json", "Content-Type": "application/json", ...getAuthHeaders()}, body: JSON.stringify({gradeName}),
   });
   if (!response.ok) throw await apiError(response, "Failed to save grade level.");
   const item = summary(readGradeResponse(await response.json()));
@@ -23,7 +24,7 @@ export const gradeManagementApi = {
   create(gradeName: string) { return save("POST", gradeName); },
   rename(id: number, gradeName: string) { return save("PUT", gradeName, id); },
   async delete(id: number) {
-    const response = await fetch(`${API_BASE_URL}/grades/${id}`, {method: "DELETE", headers: {Accept: "application/json"}});
+    const response = await fetch(`${API_BASE_URL}/grades/${id}`, {method: "DELETE", headers: {Accept: "application/json", ...getAuthHeaders()}});
     if (!response.ok) throw await apiError(response, "Failed to delete grade level.");
     const data: unknown = await response.json();
     if (!data || typeof data !== "object" || !("message" in data) || typeof data.message !== "string"

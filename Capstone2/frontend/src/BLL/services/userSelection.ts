@@ -37,12 +37,70 @@ export function chooseUser(role: string, userId: number) {
   try { localStorage.setItem(`edutrack-selected-user:${role}`, String(userId)); } catch { /* Storage optional. */ }
   publish(role, { ...state, user });
 }
+export function applyLoggedInUser(role: string, loggedInUser: UserDto) {
+  try { localStorage.setItem(`edutrack-selected-user:${role}`, String(loggedInUser.userId)); } catch { /* Storage optional. */ }
+  const current = states.get(role);
+  const existingUsers = current?.users?.length ? current.users : [loggedInUser];
+  const mergedUsers = existingUsers.some(u => u.userId === loggedInUser.userId)
+    ? existingUsers.map(u => u.userId === loggedInUser.userId ? { ...u, ...loggedInUser } : u)
+    : [loggedInUser, ...existingUsers];
+  publish(role, { users: mergedUsers, user: loggedInUser, loading: false, error: null });
+}
 export async function currentSelectedUser() {
   const role = selectionRole(); await loadSelection(role);
   const state = getSelection(role);
   if (!state.user) throw new Error(state.error || 'Select an account to view data.');
   return state.user;
 }
+const DEFAULT_USER_IDS: Record<string, number> = {
+  center_manager: 1,
+  admin_staff: 2,
+  teacher: 3,
+  teaching_assistant: 5,
+  ta: 5,
+  student: 6,
+  parent: 9,
+};
+
+export function getSelectedUserId(role?: string): number {
+  const targetRole = (role || selectionRole() || 'student').trim().toLowerCase();
+  const normalizedRole = targetRole === 'ta' ? 'teaching_assistant' : targetRole;
+
+  try {
+    const rawAuth = localStorage.getItem('edutrack_auth_user');
+    if (rawAuth) {
+      const authUser = JSON.parse(rawAuth);
+      if (authUser && typeof authUser.userId === 'number' && authUser.userId > 0) {
+        const pRole = (authUser.primaryRole || '').toLowerCase();
+        const uRoles: string[] = Array.isArray(authUser.roles)
+          ? authUser.roles.map((r: string) => (r.toLowerCase() === 'ta' ? 'teaching_assistant' : r.toLowerCase()))
+          : [];
+        if (pRole === normalizedRole || uRoles.includes(normalizedRole)) {
+          return authUser.userId;
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  const stateUser = states.get(normalizedRole)?.user;
+  if (stateUser && stateUser.userId > 0) {
+    return stateUser.userId;
+  }
+
+  try {
+    const stored = Number(localStorage.getItem(`edutrack-selected-user:${normalizedRole}`));
+    if (Number.isSafeInteger(stored) && stored > 0) {
+      return stored;
+    }
+  } catch {
+    // ignore
+  }
+
+  return DEFAULT_USER_IDS[normalizedRole] || 6;
+}
+
 export async function selectedUrl(url: string, selector = 'userId', userId?: number) {
   const id = userId ?? (await currentSelectedUser()).userId;
   if (!Number.isSafeInteger(id) || id <= 0) throw new Error('Select a valid userId.');

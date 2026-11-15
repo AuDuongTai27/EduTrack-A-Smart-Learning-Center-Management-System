@@ -8,6 +8,7 @@ import TableActionButton from "../../../components/Common/TableActionButton";
 import feedbackDAL from "../../../../DAL/feedbackDAL";
 import userApi from "../../../../api/userApi";
 import tuitionApi from "../../../../api/tuitionApi";
+import { getSelectedUserId } from "../../../../BLL/services/userSelection";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { TuitionInvoiceDto } from "../../../../BLL/models/TuitionDto";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
@@ -33,7 +34,7 @@ function isFromAdminStaff(req: ApprovalRequestDto): boolean {
     return req.requesterRole.trim().toLowerCase() === "admin_staff";
   }
   return (
-    req.requestedBy === 2 &&
+    (req.requestedBy === 2 || req.requestedBy === getSelectedUserId("admin_staff")) &&
     (req.requestType || "").trim().toLowerCase() !== "feedback"
   );
 }
@@ -359,7 +360,7 @@ export default function AdminStaffApprovalRequestPage() {
     setCreating(true);
     try {
       const payload = {
-        requestedBy: 2, // Admin Staff test seed account
+        requestedBy: getSelectedUserId("admin_staff"),
         requestType: newRequestForm.requestType,
         title: newRequestForm.title.trim(),
         reason: newRequestForm.reason.trim(),

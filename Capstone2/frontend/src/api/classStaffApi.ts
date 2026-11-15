@@ -1,5 +1,6 @@
 import type { ClassStaffAssignment, ClassStaffKind } from "../BLL/services/classStaffService";
 import { apiError } from "./apiError";
+import { getAuthHeaders } from "./authApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 async function confirmedAssignment(response: Response, kind: ClassStaffKind, classId: number, userId: number,
@@ -18,7 +19,7 @@ export const classStaffApi = {
     if (!Number.isSafeInteger(classId) || classId <= 0 || !Number.isSafeInteger(userId) || userId <= 0)
       throw new Error("Please select a valid class and account.");
     const response = await fetch(`${API_BASE_URL}/classes/${classId}/${kind}`, {
-      method: "POST", headers: {"Content-Type": "application/json", Accept: "application/json"},
+      method: "POST", headers: {"Content-Type": "application/json", Accept: "application/json", ...getAuthHeaders()},
       body: JSON.stringify({userId}),
     });
     return confirmedAssignment(response, kind, classId, userId, "active");
@@ -27,7 +28,7 @@ export const classStaffApi = {
     if ([classId, assignmentId, userId].some(id => !Number.isSafeInteger(id) || id <= 0))
       throw new Error("Invalid class ID or assignment.");
     const response = await fetch(`${API_BASE_URL}/classes/${classId}/${kind}/${assignmentId}/deactivate`, {
-      method: "PATCH", headers: {Accept: "application/json"},
+      method: "PATCH", headers: {Accept: "application/json", ...getAuthHeaders()},
     });
     return confirmedAssignment(response, kind, classId, userId, "inactive", assignmentId);
   },

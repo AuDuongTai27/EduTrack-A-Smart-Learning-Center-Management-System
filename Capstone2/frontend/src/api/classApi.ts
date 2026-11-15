@@ -1,5 +1,6 @@
 import type { ClassDto } from '../BLL/models/ClassDto';
 import { apiError } from './apiError';
+import { getAuthHeaders } from './authApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -23,6 +24,7 @@ export const classApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -43,6 +45,7 @@ export const classApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 

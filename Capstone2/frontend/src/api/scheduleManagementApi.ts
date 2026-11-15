@@ -2,6 +2,7 @@ import {selectedUrl} from '../BLL/services/userSelection.ts';
 import type {DirectSessionCreateInput, DirectSessionUpdateInput, ScheduleCapabilities, ScheduleGenerationInput, ScheduleGenerationPreview, ScheduleTemplate, ScheduleTemplateInput, ScheduleTemplatePreview, ScheduleVersion} from '../BLL/models/ScheduleManagement';
 import type {ScheduleSession} from '../BLL/models/ScheduleSession';
 import {dateOnly, mondayOf} from '../BLL/services/scheduleViewService';
+import { getAuthHeaders } from './authApi';
 
 const positive = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n > 0;
 const text = (s: unknown): s is string => typeof s === 'string';
@@ -55,7 +56,7 @@ export function createScheduleManagementApi(baseUrl: string, selectedUserId?: nu
   async function request(path: string, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<unknown> {
     let response: Response;
     try {response = await fetch(await selectedUrl(`${baseUrl}/schedule/management${path}`, 'userId', selectedUserId), {method, credentials:'omit', cache:'no-store', signal,
-      headers:{Accept:'application/json', ...(body === undefined ? {} : {'Content-Type':'application/json'})}, ...(body === undefined ? {} : {body:JSON.stringify(body)})});}
+      headers:{Accept:'application/json', ...getAuthHeaders(), ...(body === undefined ? {} : {'Content-Type':'application/json'})}, ...(body === undefined ? {} : {body:JSON.stringify(body)})});}
     catch (error) {
       if (signal?.aborted) throw error;
       throw new Error(method === 'GET' || path.endsWith('/preview') ? 'Failed to connect to server. Please try again.' :

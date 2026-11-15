@@ -1,6 +1,7 @@
 import {selectedUrl} from '../BLL/services/userSelection.ts';
 import type { ScheduleClassSummary, ScheduleSession } from '../BLL/models/ScheduleSession.ts';
 import { dateOnly } from '../BLL/services/scheduleViewService.ts';
+import { getAuthHeaders } from './authApi';
 
 function isClassSummary(value: unknown): value is ScheduleClassSummary {
   if (!value || typeof value !== 'object') return false;
@@ -29,7 +30,7 @@ export function createScheduleSessionApi(baseUrl: string, selectedUserId?: numbe
   return {
     async getWeek(from: string, toExclusive: string, signal?: AbortSignal, userIdOverride?: number): Promise<ScheduleSession[]> {
       const query = new URLSearchParams({from: dateOnly(from), toExclusive: dateOnly(toExclusive)});
-      const response = await fetch(await selectedUrl(`${baseUrl}/schedule/sessions?${query}`, 'userId', userIdOverride ?? selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json'}});
+      const response = await fetch(await selectedUrl(`${baseUrl}/schedule/sessions?${query}`, 'userId', userIdOverride ?? selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json', ...getAuthHeaders()}});
       if (!response.ok) {
         throw new Error(`Failed to load schedule (HTTP ${response.status}). Please try again.`);
       }
@@ -39,7 +40,7 @@ export function createScheduleSessionApi(baseUrl: string, selectedUserId?: numbe
       return data;
     },
     async getClasses(signal?: AbortSignal, userIdOverride?: number): Promise<ScheduleClassSummary[]> {
-      const response = await fetch(await selectedUrl(`${baseUrl}/schedule/classes`, 'userId', userIdOverride ?? selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json'}});
+      const response = await fetch(await selectedUrl(`${baseUrl}/schedule/classes`, 'userId', userIdOverride ?? selectedUserId), {credentials: 'omit', cache: 'no-store', signal, headers: {Accept: 'application/json', ...getAuthHeaders()}});
       if (!response.ok) {
         throw new Error(`Failed to load classes (HTTP ${response.status}). Please try again.`);
       }

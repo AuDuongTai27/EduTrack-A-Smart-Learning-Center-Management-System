@@ -77,7 +77,7 @@ namespace EduTrack.API.Services.Learning.Implementation
 
                 string teacherInitials = GetInitials(mainTeacher?.FullName ?? "GV");
 
-                int totalLessons = cls.ClassSessions.Count > 0 ? cls.ClassSessions.Count : 24;
+                int totalLessons = cls.ClassSessions.Count;
                 int attendedLessons = cls.ClassSessions
                     .SelectMany(s => s.Attendances)
                     .Count(a => a.StudentId == studentId && (a.Status == "present" || a.Status == "late"));
@@ -117,6 +117,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .AsNoTracking()
                 .Where(ps => ps.ParentId == parentId)
                 .Include(ps => ps.Student)
+                    .ThenInclude(s => s.Grade)
                 .ToListAsync();
 
             var result = new List<ParentChildOverviewDto>();
@@ -151,7 +152,7 @@ namespace EduTrack.API.Services.Learning.Implementation
 
                 int attendanceRate = attendances.Count > 0
                     ? (int)Math.Round(attendances.Count(a => a.Status == "present" || a.Status == "late") * 100.0 / attendances.Count)
-                    : 100;
+                    : 0;
 
                 var gradedSubmissions = await _context.Submissions
                     .AsNoTracking()
@@ -160,7 +161,7 @@ namespace EduTrack.API.Services.Learning.Implementation
 
                 decimal averageScore = gradedSubmissions.Count > 0
                     ? Math.Round(gradedSubmissions.Average(s => s.Score!.Value), 1)
-                    : 9.0m;
+                    : 0m;
 
                 var studentInvoices = await _context.TuitionInvoices
                     .AsNoTracking()
@@ -189,9 +190,9 @@ namespace EduTrack.API.Services.Learning.Implementation
 
                         string teacherName = mainTeacher != null
                             ? mainTeacher.FullName
-                            : "Giáo viên Trung tâm";
+                            : "Chưa phân công";
 
-                        int totalLessons = cls.ClassSessions.Count > 0 ? cls.ClassSessions.Count : 10;
+                        int totalLessons = cls.ClassSessions.Count;
                         int attendedLessons = cls.ClassSessions
                             .SelectMany(s => s.Attendances)
                             .Count(a => a.StudentId == student.UserId && (a.Status == "present" || a.Status == "late"));
@@ -214,10 +215,10 @@ namespace EduTrack.API.Services.Learning.Implementation
                             Teacher = teacherName,
                             TeacherInitials = GetInitials(mainTeacher?.FullName ?? "GV"),
                             Schedule = FormatScheduleText(cls.ClassSchedules, cls.StartDate),
-                            Room = cls.Room ?? "P.101",
-                            AttendedLessons = attendedLessons > 0 ? attendedLessons : Math.Min(6, totalLessons),
+                            Room = cls.Room ?? "Chưa xếp phòng",
+                            AttendedLessons = attendedLessons,
                             TotalLessons = totalLessons,
-                            Notes = latestNote ?? "Điểm danh đầy đủ, tương tác tích cực trên lớp."
+                            Notes = latestNote ?? "Chưa có nhận xét từ giáo viên."
                         };
                     })
                     .ToList();
@@ -228,9 +229,9 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Code = student.UserCode,
                     Name = student.FullName,
                     Avatar = GetInitials(student.FullName),
-                    Grade = student.Specialty ?? "Lớp 9",
-                    School = "THCS Lê Quý Đôn",
-                    Dob = student.DateOfBirth?.ToString("yyyy-MM-dd") ?? "2010-02-14",
+                    Grade = student.Grade?.GradeName ?? student.Specialty ?? "Chưa phân khối",
+                    School = "Trung tâm EduTrack",
+                    Dob = student.DateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty,
                     Phone = student.Phone,
                     Relationship = link.Relationship,
                     IsPrimaryContact = link.IsPrimaryContact,
@@ -277,9 +278,8 @@ namespace EduTrack.API.Services.Learning.Implementation
             string teacherPhone = mainTeacher?.Phone ?? "0901234567";
 
             int activeStudents = cls.StudentClasses.Count(sc => sc.Status != "dropped");
-            if (activeStudents == 0) activeStudents = 15;
 
-            int totalLessons = cls.ClassSessions.Count > 0 ? cls.ClassSessions.Count : 10;
+            int totalLessons = cls.ClassSessions.Count;
             int attendedLessons = cls.ClassSessions
                 .SelectMany(s => s.Attendances)
                 .Count(a => a.StudentId == studentId && (a.Status == "present" || a.Status == "late"));
@@ -288,7 +288,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Where(pn => pn.StudentId == studentId)
                 .OrderByDescending(pn => pn.CreatedAt)
                 .Select(pn => pn.Content)
-                .FirstOrDefault() ?? "Điểm danh đầy đủ, tương tác tích cực trên lớp.";
+                .FirstOrDefault() ?? "Chưa có nhận xét từ giáo viên.";
 
             var materials = cls.ContentUnits
                 .OrderBy(u => u.OrderIndex)
@@ -351,19 +351,19 @@ namespace EduTrack.API.Services.Learning.Implementation
             var sessions = orderedSessions.Select((s, index) =>
             {
                 var att = s.Attendances.FirstOrDefault(a => a.StudentId == studentId);
-                string status = att?.Status ?? (s.Status == "completed" ? "present" : "scheduled");
+                string status = att?.Status ?? "scheduled";
                 string statusLabel = status switch
                 {
                     "present" => "Có mặt",
                     "late" => "Đi muộn",
                     "absent" => "Vắng mặt",
                     "excused" => "Nghỉ có phép",
-                    _ => "Sắp diễn ra"
+                    _ => s.Status == "completed" ? "Chưa điểm danh" : "Sắp diễn ra"
                 };
 
                 string topic = index < orderedUnits.Count
                     ? $"Buổi {index + 1}: {orderedUnits[index].Title}"
-                    : $"Buổi {index + 1}: Chuyên đề & Bài tập thực hành trên lớp";
+                    : $"Buổi {index + 1}: Buổi học theo lịch";
 
                 return new ClassSessionAttendanceItemDto
                 {
@@ -373,7 +373,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Topic = topic,
                     Status = status,
                     StatusLabel = statusLabel,
-                    Notes = att?.Note ?? (status == "present" ? "Đúng giờ, tích cực xây dựng bài." : "Theo lịch học của lớp.")
+                    Notes = att?.Note ?? (att != null ? "Đã ghi nhận điểm danh." : "Chưa có dữ liệu điểm danh.")
                 };
             }).ToList();
 
@@ -383,11 +383,11 @@ namespace EduTrack.API.Services.Learning.Implementation
                 ClassName = cls.ClassName,
                 SubjectName = cls.Subject?.SubjectName ?? "Môn học",
                 SubjectCode = cls.Subject?.SubjectCode ?? string.Empty,
-                Room = cls.Room ?? "Room 201",
+                Room = cls.Room ?? "Chưa xếp phòng",
                 Schedule = FormatScheduleText(cls.ClassSchedules, cls.StartDate),
-                Description = cls.Subject?.Description ?? $"Lớp {cls.ClassName} đào tạo kiến thức chuyên sâu và rèn luyện kỹ năng giải bài tập thực chiến.",
+                Description = cls.Subject?.Description ?? $"Lớp {cls.ClassName}",
                 StudentCount = activeStudents,
-                AttendedLessons = attendedLessons > 0 ? attendedLessons : Math.Min(2, totalLessons),
+                AttendedLessons = attendedLessons,
                 TotalLessons = totalLessons,
                 LatestTeacherNote = latestNote,
                 TeacherName = teacherName,
@@ -683,7 +683,7 @@ namespace EduTrack.API.Services.Learning.Implementation
 
                 int percentage = clsTotal > 0
                     ? (int)Math.Round(clsAttended * 100.0 / clsTotal)
-                    : 100;
+                    : 0;
 
                 var feedbacks = new List<StudentProgressFeedbackDto>();
 
@@ -782,7 +782,7 @@ namespace EduTrack.API.Services.Learning.Implementation
             int totalAttended = totalPresent;
             int overallRate = totalSessions > 0
                 ? (int)Math.Round(totalAttended * 100.0 / totalSessions)
-                : 100;
+                : 0;
 
             return new StudentProgressOverviewDto
             {
@@ -1021,8 +1021,6 @@ namespace EduTrack.API.Services.Learning.Implementation
 
         public async Task<List<LearnerFeedbackItemDto>> GetLearnerFeedbacksAsync(int userId, int? studentId = null)
         {
-            await EnsureSampleLearnerFeedbacksAsync(userId, studentId);
-
             var query = _context.ApprovalRequests
                 .AsNoTracking()
                 .Include(r => r.Requester)
@@ -1030,6 +1028,11 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Include(r => r.Student)
                 .Include(r => r.Class)
                 .Where(r => r.RequestedBy == userId && r.RequestType == "feedback");
+
+            if (studentId.HasValue && studentId.Value > 0 && studentId.Value != userId)
+            {
+                query = query.Where(r => r.StudentId == studentId.Value);
+            }
 
             var list = await query
                 .OrderByDescending(r => r.CreatedAt)

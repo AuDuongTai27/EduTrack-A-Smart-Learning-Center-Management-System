@@ -1,4 +1,5 @@
 import { apiError } from "./apiError";
+import { getAuthHeaders } from "./authApi";
 export interface GenerationRequest {
   mode: "grade" | "class" | "individual";
   gradeId: number; classId?: number; studentId?: number;
@@ -20,7 +21,7 @@ export interface GenerationPreview {
 }
 async function call(action: "preview" | "confirm", request: GenerationRequest): Promise<GenerationPreview> {
   let response: Response;
-  try { response = await fetch(`${import.meta.env.VITE_API_URL || "/api"}/tuitioninvoices/generation/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) }); }
+  try { response = await fetch(`${import.meta.env.VITE_API_URL || "/api"}/tuitioninvoices/generation/${action}`, { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify(request) }); }
   catch { throw new Error("Could not confirm result. Review Preview again to check existing invoices before retrying; do not record Payment automatically."); }
   if (!response.ok) throw await apiError(response, "Failed to process invoice generation request.");
   const result = await response.json();

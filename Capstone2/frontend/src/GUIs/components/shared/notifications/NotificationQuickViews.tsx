@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNotificationInbox, clearNotificationInbox } from '../../../hooks/useNotificationInbox';
 import { useSelectedUser } from '../../../hooks/useSelectedUser';
+import { authApi } from '../../../../api/authApi';
 import { notificationTime } from '../../../../BLL/services/notificationInbox';
 import { notificationRoleLabel, notificationTypeLabel } from '../../../../BLL/services/notificationPresentation';
 import './notifications.css';
@@ -78,7 +79,7 @@ export function AdminAccountDropdown() {
       {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'No email'}</p><small>{identity.userCode} · {identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
         : <p>{error || 'No account available to select.'}</p>}
       <label className="d-block mt-2">Data Account<select className="form-select" value={identity?.userId ?? ''} onChange={e => { if (pathname.endsWith('/notifications')) navigate({ search: '' }, { replace: true }); clearNotificationInbox(); selection.select(Number(e.target.value)); }}><option value="" disabled>Select account</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}</select></label>
-      <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setOpen(false); clearNotificationInbox(); navigate('/'); }}>Back to Home</button>
+      <button type="button" className="btn btn-outline-danger mt-3 w-100" onClick={() => { setOpen(false); clearNotificationInbox(); authApi.logout(); navigate('/'); }}>Logout</button>
     </div>}
   </div>;
 }
