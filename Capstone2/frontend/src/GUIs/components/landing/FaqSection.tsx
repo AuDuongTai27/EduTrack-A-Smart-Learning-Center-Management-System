@@ -1,3 +1,4 @@
+import { faqItems } from './landingStaticData';
 import { useId, useState } from 'react';
 import { SectionHeading } from './LandingUI';
 
@@ -18,11 +19,6 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 export function FaqSection() {
   return <section className="et-section et-faq" id="faq"><div className="et-container">
     <SectionHeading title="Your Questions, Answered"/>
-    <div className="et-faq-list">{[
-      ['How do I choose the right class?', 'Start with the subjects and featured classes above. Contact the center to discuss your learning goals and find a suitable option.'],
-      ['Where can I find the class schedule?', 'Please contact the center to confirm the latest schedule and available places for the class you are interested in.'],
-      ['What does the tuition fee include?', 'Listed fees come from the center’s class records. Contact the center to confirm the billing period, included materials, and any other costs before enrolling.'],
-      ['Can I book a consultation online?', 'Use the contact details below to arrange a consultation directly with the center. This page does not submit online bookings.'],
-    ].map(([question, answer]) => <FaqItem key={question} question={question} answer={answer}/>)}</div>
+    <div className="et-faq-list">{faqItems.map(([question, answer]) => <FaqItem key={question} question={question} answer={answer}/>)}</div>
   </div></section>;
 }

@@ -1,7 +1,7 @@
+import { teacherIntroductions } from './landingStaticData';
 import { useEffect, useRef, useState } from 'react';
 import type { LandingTrainerItemDto } from '../../../BLL/models/LandingOverviewDto';
-import { DataState, Icon, SectionHeading } from './LandingUI';
-import type { DataStatus } from './LandingUI';
+import { Icon, SectionHeading } from './LandingUI';
 import { englishText, subjectInfo, specialtyLabel, teacherImageUrl } from './landingContent';
 
 function TeacherPhoto({ teacher }: { teacher: LandingTrainerItemDto }) {
@@ -22,7 +22,7 @@ function teacherContent(teacher: LandingTrainerItemDto) {
   const introduction = englishText(teacher.specialty);
   const isLabel = /^(Mathematics|Physics|Chemistry|English|Biology|Computer Science|Literature|History|Geography|Teaching Assistant|Teacher)$/i.test(introduction);
   return { role, subject, specialty, introduction: introduction && introduction !== subject && !isLabel ? introduction
-    : role === 'Teaching Assistant' ? 'Supports students with classroom learning.' : 'Guides students in their subject learning.' };
+    : role === 'Teaching Assistant' ? teacherIntroductions.assistant : teacherIntroductions.teacher };
 }
 function TeacherProfile({ teacher, onClose }: { teacher: LandingTrainerItemDto; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -49,12 +49,12 @@ function TeacherProfile({ teacher, onClose }: { teacher: LandingTrainerItemDto; 
     <a className="et-button et-primary" href="#contact" onClick={onClose}>Ask About Classes<Icon name="arrow"/></a>
   </dialog>;
 }
-export function TrainersSection({ trainers, status, retry }: { trainers: LandingTrainerItemDto[]; status: DataStatus; retry: () => void }) {
+export function TrainersSection({ trainers }: { trainers: LandingTrainerItemDto[] }) {
   const [profile, setProfile] = useState<LandingTrainerItemDto>();
   return <section id="teachers" className="et-section et-teachers"><div className="et-container">
     <SectionHeading title="Meet Our Teachers">Get to know the educators supporting our students along the way.</SectionHeading>
-    <DataState status={status} empty={!trainers.length} noun="teachers" retry={retry}/>
-    {status === 'ready' && <div className="et-teacher-grid">{trainers.slice(0, 3).map(teacher => {
+
+    <div className="et-teacher-grid">{trainers.slice(0, 3).map(teacher => {
       const content = teacherContent(teacher);
       return <article className="et-teacher-card" key={teacher.userId}>
         <TeacherPhoto key={teacher.avatarUrl} teacher={teacher}/>
@@ -65,7 +65,7 @@ export function TrainersSection({ trainers, status, retry }: { trainers: Landing
           <button className="et-button et-profile-button" onClick={() => setProfile(teacher)} aria-label={`View profile for ${teacher.fullName}`}>View Profile<Icon name="arrow"/></button>
         </div>
       </article>;
-    })}</div>}
+    })}</div>
     {profile && <TeacherProfile teacher={profile} onClose={() => setProfile(undefined)}/>}
   </div></section>;
 }

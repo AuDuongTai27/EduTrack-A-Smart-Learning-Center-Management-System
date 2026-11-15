@@ -3,12 +3,10 @@ import { Outlet } from 'react-router-dom';
 import { LandingHeader } from './LandingHeader';
 import { LandingFooter } from './LandingFooter';
 import { WorkspaceChooser } from '../../components/landing/WorkspaceChooser';
-import { useLandingOverview } from '../../components/landing/useLandingOverview';
 import { BackToTop } from '../../components/landing/BackToTop';
 import '../../../assets/css/landing.css';
 export function LandingPageLayout() {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
-  const landing = useLandingOverview();
   useEffect(() => {
     const language = document.documentElement.lang;
     const title = document.title;
@@ -20,6 +18,6 @@ export function LandingPageLayout() {
     document.documentElement.classList.add('et-document');
     return () => { document.documentElement.lang = language; document.title = title; meta.remove(); document.documentElement.classList.remove('et-document'); };
   }, []);
-  return <div className="et-landing"><LandingHeader onOpenWorkspace={() => setWorkspaceOpen(true)}/><Outlet context={landing}/><LandingFooter/><BackToTop/><WorkspaceChooser isOpen={workspaceOpen} onClose={() => setWorkspaceOpen(false)}/></div>;
+  return <div className="et-landing"><LandingHeader onOpenWorkspace={() => setWorkspaceOpen(true)}/><Outlet/><LandingFooter/><BackToTop/><WorkspaceChooser isOpen={workspaceOpen} onClose={() => setWorkspaceOpen(false)}/></div>;
 }
 export default LandingPageLayout;

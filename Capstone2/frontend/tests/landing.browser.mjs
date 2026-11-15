@@ -5,17 +5,30 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
 
-// Database-free browser QA. Test fixtures exist only in this test process.
+// Static landing QA defaults to a disabled backend. Historical API fixtures
+// remain available only with --legacy-api-fixtures; they are not public data.
 // --optimize converts generated source PNGs into responsive WebP assets via Chrome.
 const root = process.cwd();
 const optimize = process.argv.includes('--optimize');
-const output = path.resolve(root, process.env.LANDING_QA_OUTPUT || '../../docs/kan50-refinement/screenshots');
+const staticQa = !optimize && !process.argv.includes('--statistics-hover') && !process.argv.includes('--legacy-api-fixtures');
+const output = path.resolve(root, process.env.LANDING_QA_OUTPUT || (staticQa ? '../../docs/kan50-static/screenshots' : '../../docs/kan50-refinement/screenshots'));
 fs.mkdirSync(output, { recursive: true });
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edutrack-landing-chrome-'));
 const dist = path.join(root, optimize ? 'public' : 'dist');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp' };
 let mode = 'ready';
 let calls = 0;
+const apiRequests = [];
+const browserErrors = [];
+let harness;
+if (staticQa) {
+  const { build } = await import('vite');
+  const result = await build({ configFile: false, logLevel: 'error', define: { 'process.env.NODE_ENV': '"production"' }, build: {
+    write: false, lib: { entry: path.join(root, 'tests/landing.static-harness.tsx'), formats: ['es'], fileName: 'harness' },
+    rolldownOptions: { output: { codeSplitting: false } },
+  } });
+  harness = (Array.isArray(result) ? result : [result]).flatMap(bundle => bundle.output).find(file => file.type === 'chunk').code;
+}
 const subjects = [
   { subjectId: 1, subjectCode: 'MATH', subjectName: 'Toán học' },
   { subjectId: 2, subjectCode: 'PHYS', subjectName: 'Vật lý' },
@@ -46,11 +59,19 @@ const held = new Set();
 const server = http.createServer((req, res) => {
   const parsed = new URL(req.url, 'http://localhost');
   const pathname = parsed.pathname;
+  if (staticQa && pathname === '/qa/static-harness.js') {
+    res.writeHead(200, { 'Content-Type': 'text/javascript' }).end(harness); return;
+  }
+  if (staticQa && pathname === '/qa/static-harness') {
+    const css = fs.readdirSync(path.join(dist, 'assets')).filter(file => file.endsWith('.css'));
+    res.writeHead(200, { 'Content-Type': 'text/html' }).end(`<!doctype html><html lang="en"><head>${css.map(file => `<link rel="stylesheet" href="/assets/${file}">`).join('')}</head><body><div id="root"></div><script type="module" src="/qa/static-harness.js"></script></body></html>`); return;
+  }
   if (pathname === '/qa/portrait.jpg') {
     // Only a synthetic QA record uses this image. Never attached to a real DB teacher.
     res.writeHead(200, { 'Content-Type': 'image/jpeg' }).end(fs.readFileSync(path.join(root, 'public/assets/img/trainer-1.jpg'))); return;
   }
   if (pathname.startsWith('/api/')) {
+    if (staticQa) { calls++; res.writeHead(503).end('Backend disabled for static QA'); return; }
     assert.equal(req.method, 'GET', 'Browser QA never writes business data');
     if (mode === 'live') {
       fetch('http://127.0.0.1:5048' + pathname + parsed.search).then(async upstream => {
@@ -141,7 +162,8 @@ try {
   socket.addEventListener('message', event => {
     const message = JSON.parse(event.data);
     if (message.id) { const task = pending.get(message.id); if (task) { clearTimeout(task.timer); pending.delete(message.id); if (message.error) task.reject(new Error(JSON.stringify(message.error))); else task.resolve(message.result); } }
-    else if (message.method === 'Runtime.exceptionThrown') console.error('Browser exception:', message.params.exceptionDetails.exception?.description ?? message.params.exceptionDetails.text);
+    else if (message.method === 'Runtime.exceptionThrown') { browserErrors.push(message.params.exceptionDetails.text); console.error('Browser exception:', message.params.exceptionDetails.exception?.description ?? message.params.exceptionDetails.text); }
+    else if (message.method === 'Network.requestWillBeSent' && new URL(message.params.request.url).pathname.startsWith('/api/')) apiRequests.push(message.params.request.url);
     else if (message.method === 'Network.loadingFailed' && message.params.errorText !== 'net::ERR_ABORTED') console.error('Browser request failed:', message.params.errorText, message.params.blockedReason ?? '');
     else if (message.method === 'Fetch.requestPaused') {
       // Make screenshot typography independent of external font/CDN availability.
@@ -169,6 +191,106 @@ try {
         fs.writeFileSync(file, Buffer.from(data, 'base64')); console.log(path.basename(file), fs.statSync(file).size);
       }
     }
+  } else if (staticQa) {
+    async function key(key, code, windowsVirtualKeyCode) {
+      await send('Page.bringToFront');
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code, windowsVirtualKeyCode, ...(key === 'Enter' ? { text: '\r' } : {}) });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode });
+    }
+    async function mouseClick(selector) {
+      await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'center',behavior:'instant'})`);
+      const point = await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
+    }
+    for (const width of [1440, 1280, 768, 390, 360]) {
+      await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
+      await send('Page.navigate', { url: origin + '/' });
+      await until("document.querySelectorAll('.et-class-card').length===2 && document.querySelectorAll('.et-teacher-card').length===3", 'static content');
+      await evaluate("Promise.all([...document.images].map(i=>{i.loading='eager';return i.decode().catch(()=>{});})).then(()=>true)");
+      assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'), true, `${width}: no overflow`);
+      assert.equal(await evaluate("document.querySelectorAll('.et-skeleton-grid,[role=alert]').length"), 0);
+      assert.equal(await evaluate("document.querySelectorAll('.et-program').length"), 4);
+      assert.deepEqual(await evaluate("[...document.querySelectorAll('.et-class-card h3')].map(e=>e.textContent)"), ['Class 9 - Intensive Physics', 'Class 8 - English Foundation']);
+      assert.equal(await evaluate("document.querySelectorAll('.et-initials').length"), 3);
+      assert.equal(await evaluate("document.querySelector('a[href^=\"tel:\"]').getAttribute('href')"), 'tel:19006868');
+      assert.equal(await evaluate("document.querySelectorAll('a[href^=\"mailto:\"]').length"), 0, 'no fabricated email');
+      assert.equal(await evaluate("[...document.querySelectorAll('a[href^=\"#\"]')].every(a=>document.getElementById(a.hash.slice(1)))"), true);
+      if (width >= 1200) assert.equal(await evaluate("(()=>{const r=document.createRange();r.selectNodeContents(document.querySelectorAll('.et-stat span')[2]);return r.getClientRects().length})()"), 1);
+      await screenshot(`static-${width}-full`);
+      // Every published subject filters correctly, including the two empty subjects.
+      for (const [index, name] of [[0, null], [1, 'Physics'], [2, null], [3, 'English']]) {
+        await evaluate(`document.querySelectorAll('.et-program')[${index}].click()`);
+        await until(`document.querySelectorAll('.et-class-card').length===${name ? 1 : 0}`, 'local subject filter');
+        if (name) assert.match(await evaluate("document.querySelector('.et-class-card').innerText"), new RegExp(name));
+        else assert.match(await evaluate("document.querySelector('#classes').innerText"), /No classes are currently available/);
+      }
+      await evaluate("document.querySelector('.et-filters button').click()");
+      await until("document.querySelectorAll('.et-class-card').length===2", 'all subjects');
+      assert.equal(await evaluate("document.querySelectorAll('#classes .et-centered,#programs button').length"), 0, 'pagination controls only when needed');
+      for (let i = 0; i < 3; i++) {
+        await evaluate(`document.querySelectorAll('.et-profile-button')[${i}].focus();document.querySelectorAll('.et-profile-button')[${i}].click()`);
+        await until("document.querySelector('.et-profile-dialog')?.open", 'profile');
+        assert.equal(await evaluate("document.querySelector('#teacher-profile-title').textContent"), ['ThS. Hoàng Quốc Việt', 'ThS. Huỳnh Khánh Duy', 'Âu Dương Tài'][i]);
+        await key('Escape', 'Escape', 27);
+        await until("!document.querySelector('.et-profile-dialog')", 'close profile');
+        assert.equal(await evaluate("document.activeElement.classList.contains('et-profile-button')"), true);
+      }
+      await mouseClick('.et-faq-toggle');
+      await until("document.querySelector('.et-faq-toggle').getAttribute('aria-expanded')==='true'", 'FAQ mouse opens');
+      assert.equal(await evaluate("getComputedStyle(document.querySelector('.et-faq-panel')).transitionDuration.split(',').every(t=>t.trim()==='0.26s')"), true);
+      await evaluate("document.querySelector('.et-faq-toggle').focus()");
+      await key('Enter', 'Enter', 13);
+      await until("document.querySelector('.et-faq-toggle').getAttribute('aria-expanded')==='false'", 'FAQ keyboard closes');
+      await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+      assert.equal(await evaluate("Number.parseFloat(getComputedStyle(document.querySelector('.et-faq-panel')).transitionDuration)<0.01"), true);
+      await send('Emulation.setEmulatedMedia', { features: [] });
+      if (width < 1200) await evaluate("document.querySelector('.et-header .et-menu-toggle').click()");
+      await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Student Login')).click()");
+      await until("document.querySelector('.et-workspace-dialog')?.open", 'workspace chooser');
+      assert.equal(await evaluate("document.querySelector('.et-student-link').getAttribute('href')"), '/student/dashboard');
+      await key('Escape', 'Escape', 27);
+      await until("!document.querySelector('dialog')", 'close workspace');
+      await mouseClick('.et-card-bottom .et-primary');
+      await until("location.hash==='#contact'", 'class contact CTA');
+      await mouseClick('.et-contact-banner a');
+      await until("location.hash==='#contact-details'", 'consultation CTA');
+      await evaluate("window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'})");
+      await until("document.querySelector('.et-back-to-top')", 'back to top');
+      await evaluate("document.querySelector('.et-back-to-top').focus()");
+      await key('Enter', 'Enter', 13);
+      await until('scrollY<5', 'back to top keyboard');
+      await evaluate("window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'})");
+      await until("document.querySelector('.et-back-to-top')", 'back to top visible');
+      await mouseClick('.et-back-to-top');
+      await until('scrollY<5', 'back to top mouse');
+      const columns = await evaluate("getComputedStyle(document.querySelector('.et-class-grid')).gridTemplateColumns.split(' ').length");
+      assert.equal(columns, width >= 1200 ? 3 : width === 768 ? 2 : 1);
+      checks.push({ width, sections: 'complete', overflow: false, columns, subjectFilters: 'passed', emptyState: 'passed', profiles: 'passed', faqMouseKeyboardReducedMotion: 'passed', workspaceChooser: 'passed', ctas: 'passed', backToTopMouseKeyboard: 'passed' });
+    }
+    // Boundary interactions use an isolated test bundle, never additional public demo records.
+    await send('Page.navigate', { url: origin + '/qa/static-harness' });
+    await until("document.querySelectorAll('.et-program').length===8 && document.querySelectorAll('.et-class-card').length===3", 'boundary harness');
+    await evaluate("document.querySelector('#programs button').click()");
+    await until("document.querySelectorAll('.et-program').length===9", 'show more');
+    await evaluate("document.querySelector('#programs button').click()");
+    await until("document.querySelectorAll('.et-program').length===8", 'show less');
+    await evaluate("document.querySelector('#classes .et-centered button').click()");
+    await until("document.querySelectorAll('.et-class-card').length===6", 'local page 2');
+    await evaluate("document.querySelector('#classes .et-centered button').click()");
+    await until("document.querySelectorAll('.et-class-card').length===7", 'local last page');
+    assert.equal(await evaluate("document.querySelectorAll('#classes .et-centered button').length"), 0);
+    await evaluate("(()=>{const s=document.querySelector('#class-subject');s.value='4';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
+    await until("document.querySelectorAll('.et-class-card').length===1", 'filter resets pagination');
+    await evaluate("(()=>{const s=document.querySelector('#class-subject');s.value='';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
+    await until("document.querySelectorAll('.et-class-card').length===3", 'all resets pagination');
+    assert.equal(calls, 0, 'zero backend requests including harness interactions');
+    assert.deepEqual(apiRequests, []);
+    assert.deepEqual(browserErrors, []);
+    checks.push({ boundaryHarness: 'passed', showMoreLess: 'passed', loadMoreLocal: 'passed', filterResetsPagination: 'passed', backend: 'disabled (all /api/* return 503)', apiRequests, browserErrors });
+    fs.writeFileSync(path.resolve(output, '../browser-results.json'), JSON.stringify(checks, null, 2));
+    console.log(JSON.stringify(checks, null, 2));
   } else if (process.argv.includes('--statistics-hover')) {
     const baseline = process.env.LANDING_QA_BASELINE === '1';
     const inspectButton = () => evaluate(`(() => {
@@ -183,7 +305,7 @@ try {
       await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
       await send('Emulation.setEmulatedMedia',{features:[]});
       await send('Page.navigate',{url:origin+'/'});
-      await until("document.querySelectorAll('.et-class-card').length===3",'class cards');
+      await until("document.querySelectorAll('.et-class-card').length>0",'class cards');
       await send('Page.bringToFront');
       await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
       const statistics=await evaluate(`(()=>[...document.querySelectorAll('.et-stat')].map(el=>{

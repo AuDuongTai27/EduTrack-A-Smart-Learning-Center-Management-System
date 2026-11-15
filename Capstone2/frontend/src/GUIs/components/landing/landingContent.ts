@@ -1,13 +1,4 @@
-// User-approved illustrative statistics. Never overwrite with API counts.
-export const DEMO_STATISTICS = [
-  { value: '1,230+', label: 'Students', icon: 'people' },
-  { value: '64+', label: 'Classes', icon: 'books' },
-  { value: '24+', label: 'Teachers & Teaching Assistants', icon: 'cap' },
-] as const;
-export const NAV_ITEMS = [
-  ['hero', 'Home'], ['about', 'About Us'], ['programs', 'Programs'],
-  ['classes', 'Classes'], ['teachers', 'Teachers'], ['contact', 'Contact'],
-] as const;
+export { DEMO_STATISTICS, NAV_ITEMS } from './landingStaticData';
 const SUBJECTS: Record<string, { name: string; icon: string; color: string }> = {
   MATH: { name: 'Mathematics', icon: 'math', color: 'mint' },
   PHYS: { name: 'Physics', icon: 'atom', color: 'blue' },
