@@ -1,17 +1,18 @@
 import {selectedUrl, currentSelectedUser} from '../BLL/services/userSelection';
 import { validateSnapshot, validateRows, type InboxSnapshot } from '../BLL/services/notificationInbox';
+import { getAuthHeaders } from './authApi';
 const base = import.meta.env.VITE_API_URL || '/api';
 export async function notificationRequest(path: string, method = 'GET', signal?: AbortSignal, body?: unknown): Promise<unknown> {
   if (body && path === 'management/notifications') body = { ...body as object, senderId: (await currentSelectedUser()).userId };
   const url = await selectedUrl(`${base}/${path}`, path.startsWith('management/notifications') ? 'senderId' : 'userId');
   const response = await fetch(url, { method, signal, credentials: 'omit', cache: 'no-store',
-    headers: { Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { Accept: 'application/json', ...getAuthHeaders(), ...(body ? { 'Content-Type': 'application/json' } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}) });
   const value: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const message = value && typeof value === 'object' && 'message' in value ? String(value.message)
-      : response.status === 400 ? 'Dữ liệu không hợp lệ. Vui lòng kiểm tra tiêu đề, nội dung và người nhận.'
-      : 'Không thể thực hiện thao tác. Vui lòng thử lại.';
+      : response.status === 400 ? 'Invalid data. Please check title, content, and recipients.'
+      : 'Unable to perform operation. Please try again.';
     const error = new Error(message) as Error & { status: number }; error.status = response.status; throw error;
   }
   return value;

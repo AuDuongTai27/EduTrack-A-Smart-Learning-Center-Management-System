@@ -9,8 +9,11 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
   const isPaid =
     bill.totalAmount.trim() === '0 đ' ||
     bill.totalAmount.trim() === '0đ' ||
+    bill.totalAmount.trim() === '0 VND' ||
     bill.remainingDaysText.toLowerCase().includes('hoàn thành') ||
-    bill.remainingDaysText.toLowerCase().includes('đã nộp');
+    bill.remainingDaysText.toLowerCase().includes('đã nộp') ||
+    bill.remainingDaysText.toLowerCase().includes('completed') ||
+    bill.remainingDaysText.toLowerCase().includes('paid');
 
   return (
     <div className="bill-card">
@@ -18,18 +21,18 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
       <div className="bill-grid-layout">
         {/* Left Column: Total Due */}
         <div className="bill-left-col">
-          <div className="bill-total-label">Tổng tiền cần đóng</div>
+          <div className="bill-total-label">Total Amount Due</div>
           <div className={`bill-hero-amount ${isPaid ? 'text-success' : ''}`}>
             {bill.totalAmount}
           </div>
 
           <div className="bill-meta-lines">
             <div className="bill-meta-item">
-              <span className="bill-meta-title">Kỳ đóng:</span>
+              <span className="bill-meta-title">Billing Period:</span>
               <span className="bill-meta-value">{bill.period}</span>
             </div>
             <div className="bill-meta-item">
-              <span className="bill-meta-title">Hạn đóng:</span>
+              <span className="bill-meta-title">Due Date:</span>
               <span className={`bill-meta-due-date ${isPaid ? 'is-paid' : ''}`}>
                 {bill.dueDate}
               </span>
@@ -51,10 +54,10 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
         {/* Right Column: Breakdown */}
         <div className="bill-right-col">
           <div className="breakdown-heading-row">
-            <h2 className="breakdown-heading">Chi phí từng phần</h2>
+            <h2 className="breakdown-heading">Fee Breakdown</h2>
             <i
               className="bi bi-info-circle text-muted"
-              title="Chi tiết các khoản phí trong kỳ học"
+              title="Details of fees for the term"
             ></i>
           </div>
 
@@ -69,7 +72,7 @@ export function TuitionBillCard({ bill = CURRENT_TUITION_BILL }: TuitionBillCard
 
           <div className="breakdown-totals-box">
             <div className="breakdown-total-row">
-              <span className="breakdown-total-label">Tổng cộng (Total)</span>
+              <span className="breakdown-total-label">Total</span>
               <span className="breakdown-total-val">{bill.totalAmount}</span>
             </div>
           </div>

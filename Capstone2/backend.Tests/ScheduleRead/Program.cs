@@ -239,7 +239,7 @@ finally
 sealed class OnlyScheduleController : IApplicationFeatureProvider<ControllerFeature>
 {
     public void PopulateFeature(IEnumerable<ApplicationPart> parts,ControllerFeature feature)
-    {for(var i=feature.Controllers.Count-1;i>=0;i--)if(feature.Controllers[i].AsType()!=typeof(ScheduleController)&&feature.Controllers[i].AsType()!=typeof(EduTrack.API.Controllers.Queries.UserSelectionController))feature.Controllers.RemoveAt(i);}
+    {for(var i=feature.Controllers.Count-1;i>=0;i--)if(feature.Controllers[i].AsType()!=typeof(ScheduleController)&&feature.Controllers[i].AsType()!=typeof(EduTrack.API.Controllers.Queries.UsersController))feature.Controllers.RemoveAt(i);}
 }
 sealed class SelectOnlyGuard : DbCommandInterceptor
 {

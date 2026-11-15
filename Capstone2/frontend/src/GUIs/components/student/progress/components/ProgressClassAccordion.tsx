@@ -50,7 +50,7 @@ export function ProgressClassAccordion({
             {item.isCompleted && (
               <span className="completed-tag">
                 <i className="bi bi-patch-check-fill me-1"></i>
-                Đã hoàn thành
+                Completed
               </span>
             )}
           </div>
@@ -74,7 +74,7 @@ export function ProgressClassAccordion({
             {item.attended}/{item.total}
           </span>
           <span className="count-label">
-            {item.isCompleted ? 'buổi hoàn tất' : 'buổi điểm danh'}
+            {item.isCompleted ? 'sessions completed' : 'sessions attended'}
           </span>
         </div>
         <div className="class-pct-square-badge d-none d-sm-flex">
@@ -91,8 +91,8 @@ export function ProgressClassAccordion({
             <div className="accordion-sub-dot"></div>
             <span className="accordion-sub-title">
               {item.isCompleted
-                ? `Đánh giá tổng kết (${filteredFeedbacks.length}/${totalCount})`
-                : `Nhận xét & Tiến độ (${filteredFeedbacks.length}/${totalCount})`}
+                ? `Final Evaluation (${filteredFeedbacks.length}/${totalCount})`
+                : `Feedback & Progress (${filteredFeedbacks.length}/${totalCount})`}
             </span>
           </div>
 
@@ -105,7 +105,7 @@ export function ProgressClassAccordion({
                 setLocalFilter('all');
               }}
             >
-              Tất cả ({totalCount})
+              All ({totalCount})
             </button>
             <button
               type="button"
@@ -116,7 +116,7 @@ export function ProgressClassAccordion({
               }}
             >
               <i className="bi bi-person-badge-fill me-1"></i>
-              Đánh giá ({evalCount})
+              Evaluations ({evalCount})
             </button>
             <button
               type="button"
@@ -127,7 +127,7 @@ export function ProgressClassAccordion({
               }}
             >
               <i className="bi bi-journal-check me-1"></i>
-              Bài tập ({asgCount})
+              Assignments ({asgCount})
             </button>
           </div>
         </div>
@@ -141,8 +141,8 @@ export function ProgressClassAccordion({
             ></i>
             <p className="mb-0 small fw-medium">
               {localFilter === 'evaluation'
-                ? 'Chưa có nhận xét hoặc đánh giá định kỳ nào từ giáo viên trong lớp này.'
-                : 'Chưa có bài tập hoặc báo cáo nào được ghi nhận trong lớp này.'}
+                ? 'No feedback or periodic evaluations from the teacher in this class yet.'
+                : 'No assignments or reports recorded in this class yet.'}
             </p>
           </div>
         ) : (

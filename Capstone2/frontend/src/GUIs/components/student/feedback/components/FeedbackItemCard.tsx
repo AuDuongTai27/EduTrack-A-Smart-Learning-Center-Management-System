@@ -48,15 +48,15 @@ export function FeedbackItemCard({
                 e.stopPropagation();
                 onEdit(item);
               }}
-              title="Chỉnh sửa phản hồi (Đơn chưa được Admin Staff xem xét)"
+              title="Edit feedback (Request not yet reviewed by Admin Staff)"
             >
               <i className="bi bi-pencil-square me-1"></i>
-              Chỉnh sửa
+              Edit
             </button>
           ) : (
-            <span className="badge bg-white text-muted border" title="Đơn đã được Admin Staff tiếp nhận hoặc xử lý nên không thể chỉnh sửa">
+            <span className="badge bg-white text-muted border" title="Request has been received or processed by Admin Staff and cannot be edited">
               <i className="bi bi-lock-fill me-1"></i>
-              Đã khóa sửa
+              Locked
             </span>
           )}
           <small className="text-muted">{item.createdAt}</small>
@@ -66,27 +66,27 @@ export function FeedbackItemCard({
       <h3 className="h6 fw-bold mb-1 text-dark">{item.title}</h3>
       <p className="text-muted small mb-2 line-clamp-2">{item.description}</p>
 
-      {/* Hiển thị chi tiết phản hồi nếu được chọn */}
+      {/* Expanded details when selected */}
       {isSelected && (
         <div className="mt-3 pt-3 border-top border-secondary-subtle">
           <div className="small mb-1">
-            <span className="fw-semibold text-dark">Người gửi: </span>
+            <span className="fw-semibold text-dark">Sender: </span>
             <span className="text-secondary">
-              {item.senderName} ({item.senderRole === 'parent' ? 'Phụ huynh' : 'Học sinh'})
+              {item.senderName} ({item.senderRole === 'parent' ? 'Parent' : 'Student'})
             </span>
           </div>
 
           {item.status === 'pending' && item.canEdit && (
             <div className="text-muted small fst-italic mt-2">
               <i className="bi bi-clock me-1"></i>
-              Đơn đang ở trạng thái <strong>Chưa xem xét giải quyết</strong>. Bạn vẫn có thể bấm <strong>Chỉnh sửa</strong> để cập nhật nội dung trước khi Giáo vụ (Admin Staff) tiếp nhận.
+              Request is in <strong>Pending Review</strong> status. You can still click <strong>Edit</strong> to update the content before Admin Staff receives it.
             </div>
           )}
 
           {item.status === 'pending' && !item.canEdit && (
             <div className="text-primary small fst-italic mt-2">
               <i className="bi bi-hourglass-split me-1"></i>
-              Giáo vụ ({item.reviewedBy || 'Admin Staff'}) đã ấn xem và chuyển sang trạng thái <strong>Chờ duyệt</strong>. Đơn đã khóa quyền chỉnh sửa.
+              Admin Staff ({item.reviewedBy || 'Admin Staff'}) has reviewed and updated the status to <strong>Pending</strong>. Editing is now locked.
             </div>
           )}
 
@@ -94,10 +94,10 @@ export function FeedbackItemCard({
             <div className="alert alert-light border rounded-3 p-2.5 mt-2 mb-0">
               <div className="d-flex align-items-center gap-2 mb-1 text-success fw-semibold small">
                 <i className="bi bi-person-check-fill"></i>
-                Phản hồi từ: {item.reviewedBy || 'Admin Staff (Giáo vụ)'}
+                Response from: {item.reviewedBy || 'Admin Staff'}
               </div>
               {item.reviewedAt && (
-                <div className="text-muted small mb-1">Thời gian xử lý: {item.reviewedAt}</div>
+                <div className="text-muted small mb-1">Processed at: {item.reviewedAt}</div>
               )}
               {item.reviewNotes && (
                 <div className="small text-dark fst-italic">"{item.reviewNotes}"</div>

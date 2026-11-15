@@ -5,7 +5,7 @@ Usage:
 <TableActionButton action="View" onClick={() => handleView(item)} />
 <TableActionButton action="Edit" onClick={() => handleEdit(item)} />
 <TableActionButton action="Delete" onClick={() => handleDelete(item)} />
-<TableActionButton action="Link" onClick={() => handleLink(item)} title="Gán liên kết" />
+<TableActionButton action="Link" onClick={() => handleLink(item)} title="Assign link" />
 <TableActionButton action="Lock" onClick={() => handleLock(item)} />
 <TableActionButton action="Unlock" onClick={() => handleUnlock(item)} />
 <TableActionButton action="View / Edit" target="#userDetailModal" />

@@ -15,7 +15,7 @@ export default function EditRequestModal({
   request,
   onClose,
   onRequestUpdated,
-  userRoleName = 'Giáo viên',
+  userRoleName = 'Teacher',
 }: EditRequestModalProps) {
   const [requestType, setRequestType] = useState('leave_request');
   const [priority, setPriority] = useState('medium');
@@ -69,7 +69,7 @@ export default function EditRequestModal({
       handleClose();
     } catch (err: any) {
       console.error('Failed to update teaching request:', err);
-      setErrorMsg(err?.message || 'Có lỗi xảy ra khi cập nhật đơn yêu cầu. Vui lòng thử lại.');
+      setErrorMsg(err?.message || 'An error occurred while updating the request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +98,7 @@ export default function EditRequestModal({
             <div className="modal-header border-bottom py-3 px-4">
               <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="editRequestModalTitle">
                 <i className="bi bi-pencil-square text-warning fs-5" />
-                <span>Chỉnh Sửa Đơn #{request.requestCode || request.requestId}</span>
+                <span>Edit Request #{request.requestCode || request.requestId}</span>
               </h5>
               <button
                 type="button"
@@ -111,11 +111,11 @@ export default function EditRequestModal({
 
             <form onSubmit={handleSubmit}>
               <div className="modal-body p-4">
-                {/* Thông báo trạng thái chỉnh sửa */}
+                {/* Status Notice */}
                 <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
                   <i className="bi bi-info-circle-fill fs-6 text-info flex-shrink-0" />
                   <div>
-                    Đơn đang ở trạng thái <strong>Chưa xem xét giải quyết</strong> (chưa có người duyệt tiếp nhận). Bạn có thể chỉnh sửa nội dung bên dưới.
+                    The request is currently <strong>Pending Review</strong> (not yet claimed by a reviewer). You can edit the details below.
                   </div>
                 </div>
 
@@ -126,11 +126,11 @@ export default function EditRequestModal({
                   </div>
                 )}
 
-                {/* Loại Đơn & Mức Ưu Tiên */}
+                {/* Request Type & Priority */}
                 <div className="row g-3 mb-3">
                   <div className="col-12 col-md-6">
                     <label htmlFor="editRequestType" className="form-label small fw-semibold text-secondary">
-                      Loại Yêu Cầu <span className="text-danger">*</span>
+                      Request Type <span className="text-danger">*</span>
                     </label>
                     <select
                       id="editRequestType"
@@ -139,17 +139,17 @@ export default function EditRequestModal({
                       onChange={(e) => setRequestType(e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="leave_request">Nghỉ phép / Nghỉ ca</option>
-                      <option value="schedule_change">Đổi lịch giảng dạy / Ca trực</option>
-                      <option value="facility_request">Yêu cầu thiết bị &amp; phòng học</option>
-                      <option value="teaching_support">Đề xuất hỗ trợ giảng dạy</option>
-                      <option value="other">Ý kiến / Đề xuất khác</option>
+                      <option value="leave_request">Leave Request / Absence</option>
+                      <option value="schedule_change">Teaching / Duty Schedule Change</option>
+                      <option value="facility_request">Equipment &amp; Room Request</option>
+                      <option value="teaching_support">Teaching Support Proposal</option>
+                      <option value="other">Other Feedback / Proposal</option>
                     </select>
                   </div>
 
                   <div className="col-12 col-md-6">
                     <label htmlFor="editPriority" className="form-label small fw-semibold text-secondary">
-                      Mức Độ Ưu Tiên
+                      Priority
                     </label>
                     <select
                       id="editPriority"
@@ -158,23 +158,23 @@ export default function EditRequestModal({
                       onChange={(e) => setPriority(e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="low">Thấp (Không gấp)</option>
-                      <option value="medium">Bình thường</option>
-                      <option value="high">Khẩn cấp (Cần xử lý ngay)</option>
+                      <option value="low">Low (Non-urgent)</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High (Urgent)</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Tiêu Đề */}
+                {/* Title */}
                 <div className="mb-3">
                   <label htmlFor="editTitle" className="form-label small fw-semibold text-secondary">
-                    Tiêu Đề Đơn <span className="text-danger">*</span>
+                    Request Title <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     id="editTitle"
                     className="form-control form-control-sm"
-                    placeholder="Ví dụ: Xin nghỉ phép ngày 25/10/2026..."
+                    placeholder="E.g., Leave request for 10/25/2026..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     disabled={isSubmitting}
@@ -183,23 +183,23 @@ export default function EditRequestModal({
                   />
                 </div>
 
-                {/* Nội Dung Chi Tiết */}
+                {/* Description */}
                 <div className="mb-2">
                   <label htmlFor="editDescription" className="form-label small fw-semibold text-secondary">
-                    Nội Dung Chi Tiết &amp; Lý Do <span className="text-danger">*</span>
+                    Detailed Content &amp; Reason <span className="text-danger">*</span>
                   </label>
                   <textarea
                     id="editDescription"
                     className="form-control form-control-sm"
                     rows={4}
-                    placeholder="Nêu rõ lý do hoặc chi tiết mong muốn ban giám đốc/giáo vụ hỗ trợ..."
+                    placeholder="State the reason or details for management/admin staff support..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={isSubmitting}
                     required
                   />
                   <small className="text-muted fst-italic">
-                    Gợi ý: Cung cấp thời gian, lớp học phụ trách liên quan để được duyệt nhanh hơn.
+                    Tip: Provide relevant time and assigned classes for faster approval.
                   </small>
                 </div>
               </div>
@@ -211,7 +211,7 @@ export default function EditRequestModal({
                   onClick={handleClose}
                   disabled={isSubmitting}
                 >
-                  Hủy bỏ
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -221,12 +221,12 @@ export default function EditRequestModal({
                   {isSubmitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                      <span>Đang lưu...</span>
+                      <span>Saving...</span>
                     </>
                   ) : (
                     <>
                       <i className="bi bi-check-lg" />
-                      <span>Lưu Thay Đổi</span>
+                      <span>Save Changes</span>
                     </>
                   )}
                 </button>

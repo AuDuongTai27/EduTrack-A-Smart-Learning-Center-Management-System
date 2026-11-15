@@ -1,7 +1,7 @@
 import type { PaymentDto, TuitionDto } from "../models/TuitionDto";
 import { isTuitionOverdue, tuitionMonthKey, tuitionPaymentStatus } from "./tuitionPolicyService.ts";
 
-export const ALL_INVOICE_PERIODS = "Tất cả kỳ hóa đơn • Theo bộ lọc";
+export const ALL_INVOICE_PERIODS = "All Billing Periods • By Filter";
 
 // Match decimal(12,2) storage: avoid binary floating point leaving phantom debt
 // or displaying 0.30000000000000004 after summing valid legacy decimal amounts.
@@ -20,17 +20,17 @@ export interface InvoiceBalance extends TuitionDto {
 
 export function currentCollectionLabel(now = new Date()): string {
   const [year, month] = tuitionMonthKey(now).split("-");
-  return `Tháng ${Number(month)}/${year}`;
+  return `Month ${Number(month)}/${year}`;
 }
 
 /** The application writes UTC. Accept legacy API timestamps that omitted the UTC suffix. */
 export function paymentInstant(paidAt: string): Date {
   if (!paidAt || !/^\d{4}-\d{2}-\d{2}T/.test(paidAt)) {
-    throw new Error("Không xác định được ngày thu của một giao dịch thanh toán.");
+    throw new Error("Cannot determine payment date of a transaction.");
   }
   const explicitZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(paidAt);
   const instant = new Date(explicitZone ? paidAt : `${paidAt}Z`);
-  if (Number.isNaN(instant.getTime())) throw new Error("Ngày thu của một giao dịch thanh toán không hợp lệ.");
+  if (Number.isNaN(instant.getTime())) throw new Error("Payment date of a transaction is invalid.");
   return instant;
 }
 
@@ -78,7 +78,7 @@ export function calculateTuitionMetrics(
     const invoiceIds = new Set(rows.map(invoice => invoice.invoiceId));
     monthlyCollected = collectedInMonth(payments.filter(payment => invoiceIds.has(payment.invoiceId)), now);
   } catch (cause) {
-    monthlyCollectionError = cause instanceof Error ? cause.message : "Không tính được tiền thực thu tháng này.";
+    monthlyCollectionError = cause instanceof Error ? cause.message : "Unable to calculate collections for this month.";
   }
   return {
     totalDue,

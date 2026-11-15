@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs.Learning;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Learning.Interfaces;
@@ -13,6 +15,7 @@ namespace EduTrack.API.Controllers.Learning
     /// Phụ trách: Nhóm Student & Parent (Thành viên 3)
     /// </summary>
     [ApiController]
+    [Authorize(Roles = JwtAuthHelper.RolesLearning)]
     [Route("api/learning/feedback")]
     [Tags("Learning - Student & Parent Feedback")]
     public class LearnerFeedbackController : ControllerBase
@@ -34,7 +37,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("user/{userId:int}")]
         public async Task<IActionResult> GetLearnerFeedbacks(int userId, [FromQuery] int? studentId = null)
         {
-            var data = await _dashboardService.GetLearnerFeedbacksAsync(userId, studentId);
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleStudent, JwtAuthHelper.RoleParent);
+            var data = await _dashboardService.GetLearnerFeedbacksAsync(effectiveUserId, studentId);
             return Ok(new { success = true, data });
         }
 
@@ -47,6 +51,12 @@ namespace EduTrack.API.Controllers.Learning
             if (request == null || string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Description))
             {
                 return BadRequest(new { success = false, message = "Tiêu đề và nội dung phản hồi không được để trống." });
+            }
+
+            request.UserId = JwtAuthHelper.ResolveEffectiveUserId(User, request.UserId, JwtAuthHelper.RoleStudent, JwtAuthHelper.RoleParent);
+            if (User.IsInRole(JwtAuthHelper.RoleStudent) && !JwtAuthHelper.IsManagementUser(User))
+            {
+                request.StudentId = request.UserId;
             }
 
             var created = await _dashboardService.CreateLearnerFeedbackAsync(request);

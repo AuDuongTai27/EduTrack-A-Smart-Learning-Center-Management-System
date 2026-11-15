@@ -22,8 +22,6 @@ export function ChildSwitcher({
     selectedChild,
     loading,
     setSelectedChildId,
-    setDemoEmptyState,
-    resetDemoChildren,
   } = useParent();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -53,11 +51,11 @@ export function ChildSwitcher({
     return (
       <div className={`sidebar-child-switcher px-3 py-2 border-bottom ${className}`}>
         <div className="sidebar-nav-title px-0 pb-1" style={{ fontSize: '10px' }}>
-          HỌC SINH ĐANG CHỌN
+          SELECTED STUDENT
         </div>
         <div className="d-flex align-items-center gap-2 p-2 rounded-3 border bg-light text-muted small">
           <span className="spinner-border spinner-border-sm text-primary flex-shrink-0" role="status" />
-          <span className="text-truncate" style={{ fontSize: '12px' }}>Đang tải hồ sơ con...</span>
+          <span className="text-truncate" style={{ fontSize: '12px' }}>Loading child profile...</span>
         </div>
       </div>
     );
@@ -67,26 +65,16 @@ export function ChildSwitcher({
     return (
       <div className={`sidebar-child-switcher px-3 py-2 border-bottom ${className}`}>
         <div className="sidebar-nav-title px-0 pb-1" style={{ fontSize: '10px' }}>
-          Hồ sơ học sinh
+          Student Profile
         </div>
-        <div className="d-flex align-items-center gap-1.5">
-          <button
-            type="button"
-            className="btn btn-sm btn-primary w-100 py-1.5 rounded-3 fw-semibold small d-flex align-items-center justify-content-center gap-1 shadow-xs"
-            onClick={handleRequestLinkClick}
-          >
-            <i className="bi bi-chat-dots-fill"></i>
-            <span>Gửi yêu cầu liên kết</span>
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary py-1.5 px-2 rounded-3"
-            onClick={resetDemoChildren}
-            title="Nạp lại danh sách học sinh"
-          >
-            <i className="bi bi-arrow-counterclockwise"></i>
-          </button>
-        </div>
+        <button
+          type="button"
+          className="btn btn-sm btn-primary w-100 py-1.5 rounded-3 fw-semibold small d-flex align-items-center justify-content-center gap-1 shadow-xs"
+          onClick={handleRequestLinkClick}
+        >
+          <i className="bi bi-chat-dots-fill"></i>
+          <span>Submit Link Request</span>
+        </button>
       </div>
     );
   }
@@ -101,13 +89,13 @@ export function ChildSwitcher({
           className="sidebar-nav-title px-0 pb-0"
           style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--et-subtle)' }}
         >
-          HỌC SINH ĐANG CHỌN
+          SELECTED STUDENT
         </span>
         <span
           className="badge bg-light text-muted border px-1.5 py-0.5 rounded-pill"
           style={{ fontSize: '9px' }}
         >
-          {childrenList.length} con
+          {childrenList.length} {childrenList.length === 1 ? 'child' : 'children'}
         </span>
       </div>
 
@@ -131,7 +119,7 @@ export function ChildSwitcher({
             fontSize: '11px',
           }}
         >
-          {selectedChild?.avatar || 'HS'}
+          {selectedChild?.avatar || 'ST'}
         </div>
 
         <div className="flex-grow-1 overflow-hidden">
@@ -139,13 +127,13 @@ export function ChildSwitcher({
             className="fw-bold text-dark text-truncate"
             style={{ fontSize: '12.5px', lineHeight: '1.2' }}
           >
-            {selectedChild?.name || 'Chọn học sinh'}
+            {selectedChild?.name || 'Select student'}
           </div>
           <div
             className="text-muted text-truncate"
             style={{ fontSize: '10.5px', marginTop: '2px' }}
           >
-            {selectedChild?.grade} · {selectedChild?.classesCount} lớp
+            {selectedChild?.grade} · {selectedChild?.classesCount} {selectedChild?.classesCount === 1 ? 'class' : 'classes'}
           </div>
         </div>
 
@@ -172,7 +160,7 @@ export function ChildSwitcher({
         >
           <div className="px-2 py-1 mb-1 border-bottom d-flex align-items-center justify-content-between">
             <span className="fw-bold text-dark" style={{ fontSize: '11px' }}>
-              Danh sách con của bạn
+              Your Children List
             </span>
           </div>
 
@@ -230,28 +218,14 @@ export function ChildSwitcher({
           <div className="border-top pt-1.5 mt-1">
             <button
               type="button"
-              className="btn btn-light w-100 py-1 rounded-2 text-primary fw-semibold small d-flex align-items-center justify-content-center gap-1 mb-1"
+              className="btn btn-light w-100 py-1 rounded-2 text-primary fw-semibold small d-flex align-items-center justify-content-center gap-1"
               style={{ fontSize: '11.5px' }}
               onClick={handleRequestLinkClick}
             >
               <i className="bi bi-chat-dots-fill"></i>
-              <span>+ Yêu cầu liên kết học sinh</span>
+              <span>+ Request Student Link</span>
             </button>
 
-            {/* Công cụ hỗ trợ demo */}
-            <button
-              type="button"
-              className="btn btn-outline-danger w-100 py-0.5 rounded-2 text-danger small d-flex align-items-center justify-content-center gap-1 opacity-75"
-              style={{ fontSize: '10px' }}
-              onClick={() => {
-                setIsOpen(false);
-                setDemoEmptyState();
-              }}
-              title="Thử nghiệm trạng thái 0 học sinh"
-            >
-              <i className="bi bi-eye"></i>
-              <span>Demo 0 học sinh</span>
-            </button>
           </div>
         </div>
       )}

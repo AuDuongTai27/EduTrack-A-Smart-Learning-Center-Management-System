@@ -24,13 +24,13 @@ import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestD
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("vi-VN", { timeZone: CENTER_TIME_ZONE });
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-US", { timeZone: CENTER_TIME_ZONE });
 }
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("vi-VN", { timeZone: CENTER_TIME_ZONE });
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("en-US", { timeZone: CENTER_TIME_ZONE });
 }
 
 export default function AdminStaffDashboardPage() {
@@ -50,7 +50,7 @@ export default function AdminStaffDashboardPage() {
   const recentRequests = requests.slice(0, 4);
   const pendingRequests = requests.filter((request) => request.status.trim().toLowerCase() === "pending");
   const sectionText = (section: DashboardSection<unknown> | undefined, empty: string) =>
-    section?.error || (section?.data == null ? "Đang tải dữ liệu..." : empty);
+    section?.error || (section?.data == null ? "Loading data..." : empty);
 
   // Detail Modal state
   const [selectedRequest, setSelectedRequest] = useState<ApprovalRequestDto | null>(null);
@@ -83,7 +83,7 @@ export default function AdminStaffDashboardPage() {
   }, [staffUserId, selectionLoading, today, refreshKey]);
 
   const totalOutstanding = dashboard?.tuition.data?.outstanding;
-  const todayStr = now.toLocaleDateString("vi-VN", {
+  const todayStr = now.toLocaleDateString("en-US", {
     timeZone: CENTER_TIME_ZONE,
     weekday: "long",
     year: "numeric",
@@ -95,7 +95,7 @@ export default function AdminStaffDashboardPage() {
     <>
       {/* Breadcrumb and Quick Access */}
       <PageHeader
-        title="Bảng Điều Khiển Giáo Vụ (Admin Staff Dashboard)"
+        title="Admin Staff Dashboard"
         breadcrumbItems={[
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Dashboard" },
@@ -107,7 +107,7 @@ export default function AdminStaffDashboardPage() {
               setNow(new Date());
               setRefreshKey((value) => value + 1);
             }}>
-            <i className="bi bi-arrow-clockwise me-1" /> Tải lại dữ liệu
+            <i className="bi bi-arrow-clockwise me-1" /> Refresh
           </button>
         }
       />
@@ -115,13 +115,13 @@ export default function AdminStaffDashboardPage() {
       {(loading || selectionLoading) && (
         <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2" role="status">
           <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang nạp dữ liệu thống kê trung tâm...</span>
+          <span>Loading center statistics...</span>
         </div>
       )}
       {dashboard && [dashboard.students, dashboard.tuition, dashboard.schedule, dashboard.staff,
         dashboard.requests].some((section) => section.error) && (
         <div className="alert alert-warning py-2 px-3 mb-3" role="alert">
-          Một số dữ liệu chưa tải được. Vui lòng xem thông báo tại từng mục và thử tải lại.
+          Some data could not be loaded. Please check each section and try refreshing.
         </div>
       )}
 
@@ -133,10 +133,10 @@ export default function AdminStaffDashboardPage() {
             <KpiCard
               type="student"
               status="new"
-              title="Tổng Học Viên Hoạt Động"
+              title="Total Active Students"
               value={dashboard?.students.data ?? "—"}
-              footerValue={sectionText(dashboard?.students, "Hồ sơ học viên có trạng thái Active")}
-              footerLabel="Xem danh sách"
+              footerValue={sectionText(dashboard?.students, "Student profiles with Active status")}
+              footerLabel="View list"
             />
           </Link>
         </div>
@@ -147,10 +147,10 @@ export default function AdminStaffDashboardPage() {
             <KpiCard
               type="student"
               status="unpaid"
-              title="Khoản Học Phí Cần Thu"
+              title="Tuition Invoices Due"
               value={dashboard?.tuition.data?.unpaidCount ?? "—"}
-              footerValue={sectionText(dashboard?.tuition, "Hóa đơn còn nợ • Tất cả kỳ")}
-              footerLabel="Xem sổ thu"
+              footerValue={sectionText(dashboard?.tuition, "Unpaid invoices • All periods")}
+              footerLabel="View tuition"
             />
           </Link>
         </div>
@@ -161,11 +161,11 @@ export default function AdminStaffDashboardPage() {
             <KpiCard
               type="tuition"
               status="outstanding"
-              title="Công Nợ Học Phí"
+              title="Outstanding Tuition"
               currency="VND"
               value={totalOutstanding ?? null}
-              footerValue={sectionText(dashboard?.tuition, "Tổng công nợ hiện tại • Tất cả kỳ hóa đơn")}
-              footerLabel="Chi tiết"
+              footerValue={sectionText(dashboard?.tuition, "Total outstanding debt • All invoice periods")}
+              footerLabel="Details"
             />
           </Link>
         </div>
@@ -175,10 +175,10 @@ export default function AdminStaffDashboardPage() {
           <Link to="/admin-staff/approval-requests" className="text-decoration-none d-block">
             <KpiCard
               type="request"
-              title="Đơn Từ Gửi Giám Đốc"
+              title="Requests Sent to Center Manager"
               value={dashboard?.requests.data == null ? "—" : requests.length}
-              footerValue={sectionText(dashboard?.requests, `${pendingRequests.length} đơn chưa có quyết định`)}
-              footerLabel="Xem tiến độ"
+              footerValue={sectionText(dashboard?.requests, `${pendingRequests.length} requests pending decision`)}
+              footerLabel="View progress"
             />
           </Link>
         </div>
@@ -189,12 +189,12 @@ export default function AdminStaffDashboardPage() {
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
-              <p className="welcome-subtitle mb-1">Xin chào,</p>
+              <p className="welcome-subtitle mb-1">Hello,</p>
               <h3 className="welcome-title mb-2">
-                {currentUser?.fullName ? `${currentUser.fullName} (Nhân viên Giáo vụ)` : "Nhân viên Giáo vụ"}
+                {currentUser?.fullName ? `${currentUser.fullName} (Admin Staff)` : "Admin Staff"}
               </h3>
               <p className="welcome-text mb-0">
-                Chúc bạn một ngày làm việc hiệu quả và quản lý học vụ suôn sẻ tại EduTrack!
+                Have a productive working day managing academic operations at EduTrack!
               </p>
             </div>
             <div className="welcome-date">
@@ -212,11 +212,11 @@ export default function AdminStaffDashboardPage() {
           <div className="card dashboard-card h-100 border-0">
             <div className="dashboard-card-header d-flex justify-content-between align-items-center">
               <div>
-                <h5 className="mb-0">Lịch Học &amp; Ca Giảng Hôm Nay</h5>
-                <small className="text-muted">Buổi học trong ngày; giáo viên theo phân công lớp</small>
+                <h5 className="mb-0">Today's Schedule &amp; Teaching Sessions</h5>
+                <small className="text-muted">Sessions today; teachers according to class assignment</small>
               </div>
               <Link to="/admin-staff/teaching-monitoring" className="dashboard-view-link">
-                Giám sát chi tiết
+                Detailed Monitoring
                 <i className="bi bi-arrow-right ms-1" />
               </Link>
             </div>
@@ -231,15 +231,15 @@ export default function AdminStaffDashboardPage() {
                       </div>
                       <div className="schedule-line" />
                       <div className="schedule-info">
-                        <h6>{s.className || `Lớp học #${s.classId}`}</h6>
+                        <h6>{s.className || `Class #${s.classId}`}</h6>
                         <div className="schedule-meta">
                           <span>
                             <i className="bi bi-person me-1" />
-                            {s.teacherNames || "Chưa có giáo viên được phân công"}
+                            {s.teacherNames || "No assigned teacher"}
                           </span>
                           <span>
                             <i className="bi bi-geo-alt me-1" />
-                            {s.room || "Chưa có phòng"}
+                            {s.room || "No room assigned"}
                           </span>
                         </div>
                       </div>
@@ -249,7 +249,7 @@ export default function AdminStaffDashboardPage() {
                 ) : (
                   <div className={`p-4 text-center ${dashboard?.schedule.error ? "text-danger" : "text-muted"}`}
                     role={dashboard?.schedule.error ? "alert" : "status"}>
-                    {sectionText(dashboard?.schedule, "Không có buổi học nào được xếp hôm nay.")}
+                    {sectionText(dashboard?.schedule, "No sessions scheduled for today.")}
                   </div>
                 )}
               </div>
@@ -264,11 +264,11 @@ export default function AdminStaffDashboardPage() {
       <div className="card user-list-card border-0 mb-4">
         <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
           <div>
-            <h5 className="mb-1 fw-bold">Đơn Từ Gần Đây Đã Gửi Giám Đốc</h5>
-            <small className="text-muted">Các đề xuất xin phê duyệt từ giáo vụ</small>
+            <h5 className="mb-1 fw-bold">Recent Requests Sent to Center Manager</h5>
+            <small className="text-muted">Approval requests submitted by Admin Staff</small>
           </div>
           <Link to="/admin-staff/approval-requests" className="dashboard-view-link">
-            Xem tất cả đơn
+            View all requests
             <i className="bi bi-arrow-right ms-1" />
           </Link>
         </div>
@@ -276,14 +276,14 @@ export default function AdminStaffDashboardPage() {
           <table className="table user-table align-middle mb-0">
             <thead>
               <tr>
-                <th>STT</th>
-                <th>Mã Đơn</th>
-                <th>Loại Yêu Cầu</th>
-                <th>Tiêu Đề / Đối Tượng</th>
-                <th>Ngày Gửi</th>
-                <th>Ưu Tiên</th>
-                <th>Trạng Thái</th>
-                <th className="text-center">Thao Tác</th>
+                <th>No.</th>
+                <th>Request Code</th>
+                <th>Request Type</th>
+                <th>Title / Subject</th>
+                <th>Submitted Date</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th className="text-center">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -293,9 +293,9 @@ export default function AdminStaffDashboardPage() {
                   const reqDate = formatDate(req.createdAt);
                   const displayType = formatRequestType(req.requestType);
                   const targetLabel = req.studentName
-                    ? `Học viên: ${req.studentName}`
+                    ? `Student: ${req.studentName}`
                     : req.className
-                      ? `Lớp: ${req.className}`
+                      ? `Class: ${req.className}`
                       : null;
                   return (
                     <tr key={req.requestId || idx}>
@@ -334,7 +334,7 @@ export default function AdminStaffDashboardPage() {
                           className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                           onClick={() => setSelectedRequest(req)}
                         >
-                          <i className="bi bi-eye" /> Chi tiết
+                          <i className="bi bi-eye" /> Details
                         </button>
                       </td>
                     </tr>
@@ -344,7 +344,7 @@ export default function AdminStaffDashboardPage() {
                 <tr>
                   <td colSpan={8} className={`text-center py-3 ${dashboard?.requests.error ? "text-danger" : "text-muted"}`}
                     role={dashboard?.requests.error ? "alert" : "status"}>
-                    {sectionText(dashboard?.requests, "Bạn chưa gửi đơn từ nào.")}
+                    {sectionText(dashboard?.requests, "No requests submitted yet.")}
                   </td>
                 </tr>
               )}
@@ -371,7 +371,7 @@ export default function AdminStaffDashboardPage() {
                       {reqCode}
                     </span>
                     <h5 className="modal-title fw-bold mb-0 text-dark">
-                      Chi Tiết Yêu Cầu Phê Duyệt
+                      Approval Request Details
                     </h5>
                   </div>
                   <button type="button" className="btn-close" onClick={() => setSelectedRequest(null)} />
@@ -386,15 +386,15 @@ export default function AdminStaffDashboardPage() {
                       <div className="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
                         <span>
                           <i className="bi bi-tag-fill me-1 text-primary" />
-                          Loại đơn: <strong>{displayType}</strong>
+                          Request Type: <strong>{displayType}</strong>
                         </span>
                         <span>
                           <i className="bi bi-clock me-1 text-secondary" />
-                          Ngày gửi: <strong>{formatDateTime(selectedRequest.createdAt)}</strong>
+                          Submitted Date: <strong>{formatDateTime(selectedRequest.createdAt)}</strong>
                         </span>
                         <span>
                           <i className="bi bi-person me-1 text-secondary" />
-                          Người gửi: <strong>{selectedRequest.requesterName || currentUser?.fullName || "Admin Staff"}</strong>
+                          Requester: <strong>{selectedRequest.requesterName || currentUser?.fullName || "Admin Staff"}</strong>
                         </span>
                       </div>
                     </div>
@@ -409,19 +409,19 @@ export default function AdminStaffDashboardPage() {
                     <div className="col-md-6">
                       <div className="p-3 bg-light rounded-3 h-100 border">
                         <small className="text-muted d-block mb-1 fw-semibold">
-                          <i className="bi bi-person-badge me-1" /> Học sinh / Đối tượng liên quan
+                          <i className="bi bi-person-badge me-1" /> Student / Related Subject
                         </small>
                         <div className="fw-bold text-dark fs-6">
-                          {selectedRequest.studentName || "Không gắn kèm học viên cụ thể"}
+                          {selectedRequest.studentName || "Not associated with a specific student"}
                         </div>
                         {selectedRequest.className && (
                           <div className="small text-muted mt-1">
-                            Lớp học: <strong>{selectedRequest.className}</strong>
+                            Class: <strong>{selectedRequest.className}</strong>
                           </div>
                         )}
                         {selectedRequest.invoiceId && (
                           <div className="small text-muted mt-1">
-                            Hóa đơn tham chiếu: <strong>#{selectedRequest.invoiceId}</strong>
+                            Reference Invoice: <strong>#{selectedRequest.invoiceId}</strong>
                           </div>
                         )}
                       </div>
@@ -429,13 +429,13 @@ export default function AdminStaffDashboardPage() {
                     <div className="col-md-6">
                       <div className="p-3 bg-light rounded-3 h-100 border">
                         <small className="text-muted d-block mb-1 fw-semibold">
-                          <i className="bi bi-shield-check me-1" /> Phê duyệt (Center Manager)
+                          <i className="bi bi-shield-check me-1" /> Approver (Center Manager)
                         </small>
                         <div className="fw-bold text-dark fs-6">
                           {reviewerInfo.reviewerText}
                         </div>
                         <div className="small text-muted mt-1">
-                          Thời gian phản hồi: <strong>{reviewerInfo.reviewedAtText}</strong>
+                          Response Time: <strong>{reviewerInfo.reviewedAtText}</strong>
                         </div>
                       </div>
                     </div>
@@ -444,7 +444,7 @@ export default function AdminStaffDashboardPage() {
                   {/* Content / Reason */}
                   <div className="mb-3">
                     <label className="text-muted small fw-semibold d-block mb-1">
-                      <i className="bi bi-card-text me-1" /> Nội dung chi tiết &amp; Lý do đề xuất:
+                      <i className="bi bi-card-text me-1" /> Details &amp; Justification:
                     </label>
                     <div className="p-3 bg-light rounded border text-secondary" style={{ whiteSpace: "pre-line", minHeight: "70px" }}>
                       {content}
@@ -455,7 +455,7 @@ export default function AdminStaffDashboardPage() {
                   {reviewerInfo.reviewNotes ? (
                     <div className="mb-3">
                       <label className="text-muted small fw-semibold d-block mb-1">
-                        <i className="bi bi-chat-left-quote-fill text-warning me-1" /> Ý kiến / Phản hồi từ Center Manager:
+                        <i className="bi bi-chat-left-quote-fill text-warning me-1" /> Feedback from Center Manager:
                       </label>
                       <div
                         className="p-3 bg-warning-subtle text-dark rounded border border-warning"
@@ -468,7 +468,7 @@ export default function AdminStaffDashboardPage() {
                     <div className="mb-3">
                       <div className="p-2 bg-light text-muted small rounded border text-center">
                         <i className="bi bi-info-circle me-1" />
-                        Giám đốc đã {normalizedStatus === "approved" ? "phê duyệt" : "từ chối"} đơn này mà không để lại ghi chú thêm.
+                        The Center Manager has {normalizedStatus === "approved" ? "approved" : "rejected"} this request without additional notes.
                       </div>
                     </div>
                   ) : null}
@@ -479,10 +479,10 @@ export default function AdminStaffDashboardPage() {
                     className="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"
                     onClick={() => setSelectedRequest(null)}
                   >
-                    <i className="bi bi-box-arrow-up-right" /> Mở trang quản lý đơn
+                    <i className="bi bi-box-arrow-up-right" /> Open request management
                   </Link>
                   <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedRequest(null)}>
-                    Đóng
+                    Close
                   </button>
                 </div>
               </div>

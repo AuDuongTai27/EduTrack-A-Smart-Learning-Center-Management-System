@@ -10,7 +10,7 @@ export interface ParticipantsSectionProps {
 
 export default function ParticipantsSection({
   participants = [],
-  teacherName = "ThS. Hoàng Quốc Việt",
+  teacherName = "MSc. Hoàng Quốc Việt",
   taName = "Âu Dương Tài",
 }: ParticipantsSectionProps) {
   const getInitials = (name: string) => {
@@ -134,7 +134,7 @@ export default function ParticipantsSection({
                       <small className="text-muted">{student.phone || "0901 234 567"}</small>
                     </td>
                     <td>
-                      <small className="text-dark fw-medium d-block">{student.parentName || "Nguyễn Văn Phụ Huynh"}</small>
+                      <small className="text-dark fw-medium d-block">{student.parentName || "Nguyen Van An (Parent)"}</small>
                       <small className="text-muted">{student.parentPhone || "0912 345 678"}</small>
                     </td>
                     <td>

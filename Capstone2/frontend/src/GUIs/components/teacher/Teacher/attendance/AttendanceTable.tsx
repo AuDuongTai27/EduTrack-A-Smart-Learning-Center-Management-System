@@ -37,7 +37,7 @@ export function AttendanceTable({
     return (
       <div className="p-5 text-center text-muted">
         <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
-        <p className="mb-0">Không tìm thấy học sinh nào trong danh sách lớp.</p>
+        <p className="mb-0">No students found in the class list.</p>
       </div>
     );
   }
@@ -47,12 +47,12 @@ export function AttendanceTable({
       <table className="table custom-table align-middle mb-0" id="attendanceTable">
         <thead className="table-light">
           <tr>
-            <th style={{ width: "50px" }} className="text-center">STT</th>
-            <th style={{ width: "70px" }}>Ảnh</th>
-            <th>Họ và tên học sinh</th>
-            <th style={{ minWidth: "320px" }}>Trạng thái điểm danh</th>
-            <th style={{ minWidth: "220px" }}>Ghi chú chuyên cần</th>
-            <th style={{ width: "120px" }} className="text-center">Trạng thái</th>
+            <th style={{ width: "50px" }} className="text-center">No.</th>
+            <th style={{ width: "70px" }}>Photo</th>
+            <th>Student Name</th>
+            <th style={{ minWidth: "320px" }}>Attendance Status</th>
+            <th style={{ minWidth: "220px" }}>Attendance Notes</th>
+            <th style={{ width: "120px" }} className="text-center">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -109,7 +109,7 @@ export function AttendanceTable({
                         onChange={() => onStatusChange && onStatusChange(st.studentId, "present")}
                       />
                       <i className="bi bi-check-circle-fill" />
-                      <span>Có mặt</span>
+                      <span>Present</span>
                     </label>
 
                     {/* Đi muộn */}
@@ -129,7 +129,7 @@ export function AttendanceTable({
                         onChange={() => onStatusChange && onStatusChange(st.studentId, "late")}
                       />
                       <i className="bi bi-clock-history" />
-                      <span>Đi muộn</span>
+                      <span>Late</span>
                     </label>
 
                     {/* Vắng */}
@@ -149,7 +149,7 @@ export function AttendanceTable({
                         onChange={() => onStatusChange && onStatusChange(st.studentId, "absent")}
                       />
                       <i className="bi bi-x-circle-fill" />
-                      <span>Vắng</span>
+                      <span>Absent</span>
                     </label>
 
                     {/* Có phép */}
@@ -169,7 +169,7 @@ export function AttendanceTable({
                         onChange={() => onStatusChange && onStatusChange(st.studentId, "excused")}
                       />
                       <i className="bi bi-shield-check" />
-                      <span>Có phép</span>
+                      <span>Excused</span>
                     </label>
                   </div>
                 </td>
@@ -179,7 +179,7 @@ export function AttendanceTable({
                   <input
                     type="text"
                     className="form-control form-control-sm"
-                    placeholder="Lý do muộn/vắng, thái độ học tập..."
+                    placeholder="Reason for late/absence, learning attitude..."
                     value={st.note || ""}
                     onChange={(e) => onNoteChange && onNoteChange(st.studentId, e.target.value)}
                   />
@@ -188,12 +188,12 @@ export function AttendanceTable({
                 {/* Saved Status Indicator */}
                 <td className="text-center">
                   {st.isRecorded ? (
-                    <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" title={st.recordedAt ? `Đã lưu: ${st.recordedAt}` : "Đã lưu vào CSDL"}>
-                      <i className="bi bi-check2-all me-1" /> Đã lưu
+                    <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" title={st.recordedAt ? `Saved: ${st.recordedAt}` : "Saved to database"}>
+                      <i className="bi bi-check2-all me-1" /> Saved
                     </span>
                   ) : (
                     <span className="badge bg-light text-muted border px-2 py-1">
-                      Chưa lưu
+                      Unsaved
                     </span>
                   )}
                 </td>

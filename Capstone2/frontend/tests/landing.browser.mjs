@@ -247,9 +247,9 @@ try {
       assert.equal(await evaluate("Number.parseFloat(getComputedStyle(document.querySelector('.et-faq-panel')).transitionDuration)<0.01"), true);
       await send('Emulation.setEmulatedMedia', { features: [] });
       if (width < 1200) await evaluate("document.querySelector('.et-header .et-menu-toggle').click()");
-      await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Student Login')).click()");
+      await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Sign In')).click()");
       await until("document.querySelector('.et-workspace-dialog')?.open", 'workspace chooser');
-      assert.equal(await evaluate("document.querySelector('.et-student-link').getAttribute('href')"), '/student/dashboard');
+      assert.ok(await evaluate("Boolean(document.querySelector('#login-identifier'))"));
       await key('Escape', 'Escape', 27);
       await until("!document.querySelector('dialog')", 'close workspace');
       await mouseClick('.et-card-bottom .et-primary');
@@ -413,12 +413,12 @@ try {
       await until("document.activeElement.classList.contains('et-profile-button')", 'profile returns focus');
       const cols = await evaluate("getComputedStyle(document.querySelector('.et-class-grid')).gridTemplateColumns.split(' ').length");
       assert.equal(cols, width === 1440 ? 3 : width === 768 ? 2 : 1);
-      const login = "[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Student Login'))";
+      const login = "[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Sign In'))";
       if (width < 1200) await evaluate("document.querySelector('.et-header .et-menu-toggle').click()");
       await evaluate(`${login}.click()`);
       await until("document.querySelector('dialog')?.open", 'workspace modal');
-      assert.equal(await evaluate("document.querySelector('.et-student-link').getAttribute('href')"), '/student/dashboard');
-      assert.match(await evaluate("document.querySelector('dialog').innerText"), /sign-in is not enabled/);
+      assert.ok(await evaluate("Boolean(document.querySelector('#login-identifier'))"));
+      assert.ok(await evaluate("Boolean(document.querySelector('#login-password'))"));
       if (width === 390) await screenshot('fixture-390-workspace');
       await send('Page.bringToFront');
       await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });

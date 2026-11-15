@@ -38,7 +38,7 @@ export function ClassMaterialRow({
       <div className="material-meta">
         <p className="material-date">{mat.uploadDate}</p>
         <p className="material-uploader">
-          bởi {mat.uploadedBy} &middot; {mat.sizeMb} MB
+          by {mat.uploadedBy} &middot; {mat.sizeMb} MB
         </p>
       </div>
       <button
@@ -47,7 +47,7 @@ export function ClassMaterialRow({
         onClick={() => onDownload(mat.fileName)}
       >
         <i className="bi bi-download"></i>
-        <span>Tải xuống</span>
+        <span>Download</span>
       </button>
     </div>
   );

@@ -15,9 +15,9 @@ export function ClassMaterialsSection({
     <section className="materials-section">
       <div className="section-header">
         <div className="section-title-wrap">
-          <h2 className="section-title">Tài liệu học tập</h2>
+          <h2 className="section-title">Materials</h2>
           <span className="section-count-badge" id="materialsCountBadge">
-            {materials.length} tài liệu
+            {materials.length} {materials.length === 1 ? 'material' : 'materials'}
           </span>
         </div>
       </div>

@@ -128,12 +128,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .Where(sc => sc.ClassId == classId && sc.Status != "dropped")
                 .ToListAsync();
 
-            // Nếu lớp chưa có học sinh nào gán, đảm bảo gán tối thiểu các học sinh mẫu
-            if (studentClasses.Count == 0)
-            {
-                studentClasses = await EnsureStudentsEnrolledAsync(classId);
-            }
-
             // 4. Lấy các bản ghi điểm danh hiện tại của buổi học này
             var existingAttendances = await _context.Attendances
                 .AsNoTracking()

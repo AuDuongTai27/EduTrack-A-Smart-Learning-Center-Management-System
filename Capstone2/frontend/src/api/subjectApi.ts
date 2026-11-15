@@ -1,4 +1,5 @@
 import type { SubjectDto } from '../BLL/models/SubjectDto';
+import { getAuthHeaders } from './authApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -14,6 +15,7 @@ export const subjectApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -32,6 +34,7 @@ export const subjectApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 

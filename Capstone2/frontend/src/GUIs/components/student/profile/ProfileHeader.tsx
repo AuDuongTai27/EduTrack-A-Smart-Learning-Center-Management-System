@@ -8,9 +8,9 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ isEditing, onEdit }: ProfileHeaderProps) {
   const breadcrumbs = [
-    { label: 'Trang chủ', href: '/student/dashboard' },
-    { label: 'Hồ sơ cá nhân', href: isEditing ? '/student/profile' : undefined },
-    ...(isEditing ? [{ label: 'Chỉnh sửa' }] : []),
+    { label: 'Home', href: '/student/dashboard' },
+    { label: 'Personal Profile', href: isEditing ? '/student/profile' : undefined },
+    ...(isEditing ? [{ label: 'Edit' }] : []),
   ];
 
   const actions = !isEditing ? (
@@ -21,14 +21,14 @@ export function ProfileHeader({ isEditing, onEdit }: ProfileHeaderProps) {
       onClick={onEdit}
     >
       <i className="bi bi-pencil-square"></i>
-      <span>Chỉnh sửa</span>
+      <span>Edit</span>
     </button>
   ) : null;
 
   return (
     <StudentPageHeader
-      title="Hồ sơ cá nhân"
-      subtitle="Xem và cập nhật thông tin cá nhân của bạn"
+      title="Personal Profile"
+      subtitle="View and update your personal information"
       breadcrumbs={breadcrumbs}
       actions={actions}
     />

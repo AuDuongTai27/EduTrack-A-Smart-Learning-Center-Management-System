@@ -1,4 +1,5 @@
 import type { ApprovalRequestDto } from "../BLL/models/ApprovalRequestDto";
+import { getAuthHeaders } from "./authApi";
 
 export interface CreateApprovalRequestPayload {
   requestedBy: number;
@@ -31,6 +32,7 @@ export const approvalRequestApi = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
     });
 
@@ -49,6 +51,7 @@ export const approvalRequestApi = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
     });
 
@@ -65,7 +68,7 @@ export const approvalRequestApi = {
   async create(dto: CreateApprovalRequestPayload): Promise<ApprovalRequestDto> {
     const res = await fetch(`${API_BASE_URL}/approvalrequests`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(dto),
     });
 
@@ -86,7 +89,7 @@ export const approvalRequestApi = {
   ): Promise<ApprovalRequestDto> {
     const res = await fetch(`${API_BASE_URL}/approvalrequests/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(dto),
     });
 
@@ -107,7 +110,7 @@ export const approvalRequestApi = {
   ): Promise<ApprovalRequestDto> {
     const res = await fetch(`${API_BASE_URL}/approvalrequests/${id}/review`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(dto),
     });
 

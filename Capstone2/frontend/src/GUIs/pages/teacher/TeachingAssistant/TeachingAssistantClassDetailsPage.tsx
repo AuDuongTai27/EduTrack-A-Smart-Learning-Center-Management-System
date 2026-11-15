@@ -7,12 +7,7 @@ import {
   ParticipantsSection,
   SessionsSection,
 } from "../../../components/teacher/TeachingAssistant/classDetails";
-import classDAL from "../../../../DAL/classDAL";
-import userDAL from "../../../../DAL/userDAL";
-import assignmentDAL from "../../../../DAL/assignmentDAL";
-import teachingDAL from "../../../../DAL/teachingDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
-import type { UserDto } from "../../../../BLL/models/UserDto";
+import teachingDAL, { type TeachingClassItemDto } from "../../../../DAL/teachingDAL";
 import type { TeachingAssignmentItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeachingAssistantClassDetailsPage() {
@@ -20,7 +15,7 @@ export default function TeachingAssistantClassDetailsPage() {
   const numClassId = Number(classId || id || "1");
   const targetClassId = String(numClassId);
 
-  const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
+  const [classInfo, setClassInfo] = useState<TeachingClassItemDto | null>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<TeachingAssignmentItemDto[] | any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -31,19 +26,15 @@ export default function TeachingAssistantClassDetailsPage() {
     async function fetchClassDetails() {
       try {
         setLoading(true);
-        // 1. GetId: Fetch class details by ID
-        const cls = await classDAL.getClassById(numClassId);
+        // 1. Fetch class details scoped to TA
+        const cls = await teachingDAL.getClassById(numClassId);
 
         // 2. Fetch real students for this class via teachingDAL
         try {
           const classStudents = await teachingDAL.getClassStudents(numClassId);
           if (isMounted) setStudents(classStudents);
         } catch {
-          const usersResult = await userDAL.getAllUsers();
-          const studentList = usersResult.data.filter(
-            (u: UserDto) => u.roles?.includes("student") || u.userCode.startsWith("STU")
-          );
-          if (isMounted) setStudents(studentList);
+          if (isMounted) setStudents([]);
         }
 
         // 3. Fetch real assignments for this class via teachingDAL
@@ -53,13 +44,7 @@ export default function TeachingAssistantClassDetailsPage() {
             setAssignments(teachingAsgs);
           }
         } catch {
-          const assignResult = await assignmentDAL.getAllAssignments();
-          const filteredAssignments = assignResult.data.filter(
-            (a: any) => a.classId === numClassId
-          );
-          if (isMounted) {
-            setAssignments(filteredAssignments.length > 0 ? filteredAssignments : assignResult.data.slice(0, 2));
-          }
+          if (isMounted) setAssignments([]);
         }
 
         if (isMounted) {
@@ -83,7 +68,7 @@ export default function TeachingAssistantClassDetailsPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title={classInfo ? `${classInfo.className} (Chi Tiết Lớp Học)` : `Class Details #${targetClassId}`}
+        title={classInfo ? `${classInfo.className} (Class Details)` : `Class Details #${targetClassId}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },

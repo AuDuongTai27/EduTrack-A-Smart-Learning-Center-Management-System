@@ -8,14 +8,14 @@ export function ParentClassesPage() {
   const classes = selectedChild?.classes || [];
 
   useEffect(() => {
-    document.title = 'Lớp học của con – EduTrack';
+    document.title = "Child's Classes – EduTrack";
   }, []);
 
   if (loading || !selectedChild) {
     return (
       <LearnerPageLoader
-        title="Đang tải danh sách lớp học..."
-        message="Hệ thống đang tải danh sách các lớp học của con trong học kỳ này."
+        title="Loading class list..."
+        message="The system is loading your child's classes for this semester."
       />
     );
   }
@@ -26,14 +26,14 @@ export function ParentClassesPage() {
         {/* Page Header */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="page-title mb-1">Lớp học của con</h1>
+            <h1 className="page-title mb-1">Child's Classes</h1>
             <p className="page-subtitle text-muted mb-0">
-              Danh sách các lớp học bé <strong>{selectedChild.name}</strong> đang tham gia trong học kỳ này
+              List of classes that <strong>{selectedChild.name}</strong> is attending this semester
             </p>
           </div>
 
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-            {selectedChild.grade} · {classes.length} môn học
+            {selectedChild.grade} · {classes.length} {classes.length === 1 ? 'subject' : 'subjects'}
           </span>
         </div>
 
@@ -59,7 +59,7 @@ export function ParentClassesPage() {
                 <div className="teacher-row">
                   <div className="teacher-avatar-mini">{cls.teacherInitials}</div>
                   <span className="teacher-name">
-                    <span className="teacher-label">GV:</span> {cls.teacher}
+                    <span className="teacher-label">Teacher:</span> {cls.teacher}
                   </span>
                 </div>
 
@@ -70,15 +70,15 @@ export function ParentClassesPage() {
 
                 <div className="meta-row room">
                   <i className="bi bi-geo-alt"></i>
-                  <span>{cls.room || 'Phòng học Trung tâm'}</span>
+                  <span>{cls.room || 'Center Classroom'}</span>
                 </div>
 
                 {/* Chuyên cần buổi học */}
                 <div className="mt-3 pt-2 border-top">
                   <div className="d-flex justify-content-between small text-muted mb-1">
-                    <span>Số buổi đã học:</span>
+                    <span>Sessions Attended:</span>
                     <strong className="text-dark">
-                      {cls.attendedLessons}/{cls.totalLessons} buổi
+                      {cls.attendedLessons}/{cls.totalLessons} sessions
                     </strong>
                   </div>
                   <div className="progress" style={{ height: '6px' }}>
@@ -91,13 +91,13 @@ export function ParentClassesPage() {
                     ></div>
                   </div>
                   <p className="small text-muted mt-2 mb-0 line-clamp-1 fst-italic">
-                    "{cls.notes || 'Điểm danh đầy đủ, tương tác tích cực trên lớp.'}"
+                    "{cls.notes || 'Full attendance, actively participates in class.'}"
                   </p>
                 </div>
               </div>
 
               <div className="class-card-footer">
-                <span>Xem thông tin lớp &amp; lịch học</span>
+                <span>View class info &amp; schedule</span>
                 <i className="bi bi-chevron-right"></i>
               </div>
             </Link>

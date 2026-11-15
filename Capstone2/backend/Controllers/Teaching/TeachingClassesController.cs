@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs.Teaching;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Teaching.Interfaces;
@@ -12,6 +14,7 @@ namespace EduTrack.API.Controllers.Teaching
     /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
     /// </summary>
     [ApiController]
+    [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
     [Route("api/teaching/classes")]
     [Tags("Teaching - Classes & Schedules")]
     public class TeachingClassesController : ControllerBase
@@ -51,15 +54,16 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpGet("~/api/teaching/dashboard")]
         public async Task<IActionResult> GetDashboard([FromQuery] int userId)
         {
-            if (userId <= 0)
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
             }
 
-            var data = await _dashboardService.GetDashboardAsync(userId);
+            var data = await _dashboardService.GetDashboardAsync(effectiveUserId);
             if (data == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy thông tin tài khoản có ID = {userId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy thông tin tài khoản có ID = {effectiveUserId}" });
             }
 
             return Ok(new { success = true, data });
@@ -71,12 +75,13 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpGet("my-schedule")]
         public async Task<IActionResult> GetMySchedule([FromQuery] int userId)
         {
-            if (userId <= 0)
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
             }
 
-            var data = await _teachingScheduleService.GetMyScheduleAsync(userId);
+            var data = await _teachingScheduleService.GetMyScheduleAsync(effectiveUserId);
             return Ok(new { success = true, data });
         }
 
@@ -86,12 +91,13 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpGet("my-classes")]
         public async Task<IActionResult> GetMyClasses([FromQuery] int userId)
         {
-            if (userId <= 0)
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
             }
 
-            var data = await _myClassService.GetMyClassesAsync(userId);
+            var data = await _myClassService.GetMyClassesAsync(effectiveUserId);
             return Ok(new { success = true, data });
         }
 
@@ -121,7 +127,11 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Mã lớp học (classId) không hợp lệ." });
             }
 
-            var data = await _learningProgressService.GetClassLearningProgressAsync(classId, userId);
+            var effectiveUserId = userId.HasValue
+                ? JwtAuthHelper.ResolveEffectiveUserId(User, userId.Value, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant)
+                : JwtAuthHelper.GetAuthenticatedUserId(User);
+
+            var data = await _learningProgressService.GetClassLearningProgressAsync(classId, effectiveUserId);
             if (data == null)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy thông tin tiến độ học tập cho lớp ID = {classId}" });
@@ -136,12 +146,13 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpGet("learning-progress")]
         public async Task<IActionResult> GetLearningProgressByTeacher([FromQuery] int userId, [FromQuery] int? classId)
         {
-            if (userId <= 0 && (!classId.HasValue || classId.Value <= 0))
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0 && (!classId.HasValue || classId.Value <= 0))
             {
                 return BadRequest(new { success = false, message = "Cần cung cấp userId hoặc classId hợp lệ." });
             }
 
-            var data = await _learningProgressService.GetClassLearningProgressAsync(classId ?? 0, userId);
+            var data = await _learningProgressService.GetClassLearningProgressAsync(classId ?? 0, effectiveUserId);
             if (data == null)
             {
                 return NotFound(new { success = false, message = "Không tìm thấy dữ liệu tiến độ học tập phù hợp." });
@@ -187,7 +198,8 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Dữ liệu đánh giá không hợp lệ." });
             }
 
-            int writtenBy = authorId ?? (request.EvaluatorRole == "Trợ giảng" ? 5 : 3);
+            int fallbackAuthor = authorId ?? (request.EvaluatorRole == "Trợ giảng" ? 5 : 3);
+            int writtenBy = JwtAuthHelper.ResolveEffectiveUserId(User, fallbackAuthor, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
             var created = await _learningProgressService.CreateStudentEvaluationAsync(classId, studentId, request, writtenBy);
 
             return Ok(new { success = true, data = created, message = "Đã lưu đánh giá cá nhân thành công!" });

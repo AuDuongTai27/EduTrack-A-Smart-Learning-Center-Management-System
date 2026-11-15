@@ -2,22 +2,27 @@ import React, { useEffect } from 'react';
 import { FeedbackView } from '../../components/student/feedback/FeedbackView';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { useParent } from '../../../contexts/ParentContext';
-import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
+import { getSelectedUserId } from '../../../BLL/services/userSelection';
+import { getAuthUser } from '../../../api/authApi';
 import { DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function ParentFeedbackPage() {
   const { selectedChild, loading } = useParent();
   const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
+  const authUser = getAuthUser();
+  const parentId = getSelectedUserId('parent');
+  const parentName = authUser?.primaryRole === 'parent' ? authUser.fullName : 'Lê Văn Nam';
+  const parentPhone = authUser?.primaryRole === 'parent' ? (authUser.phone || '0981 112 233') : '0981 112 233';
 
   useEffect(() => {
-    document.title = 'Phản hồi & Yêu cầu hỗ trợ (Phụ huynh) – EduTrack';
+    document.title = 'Feedback & Support (Parent) – EduTrack';
   }, []);
 
   if (loading) {
     return (
       <LearnerPageLoader
-        title="Đang tải phản hồi & yêu cầu hỗ trợ..."
-        message="Hệ thống đang đồng bộ hồ sơ phụ huynh và lịch sử phản hồi gửi tới Giáo vụ."
+        title="Loading feedback & support..."
+        message="The system is synchronizing parent profile and feedback history sent to Admin Staff."
       />
     );
   }
@@ -25,9 +30,9 @@ export function ParentFeedbackPage() {
   return (
     <FeedbackView
       userRole="parent"
-      userName="Lê Văn Nam"
-      userPhone="0981 112 233"
-      userId={DEFAULT_PARENT_ID}
+      userName={parentName}
+      userPhone={parentPhone}
+      userId={parentId}
       studentId={targetStudentId}
     />
   );

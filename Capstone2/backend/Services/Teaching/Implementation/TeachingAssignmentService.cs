@@ -220,14 +220,6 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .ToListAsync();
 
             var studentsList = enrolledStudents.Select(sc => sc.Student).Where(s => s != null).ToList();
-            if (studentsList.Count == 0)
-            {
-                studentsList = await _context.Users
-                    .AsNoTracking()
-                    .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == "student") || u.UserCode.StartsWith("STU"))
-                    .Take(3)
-                    .ToListAsync();
-            }
 
             // 2. Lấy các bài nộp thực tế đã có trong bảng submissions
             var existingSubmissions = await _context.Submissions

@@ -9,8 +9,8 @@ export function ParentSchedulePage() {
   if (parentLoading || !selectedChild) {
     return (
       <LearnerPageLoader
-        title="Đang tải lịch học..."
-        message="Hệ thống đang đồng bộ thời khóa biểu các ca học trong tuần của con."
+        title="Loading schedule..."
+        message="The system is synchronizing weekly class sessions for your child."
       />
     );
   }
@@ -19,11 +19,11 @@ export function ParentSchedulePage() {
     <main className="main-content">
       <div className="content-container">
         <StudentPageHeader
-          title={`Lịch học của ${selectedChild.name}`}
-          subtitle={`${selectedChild.grade} · Các phiên học chính thức thuộc đăng ký lớp hợp lệ`}
+          title={`${selectedChild.name}'s Schedule`}
+          subtitle={`${selectedChild.grade} · Official class sessions from valid enrollments`}
           breadcrumbs={[
-            { label: 'Trang chủ', href: '/parent/dashboard' },
-            { label: 'Thời khóa biểu' },
+            { label: 'Dashboard', href: '/parent/dashboard' },
+            { label: 'Schedule' },
           ]}
         />
         <ScheduleWorkspace role="student" userId={selectedChild.id} />

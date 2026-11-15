@@ -1,14 +1,15 @@
 import type { ClassDto } from "../../../../../BLL/models/ClassDto";
+import type { TeachingClassItemDto } from "../../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export interface ClassInfoCardProps {
-  classInfo?: ClassDto | null;
+  classInfo?: ClassDto | TeachingClassItemDto | null;
   teacherName?: string;
   taName?: string;
 }
 
 export default function ClassInfoCard({
   classInfo,
-  teacherName = "ThS. Hoàng Quốc Việt",
+  teacherName = "MSc. Hoàng Quốc Việt",
   taName = "Âu Dương Tài",
 }: ClassInfoCardProps) {
   return (

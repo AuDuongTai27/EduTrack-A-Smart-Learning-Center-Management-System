@@ -1,4 +1,4 @@
-﻿/* viet@5512b64 styles, scoped to official Schedule so Parent and unrelated pages keep their styles. */
+/* viet@5512b64 styles, scoped to official Schedule so Parent and unrelated pages keep their styles. */
 .schedule-official, .schedule-official-actions {
 /* ==========================================================================
    Shared Schedule & Timetable Styles (Calendar Grid View)
@@ -6,7 +6,7 @@
    ========================================================================== */
 
 & {
-  --et-hour-height: 80px;
+  --et-hour-height: 60px;
   --et-time-col-width: 64px;
   --et-primary: #2563EB;
   --et-primary-hover: #1D4ED8;
@@ -180,7 +180,7 @@
   display: grid;
   grid-template-columns: var(--et-time-col-width, 64px) repeat(7, 1fr);
   position: relative;
-  min-height: calc(14 * var(--et-hour-height, 80px));
+  min-height: calc(14 * var(--et-hour-height, 60px));
 }
 
 .time-gutter-col {
@@ -190,7 +190,7 @@
 }
 
 .time-hour-slot {
-  height: var(--et-hour-height, 80px);
+  height: var(--et-hour-height, 60px);
   padding: 6px 8px 0 0;
   text-align: right;
   font-size: 10.5px;
@@ -221,7 +221,7 @@
 }
 
 .grid-hour-line {
-  height: var(--et-hour-height, 80px);
+  height: var(--et-hour-height, 60px);
   border-bottom: 1px solid var(--et-border-subtle, #F1F5F9);
 }
 

@@ -1,6 +1,8 @@
 import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 import { ParentLayout } from "../GUIs/layouts/parent/ParentLayout";
+import { RoleRouteGuard } from "./RoleRouteGuard";
+import { NotFoundPage } from "../GUIs/pages/shared/NotFoundPage";
 import { ParentDashboardPage } from "../GUIs/pages/parent/ParentDashboardPage";
 import { ParentClassesPage } from "../GUIs/pages/parent/ParentClassesPage";
 import { ParentSchedulePage } from "../GUIs/pages/parent/ParentSchedulePage";
@@ -13,7 +15,11 @@ import { ParentFeedbackPage } from "../GUIs/pages/parent/ParentFeedbackPage";
 
 export const parentRoutes: RouteObject = {
   path: "/parent",
-  element: <ParentLayout />,
+  element: (
+    <RoleRouteGuard allowedRole="parent">
+      <ParentLayout />
+    </RoleRouteGuard>
+  ),
   children: [
     { index: true, element: <Navigate to="/parent/dashboard" replace /> },
     { path: "dashboard", element: <ParentDashboardPage /> },
@@ -26,7 +32,8 @@ export const parentRoutes: RouteObject = {
     { path: "feedback", element: <ParentFeedbackPage /> },
     { path: "classes/:id", element: <ParentClassDetailPage /> },
     { path: "class-detail", element: <ParentClassDetailPage /> },
-    // Lưu ý: Không có route assignment detail cho Parent theo yêu cầu đặc tả nghiệp vụ
+    { path: "*", element: <NotFoundPage /> },
+    // Note: No assignment detail route for Parent per business specification requirements
   ],
 };
 

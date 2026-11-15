@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Learning.Interfaces;
 
@@ -11,6 +13,7 @@ namespace EduTrack.API.Controllers.Learning
     /// Phụ trách: Nhóm Student & Parent (Thành viên 3)
     /// </summary>
     [ApiController]
+    [Authorize(Roles = JwtAuthHelper.RolesLearning)]
     [Route("api/learning/student")]
     [Tags("Learning - Student Portal")]
     public class StudentLearningController : ControllerBase
@@ -44,10 +47,11 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{studentId:int}/dashboard")]
         public async Task<IActionResult> GetStudentDashboard(int studentId)
         {
-            var data = await _dashboardService.GetStudentDashboardAsync(studentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _dashboardService.GetStudentDashboardAsync(effectiveStudentId);
             if (data == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy học sinh có ID = {studentId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy học sinh có ID = {effectiveStudentId}" });
             }
 
             return Ok(new { success = true, data });
@@ -59,7 +63,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{studentId:int}/classes/{classId:int}")]
         public async Task<IActionResult> GetStudentClassDetail(int studentId, int classId)
         {
-            var data = await _dashboardService.GetStudentClassDetailAsync(studentId, classId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _dashboardService.GetStudentClassDetailAsync(effectiveStudentId, classId);
             if (data == null)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy lớp học có ID = {classId}" });
@@ -74,7 +79,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{studentId:int}/schedule")]
         public async Task<IActionResult> GetStudentSchedule(int studentId)
         {
-            var data = await _dashboardService.GetStudentScheduleAsync(studentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _dashboardService.GetStudentScheduleAsync(effectiveStudentId);
             return Ok(new { success = true, data });
         }
 
@@ -84,10 +90,11 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{studentId:int}/progress")]
         public async Task<IActionResult> GetStudentProgress(int studentId)
         {
-            var data = await _dashboardService.GetStudentProgressAsync(studentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _dashboardService.GetStudentProgressAsync(effectiveStudentId);
             if (data == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy học sinh có ID = {studentId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy học sinh có ID = {effectiveStudentId}" });
             }
 
             return Ok(new { success = true, data });
@@ -99,7 +106,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{studentId:int}/notifications")]
         public async Task<IActionResult> GetStudentNotifications(int studentId)
         {
-            var data = await _dashboardService.GetStudentNotificationsAsync(studentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _dashboardService.GetStudentNotificationsAsync(effectiveStudentId);
             return Ok(new { success = true, data });
         }
 
@@ -109,7 +117,10 @@ namespace EduTrack.API.Controllers.Learning
         [HttpPut("notifications/{notificationId:int}/read")]
         public async Task<IActionResult> MarkNotificationAsRead(int notificationId, [FromQuery] int? userId = null)
         {
-            var ok = await _dashboardService.MarkNotificationAsReadAsync(notificationId, userId);
+            var effectiveUserId = userId.HasValue
+                ? JwtAuthHelper.ResolveEffectiveUserId(User, userId.Value, JwtAuthHelper.RoleStudent, JwtAuthHelper.RoleParent)
+                : JwtAuthHelper.GetAuthenticatedUserId(User);
+            var ok = await _dashboardService.MarkNotificationAsReadAsync(notificationId, effectiveUserId);
             if (!ok)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy thông báo #{notificationId}" });
@@ -124,7 +135,8 @@ namespace EduTrack.API.Controllers.Learning
         [HttpPut("{userId:int}/notifications/read-all")]
         public async Task<IActionResult> MarkAllNotificationsAsRead(int userId, [FromQuery] int? studentId = null)
         {
-            var updatedCount = await _dashboardService.MarkAllNotificationsAsReadAsync(userId, studentId);
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleStudent, JwtAuthHelper.RoleParent);
+            var updatedCount = await _dashboardService.MarkAllNotificationsAsReadAsync(effectiveUserId, studentId);
             return Ok(new
             {
                 success = true,
@@ -139,10 +151,11 @@ namespace EduTrack.API.Controllers.Learning
         [HttpGet("{studentId:int}/profile")]
         public async Task<IActionResult> GetStudentProfile(int studentId)
         {
-            var data = await _dashboardService.GetLearnerProfileAsync(studentId);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var data = await _dashboardService.GetLearnerProfileAsync(effectiveStudentId);
             if (data == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ học sinh ID = {studentId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ học sinh ID = {effectiveStudentId}" });
             }
 
             return Ok(new { success = true, data });
@@ -159,10 +172,11 @@ namespace EduTrack.API.Controllers.Learning
                 return BadRequest(new { success = false, message = "Họ và tên không được để trống." });
             }
 
-            var updated = await _dashboardService.UpdateLearnerProfileAsync(studentId, request);
+            var effectiveStudentId = JwtAuthHelper.ResolveEffectiveUserId(User, studentId, JwtAuthHelper.RoleStudent);
+            var updated = await _dashboardService.UpdateLearnerProfileAsync(effectiveStudentId, request);
             if (updated == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ học sinh ID = {studentId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ học sinh ID = {effectiveStudentId}" });
             }
 
             return Ok(new

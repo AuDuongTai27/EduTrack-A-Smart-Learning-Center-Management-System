@@ -12,91 +12,91 @@ export interface EnrolledClassItem {
 export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
   {
     classId: 1,
-    className: '[FE-Mock] Toán 9A – Đại Số',
-    badge: 'Toán học',
+    className: '[FE-Mock] Math 9A – Algebra',
+    badge: 'Math',
     subjectThemeClass: 'theme-math',
-    teacherName: 'Nguyễn Văn Minh',
+    teacherName: 'Nguyen Van Minh',
     teacherInitials: 'NM',
-    scheduleText: 'Thứ 2, 4, 6 (17:30 - 19:00)',
-    room: 'Phòng A101',
+    scheduleText: 'Mon, Wed, Fri (17:30 - 19:00)',
+    room: 'Room A101',
   },
   {
     classId: 2,
-    className: '[FE-Mock] Vật Lý 9B – Cơ Học',
-    badge: 'Vật lý',
+    className: '[FE-Mock] Physics 9B – Mechanics',
+    badge: 'Physics',
     subjectThemeClass: 'theme-physics',
-    teacherName: 'Trần Thị Hà',
+    teacherName: 'Tran Thi Ha',
     teacherInitials: 'TH',
-    scheduleText: 'Thứ 3, 5 (18:00 - 19:30)',
-    room: 'Phòng B202',
+    scheduleText: 'Tue, Thu (18:00 - 19:30)',
+    room: 'Room B202',
   },
   {
     classId: 3,
-    className: '[FE-Mock] Hóa Học 9A – Hóa Vô Cơ',
-    badge: 'Hóa học',
+    className: '[FE-Mock] Chemistry 9A – Inorganic Chemistry',
+    badge: 'Chemistry',
     subjectThemeClass: 'theme-chemistry',
-    teacherName: 'Lê Hoàng Nam',
+    teacherName: 'Le Hoang Nam',
     teacherInitials: 'LN',
-    scheduleText: 'Thứ 7, CN (08:00 - 09:30)',
-    room: 'Phòng C301',
+    scheduleText: 'Sat, Sun (08:00 - 09:30)',
+    room: 'Room C301',
   },
   {
     classId: 4,
-    className: '[FE-Mock] Tiếng Anh 9 – Giao Tiếp',
-    badge: 'Tiếng Anh',
+    className: '[FE-Mock] English 9 – Communication',
+    badge: 'English',
     subjectThemeClass: 'theme-english',
-    teacherName: 'Phạm Thu Thảo',
+    teacherName: 'Pham Thu Thao',
     teacherInitials: 'PT',
-    scheduleText: 'Thứ 2, 6 (19:30 - 21:00)',
-    room: 'Phòng Lab 1',
+    scheduleText: 'Mon, Fri (19:30 - 21:00)',
+    room: 'Lab Room 1',
   },
   {
     classId: 5,
-    className: '[FE-Mock] Ngữ Văn 9 – Luyện Đề',
-    badge: 'Ngữ văn',
+    className: '[FE-Mock] Literature 9 – Exam Prep',
+    badge: 'Literature',
     subjectThemeClass: 'theme-literature',
-    teacherName: 'Võ Thị Mai',
+    teacherName: 'Vo Thi Mai',
     teacherInitials: 'VM',
-    scheduleText: 'Thứ 5, CN (17:00 - 18:30)',
-    room: 'Phòng A105',
+    scheduleText: 'Thu, Sun (17:00 - 18:30)',
+    room: 'Room A105',
   },
   {
     classId: 6,
-    className: '[FE-Mock] Sinh Học 9 – Di Truyền Học',
-    badge: 'Sinh học',
+    className: '[FE-Mock] Biology 9 – Genetics',
+    badge: 'Biology',
     subjectThemeClass: 'theme-biology',
-    teacherName: 'Đỗ Tuấn Anh',
+    teacherName: 'Do Tuan Anh',
     teacherInitials: 'DA',
-    scheduleText: 'Thứ 4, 7 (14:00 - 15:30)',
-    room: 'Phòng B104',
+    scheduleText: 'Wed, Sat (14:00 - 15:30)',
+    room: 'Room B104',
   },
 ];
 
 import type { ClassDto } from '../../../../BLL/models/ClassDto';
 
 /**
- * Chuyển đổi dữ liệu ClassDto từ Backend (.NET API) sang định dạng hiển thị EnrolledClassItem
+ * Convert ClassDto data from Backend (.NET API) to EnrolledClassItem display format
  */
 export function mapClassDtoToEnrolledItem(dto: ClassDto): EnrolledClassItem {
   let subjectThemeClass = 'theme-math';
-  let badge = dto.subjectName || 'Toán học';
+  let badge = dto.subjectName || 'Math';
   const code = (dto.subjectCode || '').toUpperCase();
 
   if (code.includes('PHYS') || code.includes('VAT') || code.includes('LY')) {
     subjectThemeClass = 'theme-physics';
-    badge = 'Vật lý';
+    badge = 'Physics';
   } else if (code.includes('CHEM') || code.includes('HOA')) {
     subjectThemeClass = 'theme-chemistry';
-    badge = 'Hóa học';
+    badge = 'Chemistry';
   } else if (code.includes('ENG') || code.includes('ANH')) {
     subjectThemeClass = 'theme-english';
-    badge = 'Tiếng Anh';
+    badge = 'English';
   } else if (code.includes('LIT') || code.includes('VAN')) {
     subjectThemeClass = 'theme-literature';
-    badge = 'Ngữ văn';
+    badge = 'Literature';
   } else if (code.includes('BIO') || code.includes('SINH')) {
     subjectThemeClass = 'theme-biology';
-    badge = 'Sinh học';
+    badge = 'Biology';
   }
 
   return {
@@ -104,10 +104,10 @@ export function mapClassDtoToEnrolledItem(dto: ClassDto): EnrolledClassItem {
     className: dto.className,
     badge: badge,
     subjectThemeClass: subjectThemeClass,
-    teacherName: 'Giáo viên phụ trách',
+    teacherName: 'Assigned Teacher',
     teacherInitials: dto.className.slice(0, 2).toUpperCase(),
-    scheduleText: dto.startDate ? `Khai giảng: ${new Date(dto.startDate).toLocaleDateString('vi-VN')}` : 'Đang cập nhật lịch',
-    room: dto.room || 'Phòng học chính',
+    scheduleText: dto.startDate ? `Starts: ${new Date(dto.startDate).toLocaleDateString('en-US')}` : 'Schedule updating',
+    room: dto.room || 'Main Classroom',
   };
 }
 

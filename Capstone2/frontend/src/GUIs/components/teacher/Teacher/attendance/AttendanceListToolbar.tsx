@@ -33,7 +33,7 @@ export function AttendanceListToolbar({
         <div className="col-md-5 col-lg-4">
           <label className="form-label small fw-bold text-dark mb-1" htmlFor="sessionSelect">
             <i className="bi bi-calendar-event me-1 text-primary" />
-            Chọn buổi học cần điểm danh:
+            Select session for attendance:
           </label>
           <select
             id="sessionSelect"
@@ -45,7 +45,7 @@ export function AttendanceListToolbar({
               const isStarted = s.hasStarted !== undefined ? s.hasStarted : (s.isRecorded || isSessionStarted(s));
               return (
                 <option key={s.sessionId} value={s.sessionId}>
-                  {s.title} {s.isRecorded ? "✓ (Đã lưu)" : (!isStarted ? "⏳ (Chưa bắt đầu)" : "")}
+                  {s.title} {s.isRecorded ? "✓ (Saved)" : (!isStarted ? "⏳ (Not started)" : "")}
                 </option>
               );
             })}
@@ -56,14 +56,14 @@ export function AttendanceListToolbar({
         <div className="col-md-4 col-lg-4">
           <label className="form-label small fw-bold text-dark mb-1" htmlFor="tableSearchInput">
             <i className="bi bi-search me-1 text-primary" />
-            Tìm kiếm học sinh:
+            Search student:
           </label>
           <div className="input-group input-group-sm">
             <input
               type="search"
               className="form-control"
               id="tableSearchInput"
-              placeholder="Nhập tên hoặc mã STU..."
+              placeholder="Enter name or STU code..."
               value={searchTerm}
               onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
             />
@@ -85,12 +85,12 @@ export function AttendanceListToolbar({
             <button
               type="button"
               className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1.5 shadow-sm"
-              title={canMarkAll ? "Đánh dấu tất cả học sinh có mặt" : "Chỉ có buổi học đã bắt đầu mới có thể điểm danh"}
+              title={canMarkAll ? "Mark all students present" : "Only started sessions can be marked for attendance"}
               onClick={canMarkAll ? onMarkAllPresent : undefined}
               disabled={!canMarkAll}
             >
               <i className="bi bi-check-all fs-6" />
-              <span>Tất cả có mặt</span>
+              <span>Mark All Present</span>
             </button>
           )}
         </div>
@@ -99,25 +99,25 @@ export function AttendanceListToolbar({
       {/* Summary Stats Badges */}
       {stats && (
         <div className="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top">
-          <span className="small text-muted fw-semibold me-1">Tình hình chuyên cần:</span>
+          <span className="small text-muted fw-semibold me-1">Attendance status:</span>
           <span className="badge bg-success text-white px-2.5 py-1">
             <i className="bi bi-check-circle me-1" />
-            Có mặt: {stats.presentCount}
+            Present: {stats.presentCount}
           </span>
           <span className="badge bg-warning text-dark px-2.5 py-1">
             <i className="bi bi-clock-history me-1" />
-            Đi muộn: {stats.lateCount}
+            Late: {stats.lateCount}
           </span>
           <span className="badge bg-danger text-white px-2.5 py-1">
             <i className="bi bi-x-circle me-1" />
-            Vắng: {stats.absentCount}
+            Absent: {stats.absentCount}
           </span>
           <span className="badge bg-info text-dark px-2.5 py-1">
             <i className="bi bi-shield-check me-1" />
-            Có phép: {stats.excusedCount}
+            Excused: {stats.excusedCount}
           </span>
           <span className="ms-auto small fw-bold text-primary">
-            Tỷ lệ tham gia: {stats.attendanceRate}%
+            Attendance Rate: {stats.attendanceRate}%
           </span>
         </div>
       )}

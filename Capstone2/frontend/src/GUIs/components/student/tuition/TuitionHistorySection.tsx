@@ -10,21 +10,21 @@ export function TuitionHistorySection({ history = [] }: TuitionHistorySectionPro
   return (
     <section>
       <div className="history-section-header">
-        <h2 className="history-section-title">Lịch sử thanh toán</h2>
-        <span className="history-count-label">{history.length} giao dịch</span>
+        <h2 className="history-section-title">Payment History</h2>
+        <span className="history-count-label">{history.length} transaction{history.length === 1 ? '' : 's'}</span>
       </div>
 
       <div className="history-table-card">
         <div className="history-grid-header">
-          <span>Kỳ đóng</span>
-          <span>Số tiền đóng</span>
-          <span>Ngày thanh toán</span>
-          <span>Trạng thái</span>
+          <span>Billing Period</span>
+          <span>Amount Paid</span>
+          <span>Payment Date</span>
+          <span>Status</span>
         </div>
 
         {history.length === 0 ? (
           <div className="p-4 text-center text-muted small">
-            Chưa có giao dịch thanh toán nào được ghi nhận.
+            No payment transactions recorded yet.
           </div>
         ) : (
           history.map((row) => (

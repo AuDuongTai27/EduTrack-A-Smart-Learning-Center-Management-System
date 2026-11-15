@@ -14,7 +14,7 @@ export function ProgressStatsGrid({
   lateCount = 5,
   enrolledClassesCount = 3,
 }: ProgressStatsGridProps) {
-  // Tổng số buổi đã học tính đến hiện tại = Có mặt + Vắng mặt + Đi trễ
+  // Total sessions attended to date = Present + Absent + Late
   const currentTotalSessions = presentCount + absentCount + lateCount;
   const presentPct =
     currentTotalSessions > 0
@@ -33,7 +33,7 @@ export function ProgressStatsGrid({
     <>
       {/* 2. 4-Stats Cards Grid */}
       <div className="progress-stats-grid">
-        {/* Card 1: Có mặt */}
+        {/* Card 1: Present */}
         <div className="progress-stat-card" style={{ borderColor: '#A7F3D0' }}>
           <div
             className="progress-stat-icon-box"
@@ -45,14 +45,14 @@ export function ProgressStatsGrid({
             <div className="progress-stat-num" style={{ color: '#047857' }}>
               {presentCount}
             </div>
-            <div className="progress-stat-title">Có mặt đúng giờ</div>
+            <div className="progress-stat-title">Present on Time</div>
             <div className="progress-stat-sublabel">
-              trên {currentTotalSessions} buổi đã học ({presentPct}%)
+              out of {currentTotalSessions} past sessions ({presentPct}%)
             </div>
           </div>
         </div>
 
-        {/* Card 2: Vắng mặt */}
+        {/* Card 2: Absent */}
         <div className="progress-stat-card" style={{ borderColor: '#FECACA' }}>
           <div
             className="progress-stat-icon-box"
@@ -64,14 +64,14 @@ export function ProgressStatsGrid({
             <div className="progress-stat-num" style={{ color: '#B91C1C' }}>
               {absentCount}
             </div>
-            <div className="progress-stat-title">Vắng mặt</div>
+            <div className="progress-stat-title">Absent</div>
             <div className="progress-stat-sublabel">
-              trên {currentTotalSessions} buổi đã học ({absentPct}%)
+              out of {currentTotalSessions} past sessions ({absentPct}%)
             </div>
           </div>
         </div>
 
-        {/* Card 3: Đi trễ */}
+        {/* Card 3: Late */}
         <div className="progress-stat-card" style={{ borderColor: '#FDE68A' }}>
           <div
             className="progress-stat-icon-box"
@@ -83,14 +83,14 @@ export function ProgressStatsGrid({
             <div className="progress-stat-num" style={{ color: '#B45309' }}>
               {lateCount}
             </div>
-            <div className="progress-stat-title">Đi trễ</div>
+            <div className="progress-stat-title">Late</div>
             <div className="progress-stat-sublabel">
-              trên {currentTotalSessions} buổi đã học ({latePct}%)
+              out of {currentTotalSessions} past sessions ({latePct}%)
             </div>
           </div>
         </div>
 
-        {/* Card 4: Tổng số buổi đã học tính đến hiện tại */}
+        {/* Card 4: Total sessions attended to date */}
         <div className="progress-stat-card" style={{ borderColor: '#BFDBFE' }}>
           <div
             className="progress-stat-icon-box"
@@ -102,9 +102,9 @@ export function ProgressStatsGrid({
             <div className="progress-stat-num" style={{ color: '#1D4ED8' }}>
               {currentTotalSessions}
             </div>
-            <div className="progress-stat-title">Buổi đã học đến hiện tại</div>
+            <div className="progress-stat-title">Past Sessions to Date</div>
             <div className="progress-stat-sublabel">
-              {presentCount} có mặt + {absentCount} vắng + {lateCount} trễ &middot; {enrolledClassesCount} lớp
+              {presentCount} present + {absentCount} absent + {lateCount} late &middot; {enrolledClassesCount} {enrolledClassesCount === 1 ? 'class' : 'classes'}
             </div>
           </div>
         </div>

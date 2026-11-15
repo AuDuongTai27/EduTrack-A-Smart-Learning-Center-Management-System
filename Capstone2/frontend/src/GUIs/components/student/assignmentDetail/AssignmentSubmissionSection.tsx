@@ -28,7 +28,7 @@ export function AssignmentSubmissionSection({
 }: AssignmentSubmissionSectionProps) {
   return (
     <section>
-      <h2 className="asg-section-heading">Nộp bài & Kết quả chấm</h2>
+      <h2 className="asg-section-heading">Submission & Grading Results</h2>
 
       {status === 'not-submitted' && <AssignmentDropzone onSubmit={onSubmit} />}
 

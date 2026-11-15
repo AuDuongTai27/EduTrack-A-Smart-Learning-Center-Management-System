@@ -37,7 +37,7 @@ export function ClassAssignmentRow({ assignment: asg }: ClassAssignmentRowProps)
     <Link
       to={`/student/assignments/${asg.id}`}
       className="assignment-row"
-      title={`Xem chi tiết bài tập ${asg.title}`}
+      title={`View assignment details for ${asg.title}`}
     >
       <div className="asg-icon-box" style={iconBoxStyle}>
         <i className="bi bi-clipboard-check"></i>
@@ -46,12 +46,14 @@ export function ClassAssignmentRow({ assignment: asg }: ClassAssignmentRowProps)
         <h4 className="asg-title">{asg.title}</h4>
         <div className="asg-due">
           <i className="bi bi-clock"></i>
-          <span>Hạn nộp: {asg.dueDate}</span>
+          <span>Due date: {asg.dueDate}</span>
         </div>
       </div>
       <span className={`asg-status-badge ${statusClass}`}>
         <i className={`bi ${icon}`}></i>
-        <span>{asg.status}</span>
+        <span>
+          {asg.status === 'Đã nộp' ? 'Submitted' : asg.status === 'Quá hạn' ? 'Overdue' : 'Not Submitted'}
+        </span>
       </span>
       <i className="bi bi-chevron-right asg-chevron"></i>
     </Link>

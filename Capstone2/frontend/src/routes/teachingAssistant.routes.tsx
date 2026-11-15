@@ -1,5 +1,7 @@
 import { Navigate, type RouteObject } from "react-router-dom";
 import TeachingAssistantLayout from "../GUIs/layouts/teacher/TeachingAssistantLayout";
+import { RoleRouteGuard } from "./RoleRouteGuard";
+import { NotFoundPage } from "../GUIs/pages/shared/NotFoundPage";
 import TeachingAssistantDashboardPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantDashboardPage";
 import TeachingAssistantClassesPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantClassesPage";
 import TeachingAssistantClassDetailsPage from "../GUIs/pages/teacher/TeachingAssistant/TeachingAssistantClassDetailsPage";
@@ -14,7 +16,11 @@ import TeachingAssistantProfilePage from "../GUIs/pages/teacher/TeachingAssistan
 
 export const teachingAssistantRoutes: RouteObject = {
   path: "/teaching-assistant",
-  element: <TeachingAssistantLayout />,
+  element: (
+    <RoleRouteGuard allowedRole="teaching_assistant">
+      <TeachingAssistantLayout />
+    </RoleRouteGuard>
+  ),
   children: [
     { index: true, element: <Navigate to="/teaching-assistant/dashboard" replace /> },
     { path: "dashboard", element: <TeachingAssistantDashboardPage /> },
@@ -31,6 +37,7 @@ export const teachingAssistantRoutes: RouteObject = {
     { path: "notifications", element: <TeachingAssistantNotificationPage /> },
     { path: "request", element: <TeachingAssistantRequestPage /> },
     { path: "profile", element: <TeachingAssistantProfilePage /> },
+    { path: "*", element: <NotFoundPage /> },
   ],
 };
 

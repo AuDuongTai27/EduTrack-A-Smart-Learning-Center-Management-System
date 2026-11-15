@@ -51,7 +51,7 @@ export function ParentTuitionPage() {
       } catch (err) {
         console.warn('Lỗi khi tải thông tin học phí phụ huynh:', err);
         if (isMounted) {
-          setErrorMsg(err instanceof Error ? err.message : 'Không tải được dữ liệu học phí từ hệ thống.');
+          setErrorMsg(err instanceof Error ? err.message : 'Failed to load tuition data from the system.');
         }
       } finally {
         if (isMounted) {
@@ -82,9 +82,9 @@ export function ParentTuitionPage() {
       setTotalUnpaid(updatedVm.totalUnpaidAmount);
       setUnpaidInvoices(updatedVm.unpaidInvoices || []);
       updateChildUnpaidAmount(studentId, updatedVm.totalUnpaidAmount);
-      showToast(`Đã ghi nhận thanh toán học phí cho học sinh ${selectedChild?.name || ''}!`);
+      showToast(`Tuition payment recorded for student ${selectedChild?.name || ''}!`);
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Thanh toán học phí thất bại.');
+      setErrorMsg(err instanceof Error ? err.message : 'Tuition payment failed.');
       throw err;
     }
   };
@@ -92,8 +92,8 @@ export function ParentTuitionPage() {
   if (parentLoading || (loading && !bill)) {
     return (
       <LearnerPageLoader
-        title="Đang tải thông tin học phí..."
-        message="Hệ thống đang kiểm tra hóa đơn kỳ hiện tại và lịch sử thanh toán học phí của con."
+        title="Loading tuition information..."
+        message="The system is checking current term invoices and child's tuition payment history."
         containerClassName="tuition-container"
       />
     );
@@ -127,15 +127,15 @@ export function ParentTuitionPage() {
         {/* 1. Header Dành Cho Phụ Huynh */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="page-title mb-1">Học phí của con</h1>
+            <h1 className="page-title mb-1">Child's Tuition</h1>
             <p className="page-subtitle text-muted mb-0">
-              Quản lý và chuyển khoản học phí trực tuyến cho học sinh <strong>{selectedChild?.name}</strong> ({selectedChild?.grade})
+              Manage and pay tuition online for student <strong>{selectedChild?.name}</strong> ({selectedChild?.grade})
             </p>
           </div>
 
           {selectedChild && (
             <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-              <i className="bi bi-person-check me-1"></i> Hồ sơ: {selectedChild.name}
+              <i className="bi bi-person-check me-1"></i> Profile: {selectedChild.name}
             </span>
           )}
         </div>

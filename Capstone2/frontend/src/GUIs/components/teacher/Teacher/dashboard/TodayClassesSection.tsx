@@ -171,7 +171,7 @@ export function TodayClassesSection({
                   className="fst-italic small select-none"
                   style={{ color: "#94a3b8", fontSize: "0.82rem" }}
                 >
-                  *Còn {remainingCount} lớp học khác trong ngày...*
+                  *{remainingCount} more class{remainingCount > 1 ? "es" : ""} today...*
                 </span>
               </div>
             )}

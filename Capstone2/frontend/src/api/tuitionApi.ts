@@ -1,4 +1,5 @@
 import type { TuitionInvoiceDto, PaymentDto } from '../BLL/models/TuitionDto';
+import { getAuthHeaders } from './authApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -11,6 +12,7 @@ export const tuitionApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -29,6 +31,7 @@ export const tuitionApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -47,6 +50,7 @@ export const tuitionApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -65,6 +69,7 @@ export const tuitionApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 

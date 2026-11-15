@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs.Teaching;
 using EduTrack.API.Services.Teaching.Interfaces;
 
@@ -11,6 +13,7 @@ namespace EduTrack.API.Controllers.Teaching
     /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
     /// </summary>
     [ApiController]
+    [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
     [Route("api/teaching/profile")]
     [Tags("Teaching - Teacher & TA Profile")]
     public class TeachingProfileController : ControllerBase
@@ -29,15 +32,16 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpGet("{userId:int}")]
         public async Task<IActionResult> GetProfile(int userId)
         {
-            if (userId <= 0)
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
             }
 
-            var profile = await _profileService.GetProfileAsync(userId);
+            var profile = await _profileService.GetProfileAsync(effectiveUserId);
             if (profile == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ người dùng ID = {userId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ người dùng ID = {effectiveUserId}" });
             }
 
             return Ok(new { success = true, data = profile });
@@ -50,7 +54,8 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpPut("{userId:int}")]
         public async Task<IActionResult> UpdateProfile(int userId, [FromBody] UpdateTeacherProfileRequestDto request)
         {
-            if (userId <= 0)
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
             }
@@ -60,10 +65,10 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Họ và tên không được để trống." });
             }
 
-            var updated = await _profileService.UpdateProfileAsync(userId, request);
+            var updated = await _profileService.UpdateProfileAsync(effectiveUserId, request);
             if (updated == null)
             {
-                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ người dùng ID = {userId}" });
+                return NotFound(new { success = false, message = $"Không tìm thấy hồ sơ người dùng ID = {effectiveUserId}" });
             }
 
             return Ok(new
@@ -81,12 +86,13 @@ namespace EduTrack.API.Controllers.Teaching
         [HttpPost("{userId:int}/change-password")]
         public async Task<IActionResult> ChangePassword(int userId, [FromBody] ChangePasswordRequestDto request)
         {
-            if (userId <= 0)
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            if (effectiveUserId <= 0)
             {
                 return BadRequest(new { success = false, message = "Mã định danh người dùng (userId) không hợp lệ." });
             }
 
-            var result = await _profileService.ChangePasswordAsync(userId, request);
+            var result = await _profileService.ChangePasswordAsync(effectiveUserId, request);
             if (!result.Success)
             {
                 return BadRequest(new { success = false, message = result.Message });

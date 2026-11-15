@@ -22,7 +22,7 @@ export function NotificationsHeader({
           onClick={onMarkAllRead}
         >
           <i className="bi bi-check2-all fs-6 text-primary"></i>
-          <span>Đánh dấu đã đọc tất cả</span>
+          <span>Mark all as read</span>
         </button>
       )}
       <button
@@ -31,22 +31,22 @@ export function NotificationsHeader({
         onClick={onOpenPreferences}
       >
         <i className="bi bi-sliders"></i>
-        <span>Tùy chọn nhận tin</span>
+        <span>Notification Preferences</span>
       </button>
     </div>
   );
 
   return (
     <StudentPageHeader
-      title="Thông báo"
+      title="Notifications"
       subtitle={
         unreadCount > 0
-          ? `Bạn có ${unreadCount} thông báo chưa đọc`
-          : 'Đã đọc hết tất cả thông báo!'
+          ? `You have ${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
+          : 'All notifications read!'
       }
       breadcrumbs={[
-        { label: 'Trang chủ', href: '/student/dashboard' },
-        { label: 'Thông báo' },
+        { label: 'Home', href: '/student/dashboard' },
+        { label: 'Notifications' },
       ]}
       actions={actions}
     />

@@ -42,7 +42,7 @@ export function StudentLayout() {
               </div>
               <div>
                 <div className="brand-title">EduTrack</div>
-                <div className="brand-subtitle">Cổng học sinh</div>
+                <div className="brand-subtitle">Student Portal</div>
               </div>
             </Link>
             <button
@@ -66,7 +66,7 @@ export function StudentLayout() {
               className="btn-hamburger"
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              aria-label="Mở menu"
+              aria-label="Open menu"
             >
               <i className="bi bi-list fs-5"></i>
             </button>
