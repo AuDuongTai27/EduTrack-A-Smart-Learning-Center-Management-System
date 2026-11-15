@@ -1,4 +1,4 @@
-import type { ScheduleClassSummary, ScheduleFilters, ScheduleSession, SemesterPeriod, SemesterWeekOption } from '../models/ScheduleSession.ts';
+import type { ScheduleClassSummary, ScheduleFilters, ScheduleSession, SemesterWeekOption } from '../models/ScheduleSession.ts';
 
 export const SCHEDULE_TIMEZONE = 'Asia/Ho_Chi_Minh';
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -116,15 +116,6 @@ export function calendarHours(sessions: ScheduleSession[]) {
   const valid = sessions.filter(validCalendarTime);
   return {start: Math.min(7, ...valid.map(s => Math.floor(timeMinutes(s.startTime) / 60))),
     end: Math.max(21, ...valid.map(s => Math.ceil(timeMinutes(s.endTime) / 60)))};
-}
-
-/**
- * Classifies a class into current, previous, or next semester relative to a civil date (yyyy-mm-dd).
- */
-export function classifyClassSemester(cls: ScheduleClassSummary, today: string): SemesterPeriod {
-  if (cls.status === 'completed' || (cls.endDate !== null && cls.endDate < today)) return 'previous';
-  if (cls.status === 'upcoming' || cls.startDate > today) return 'next';
-  return 'current';
 }
 
 /**
