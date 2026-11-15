@@ -8,6 +8,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,6 +18,18 @@ namespace EduTrack.API.Helpers.Auth
 {
     public static class JwtAuthHelper
     {
+        public const string RoleCenterManager = "center_manager";
+        public const string RoleAdminStaff = "admin_staff";
+        public const string RoleTeacher = "teacher";
+        public const string RoleTeachingAssistant = "teaching_assistant";
+        public const string RoleParent = "parent";
+        public const string RoleStudent = "student";
+
+        public const string RolesManagement = "center_manager,admin_staff";
+        public const string RolesTeaching = "teacher,teaching_assistant,center_manager,admin_staff";
+        public const string RolesLearning = "student,parent,center_manager,admin_staff";
+        public const string RolesAll = "center_manager,admin_staff,teacher,teaching_assistant,parent,student";
+
         public const string LegacySeededHash = "$2a$11$N87b.lQp8p9m0Yl4w1e5xe4RzO.B1hO.3r0f7a2.b3c4d5e6f7g8h";
         public const string DefaultSeedPassword = "123456";
         private const string DefaultJwtSecret = "EduTrack_Smart_Learning_Center_Jwt_Secret_Key_2026_Capstone2!";
@@ -25,6 +38,59 @@ namespace EduTrack.API.Helpers.Auth
         {
             var configured = configuration?["Jwt:SecretKey"];
             return string.IsNullOrWhiteSpace(configured) ? DefaultJwtSecret : configured;
+        }
+
+        public static int? GetAuthenticatedUserId(ClaimsPrincipal? principal)
+        {
+            if (principal?.Identity?.IsAuthenticated != true) return null;
+            var raw = principal.FindFirstValue("userId") ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(raw, out var uid) && uid > 0)
+            {
+                return uid;
+            }
+            return null;
+        }
+
+        public static bool IsManagementUser(ClaimsPrincipal? principal)
+        {
+            if (principal?.Identity?.IsAuthenticated != true) return false;
+            return principal.IsInRole(RoleCenterManager) || principal.IsInRole(RoleAdminStaff);
+        }
+
+        /// <summary>
+        /// Nếu người gọi chỉ có đúng role cá nhân (ví dụ Student tự gọi API của mình), ép dùng userId từ JWT Token
+        /// để chống giả mạo userId trên URL/Body. Nếu là CenterManager/AdminStaff (hoặc Parent xem con) thì giữ nguyên.
+        /// </summary>
+        public static int ResolveEffectiveUserId(ClaimsPrincipal? principal, int requestedUserId, params string[] enforceForRoles)
+        {
+            var tokenUserId = GetAuthenticatedUserId(principal);
+            if (tokenUserId == null || tokenUserId.Value <= 0)
+            {
+                return requestedUserId;
+            }
+
+            if (requestedUserId <= 0)
+            {
+                return tokenUserId.Value;
+            }
+
+            if (IsManagementUser(principal))
+            {
+                return requestedUserId;
+            }
+
+            if (enforceForRoles != null && enforceForRoles.Length > 0 && principal != null)
+            {
+                foreach (var role in enforceForRoles)
+                {
+                    if (principal.IsInRole(NormalizeRoleName(role)))
+                    {
+                        return tokenUserId.Value;
+                    }
+                }
+            }
+
+            return requestedUserId;
         }
 
         public static string NormalizePhone(string raw)
@@ -111,7 +177,13 @@ namespace EduTrack.API.Helpers.Auth
         public static string NormalizeRoleName(string role)
         {
             var r = (role ?? string.Empty).Trim().ToLowerInvariant();
-            return r == "ta" ? "teaching_assistant" : r;
+            return r switch
+            {
+                "ta" or "teachingassistant" => RoleTeachingAssistant,
+                "centermanager" => RoleCenterManager,
+                "adminstaff" => RoleAdminStaff,
+                _ => r
+            };
         }
 
         public static string ResolvePrimaryRole(IEnumerable<string> roles)
@@ -119,12 +191,12 @@ namespace EduTrack.API.Helpers.Auth
             var normalized = roles.Select(NormalizeRoleName).Where(r => !string.IsNullOrEmpty(r)).Distinct().ToList();
             string[] priority =
             {
-                "center_manager",
-                "admin_staff",
-                "teacher",
-                "teaching_assistant",
-                "parent",
-                "student"
+                RoleCenterManager,
+                RoleAdminStaff,
+                RoleTeacher,
+                RoleTeachingAssistant,
+                RoleParent,
+                RoleStudent
             };
 
             foreach (var p in priority)
@@ -132,19 +204,19 @@ namespace EduTrack.API.Helpers.Auth
                 if (normalized.Contains(p)) return p;
             }
 
-            return normalized.FirstOrDefault() ?? "student";
+            return normalized.FirstOrDefault() ?? RoleStudent;
         }
 
         public static string ResolveRedirectPath(string primaryRole)
         {
             return NormalizeRoleName(primaryRole) switch
             {
-                "center_manager" => "/center-manager/dashboard",
-                "admin_staff" => "/admin-staff/dashboard",
-                "teacher" => "/teacher/dashboard",
-                "teaching_assistant" => "/teaching-assistant/dashboard",
-                "parent" => "/parent/dashboard",
-                "student" => "/student/dashboard",
+                RoleCenterManager => "/center-manager/dashboard",
+                RoleAdminStaff => "/admin-staff/dashboard",
+                RoleTeacher => "/teacher/dashboard",
+                RoleTeachingAssistant => "/teaching-assistant/dashboard",
+                RoleParent => "/parent/dashboard",
+                RoleStudent => "/student/dashboard",
                 _ => "/student/dashboard"
             };
         }
@@ -330,6 +402,10 @@ namespace EduTrack.API.Helpers.Auth
             }
 
             var token = authHeader.Substring("Bearer ".Length).Trim();
+            while (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                token = token.Substring("Bearer ".Length).Trim();
+            }
             var principal = JwtAuthHelper.ValidateToken(token, JwtAuthHelper.GetSecretKey(_configuration));
             if (principal == null)
             {
@@ -338,6 +414,30 @@ namespace EduTrack.API.Helpers.Auth
 
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
             return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+
+        protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            Response.ContentType = "application/json; charset=utf-8";
+            var payload = JsonSerializer.Serialize(new
+            {
+                success = false,
+                message = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại."
+            });
+            await Response.WriteAsync(payload);
+        }
+
+        protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
+        {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            Response.ContentType = "application/json; charset=utf-8";
+            var payload = JsonSerializer.Serialize(new
+            {
+                success = false,
+                message = "Tài khoản của bạn không có quyền thực hiện thao tác hoặc truy cập tài nguyên này (403 Forbidden)."
+            });
+            await Response.WriteAsync(payload);
         }
     }
 }

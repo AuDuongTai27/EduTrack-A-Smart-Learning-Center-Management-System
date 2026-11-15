@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Helpers.DependencyInjection;
 using EduTrack.API.Models.EF;
@@ -47,14 +48,52 @@ builder.Services
     .AddLearningServices();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "EduTrack API",
+        Version = "v1",
+        Description = "Hệ thống quản lý trung tâm học tập thông minh EduTrack. Gọi POST /api/auth/login để lấy token, sau đó bấm nút Authorize (Bearer) để lưu token."
+    });
+
+    var bearerScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Nhập JWT Token lấy từ API `/api/auth/login` (chỉ cần dán chuỗi token, không cần gõ chữ Bearer).",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+
+    options.AddSecurityDefinition("Bearer", bearerScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { bearerScheme, Array.Empty<string>() }
+    });
+});
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        // Lưu giữ Bearer Token trên Swagger UI kể cả khi F5 tải lại trang
+        options.EnablePersistAuthorization();
+
+        // Tự động nhận diện và lưu Bearer Token ngay khi gọi POST /api/auth/login thành công trên Swagger
+        options.UseResponseInterceptor(
+            "(res) => { try { if (res && res.url && res.url.includes('/api/auth/login') && res.status === 200 && res.body && res.body.token && window.ui) { window.ui.preauthorizeApiKey('Bearer', res.body.token); } } catch (e) {} return res; }"
+        );
+    });
 }
 
 app.UseHttpsRedirection();

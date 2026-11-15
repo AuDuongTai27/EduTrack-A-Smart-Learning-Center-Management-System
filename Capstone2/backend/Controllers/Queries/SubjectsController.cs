@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Interfaces;
@@ -13,6 +15,7 @@ namespace EduTrack.API.Controllers.Queries
     /// API đọc và quản lý Môn học & Chương trình học (Subjects)
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("api/subjects")]
     [Tags("Subjects")]
     public class SubjectsController : ControllerBase
@@ -33,6 +36,7 @@ namespace EduTrack.API.Controllers.Queries
         /// GET: api/subjects
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<SubjectDto>>> GetAll()
         {
             var list = await _queryService!.GetAllSubjectsAsync();
@@ -44,6 +48,7 @@ namespace EduTrack.API.Controllers.Queries
         /// GET: api/subjects/{id}
         /// </summary>
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<ActionResult<SubjectDto>> GetById(int id)
         {
             var item = await _queryService!.GetSubjectByIdAsync(id);
@@ -60,6 +65,7 @@ namespace EduTrack.API.Controllers.Queries
         /// POST: api/subjects
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<SubjectDto>> Create([FromBody] CreateSubjectDto dto)
         {
             if (!ModelState.IsValid)
@@ -83,6 +89,7 @@ namespace EduTrack.API.Controllers.Queries
         /// PUT: api/subjects/{id}
         /// </summary>
         [HttpPut("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<SubjectDto>> Update(int id, [FromBody] UpdateSubjectDto dto)
         {
             if (!ModelState.IsValid)
@@ -111,6 +118,7 @@ namespace EduTrack.API.Controllers.Queries
         /// DELETE: api/subjects/{id}
         /// </summary>
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult> Delete(int id)
         {
             try

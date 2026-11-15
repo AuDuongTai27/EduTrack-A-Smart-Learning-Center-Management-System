@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Interfaces;
@@ -11,6 +13,7 @@ using EduTrack.API.Services.Management.Interfaces;
 namespace EduTrack.API.Controllers.Queries
 {
     [ApiController]
+    [Authorize]
     [Route("api/approvalrequests")]
     [Tags("Approval Requests")]
     public class ApprovalRequestsController : ControllerBase
@@ -62,6 +65,10 @@ namespace EduTrack.API.Controllers.Queries
         {
             try
             {
+                if (JwtAuthHelper.GetAuthenticatedUserId(User) is int authUid && authUid > 0)
+                {
+                    dto.RequestedBy = authUid;
+                }
                 var created = await _managementService!.CreateAsync(dto);
                 return Created($"/api/approvalrequests/{created.RequestId}", created);
             }
@@ -82,6 +89,10 @@ namespace EduTrack.API.Controllers.Queries
         {
             try
             {
+                if (JwtAuthHelper.GetAuthenticatedUserId(User) is int authUid && authUid > 0)
+                {
+                    dto.RequestedBy = authUid;
+                }
                 var updated = await _managementService!.UpdateAsync(id, dto);
                 if (updated == null)
                     return NotFound(new { message = "Không tìm thấy yêu cầu." });
@@ -100,10 +111,15 @@ namespace EduTrack.API.Controllers.Queries
 
         // PUT /api/approvalrequests/{id}/review
         [HttpPut("{id:int}/review")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<ApprovalRequestDto>> Review(int id, [FromBody] ReviewApprovalRequestDto dto)
         {
             try
             {
+                if (JwtAuthHelper.GetAuthenticatedUserId(User) is int authUid && authUid > 0)
+                {
+                    dto.ReviewedBy = authUid;
+                }
                 var updated = await _managementService!.ReviewAsync(id, dto);
                 if (updated == null)
                     return NotFound(new { message = "Không tìm thấy yêu cầu." });

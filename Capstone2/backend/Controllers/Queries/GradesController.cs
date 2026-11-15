@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Interfaces;
 using EduTrack.API.Services.Management.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
@@ -12,6 +14,7 @@ using MySqlConnector;
 namespace EduTrack.API.Controllers.Queries;
 
 [ApiController]
+[Authorize]
 [Route("api/grades")]
 [Tags("Grades")]
 public class GradesController(
@@ -19,10 +22,12 @@ public class GradesController(
     IManagementGradeService? managementService = null) : ControllerBase
 {
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<GradeDto>>> GetAll() =>
         Ok(await queryService!.GetAllGradesAsync());
 
     [HttpGet("{id:int:min(1)}")]
+    [AllowAnonymous]
     public async Task<ActionResult<GradeDto>> GetById(int id)
     {
         var grade = await queryService!.GetGradeByIdAsync(id);
@@ -30,6 +35,7 @@ public class GradesController(
     }
 
     [HttpPost]
+    [Authorize(Roles = JwtAuthHelper.RolesManagement)]
     public Task<IActionResult> Create(SaveGradeDto dto) => Run(async () =>
     {
         var item = await managementService!.CreateAsync(dto);
@@ -37,6 +43,7 @@ public class GradesController(
     });
 
     [HttpPut("{id:int:min(1)}")]
+    [Authorize(Roles = JwtAuthHelper.RolesManagement)]
     public Task<IActionResult> Rename(int id, SaveGradeDto dto) => Run(async () =>
     {
         var item = await managementService!.RenameAsync(id, dto);
@@ -44,6 +51,7 @@ public class GradesController(
     });
 
     [HttpDelete("{id:int:min(1)}")]
+    [Authorize(Roles = JwtAuthHelper.RolesManagement)]
     public Task<IActionResult> Delete(int id) => Run(async () =>
         await managementService!.DeleteAsync(id) ? Ok(new { message = "Đã xóa khối lớp." })
             : NotFound(new { message = "Không tìm thấy khối lớp." }));

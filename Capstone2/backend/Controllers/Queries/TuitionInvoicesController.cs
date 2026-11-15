@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Interfaces;
@@ -10,6 +12,7 @@ using EduTrack.API.Services.Management.Interfaces;
 namespace EduTrack.API.Controllers.Queries
 {
     [ApiController]
+    [Authorize]
     [Route("api/tuitioninvoices")]
     [Tags("Tuition Invoices & Payments")]
     public class TuitionInvoicesController : ControllerBase
@@ -56,9 +59,11 @@ namespace EduTrack.API.Controllers.Queries
         }
 
         [HttpPost("generation/preview")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<IActionResult> Preview(GenerateTuitionDto dto) => await Generation(dto, false);
 
         [HttpPost("generation/confirm")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<IActionResult> Generate(GenerateTuitionDto dto) => await Generation(dto, true);
 
         private async Task<IActionResult> Generation(GenerateTuitionDto dto, bool confirm)
@@ -71,6 +76,7 @@ namespace EduTrack.API.Controllers.Queries
 
         // POST: /api/tuitioninvoices
         [HttpPost]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<TuitionInvoiceDto>> Create([FromBody] CreateTuitionInvoiceDto dto)
         {
             try
@@ -88,6 +94,7 @@ namespace EduTrack.API.Controllers.Queries
 
         // PUT: /api/tuitioninvoices/{id}
         [HttpPut("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<TuitionInvoiceDto>> Update(int id, [FromBody] UpdateTuitionInvoiceDto dto)
         {
             try
@@ -110,10 +117,16 @@ namespace EduTrack.API.Controllers.Queries
 
         // POST: /api/tuitioninvoices/{id}/payments
         [HttpPost("{id:int}/payments")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<PaymentDto>> RecordPayment(int id, [FromBody] CreatePaymentDto dto)
         {
             try
             {
+                if ((!dto.RecordedBy.HasValue || dto.RecordedBy.Value <= 0) &&
+                    JwtAuthHelper.GetAuthenticatedUserId(User) is int authUid && authUid > 0)
+                {
+                    dto.RecordedBy = authUid;
+                }
                 var created = await _managementService!.RecordPaymentAsync(id, dto);
                 return Created($"/api/payments/{created.PaymentId}", created);
             }

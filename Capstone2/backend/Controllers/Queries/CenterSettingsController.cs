@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Interfaces;
@@ -10,6 +12,7 @@ using EduTrack.API.Services.Interfaces;
 namespace EduTrack.API.Controllers.Queries
 {
     [ApiController]
+    [Authorize]
     [Route("api/centersettings")]
     [Tags("Center Settings")]
     public class CenterSettingsController : ControllerBase
@@ -26,6 +29,7 @@ namespace EduTrack.API.Controllers.Queries
         /// GET: api/centersettings
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CenterSettingDto>>> GetAll()
         {
             var list = await _service.GetAllCenterSettingsAsync();
@@ -37,6 +41,7 @@ namespace EduTrack.API.Controllers.Queries
         /// GET: api/centersettings/{id}
         /// </summary>
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CenterSettingDto>> GetById(int id)
         {
             var item = await _service.GetCenterSettingByIdAsync(id);
@@ -49,8 +54,8 @@ namespace EduTrack.API.Controllers.Queries
         }
 
         // PUT /api/centersettings/bulk
-        // Development only until real authentication/authorization is integrated.
         [HttpPut("bulk")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<IReadOnlyList<CenterSettingDto>>> UpdateBulk(
             [FromBody] CenterSettingsBulkUpdateDto request)
         {
@@ -59,13 +64,13 @@ namespace EduTrack.API.Controllers.Queries
                 var saved = await _service.SaveSettingsAsync(request.Settings);
                 return Ok(saved);
             }
-            catch (InvalidOperationException ex)
+            catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
             catch (DbUpdateException)
             {
-                return Conflict(new { message = "Settings could not be saved. Please retry." });
+                return Conflict(new { message = "Cấu hình đang được cập nhật bởi phiên khác. Vui lòng thử lại." });
             }
         }
     }

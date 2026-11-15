@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Teaching;
 using EduTrack.API.Services.Interfaces;
@@ -14,6 +16,7 @@ namespace EduTrack.API.Controllers.Teaching
     /// [Bounded Context: Teaching] Điểm danh Buổi học & Truy vấn Điểm danh
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("api/teaching/attendance")]
     [Tags("Teaching - Attendance")]
     public class TeachingAttendanceController : ControllerBase
@@ -69,6 +72,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// GET /api/teaching/attendance/sheet?classId={classId}&sessionId={sessionId}&userId={userId}
         /// </summary>
         [HttpGet("sheet")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> GetAttendanceSheet(
             [FromQuery] int classId,
             [FromQuery] int? sessionId,
@@ -79,7 +83,8 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Mã lớp học (classId) không hợp lệ." });
             }
 
-            var sheet = await _attendanceService!.GetAttendanceSheetAsync(classId, sessionId, userId);
+            var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
+            var sheet = await _attendanceService!.GetAttendanceSheetAsync(classId, sessionId, effectiveUserId);
             if (sheet == null)
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy thông tin lớp học #{classId}." });
@@ -93,6 +98,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// GET /api/teaching/attendance/sessions?classId={classId}
         /// </summary>
         [HttpGet("sessions")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> GetClassSessions([FromQuery] int classId)
         {
             if (classId <= 0)
@@ -109,6 +115,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// POST /api/teaching/attendance/bulk
         /// </summary>
         [HttpPost("bulk")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> SaveBulkAttendance([FromBody] SaveBulkTeachingAttendanceRequestDto request)
         {
             if (request == null || request.ClassId <= 0 || request.SessionId <= 0)
@@ -121,10 +128,7 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Danh sách điểm danh không được để trống." });
             }
 
-            if (request.RecordedBy <= 0)
-            {
-                request.RecordedBy = 3; // Default teacher TC001
-            }
+            request.RecordedBy = JwtAuthHelper.ResolveEffectiveUserId(User, request.RecordedBy > 0 ? request.RecordedBy : 3, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
 
             try
             {
@@ -151,6 +155,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// PUT /api/teaching/attendance/{id}
         /// </summary>
         [HttpPut("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> UpdateSingleAttendance(int id, [FromBody] UpdateSingleAttendanceRequestDto request)
         {
             if (id <= 0 || request == null)
@@ -158,10 +163,7 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = "Dữ liệu yêu cầu không hợp lệ." });
             }
 
-            if (request.RecordedBy <= 0)
-            {
-                request.RecordedBy = 3;
-            }
+            request.RecordedBy = JwtAuthHelper.ResolveEffectiveUserId(User, request.RecordedBy > 0 ? request.RecordedBy : 3, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
 
             var updated = await _attendanceService!.UpdateSingleAttendanceAsync(id, request);
             if (updated == null)

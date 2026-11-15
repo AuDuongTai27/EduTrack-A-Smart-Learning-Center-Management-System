@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,7 @@ namespace EduTrack.API.Controllers.Teaching
     /// Phụ trách: Nhóm Teacher & Teaching Assistant (Thành viên 2)
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("api/teaching/upload")]
     [Tags("Teaching - File Upload")]
     public class TeachingUploadController : ControllerBase
@@ -116,4 +118,3 @@ namespace EduTrack.API.Controllers.Teaching
         }
     }
 }
-

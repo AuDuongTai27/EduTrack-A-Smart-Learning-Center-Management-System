@@ -29,6 +29,7 @@ const USER_STORAGE_KEY = 'edutrack_auth_user';
 const authListeners = new Set<() => void>();
 let cachedRawUser: string | null = null;
 let cachedAuthUser: AuthUserDto | null = null;
+let fetchInterceptorInstalled = false;
 
 function notifyAuthListeners() {
   authListeners.forEach((listener) => listener());
@@ -110,6 +111,63 @@ export function clearAuthSession(): void {
   cachedAuthUser = null;
   notifyAuthListeners();
 }
+
+/**
+ * Tự động đính kèm header Authorization: Bearer <token> cho toàn bộ request gọi tới /api/*
+ * và tự động xóa phiên đăng nhập nếu máy chủ trả về 401 Unauthorized.
+ */
+export function installAuthFetchInterceptor(): void {
+  if (fetchInterceptorInstalled || typeof window === 'undefined' || typeof window.fetch !== 'function') {
+    return;
+  }
+  fetchInterceptorInstalled = true;
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const requestUrl =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input.url;
+
+    const isApiCall =
+      requestUrl.startsWith('/api') ||
+      requestUrl.startsWith(BASE_URL) ||
+      requestUrl.includes('/api/');
+
+    if (!isApiCall) {
+      return originalFetch(input, init);
+    }
+
+    const token = getAuthToken();
+    let nextInit = init;
+
+    if (token) {
+      const headers = new Headers(
+        init?.headers ?? (input instanceof Request ? input.headers : undefined)
+      );
+      if (!headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      nextInit = {
+        ...init,
+        headers,
+      };
+    }
+
+    const response = await originalFetch(input, nextInit);
+
+    const isLoginEndpoint = requestUrl.includes('/api/auth/login');
+    if (response.status === 401 && !isLoginEndpoint && token) {
+      clearAuthSession();
+    }
+
+    return response;
+  };
+}
+
+installAuthFetchInterceptor();
 
 /**
  * Lấy userId của người dùng đang đăng nhập theo đúng vai trò (Role),

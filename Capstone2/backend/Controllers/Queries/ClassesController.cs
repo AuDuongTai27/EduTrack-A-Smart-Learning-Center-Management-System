@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Services.Interfaces;
@@ -16,6 +18,7 @@ namespace EduTrack.API.Controllers.Queries
     /// API đọc và quản lý Lớp học, Phân công Giáo viên/Trợ giảng & Danh sách Học sinh/GV/TA theo lớp
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("api/classes")]
     [Tags("Classes, Enrollments & Class Staff")]
     public class ClassesController : ControllerBase
@@ -75,6 +78,7 @@ namespace EduTrack.API.Controllers.Queries
         /// POST: api/classes
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<ClassDto>> Create([FromBody] CreateClassDto dto)
         {
             if (!ModelState.IsValid)
@@ -98,6 +102,7 @@ namespace EduTrack.API.Controllers.Queries
         /// PUT: api/classes/{id}
         /// </summary>
         [HttpPut("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<ClassDto>> Update(int id, [FromBody] UpdateClassDto dto)
         {
             if (!ModelState.IsValid)
@@ -126,6 +131,7 @@ namespace EduTrack.API.Controllers.Queries
         /// DELETE: api/classes/{id}
         /// </summary>
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult> Delete(int id)
         {
             var (success, message) = await _managementService!.DeleteClassAsync(id);
@@ -143,18 +149,22 @@ namespace EduTrack.API.Controllers.Queries
         // =====================================================================
 
         [HttpPost("{classId:int}/teachers")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public Task<IActionResult> AssignTeacher(int classId, [FromBody] AssignClassStaffDto dto) =>
             ExecuteStaffCommand(async () => Ok(await _staffService!.AssignTeacherAsync(classId, dto.UserId)));
 
         [HttpPost("{classId:int}/assistants")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public Task<IActionResult> AssignAssistant(int classId, [FromBody] AssignClassStaffDto dto) =>
             ExecuteStaffCommand(async () => Ok(await _staffService!.AssignAssistantAsync(classId, dto.UserId)));
 
         [HttpPatch("{classId:int}/teachers/{assignmentId:int}/deactivate")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public Task<IActionResult> DeactivateTeacher(int classId, int assignmentId) =>
             ExecuteStaffCommand(async () => Ok(await _staffService!.DeactivateTeacherAsync(classId, assignmentId)));
 
         [HttpPatch("{classId:int}/assistants/{assignmentId:int}/deactivate")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public Task<IActionResult> DeactivateAssistant(int classId, int assignmentId) =>
             ExecuteStaffCommand(async () => Ok(await _staffService!.DeactivateAssistantAsync(classId, assignmentId)));
 

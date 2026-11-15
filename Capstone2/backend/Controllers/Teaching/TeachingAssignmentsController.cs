@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Teaching;
 using EduTrack.API.Services.Interfaces;
@@ -14,6 +16,7 @@ namespace EduTrack.API.Controllers.Teaching
     /// [Bounded Context: Teaching] Quản lý, Giao, Chỉnh sửa, Xóa, Chấm điểm & Truy vấn Bài tập (Assignments)
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("api/teaching/assignments")]
     [Tags("Teaching - Assignments")]
     public class TeachingAssignmentsController : ControllerBase
@@ -69,12 +72,15 @@ namespace EduTrack.API.Controllers.Teaching
         /// POST /api/teaching/assignments
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> CreateAssignment([FromBody] CreateTeachingAssignmentRequestDto request)
         {
             if (request == null || request.ClassId <= 0 || string.IsNullOrWhiteSpace(request.Title))
             {
                 return BadRequest(new { success = false, message = "Thông tin lớp học hoặc tiêu đề bài tập không hợp lệ." });
             }
+
+            request.CreatedBy = JwtAuthHelper.ResolveEffectiveUserId(User, request.CreatedBy > 0 ? request.CreatedBy : 3, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
 
             try
             {
@@ -97,6 +103,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// GET /api/teaching/assignments?classId={classId}
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> GetAssignments([FromQuery] int classId)
         {
             if (classId <= 0)
@@ -113,6 +120,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// GET /api/teaching/assignments/{id}
         /// </summary>
         [HttpGet("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> GetAssignmentById(int id)
         {
             if (id <= 0)
@@ -134,6 +142,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// PUT /api/teaching/assignments/{id}
         /// </summary>
         [HttpPut("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> UpdateAssignment(int id, [FromBody] UpdateTeachingAssignmentRequestDto request)
         {
             if (id <= 0 || request == null)
@@ -166,6 +175,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// DELETE /api/teaching/assignments/{id}
         /// </summary>
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> DeleteAssignment(int id)
         {
             if (id <= 0)
@@ -191,6 +201,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// GET /api/teaching/assignments/{id}/submissions
         /// </summary>
         [HttpGet("{id:int}/submissions")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> GetSubmissions(int id)
         {
             if (id <= 0)
@@ -207,6 +218,7 @@ namespace EduTrack.API.Controllers.Teaching
         /// PUT /api/teaching/assignments/{id}/submissions/{submissionId}/grade
         /// </summary>
         [HttpPut("{id:int}/submissions/{submissionId:int}/grade")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
         public async Task<IActionResult> GradeSubmission(int id, int submissionId, [FromBody] GradeTeachingSubmissionRequestDto request)
         {
             if (id <= 0 || submissionId <= 0 || request == null)
@@ -218,6 +230,8 @@ namespace EduTrack.API.Controllers.Teaching
             {
                 return BadRequest(new { success = false, message = "Điểm số phải nằm trong khoảng từ 0 đến 10." });
             }
+
+            request.GradedBy = JwtAuthHelper.ResolveEffectiveUserId(User, request.GradedBy > 0 ? request.GradedBy : 3, JwtAuthHelper.RoleTeacher, JwtAuthHelper.RoleTeachingAssistant);
 
             try
             {

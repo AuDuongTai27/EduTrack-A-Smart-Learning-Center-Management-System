@@ -116,6 +116,7 @@ namespace EduTrack.API.Controllers.Auth
         /// GET: /api/auth/me
         /// </summary>
         [HttpGet("me")]
+        [Authorize]
         public async Task<ActionResult<AuthUserDto>> GetCurrentUser(CancellationToken ct)
         {
             var userIdStr = User.FindFirstValue("userId") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);

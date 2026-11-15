@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
+using EduTrack.API.Helpers.Auth;
 using EduTrack.API.Models.DTOs;
 using EduTrack.API.Models.DTOs.Management;
 using EduTrack.API.Models.EF;
@@ -19,6 +21,7 @@ namespace EduTrack.API.Controllers.Queries
     /// API đọc và quản lý Tài khoản Người dùng, Học sinh, Xếp lớp, Liên kết Phụ huynh & Chọn User
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("api/users")]
     [Tags("Users, Enrollments & Parent Links")]
     public class UsersController : ControllerBase
@@ -48,6 +51,7 @@ namespace EduTrack.API.Controllers.Queries
         // =====================================================================
 
         [HttpGet("/api/user-selection")]
+        [AllowAnonymous]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> GetUserSelection([FromQuery] string role, CancellationToken ct)
         {
@@ -98,6 +102,7 @@ namespace EduTrack.API.Controllers.Queries
         /// POST: api/users
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserDto dto)
         {
             if (!ModelState.IsValid)
@@ -118,6 +123,7 @@ namespace EduTrack.API.Controllers.Queries
 
         // Atomic Add Student, including optional multi-class enrollment.
         [HttpPost("students")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<UserDto>> CreateStudent([FromBody] CreateStudentDto dto)
         {
             try
@@ -139,8 +145,6 @@ namespace EduTrack.API.Controllers.Queries
             }
             catch (Exception)
             {
-                // A lost commit response is ambiguous: retry the same userCode, never
-                // claim that only the student was saved or generate a new identity.
                 return StatusCode(503, new { message = "Chưa xác nhận được việc lưu học sinh và đăng ký lớp. Giữ nguyên form và bấm Lưu hồ sơ để thử lại an toàn cùng yêu cầu." });
             }
         }
@@ -150,6 +154,7 @@ namespace EduTrack.API.Controllers.Queries
         /// PUT: api/users/{id}
         /// </summary>
         [HttpPut("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserDto dto)
         {
             if (!ModelState.IsValid)
@@ -182,6 +187,7 @@ namespace EduTrack.API.Controllers.Queries
         /// PATCH: api/users/{id}/status
         /// </summary>
         [HttpPatch("{id:int}/status")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult> UpdateStatus(int id, [FromBody] UpdateUserStatusDto dto)
         {
             if (!ModelState.IsValid)
@@ -203,6 +209,7 @@ namespace EduTrack.API.Controllers.Queries
         /// DELETE: api/users/{id}
         /// </summary>
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult> Delete(int id)
         {
             try
@@ -231,10 +238,12 @@ namespace EduTrack.API.Controllers.Queries
         // =====================================================================
 
         [HttpPost("{studentId:int:min(1)}/enrollments")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public Task<IActionResult> AddEnrollments(int studentId, AddStudentEnrollmentsDto dto) =>
             RunEnrollment(async () => Ok(await _studentClassService!.EnrollAsync(studentId, dto.GradeId, dto.ClassIds)));
 
         [HttpPatch("{studentId:int:min(1)}/enrollments/{enrollmentId:int:min(1)}/drop")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public Task<IActionResult> DropEnrollment(int studentId, int enrollmentId, DropStudentEnrollmentDto dto) =>
             RunEnrollment(async () => Ok(await _studentClassService!.DropAsync(studentId, enrollmentId, dto.Reason)));
 
@@ -291,6 +300,7 @@ namespace EduTrack.API.Controllers.Queries
         /// POST: api/parentstudents
         /// </summary>
         [HttpPost("/api/parentstudents")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult<ParentStudentDto>> AssignParentStudent([FromBody] AssignParentStudentDto dto)
         {
             if (!ModelState.IsValid)
@@ -322,6 +332,7 @@ namespace EduTrack.API.Controllers.Queries
         /// DELETE: api/parentstudents/{parentId}/{studentId}
         /// </summary>
         [HttpDelete("/api/parentstudents/{parentId:int}/{studentId:int}")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
         public async Task<ActionResult> RemoveParentStudent(int parentId, int studentId)
         {
             try
