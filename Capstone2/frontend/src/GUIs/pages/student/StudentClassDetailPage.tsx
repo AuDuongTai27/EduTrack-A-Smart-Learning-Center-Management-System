@@ -63,7 +63,7 @@ export function StudentClassDetailPage() {
   }, [cls?.name]);
 
   const handleDownload = (fileName: string) => {
-    setToastMessage(`Đang tải xuống tài liệu: ${fileName}`);
+    setToastMessage(`Downloading material: ${fileName}`);
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
@@ -72,8 +72,8 @@ export function StudentClassDetailPage() {
   if (loading || !cls) {
     return (
       <LearnerPageLoader
-        title="Đang tải chi tiết lớp học..."
-        message="Hệ thống đang tải thông tin lớp học, tài liệu bài giảng và danh sách bài tập."
+        title="Loading class details..."
+        message="The system is loading class information, lecture materials, and assignment list."
       />
     );
   }

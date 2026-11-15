@@ -6,14 +6,34 @@ export interface TeacherFeedbackItemProps {
   feedback: ProgressFeedback;
 }
 
+function renderStatusLabel(label: string, type: string): string {
+  if (!label) {
+    if (type === 'dat') return 'Passed';
+    if (type === 'canluuy') return 'Needs Attention';
+    if (type === 'chuadat') return 'Not Passed';
+    return '';
+  }
+  const l = label.toLowerCase();
+  if (l === 'đạt' || l === 'dat') return 'Passed';
+  if (l === 'khen ngợi' || l === 'khen ngoi') return 'Praise';
+  if (l === 'cần lưu ý' || l === 'can luu y') return 'Needs Attention';
+  if (l === 'chưa đạt' || l === 'chua dat') return 'Not Passed';
+  if (l === 'tiến bộ tốt' || l === 'tien bo tot') return 'Good Progress';
+  return label;
+}
+
 export function TeacherFeedbackItem({ feedback }: TeacherFeedbackItemProps) {
   const isEvaluation = isEvaluationFeedback(feedback);
 
   const cleanTitle = feedback.assignmentTitle
-    .replace(/\[Đánh giá định kỳ\]/g, '')
-    .replace(/\[Đánh giá tổng kết\]/g, '')
-    .replace(/\[Đánh giá\]/g, '')
-    .replace(/\[Bài tập\]/g, '')
+    .replace(/\[Đánh giá định kỳ\]/gi, '')
+    .replace(/\[Đánh giá tổng kết\]/gi, '')
+    .replace(/\[Đánh giá\]/gi, '')
+    .replace(/\[Bài tập\]/gi, '')
+    .replace(/\[Periodic Evaluation\]/gi, '')
+    .replace(/\[Final Evaluation\]/gi, '')
+    .replace(/\[Evaluation\]/gi, '')
+    .replace(/\[Assignment\]/gi, '')
     .trim();
 
   const isWarningOrNegative =
@@ -44,10 +64,10 @@ export function TeacherFeedbackItem({ feedback }: TeacherFeedbackItemProps) {
               } me-1`}
             />
             {isEvaluation
-              ? feedback.assignmentTitle.includes('tổng kết')
-                ? 'Đánh giá tổng kết'
-                : 'Đánh giá định kỳ'
-              : 'Bài tập'}
+              ? feedback.assignmentTitle.includes('tổng kết') || feedback.assignmentTitle.toLowerCase().includes('final')
+                ? 'Final Evaluation'
+                : 'Periodic Evaluation'
+              : 'Assignment'}
           </span>
           <h3 className="feedback-asg-title mb-0">{cleanTitle}</h3>
         </div>
@@ -63,7 +83,7 @@ export function TeacherFeedbackItem({ feedback }: TeacherFeedbackItemProps) {
         </div>
       </div>
       <span className={`progress-status-badge psb-${feedback.statusType}`}>
-        <i className={`bi ${feedback.statusIcon}`}></i> {feedback.statusLabel}
+        <i className={`bi ${feedback.statusIcon}`}></i> {renderStatusLabel(feedback.statusLabel, feedback.statusType)}
       </span>
     </div>
   );

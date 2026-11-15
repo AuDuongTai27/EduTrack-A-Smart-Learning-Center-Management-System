@@ -20,7 +20,7 @@ export function ParentSidebar() {
           <div>
             <div className="brand-title">EduTrack</div>
             <div className="brand-subtitle text-primary fw-bold" style={{ fontSize: '11px' }}>
-              Cổng phụ huynh
+              Parent Portal
             </div>
           </div>
         </Link>

@@ -83,8 +83,8 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       {
         id: 104,
         weekNumber: 4,
-        fileName: "EIKARY - Cây k phân & Định lý Viète.pdf",
-        description: "Tài liệu chuyên đề giải bài toán đa thức và cây phân cấp k-phân",
+        fileName: "EIKARY - K-ary Trees & Vieta Theorem.pdf",
+        description: "Specialized material on polynomial problem solving and k-ary hierarchical trees",
         type: "PDF",
         uploadDate: "20/09/2026",
         sizeMb: 1.8,
@@ -99,56 +99,47 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       {
         weekNumber: 1,
         title: "Introduction to Quadratic Equations & Systems",
-        description: "Nền tảng phương trình bậc hai và phương pháp phân tích nghiệm",
+        description: "Foundations of quadratic equations and root analysis methods",
       },
       {
         weekNumber: 2,
         title: "Connectivity & Vieta Theorem Applications",
-        description: "Định lý Viète, biểu thức đối xứng giữa các nghiệm của phương trình",
+        description: "Vieta's theorem, symmetric expressions between polynomial roots",
       },
       {
         weekNumber: 3,
         title: "Advanced Systems of Equations",
-        description: "Hệ phương trình bậc cao và các phương pháp giải nâng cao",
+        description: "Higher-degree systems of equations and advanced solution methods",
       },
       {
         weekNumber: 4,
         title: "Plane Trigonometry & Midterm Review",
-        description: "Hệ thức lượng giác, ôn tập tổng hợp và bài tập đánh giá",
+        description: "Trigonometric relations, comprehensive review and evaluation exercises",
       },
     ];
+
+    const getAssignmentWeek = (a: any): number => {
+      if (a.contentUnitId) {
+        if (a.contentUnitId === 1 || a.contentUnitId === 2) return 1;
+        if (a.contentUnitId === 3) return 2;
+        if (a.contentUnitId === 4) return 3;
+        if (a.contentUnitId === 5) return 4;
+      }
+      const t = (a.title || "").toLowerCase();
+      if (t.includes("tuần 4") || t.includes("week 4") || t.includes("midterm") || t.includes("test")) return 4;
+      if (t.includes("tuần 3") || t.includes("week 3") || t.includes("hw03") || t.includes("hw02") || t.includes("homework 02") || t.includes("quiz 02")) return 3;
+      if (t.includes("tuần 2") || t.includes("week 2") || t.includes("hw01b") || t.includes("quiz 01")) return 2;
+      if (t.includes("tuần 1") || t.includes("week 1") || t.includes("hw01") || t.includes("homework 01")) return 1;
+
+      return 1;
+    };
 
     return weekDefs.map((def) => {
       const weekMats = materials.filter((m) => m.weekNumber === def.weekNumber);
 
-      const weekAsgs = assignments.filter((a: any) => {
-        if (a.contentUnitId) {
-          if (def.weekNumber === 1 && (a.contentUnitId === 1 || a.contentUnitId === 2)) return true;
-          if (def.weekNumber === 2 && a.contentUnitId === 3) return true;
-          if (def.weekNumber === 3 && a.contentUnitId === 4) return true;
-          if (def.weekNumber === 4 && a.contentUnitId === 5) return true;
-        }
-        const t = (a.title || "").toLowerCase();
-        if (def.weekNumber === 1 && (t.includes("01") || t.includes("hw01") || t.includes("1"))) return true;
-        if (def.weekNumber === 2 && (t.includes("02") || t.includes("quiz01") || t.includes("2"))) return true;
-        if (def.weekNumber === 3 && (t.includes("03") || t.includes("hw02") || t.includes("3"))) return true;
-        if (def.weekNumber === 4 && (t.includes("04") || t.includes("midterm") || t.includes("test") || t.includes("4"))) return true;
-        return false;
-      });
-
-      if (def.weekNumber === 1) {
-        const unassigned = assignments.filter((a: any) => {
-          const t = (a.title || "").toLowerCase();
-          const matchesAny =
-            (a.contentUnitId && [1, 2, 3, 4, 5].includes(a.contentUnitId)) ||
-            t.includes("01") ||
-            t.includes("02") ||
-            t.includes("03") ||
-            t.includes("04");
-          return !matchesAny;
-        });
-        weekAsgs.push(...unassigned);
-      }
+      const weekAsgs = assignments
+        .filter((a: any) => getAssignmentWeek(a) === def.weekNumber)
+        .sort((a: any, b: any) => (a.assignmentId || 0) - (b.assignmentId || 0));
 
       return {
         ...def,
@@ -188,9 +179,9 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-collection-play-fill text-primary fs-5" />
           <div>
-            <h4 className="class-list-title mb-0">Nội Dung Khóa Học &amp; Ca Trực Theo Tuần</h4>
+            <h4 className="class-list-title mb-0">Course Content &amp; Weekly Schedule</h4>
             <span className="text-muted small">
-              Theo dõi tài liệu bài giảng và hỗ trợ chấm chữa bài tập theo tuần (Content Units)
+              Track lecture materials and support assignment grading by week (Content Units)
             </span>
           </div>
         </div>
@@ -222,7 +213,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
 
         <div className="d-flex align-items-center gap-2 text-muted small">
           <span>
-            Tổng cộng: <strong>{totalMaterials}</strong> tài liệu &middot; <strong>{totalAssignments}</strong> bài tập
+            Total: <strong>{totalMaterials}</strong> materials &middot; <strong>{totalAssignments}</strong> assignments
           </span>
         </div>
       </div>
@@ -262,11 +253,11 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                 <div className="d-flex align-items-center gap-2 flex-shrink-0">
                   <span className="badge bg-light text-secondary border px-2 py-1 small">
                     <i className="bi bi-file-earmark-text me-1 text-danger" />
-                    {week.materials.length} tài liệu
+                    {week.materials.length} materials
                   </span>
                   <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
                     <i className="bi bi-journal-check me-1" />
-                    {week.assignments.length} bài tập
+                    {week.assignments.length} assignments
                   </span>
                 </div>
               </div>
@@ -278,7 +269,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                   <div className="mb-4">
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                       <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
-                        <i className="bi bi-folder2-open text-primary" /> Tài liệu &amp; Bài giảng trong tuần
+                        <i className="bi bi-folder2-open text-primary" /> Weekly Materials &amp; Lectures
                       </span>
                     </div>
 
@@ -327,12 +318,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                 onClick={(e) => {
                                   if (!mat.fileUrl) {
                                     e.preventDefault();
-                                    alert(`Đang tải xuống tài liệu: ${mat.fileName}`);
+                                    alert(`Downloading material: ${mat.fileName}`);
                                   }
                                 }}
                                 className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center"
                                 style={{ height: "32px", width: "32px", padding: 0 }}
-                                title="Tải xuống tài liệu"
+                                title="Download material"
                               >
                                 <i className="bi bi-download" />
                               </a>
@@ -342,7 +333,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                       </div>
                     ) : (
                       <div className="p-3 text-center text-muted small bg-light-subtle rounded-2 border border-dashed">
-                        Chưa có tài liệu đính kèm cho tuần này.
+                        No attached materials for this week.
                       </div>
                     )}
                   </div>
@@ -351,7 +342,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                   <div>
                     <div className="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                       <span className="text-muted fw-bold text-uppercase small d-flex align-items-center gap-2">
-                        <i className="bi bi-journal-text text-primary" /> Bài tập &amp; Đề kiểm tra
+                        <i className="bi bi-journal-text text-primary" /> Assignments &amp; Tests
                       </span>
                     </div>
 
@@ -360,12 +351,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                         <table className="table custom-table align-middle mb-0">
                           <thead>
                             <tr>
-                              <th style={{ width: "32%" }}>Tiêu đề bài tập</th>
-                              <th style={{ width: "13%" }}>Ngày giao</th>
-                              <th style={{ width: "20%" }}>Hạn nộp</th>
-                              <th style={{ width: "20%" }}>Nộp bài &amp; Chấm điểm</th>
-                              <th style={{ width: "10%" }}>Điểm tối đa</th>
-                              <th className="text-end" style={{ width: "5%" }}>Thao tác</th>
+                              <th style={{ width: "32%" }}>Assignment Title</th>
+                              <th style={{ width: "13%" }}>Assigned Date</th>
+                              <th style={{ width: "20%" }}>Due Date</th>
+                              <th style={{ width: "20%" }}>Submissions &amp; Grading</th>
+                              <th style={{ width: "10%" }}>Max Score</th>
+                              <th className="text-end" style={{ width: "5%" }}>Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -425,14 +416,14 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                         {asg.dueDateFormatted ||
                                           (asg.dueDate
                                             ? new Date(asg.dueDate).toLocaleDateString("vi-VN")
-                                            : "Không có hạn")}
+                                            : "No due date")}
                                       </span>
                                       <span
                                         className={`badge ${
                                           isOverdue ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success"
                                         } fw-normal`}
                                       >
-                                        {isOverdue ? "Quá hạn" : "Đang mở"}
+                                        {isOverdue ? "Overdue" : "Open"}
                                       </span>
                                     </div>
                                   </td>
@@ -447,7 +438,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                             borderColor: "#dee2e6",
                                           }}
                                         >
-                                          Chờ chấm ({gradedCount}/{submissionCount})
+                                          Pending Grading ({gradedCount}/{submissionCount})
                                         </span>
                                       ) : (
                                         <span
@@ -457,18 +448,18 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                               : "bg-warning-subtle text-warning"
                                           } fw-medium px-2 py-1`}
                                         >
-                                          {isGradedDone ? "Đã chấm" : "Chờ chấm"} ({gradedCount}/{submissionCount})
+                                          {isGradedDone ? "Graded" : "Pending Grading"} ({gradedCount}/{submissionCount})
                                         </span>
                                       )
                                     ) : (
                                       <span className="badge bg-secondary-subtle text-secondary fw-normal">
-                                        Chưa có bài nộp
+                                        No submissions
                                       </span>
                                     )}
                                   </td>
                                   <td style={rowBg ? { backgroundColor: "inherit" } : undefined}>
                                     <span className="fw-bold text-dark">{asg.maxScore ?? "10.0"}</span>{" "}
-                                    <small className="text-muted">điểm</small>
+                                    <small className="text-muted">pts</small>
                                   </td>
                                   <td
                                     className="text-end"
@@ -479,7 +470,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                                         to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId}`}
                                         className="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center"
                                         style={{ height: "32px", width: "32px", padding: 0 }}
-                                        title="Hỗ trợ chấm"
+                                        title="Support grading"
                                       >
                                         <i className="bi bi-eye" />
                                       </Link>
@@ -493,7 +484,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                       </div>
                     ) : (
                       <div className="p-3 text-center text-muted small bg-light-subtle rounded-2 border border-dashed">
-                        Chưa có bài tập nào được giao cho tuần này.
+                        No assignments assigned for this week.
                       </div>
                     )}
                   </div>

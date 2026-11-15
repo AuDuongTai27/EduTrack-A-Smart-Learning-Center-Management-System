@@ -202,33 +202,107 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
         public async Task<List<TeachingSubmissionItemDto>> GetAssignmentSubmissionsAsync(int assignmentId)
         {
-            var submissions = await _context.Submissions
+            var assignment = await _context.Assignments
                 .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null)
+            {
+                return new List<TeachingSubmissionItemDto>();
+            }
+
+            // 1. Lấy danh sách học sinh đang theo học trong lớp
+            var enrolledStudents = await _context.StudentClasses
+                .AsNoTracking()
+                .Where(sc => sc.ClassId == assignment.ClassId && sc.Status != "dropped")
+                .Include(sc => sc.Student)
+                .OrderBy(sc => sc.StudentId)
+                .ToListAsync();
+
+            var studentsList = enrolledStudents.Select(sc => sc.Student).Where(s => s != null).ToList();
+
+            // 2. Lấy các bài nộp thực tế đã có trong bảng submissions
+            var existingSubmissions = await _context.Submissions
+                .AsNoTracking()
+                .Where(s => s.AssignmentId == assignmentId)
                 .Include(s => s.Student)
                 .Include(s => s.Grader)
-                .Where(s => s.AssignmentId == assignmentId)
-                .OrderByDescending(s => s.SubmittedAt)
                 .ToListAsync();
 
             var result = new List<TeachingSubmissionItemDto>();
-            foreach (var s in submissions)
+            var processedStudentIds = new HashSet<int>();
+
+            // 3. Với mỗi học sinh trong lớp, hiển thị bài nộp nếu có, hoặc hiển thị trạng thái chưa nộp
+            foreach (var student in studentsList)
+            {
+                processedStudentIds.Add(student.UserId);
+                var sub = existingSubmissions.FirstOrDefault(s => s.StudentId == student.UserId);
+
+                if (sub != null)
+                {
+                    result.Add(new TeachingSubmissionItemDto
+                    {
+                        SubmissionId = sub.SubmissionId,
+                        AssignmentId = assignmentId,
+                        StudentId = student.UserId,
+                        StudentName = student.FullName,
+                        StudentCode = student.UserCode,
+                        StudentAvatarUrl = student.AvatarUrl,
+                        FileUrl = sub.FileUrl,
+                        SubmittedAt = sub.SubmittedAt?.ToString("yyyy-MM-ddTHH:mm:ss") ?? string.Empty,
+                        SubmittedAtFormatted = sub.SubmittedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—",
+                        Score = sub.Score,
+                        Feedback = sub.Feedback,
+                        AiScore = sub.AiScore,
+                        Status = sub.Status,
+                        GradedBy = sub.GradedBy,
+                        GraderName = sub.Grader?.FullName ?? (sub.Score.HasValue ? "ThS. Hoàng Quốc Việt" : null)
+                    });
+                }
+                else
+                {
+                    // Học sinh trong lớp chưa nộp bài
+                    result.Add(new TeachingSubmissionItemDto
+                    {
+                        SubmissionId = 0,
+                        AssignmentId = assignmentId,
+                        StudentId = student.UserId,
+                        StudentName = student.FullName,
+                        StudentCode = student.UserCode,
+                        StudentAvatarUrl = student.AvatarUrl,
+                        FileUrl = null,
+                        SubmittedAt = string.Empty,
+                        SubmittedAtFormatted = "Chưa nộp bài",
+                        Score = null,
+                        Feedback = null,
+                        AiScore = null,
+                        Status = "not_submitted",
+                        GradedBy = null,
+                        GraderName = null
+                    });
+                }
+            }
+
+            // 4. Nếu có học sinh ngoài danh sách lớp mà đã nộp bài, bổ sung vào cuối
+            foreach (var sub in existingSubmissions.Where(s => !processedStudentIds.Contains(s.StudentId)))
             {
                 result.Add(new TeachingSubmissionItemDto
                 {
-                    SubmissionId = s.SubmissionId,
-                    AssignmentId = s.AssignmentId,
-                    StudentId = s.StudentId,
-                    StudentName = s.Student?.FullName ?? $"Học sinh #{s.StudentId}",
-                    StudentCode = s.Student?.UserCode ?? $"STU{s.StudentId:D3}",
-                    FileUrl = s.FileUrl,
-                    SubmittedAt = s.SubmittedAt?.ToString("yyyy-MM-ddTHH:mm:ss") ?? string.Empty,
-                    SubmittedAtFormatted = s.SubmittedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa nộp",
-                    Score = s.Score,
-                    Feedback = s.Feedback,
-                    AiScore = s.AiScore,
-                    Status = s.Status,
-                    GradedBy = s.GradedBy,
-                    GraderName = s.Grader?.FullName ?? (s.Score.HasValue ? "ThS. Hoàng Quốc Việt" : null)
+                    SubmissionId = sub.SubmissionId,
+                    AssignmentId = assignmentId,
+                    StudentId = sub.StudentId,
+                    StudentName = sub.Student?.FullName ?? $"Học sinh #{sub.StudentId}",
+                    StudentCode = sub.Student?.UserCode ?? $"STU{sub.StudentId:D3}",
+                    StudentAvatarUrl = sub.Student?.AvatarUrl,
+                    FileUrl = sub.FileUrl,
+                    SubmittedAt = sub.SubmittedAt?.ToString("yyyy-MM-ddTHH:mm:ss") ?? string.Empty,
+                    SubmittedAtFormatted = sub.SubmittedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—",
+                    Score = sub.Score,
+                    Feedback = sub.Feedback,
+                    AiScore = sub.AiScore,
+                    Status = sub.Status,
+                    GradedBy = sub.GradedBy,
+                    GraderName = sub.Grader?.FullName
                 });
             }
 

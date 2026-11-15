@@ -5,9 +5,7 @@ import {
   StudentSubmissionsTable,
   AssignmentOverviewCard,
 } from "../../../components/teacher/Teacher/assignment";
-import classDAL from "../../../../DAL/classDAL";
-import teachingDAL from "../../../../DAL/teachingDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import teachingDAL, { type TeachingClassItemDto } from "../../../../DAL/teachingDAL";
 import type { TeachingAssignmentItemDto, TeachingSubmissionItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeacherAssignmentPage() {
@@ -19,7 +17,7 @@ export default function TeacherAssignmentPage() {
   const targetAssignmentId = String(numAssignmentId);
 
   const [assignment, setAssignment] = useState<TeachingAssignmentItemDto | any | null>(null);
-  const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
+  const [classInfo, setClassInfo] = useState<TeachingClassItemDto | null>(null);
   const [submissions, setSubmissions] = useState<TeachingSubmissionItemDto[] | any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -32,8 +30,8 @@ export default function TeacherAssignmentPage() {
         // 1. Fetch real assignment detail by ID
         const asg = await teachingDAL.getAssignmentById(numAssignmentId);
 
-        // 2. Fetch class detail by ID
-        const cls = await classDAL.getClassById(numClassId);
+        // 2. Fetch class detail scoped to teacher
+        const cls = await teachingDAL.getClassById(numClassId);
 
         // 3. Fetch real submissions for this assignment
         const subs = await teachingDAL.getAssignmentSubmissions(numAssignmentId);

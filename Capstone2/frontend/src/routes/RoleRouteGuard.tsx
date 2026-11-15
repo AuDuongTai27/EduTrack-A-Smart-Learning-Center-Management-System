@@ -1,6 +1,6 @@
 import React, { useSyncExternalStore } from 'react';
 import { Navigate } from 'react-router-dom';
-import { getAuthUser, subscribeAuth } from '../api/authApi';
+import { getAuthToken, getAuthUser, subscribeAuth } from '../api/authApi';
 
 interface RoleRouteGuardProps {
   allowedRole:
@@ -44,7 +44,7 @@ export function resolveDashboardPath(role: string): string {
 export function PublicOnlyRouteGuard({ children }: { children: React.ReactElement }) {
   const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
 
-  if (authUser && authUser.userId > 0) {
+  if (authUser && authUser.userId > 0 && getAuthToken()) {
     const targetPath = authUser.redirectPath || resolveDashboardPath(authUser.primaryRole);
     return <Navigate to={targetPath} replace />;
   }
@@ -60,7 +60,7 @@ export function PublicOnlyRouteGuard({ children }: { children: React.ReactElemen
 export function RoleRouteGuard({ allowedRole, children }: RoleRouteGuardProps) {
   const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
 
-  if (!authUser || !authUser.userId) {
+  if (!authUser || !authUser.userId || !getAuthToken()) {
     return <Navigate to="/" replace />;
   }
 

@@ -17,7 +17,7 @@ export function ScheduleHeader({
   const navigatorActions = (
     <div className="week-navigator-controls d-flex align-items-center gap-2">
       <button type="button" className="btn-week-today" id="btnWeekToday" onClick={onToday}>
-        Hôm nay
+        Today
       </button>
 
       <div className="week-nav-group d-flex align-items-center">
@@ -25,7 +25,7 @@ export function ScheduleHeader({
           type="button"
           className="btn-week-nav"
           id="btnWeekPrev"
-          aria-label="Tuần trước"
+          aria-label="Previous week"
           onClick={onPrev}
         >
           <i className="bi bi-chevron-left"></i>
@@ -37,7 +37,7 @@ export function ScheduleHeader({
           type="button"
           className="btn-week-nav"
           id="btnWeekNext"
-          aria-label="Tuần sau"
+          aria-label="Next week"
           onClick={onNext}
         >
           <i className="bi bi-chevron-right"></i>
@@ -54,11 +54,11 @@ export function ScheduleHeader({
       <div className="w-100">
         <StudentPageHeader
           className="mb-0"
-          title="Lịch học"
-          subtitle="Thời khóa biểu các ca học trong tuần"
+          title="Schedule"
+          subtitle="Weekly class timetable"
           breadcrumbs={[
-            { label: 'Trang chủ', href: '/student/dashboard' },
-            { label: 'Lịch học' },
+            { label: 'Home', href: '/student/dashboard' },
+            { label: 'Schedule' },
           ]}
           actions={navigatorActions}
         />

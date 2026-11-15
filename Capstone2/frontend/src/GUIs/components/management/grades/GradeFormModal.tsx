@@ -37,22 +37,22 @@ export default function GradeFormModal({id, onClose, onSaved}: {
   };
   return <div className="modal show d-block" role="dialog" aria-modal="true" aria-labelledby="grade-form-title" style={{backgroundColor: "rgba(0,0,0,0.5)"}}>
     <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div className="modal-content border-0 shadow-lg">
-      <div className="modal-header bg-primary text-white"><h5 id="grade-form-title" className="modal-title fw-bold">{id === undefined ? "Thêm khối lớp" : "Chỉnh sửa khối lớp"}</h5>
-        <button type="button" className="btn-close btn-close-white" aria-label="Đóng" disabled={saving} onClick={onClose} /></div>
+      <div className="modal-header bg-primary text-white"><h5 id="grade-form-title" className="modal-title fw-bold">{id === undefined ? "Add Grade" : "Edit Grade"}</h5>
+        <button type="button" className="btn-close btn-close-white" aria-label="Close" disabled={saving} onClick={onClose} /></div>
       <form onSubmit={submit} noValidate>
         <div className="modal-body p-4">
-          {loading && <div className="text-muted" role="status">Đang tải khối lớp...</div>}
-          {error && <div className="alert alert-danger" role="alert">{error}{id !== undefined && !name && <button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => {setLoading(true); setError(null); setRevision(v => v + 1);}}>Thử lại</button>}</div>}
-          {!loading && <div><label htmlFor="grade-name" className="form-label fw-semibold">Tên khối lớp <span className="text-danger">*</span></label>
+          {loading && <div className="text-muted" role="status">Loading grade...</div>}
+          {error && <div className="alert alert-danger" role="alert">{error}{id !== undefined && !name && <button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => {setLoading(true); setError(null); setRevision(v => v + 1);}}>Retry</button>}</div>}
+          {!loading && <div><label htmlFor="grade-name" className="form-label fw-semibold">Grade Name <span className="text-danger">*</span></label>
             <input id="grade-name" name="gradeName" className={`form-control${fieldError ? " is-invalid" : ""}`} value={name} maxLength={50} required
-              placeholder="VD: Khối 10, Luyện thi đại học" disabled={saving || (id !== undefined && !!error && !name)}
+              placeholder="e.g., Grade 10, University Prep" disabled={saving || (id !== undefined && !!error && !name)}
               aria-invalid={!!fieldError} aria-describedby={fieldError ? "grade-name-error" : undefined}
               onChange={event => {setName(event.target.value); setFieldError(null);}} />
             {fieldError && <div id="grade-name-error" className="invalid-feedback">{fieldError}</div>}
           </div>}
         </div>
-        <div className="modal-footer bg-light"><button type="button" className="btn btn-outline-secondary" disabled={saving} onClick={onClose}>Hủy bỏ</button>
-          <button type="submit" className="btn btn-primary" disabled={loading || saving || (id !== undefined && !!error && !name)}>{saving ? "Đang lưu..." : "Lưu khối lớp"}</button></div>
+        <div className="modal-footer bg-light"><button type="button" className="btn btn-outline-secondary" disabled={saving} onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary" disabled={loading || saving || (id !== undefined && !!error && !name)}>{saving ? "Saving..." : "Save Grade"}</button></div>
       </form>
     </div></div>
   </div>;

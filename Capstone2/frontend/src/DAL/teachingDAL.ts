@@ -31,6 +31,7 @@ import type { TeachingNotificationDto } from '../BLL/models/teaching/TeachingNot
 export type {
   TeacherProfileDto,
   UpdateTeacherProfilePayload,
+  TeachingClassItemDto,
   TeachingClassAttendanceSheetDto,
   TeachingSessionItemDto,
   TeachingStudentAttendanceItemDto,
@@ -99,45 +100,45 @@ export const teachingDAL = {
         fullName: isTa ? '[MOCK] Âu Dương Tài' : '[MOCK] ThS. Hoàng Quốc Việt',
         email: isTa ? 'tai.auduong@edutrack.edu.vn' : 'viet.hoang@edutrack.edu.vn',
         phone: isTa ? '0912 345 678' : '0903 123 456',
-        specialty: isTa ? '[MOCK] Trợ giảng Toán & Khoa học' : '[MOCK] Toán học & Luyện thi',
+        specialty: isTa ? '[MOCK] Teaching Assistant in Math & Science' : '[MOCK] Mathematics & Exam Preparation',
         avatarUrl: '/assets/img/profiles/avatar-27.jpg',
-        roleTitle: isTa ? '[MOCK] Trợ giảng chuyên môn' : '[MOCK] Giáo viên chuyên môn',
+        roleTitle: isTa ? '[MOCK] Teaching Assistant' : '[MOCK] Teacher',
         role: isTa ? 'teaching_assistant' : 'teacher',
       },
       kpis: {
-        activeAssignments: isTa ? 10 : 8,
-        assignmentsDueToday: isTa ? 4 : 3,
-        activeClasses: 6,
-        classesToday: isTa ? 3 : 2,
-        totalStudents: isTa ? 50 : 45,
-        pendingAttendance: isTa ? 2 : 1,
+        activeAssignments: 0,
+        assignmentsDueToday: 0,
+        activeClasses: isTa ? 2 : 1,
+        classesToday: 0,
+        totalStudents: isTa ? 3 : (userId === 3 ? 3 : 2),
+        pendingAttendance: 0,
       },
-      todayClasses: [
-        {
-          classId: 1,
-          className: '[MOCK] Class 9 - Advanced Mathematics',
-          timePeriod: '18:00 - 20:00',
-          startTime: '18:00',
-          endTime: '20:00',
-          room: 'Room 201',
-          subjectName: '[MOCK] Mathematics',
-          studentsCount: 3,
-          status: 'Upcoming',
-          attendanceTaken: false,
-        },
-      ],
+      todayClasses: [],
       notifications: [
         {
           notificationId: 1,
-          title: '[MOCK] Họp hội đồng chuyên môn Tháng 11',
-          description: '[MOCK] Kính mời quý thầy cô tham gia buổi họp đánh giá tiến độ giữa kỳ vào 15:00 Thứ Sáu tuần này.',
-          sender: '[MOCK] Ban Giám Đốc EduTrack',
+          title: '[MOCK] Academic Council Meeting - November',
+          description: '[MOCK] Teachers are cordially invited to attend the mid-term progress review meeting at 15:00 this Friday.',
+          sender: '[MOCK] EduTrack Board of Directors',
           initials: 'ET',
           initialsBgClass: 'bg-primary-subtle',
           initialsColorClass: 'text-primary',
           isNew: true,
           isRead: false,
-          timeAgo: '2 giờ trước',
+          timeAgo: '2 hours ago',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          notificationId: 2,
+          title: '[MOCK] Reminder to update periodic test results',
+          description: '[MOCK] The system has opened the portal to enter grades and student progress evaluations for last week\'s tests.',
+          sender: '[MOCK] Academic Affairs Office',
+          initials: 'AA',
+          initialsBgClass: 'bg-warning-subtle',
+          initialsColorClass: 'text-warning',
+          isNew: true,
+          isRead: false,
+          timeAgo: '5 hours ago',
           createdAt: new Date().toISOString(),
         },
       ],
@@ -203,26 +204,69 @@ export const teachingDAL = {
     }
 
     const isTa = targetUserId === 5;
-    const fallbackClasses: TeachingClassItemDto[] = [
-      {
-        classId: 1,
-        className: '[MOCK] Class 9 - Advanced Mathematics',
-        subjectId: 1,
-        subjectName: '[MOCK] Mathematics',
-        subjectCode: 'MATH9',
-        room: 'Room 201',
-        tuitionFee: 3500000,
-        startDate: '2026-09-01',
-        status: 'active',
-        studentCount: 30,
-        teacherName: '[MOCK] ThS. Hoàng Quốc Việt',
-        taName: '[MOCK] Âu Dương Tài',
-        partnerName: isTa ? '[MOCK] ThS. Hoàng Quốc Việt' : '[MOCK] Âu Dương Tài',
-        scheduleSummary: '[MOCK] Thứ Hai, Thứ Tư (18:00 - 20:00)',
-      },
-    ];
+    const fallbackClasses: TeachingClassItemDto[] = isTa
+      ? [
+        {
+          classId: 1,
+          className: '[MOCK] Class 9 - Advanced Mathematics',
+          subjectId: 1,
+          subjectName: '[MOCK] Mathematics',
+          subjectCode: 'MATH9',
+          room: 'Room 201',
+          tuitionFee: 3500000,
+          startDate: '2026-09-01',
+          status: 'active',
+          studentCount: 30,
+          teacherName: '[MOCK] ThS. Hoàng Quốc Việt',
+          taName: '[MOCK] Âu Dương Tài',
+          partnerName: '[MOCK] ThS. Hoàng Quốc Việt',
+          scheduleSummary: '[MOCK] Monday, Wednesday (18:00 - 20:00)',
+        },
+        {
+          classId: 2,
+          className: '[MOCK] Class 10 - Physics Fundamentals',
+          subjectId: 2,
+          subjectName: '[MOCK] Physics',
+          subjectCode: 'PHYS10',
+          room: 'Room 202',
+          tuitionFee: 3200000,
+          startDate: '2026-09-01',
+          status: 'active',
+          studentCount: 25,
+          teacherName: '[MOCK] Huỳnh Bá Duy',
+          taName: '[MOCK] Âu Dương Tài',
+          partnerName: '[MOCK] Huỳnh Bá Duy',
+          scheduleSummary: '[MOCK] Tuesday, Thursday (18:00 - 20:00)',
+        },
+      ]
+      : [
+        {
+          classId: 1,
+          className: '[MOCK] Class 9 - Advanced Mathematics',
+          subjectId: 1,
+          subjectName: '[MOCK] Mathematics',
+          subjectCode: 'MATH9',
+          room: 'Room 201',
+          tuitionFee: 3500000,
+          startDate: '2026-09-01',
+          status: 'active',
+          studentCount: 30,
+          teacherName: '[MOCK] ThS. Hoàng Quốc Việt',
+          taName: '[MOCK] Âu Dương Tài',
+          partnerName: '[MOCK] Âu Dương Tài',
+          scheduleSummary: '[MOCK] Monday, Wednesday (18:00 - 20:00)',
+        },
+      ];
 
     return { success: true, data: fallbackClasses, isLiveApi: false };
+  },
+
+  /**
+   * Lấy thông tin chi tiết lớp học mà Giáo viên / Trợ giảng phụ trách
+   */
+  async getClassById(classId: number, userId?: number): Promise<TeachingClassItemDto | null> {
+    const listRes = await this.getMyClasses(userId ?? 0);
+    return listRes.data.find((c) => c.classId === classId) || null;
   },
 
   /**
@@ -245,14 +289,46 @@ export const teachingDAL = {
         fullName: '[MOCK] Lê Văn An',
         email: 'an.le@student.edutrack.edu.vn',
         phone: '0901 234 567',
-        gender: 'Nam',
+        gender: 'Male',
         dob: '15/08/2011',
         enrollmentDate: '01/09/2026',
         status: 'active',
-        parentName: '[MOCK] Lê Văn Hùng (Bố)',
+        parentName: '[MOCK] Le Van Hung (Father)',
         parentPhone: '0912 345 678',
         attendanceRate: 95,
         totalAttendedSessions: 19,
+        totalSessions: 20,
+      },
+      {
+        studentId: 7,
+        studentCode: 'STU002',
+        fullName: '[MOCK] Phạm Thị Bích',
+        email: 'bich.pham@student.edutrack.edu.vn',
+        phone: '0902 345 678',
+        gender: 'Female',
+        dob: '20/11/2011',
+        enrollmentDate: '01/09/2026',
+        status: 'active',
+        parentName: '[MOCK] Pham Van Nam (Father)',
+        parentPhone: '0913 456 789',
+        attendanceRate: 90,
+        totalAttendedSessions: 18,
+        totalSessions: 20,
+      },
+      {
+        studentId: 8,
+        studentCode: 'STU003',
+        fullName: '[MOCK] Đặng Minh Cường',
+        email: 'cuong.dang@student.edutrack.edu.vn',
+        phone: '0903 456 789',
+        gender: 'Male',
+        dob: '05/03/2011',
+        enrollmentDate: '01/09/2026',
+        status: 'active',
+        parentName: '[MOCK] Dang Quoc Bao (Father)',
+        parentPhone: '0914 567 890',
+        attendanceRate: 85,
+        totalAttendedSessions: 17,
         totalSessions: 20,
       },
     ];
@@ -317,10 +393,10 @@ export const teachingDAL = {
 
     const fallbackProgress: TeachingClassProgressDto = {
       classId: classId || 1,
-      className: classId === 2 ? '[MOCK] Lớp 9B1 - Vật Lý Chuyên Sâu' : '[MOCK] Lớp 9A1 - Toán Nâng Cao',
-      subjectName: classId === 2 ? '[MOCK] Vật lý' : '[MOCK] Toán học',
+      className: classId === 2 ? '[MOCK] Class 9B1 - Advanced Physics' : '[MOCK] Class 9A1 - Advanced Math',
+      subjectName: classId === 2 ? '[MOCK] Physics' : '[MOCK] Mathematics',
       teacherName: '[MOCK] ThS. Hoàng Quốc Việt',
-      totalStudents: 1,
+      totalStudents: 6,
       totalSessions: 20,
       completedSessions: 12,
       latestAssignmentTitle: '[MOCK] Homework 01: Quadratic Equations',
@@ -342,7 +418,100 @@ export const teachingDAL = {
           latestAssignmentStatus: 'Submitted',
           latestAssignmentScore: 9.5,
           maxScore: 10,
-          latestNote: '[MOCK] Học sinh tiếp thu tốt, làm bài tập đầy đủ.',
+          latestNote: '[MOCK] Student grasps concepts well, completes all assignments.',
+        },
+        {
+          studentId: 102,
+          studentCode: 'STU002',
+          fullName: '[MOCK] Trần Minh Đức',
+          avatarInitials: 'TD',
+          email: 'duc.tran@edutrack.edu.vn',
+          phone: '0901234562',
+          presentDays: 18,
+          absentDays: 1,
+          lateDays: 1,
+          totalDays: 20,
+          attendancePercentage: 90,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: '[MOCK] Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Late',
+          latestAssignmentScore: 8.0,
+          maxScore: 10,
+          latestNote: '[MOCK] Submitted slightly late, but solutions are correct.',
+        },
+        {
+          studentId: 103,
+          studentCode: 'STU003',
+          fullName: '[MOCK] Nguyễn Thảo Linh',
+          avatarInitials: 'NL',
+          email: 'linh.nguyen@edutrack.edu.vn',
+          phone: '0901234563',
+          presentDays: 20,
+          absentDays: 0,
+          lateDays: 0,
+          totalDays: 20,
+          attendancePercentage: 100,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: '[MOCK] Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Graded',
+          latestAssignmentScore: 10.0,
+          maxScore: 10,
+          latestNote: '[MOCK] Excellent, very strong logical thinking.',
+        },
+        {
+          studentId: 104,
+          studentCode: 'STU004',
+          fullName: '[MOCK] Phạm Hoàng Nam',
+          avatarInitials: 'PN',
+          email: 'nam.pham@edutrack.edu.vn',
+          phone: '0901234564',
+          presentDays: 15,
+          absentDays: 3,
+          lateDays: 2,
+          totalDays: 20,
+          attendancePercentage: 75,
+          attendanceStatus: 'Late',
+          latestAssignmentTitle: '[MOCK] Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Missing',
+          latestAssignmentScore: null,
+          maxScore: 10,
+          latestNote: '[MOCK] Need to remind parents regarding absences and missing assignments.',
+        },
+        {
+          studentId: 105,
+          studentCode: 'STU005',
+          fullName: '[MOCK] Vũ Bảo Ngọc',
+          avatarInitials: 'VN',
+          email: 'ngoc.vu@edutrack.edu.vn',
+          phone: '0901234565',
+          presentDays: 18,
+          absentDays: 2,
+          lateDays: 0,
+          totalDays: 20,
+          attendancePercentage: 90,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: '[MOCK] Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Submitted',
+          latestAssignmentScore: 8.5,
+          maxScore: 10,
+        },
+        {
+          studentId: 106,
+          studentCode: 'STU006',
+          fullName: '[MOCK] Đặng Tuấn Anh',
+          avatarInitials: 'DA',
+          email: 'anh.dang@edutrack.edu.vn',
+          phone: '0901234566',
+          presentDays: 17,
+          absentDays: 2,
+          lateDays: 1,
+          totalDays: 20,
+          attendancePercentage: 85,
+          attendanceStatus: 'Present',
+          latestAssignmentTitle: '[MOCK] Homework 01: Quadratic Equations',
+          latestAssignmentStatus: 'Submitted',
+          latestAssignmentScore: 9.0,
+          maxScore: 10,
         },
       ],
     };
@@ -395,19 +564,51 @@ export const teachingDAL = {
         requestId: 101,
         requestCode: 'AR0101',
         requestType: 'leave_request',
-        title: isTa ? '[MOCK] Đơn xin nghỉ phép trực buổi tối 25/08' : '[MOCK] Đơn xin nghỉ phép giảng dạy ngày 20/08',
-        description: '[MOCK] Dữ liệu dự phòng khi mất kết nối API.',
+        title: isTa ? '[MOCK] Leave request for evening duty on 08/25' : '[MOCK] Leave request for teaching on 08/20',
+        description: isTa
+          ? '[MOCK] I have a professional certification graduation exam on the evening of 08/25, so I request leave from duty for class 9A1.'
+          : '[MOCK] I have an unexpected business trip on 08/20/2026, so I request to reschedule the session to next Sunday.',
         requestedBy: targetUserId,
         requesterName: isTa ? '[MOCK] Âu Dương Tài' : '[MOCK] ThS. Hoàng Quốc Việt',
         reviewedBy: 1,
         reviewerName: '[MOCK] Admin EduTrack',
         priority: 'medium',
         status: 'approved',
-        statusLabel: 'Đã duyệt',
+        statusLabel: 'Approved',
         canEdit: false,
         createdAt: '2026-08-16T15:45:00Z',
         reviewedAt: '2026-08-17T09:00:00Z',
-        reviewNotes: '[MOCK] Đồng ý cho đổi lịch sang Chủ Nhật.',
+        reviewNotes: '[MOCK] Agreed to reschedule to Sunday.',
+      },
+      {
+        requestId: 102,
+        requestCode: 'AR0102',
+        requestType: 'facility_request',
+        title: '[MOCK] Proposal to upgrade microphone and projector in Room 201',
+        description: '[MOCK] The teaching microphone in room 201 is crackling; requesting IT department to check, replace batteries, or upgrade.',
+        requestedBy: targetUserId,
+        requesterName: isTa ? '[MOCK] Âu Dương Tài' : '[MOCK] ThS. Hoàng Quốc Việt',
+        priority: 'high',
+        status: 'pending',
+        statusLabel: 'Pending Review',
+        canEdit: true,
+        createdAt: '2026-08-18T10:30:00Z',
+      },
+      {
+        requestId: 103,
+        requestCode: 'AR0103',
+        requestType: 'schedule_change',
+        title: '[MOCK] Request to open tutoring session for struggling students',
+        description: '[MOCK] Proposing that the center open 2 additional tutoring sessions on Quadratic Equations for students in class 9A1.',
+        requestedBy: targetUserId,
+        requesterName: isTa ? '[MOCK] Âu Dương Tài' : '[MOCK] ThS. Hoàng Quốc Việt',
+        priority: 'medium',
+        status: 'pending',
+        statusLabel: 'Pending',
+        canEdit: false,
+        reviewedBy: 1,
+        reviewerName: '[MOCK] Admin EduTrack',
+        createdAt: '2026-08-19T14:15:00Z',
       },
     ];
 
@@ -452,12 +653,12 @@ export const teachingDAL = {
       email: isTa ? 'tai.auduong@edutrack.edu.vn' : 'viet.hoang@edutrack.edu.vn',
       phone: isTa ? '0912 345 678' : '0903 123 456',
       dateOfBirth: isTa ? '1998-05-15' : '1990-11-10',
-      gender: 'Nam',
+      gender: 'Male',
       enrolledSince: '15/08/2023',
-      specialty: isTa ? '[MOCK] Trợ giảng Toán & Khoa học' : '[MOCK] Toán học & Luyện thi',
+      specialty: isTa ? '[MOCK] Teaching Assistant in Math & Science' : '[MOCK] Mathematics & Exam Preparation',
       avatarUrl: '/assets/img/profiles/avatar-27.jpg',
       address: '[MOCK] 123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh',
-      roleTitle: isTa ? '[MOCK] Trợ giảng chuyên môn' : '[MOCK] Giáo viên chuyên môn',
+      roleTitle: isTa ? '[MOCK] Teaching Assistant' : '[MOCK] Teacher',
       role: isTa ? 'teaching_assistant' : 'teacher',
       activeClassesCount: isTa ? 3 : 2,
       totalStudentsCount: isTa ? 50 : 35,
@@ -521,9 +722,9 @@ export const teachingDAL = {
       startTime: '18:00',
       endTime: '20:00',
       timePeriod: '18:00 - 20:00',
-      room: 'Phòng 201',
+      room: 'Room 201',
       status: 'scheduled',
-      title: '[MOCK] Buổi 1: 08/09/2026 (18:00 - 20:00) - Phòng 201',
+      title: '[MOCK] Session 1: 08/09/2026 (18:00 - 20:00) - Room 201',
       isRecorded: false,
       presentCount: 0,
       absentCount: 0,
@@ -542,13 +743,31 @@ export const teachingDAL = {
         note: '',
         isRecorded: false,
       },
+      {
+        studentId: 7,
+        studentCode: 'STU002',
+        fullName: '[MOCK] Trần Thị Bình',
+        avatarUrl: '/assets/img/profiles/avatar-27.jpg',
+        status: 'present',
+        note: '',
+        isRecorded: false,
+      },
+      {
+        studentId: 8,
+        studentCode: 'STU003',
+        fullName: '[MOCK] Lê Hoàng Cường',
+        avatarUrl: '/assets/img/profiles/avatar-27.jpg',
+        status: 'late',
+        note: '[MOCK] Late by 10 minutes',
+        isRecorded: false,
+      },
     ];
 
     return {
       classId,
-      className: `[MOCK] Class #${classId} - Toán nâng cao`,
-      subjectName: '[MOCK] Toán học',
-      room: 'Phòng 201',
+      className: `[MOCK] Class #${classId} - Advanced Math`,
+      subjectName: '[MOCK] Mathematics',
+      room: '[MOCK] Room 201',
       currentSession: activeSession,
       availableSessions: [activeSession],
       students: fallbackStudents,
@@ -584,15 +803,32 @@ export const teachingDAL = {
         startTime: '18:00',
         endTime: '20:00',
         timePeriod: '18:00 - 20:00',
-        room: 'Phòng 201',
+        room: 'Room 201',
         status: 'completed',
-        title: '[MOCK] Buổi 1: 08/09/2026 (18:00 - 20:00) - Phòng 201',
+        title: '[MOCK] Session 1: 08/09/2026 (18:00 - 20:00) - Room 201',
         isRecorded: true,
         presentCount: 2,
         absentCount: 0,
         lateCount: 1,
         excusedCount: 0,
         totalRecorded: 3,
+      },
+      {
+        sessionId: 2,
+        classId,
+        sessionDate: '2026-09-10',
+        startTime: '18:00',
+        endTime: '20:00',
+        timePeriod: '18:00 - 20:00',
+        room: 'Room 201',
+        status: 'scheduled',
+        title: '[MOCK] Session 2: 10/09/2026 (18:00 - 20:00) - Room 201',
+        isRecorded: false,
+        presentCount: 0,
+        absentCount: 0,
+        lateCount: 0,
+        excusedCount: 0,
+        totalRecorded: 0,
       },
     ];
   },
@@ -717,7 +953,7 @@ export const teachingDAL = {
   async getAssignmentSubmissions(id: number): Promise<TeachingSubmissionItemDto[]> {
     try {
       const list = await teachingApi.getAssignmentSubmissions(id);
-      if (Array.isArray(list)) {
+      if (list && Array.isArray(list)) {
         return list;
       }
     } catch (err: any) {
@@ -726,20 +962,43 @@ export const teachingDAL = {
 
     return [
       {
-        submissionId: 1,
+        submissionId: 0,
         assignmentId: id,
         studentId: 6,
         studentName: '[MOCK] Lê Văn An',
         studentCode: 'STU001',
-        fileUrl: '/uploads/submissions/an_le_hw01.pdf',
-        submittedAt: '2026-08-10T15:45:00',
-        submittedAtFormatted: '10/08/2026 15:45',
-        score: 9.5,
-        feedback: '[MOCK] Bài làm rất tốt, cách giải ngắn gọn và chuẩn xác.',
-        aiScore: 9.2,
-        status: 'graded',
-        gradedBy: 3,
-        graderName: '[MOCK] ThS. Hoàng Quốc Việt',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Not submitted',
+        score: null,
+        feedback: null,
+        status: 'not_submitted',
+      },
+      {
+        submissionId: 0,
+        assignmentId: id,
+        studentId: 7,
+        studentName: '[MOCK] Phạm Thị Bích',
+        studentCode: 'STU002',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Not submitted',
+        score: null,
+        feedback: null,
+        status: 'not_submitted',
+      },
+      {
+        submissionId: 0,
+        assignmentId: id,
+        studentId: 8,
+        studentName: '[MOCK] Đặng Minh Cường',
+        studentCode: 'STU003',
+        fileUrl: undefined,
+        submittedAt: '',
+        submittedAtFormatted: 'Not submitted',
+        score: null,
+        feedback: null,
+        status: 'not_submitted',
       },
     ];
   },
@@ -813,7 +1072,7 @@ export const teachingDAL = {
     const fallbackDetail: TeachingStudentProgressDetailDto = {
       studentId,
       studentCode: `STU${String(studentId).padStart(3, '0')}`,
-      fullName: studentId === 6 ? '[MOCK] Lê Văn An' : (studentId === 7 ? '[MOCK] Phạm Thị Bích' : `[MOCK] Học viên #${studentId}`),
+      fullName: studentId === 6 ? '[MOCK] Lê Văn An' : (studentId === 7 ? '[MOCK] Phạm Thị Bích' : `[MOCK] Student #${studentId}`),
       avatarInitials: studentId === 6 ? 'LA' : (studentId === 7 ? 'PB' : 'HV'),
       email: `student${studentId}@edutrack.edu.vn`,
       phone: '0901 234 567',
@@ -821,14 +1080,14 @@ export const teachingDAL = {
       absentDays: 1,
       totalDays: 20,
       attendancePercentage: 95,
-      className: classId === 2 ? '[MOCK] Lớp 9B1 - Vật Lý Chuyên Sâu' : '[MOCK] Lớp 9A1 - Toán Nâng Cao',
-      subjectName: classId === 2 ? '[MOCK] Vật lý' : '[MOCK] Toán học',
+      className: classId === 2 ? '[MOCK] Class 9B1 - Advanced Physics' : '[MOCK] Class 9A1 - Advanced Math',
+      subjectName: classId === 2 ? '[MOCK] Physics' : '[MOCK] Mathematics',
       avgScore: '9.2',
       assignments: [
         {
           assignmentId: 1,
           title: '[MOCK] Homework 01: Quadratic Equations Problem Set',
-          weekTitle: '[MOCK] Tuần 1. Homework 01: Quadratic Equations Problem Set',
+          weekTitle: '[MOCK] Week 1. Homework 01: Quadratic Equations Problem Set',
           dueDate: '14/09/2026 23:59',
           submittedAt: '13/09/2026 20:30',
           status: 'graded',
@@ -836,21 +1095,34 @@ export const teachingDAL = {
           maxScore: 10,
           aiScore: 9.5,
           submissionFileUrl: 'https://storage.edutrack.edu.vn/submissions/hw01.pdf',
-          teacherFeedback: '[MOCK] Bài làm rất xuất sắc.',
-          aiFeedback: '[MOCK] Độ chính xác cao.',
+          teacherFeedback: '[MOCK] Excellent work, all quadratic equation transformation steps are accurate.',
+          aiFeedback: '[MOCK] High accuracy across all problems. Proper application of Vieta theorem.',
+        },
+        {
+          assignmentId: 2,
+          title: '[MOCK] Quiz 01: Applications of Vieta Theorem',
+          weekTitle: '[MOCK] Week 2. Quiz 01: Applications of Vieta Theorem',
+          dueDate: '20/09/2026 23:59',
+          submittedAt: '20/09/2026 21:15',
+          status: 'graded',
+          score: 8.5,
+          maxScore: 10,
+          aiScore: 8.5,
+          submissionFileUrl: 'https://storage.edutrack.edu.vn/submissions/quiz01.pdf',
+          teacherFeedback: '[MOCK] Mastered symmetric expressions. Pay closer attention to calculations.',
         },
       ],
       evaluations: [
         {
           id: 1,
           evaluatorName: '[MOCK] ThS. Hoàng Quốc Việt',
-          evaluatorRole: 'Giáo viên',
+          evaluatorRole: '[MOCK] Teacher',
           evaluationType: 'attitude',
-          typeLabel: 'Thái độ & Tinh thần học tập',
+          typeLabel: 'Attitude & Learning Spirit',
           rating: 'excellent',
-          ratingLabel: 'Xuất sắc / Rất tích cực',
-          content: '[MOCK] Dữ liệu dự phòng khi mất kết nối API.',
-          suggestions: '[MOCK] Phát huy tinh thần tự học.',
+          ratingLabel: '[MOCK] Excellent / Very Positive',
+          content: '[MOCK] Always on time, serious learning attitude, actively volunteers to solve problems on the board.',
+          suggestions: '[MOCK] Maintain current self-study spirit and provide more support to group peers.',
           createdAt: '18/09/2026',
         },
       ],
@@ -888,11 +1160,11 @@ export const teachingDAL = {
     const fallbackItem: TeachingStudentEvaluationItemDto = {
       id: Date.now(),
       evaluatorName: `[MOCK] ${payload.evaluatorName || 'ThS. Hoàng Quốc Việt'}`,
-      evaluatorRole: payload.evaluatorRole || 'Giáo viên',
+      evaluatorRole: payload.evaluatorRole || 'Teacher',
       evaluationType: payload.evaluationType,
-      typeLabel: payload.typeLabel || 'Thái độ & Tinh thần học tập',
+      typeLabel: payload.typeLabel || 'Attitude & Learning Spirit',
       rating: payload.rating,
-      ratingLabel: payload.ratingLabel || 'Tốt / Đạt yêu cầu',
+      ratingLabel: payload.ratingLabel || 'Good / Meets Requirements',
       content: `[MOCK] ${payload.content}`,
       suggestions: payload.suggestions,
       createdAt: new Date().toLocaleDateString('vi-VN'),
@@ -901,5 +1173,48 @@ export const teachingDAL = {
     return { success: true, data: fallbackItem, isLiveApi: false };
   },
 };
+
+/**
+ * Kiểm tra xem một buổi học đã bắt đầu hay chưa (dựa theo ngày và giờ bắt đầu)
+ */
+export function isSessionStarted(session?: {
+  sessionDate?: string;
+  startTime?: string;
+  status?: string;
+  isRecorded?: boolean;
+  hasStarted?: boolean;
+}): boolean {
+  if (!session) return false;
+  if (typeof session.hasStarted === 'boolean') {
+    return session.hasStarted;
+  }
+  if (session.isRecorded || session.status === 'completed' || session.status === 'in_progress') {
+    return true;
+  }
+  if (!session.sessionDate) {
+    return true;
+  }
+
+  try {
+    let dateStr = session.sessionDate.trim();
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        dateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    const startTimeStr = session.startTime?.trim() || '00:00';
+    const [h, m] = startTimeStr.split(':').map(Number);
+    const sessionDateTime = new Date(`${dateStr}T${String(h || 0).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}:00`);
+
+    if (isNaN(sessionDateTime.getTime())) {
+      return true;
+    }
+
+    return new Date() >= sessionDateTime;
+  } catch {
+    return true;
+  }
+}
 
 export default teachingDAL;

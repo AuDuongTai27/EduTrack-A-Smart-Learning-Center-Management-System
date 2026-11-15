@@ -5,8 +5,10 @@ import type { TuitionDto, PaymentDto } from "../BLL/models/TuitionDto";
 import type { ParentStudentDto } from "./parentStudentApi";
 import { apiError } from "./apiError";
 import { readClassResponse } from "./classApi";
+import { getAuthHeaders } from "./authApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const defaultHeaders = () => ({ "Content-Type": "application/json", ...getAuthHeaders() });
 
 export interface CreateStudentRequest {
   userCode: string;
@@ -90,10 +92,10 @@ export const managementApi = {
     let response: Response;
     try {
       response = await fetch(`${API_BASE_URL}/users/students`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        method: "POST", headers: defaultHeaders(), body: JSON.stringify(data),
       });
     } catch {
-      throw new Error("Mất kết nối khi lưu học sinh và đăng ký lớp. Giữ nguyên form và bấm Lưu hồ sơ để thử lại an toàn cùng yêu cầu.");
+      throw new Error("Connection lost while saving student and enrolling in classes. Keep the form open and click Save Profile to safely retry with the same request.");
     }
     if (!response.ok) {
       if (response.status === 409) {
@@ -102,13 +104,13 @@ export const managementApi = {
           && conflict.existingStudentId > 0 && conflict.existingStudentCode === data.userCode)
           throw new StudentCreationConflictError(conflict.message, conflict.existingStudentId, conflict.existingStudentCode);
       }
-      throw await apiError(response, "Không thể hoàn tất việc lưu học sinh và đăng ký lớp. Giữ nguyên form và thử lại.");
+      throw await apiError(response, "Could not complete saving student and enrolling in classes. Keep the form open and try again.");
     }
     const result = await response.json().catch(() => null);
     if (!result || !Number.isSafeInteger(result.userId) || result.userId <= 0
       || result.userCode !== data.userCode || result.gradeId !== data.gradeId
       || typeof result.fullName !== "string" || !result.roles?.includes("student"))
-      throw new Error("Máy chủ chưa xác nhận kết quả hợp lệ. Giữ nguyên form và bấm Lưu hồ sơ để kiểm tra lại cùng yêu cầu.");
+      throw new Error("Server has not confirmed a valid result. Keep the form open and click Save Profile to check again with the same request.");
     return result;
   },
   // ==========================================================================
@@ -125,7 +127,7 @@ export const managementApi = {
   }): Promise<UserDto> {
     const res = await fetch(`${API_BASE_URL}/users`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -152,13 +154,13 @@ export const managementApi = {
   ): Promise<UserDto> {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw await apiError(res, "Không thể cập nhật hồ sơ.");
+    if (!res.ok) throw await apiError(res, "Failed to update profile.");
     const updated: UserDto = await res.json();
     if ("gradeId" in data && updated.gradeId !== data.gradeId)
-      throw new Error("Máy chủ chưa xác nhận khối lớp đã lưu. Vui lòng mở lại hồ sơ để kiểm tra trước khi thử lại.");
+      throw new Error("Server has not confirmed the saved grade level. Please reopen the profile to verify before trying again.");
     return updated;
   },
 
@@ -168,7 +170,7 @@ export const managementApi = {
   ): Promise<{ success: boolean; status: string; message: string }> {
     const res = await fetch(`${API_BASE_URL}/users/${id}/status`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify({ status }),
     });
     if (!res.ok) {
@@ -183,7 +185,7 @@ export const managementApi = {
   async deleteUser(id: number): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
@@ -206,7 +208,7 @@ export const managementApi = {
   }): Promise<ParentStudentDto> {
     const res = await fetch(`${API_BASE_URL}/parentstudents`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(dto),
     });
     if (!res.ok) {
@@ -226,7 +228,7 @@ export const managementApi = {
       `${API_BASE_URL}/parentstudents/${parentId}/${studentId}`,
       {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: defaultHeaders(),
       },
     );
     if (!res.ok) {
@@ -248,7 +250,7 @@ export const managementApi = {
   }): Promise<SubjectDto> {
     const res = await fetch(`${API_BASE_URL}/subjects`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -266,7 +268,7 @@ export const managementApi = {
   ): Promise<SubjectDto> {
     const res = await fetch(`${API_BASE_URL}/subjects/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -283,7 +285,7 @@ export const managementApi = {
   ): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`${API_BASE_URL}/subjects/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
@@ -300,11 +302,11 @@ export const managementApi = {
   async createClass(data: CreateClassRequest): Promise<ClassDto> {
     const res = await fetch(`${API_BASE_URL}/classes`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      throw await apiError(res, "Không thể tạo lớp học.");
+      throw await apiError(res, "Failed to create class.");
     }
     return readClassResponse(await res.json());
   },
@@ -312,26 +314,26 @@ export const managementApi = {
   async updateClass(id: number, data: UpdateClassRequest): Promise<ClassDto> {
     const res = await fetch(`${API_BASE_URL}/classes/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      throw await apiError(res, "Không thể cập nhật lớp học.");
+      throw await apiError(res, "Failed to update class.");
     }
     const item = readClassResponse(await res.json());
-    if (item.classId !== id) throw new Error("Phản hồi cập nhật không đúng lớp. Hãy tải lại danh sách để kiểm tra.");
+    if (item.classId !== id) throw new Error("Update response does not match class. Please reload the list to verify.");
     return item;
   },
 
   async deleteClass(id: number): Promise<{ message: string }> {
     const res = await fetch(`${API_BASE_URL}/classes/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
     });
     if (!res.ok) {
-      throw await apiError(res, "Không thể xóa lớp học.");
+      throw await apiError(res, "Failed to delete class.");
     }
-    if (res.status === 204) return {message: "Đã xóa lớp học."};
+    if (res.status === 204) return {message: "Class deleted."};
     return await res.json();
   },
 
@@ -344,7 +346,7 @@ export const managementApi = {
   ): Promise<TuitionDto> {
     const res = await fetch(`${API_BASE_URL}/tuitioninvoices`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
 
@@ -353,7 +355,7 @@ export const managementApi = {
         message: res.statusText,
       }));
 
-      throw new Error(err.message || `Lỗi khi tạo hóa đơn: ${res.status}`);
+      throw new Error(err.message || `Error creating invoice: ${res.status}`);
     }
 
     return await res.json();
@@ -365,7 +367,7 @@ export const managementApi = {
   ): Promise<TuitionDto> {
     const res = await fetch(`${API_BASE_URL}/tuitioninvoices/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: defaultHeaders(),
       body: JSON.stringify(data),
     });
 
@@ -374,7 +376,7 @@ export const managementApi = {
         message: res.statusText,
       }));
 
-      throw new Error(err.message || `Lỗi khi cập nhật hóa đơn: ${res.status}`);
+      throw new Error(err.message || `Error updating invoice: ${res.status}`);
     }
 
     return await res.json();
@@ -388,7 +390,7 @@ export const managementApi = {
       `${API_BASE_URL}/tuitioninvoices/${invoiceId}/payments`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: defaultHeaders(),
         body: JSON.stringify(data),
       },
     );
@@ -399,7 +401,7 @@ export const managementApi = {
       }));
 
       throw new Error(
-        err.message || `Lỗi khi ghi nhận thanh toán: ${res.status}`,
+        err.message || `Error recording payment: ${res.status}`,
       );
     }
 

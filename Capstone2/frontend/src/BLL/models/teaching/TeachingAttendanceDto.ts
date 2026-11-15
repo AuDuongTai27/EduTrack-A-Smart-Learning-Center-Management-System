@@ -14,6 +14,8 @@ export interface TeachingSessionItemDto {
   lateCount: number;
   excusedCount: number;
   totalRecorded: number;
+  hasStarted?: boolean;
+  canTakeAttendance?: boolean;
 }
 
 export interface TeachingStudentAttendanceItemDto {

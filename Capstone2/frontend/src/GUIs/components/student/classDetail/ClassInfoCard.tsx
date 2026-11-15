@@ -19,7 +19,7 @@ export function ClassInfoCard({ cls }: ClassInfoCardProps) {
             </div>
             <div>
               <h3 className="teacher-info-name" id="teacherName">{cls.teacher}</h3>
-              <p className="teacher-info-role">Giáo viên phụ trách</p>
+              <p className="teacher-info-role">Lead Teacher</p>
             </div>
           </div>
 
@@ -40,7 +40,7 @@ export function ClassInfoCard({ cls }: ClassInfoCardProps) {
                 <i className="bi bi-telephone"></i>
               </div>
               <div>
-                <p className="contact-label">Điện thoại</p>
+                <p className="contact-label">Phone</p>
                 <p className="contact-value" id="teacherPhone">{cls.phone}</p>
               </div>
             </div>
@@ -56,7 +56,7 @@ export function ClassInfoCard({ cls }: ClassInfoCardProps) {
               <i className="bi bi-calendar-event"></i>
             </div>
             <div>
-              <p className="contact-label">Lịch học</p>
+              <p className="contact-label">Schedule</p>
               <p className="contact-value" id="classSchedule">{cls.schedule}</p>
             </div>
           </div>
@@ -66,8 +66,8 @@ export function ClassInfoCard({ cls }: ClassInfoCardProps) {
               <i className="bi bi-geo-alt"></i>
             </div>
             <div>
-              <p className="contact-label">Phòng học</p>
-              <p className="contact-value" id="classRoom">Phòng {cls.room}</p>
+              <p className="contact-label">Room</p>
+              <p className="contact-value" id="classRoom">{cls.room.startsWith('Room') || cls.room.startsWith('Lab') ? cls.room : `Room ${cls.room}`}</p>
             </div>
           </div>
 
@@ -76,8 +76,8 @@ export function ClassInfoCard({ cls }: ClassInfoCardProps) {
               <i className="bi bi-people"></i>
             </div>
             <div>
-              <p className="contact-label">Số học sinh</p>
-              <p className="contact-value" id="classStudentCount">{cls.studentCount} học sinh</p>
+              <p className="contact-label">Class Size</p>
+              <p className="contact-value" id="classStudentCount">{cls.studentCount} students</p>
             </div>
           </div>
         </div>

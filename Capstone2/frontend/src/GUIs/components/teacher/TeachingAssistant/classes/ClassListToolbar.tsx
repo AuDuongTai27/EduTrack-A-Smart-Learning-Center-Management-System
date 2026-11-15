@@ -30,9 +30,9 @@ export default function ClassListToolbar({
           onChange={(e) => onStatusFilterChange && onStatusFilterChange(e.target.value)}
           style={{ width: "auto", minWidth: 145, flexShrink: 0 }}
         >
-          <option value="all">Tất cả trạng thái</option>
-          <option value="active">Đang trợ giảng</option>
-          <option value="completed">Đã kết thúc</option>
+          <option value="all">All statuses</option>
+          <option value="active">Assisting</option>
+          <option value="completed">Completed</option>
         </select>
 
         {/* Thanh tìm kiếm */}
@@ -44,7 +44,7 @@ export default function ClassListToolbar({
             type="search"
             className="form-control form-control-sm border-start-0 ps-0"
             id="taTableSearchInput"
-            placeholder="Tìm tên lớp, môn học, phòng..."
+            placeholder="Search class name, subject, room..."
             value={searchTerm}
             onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
           />

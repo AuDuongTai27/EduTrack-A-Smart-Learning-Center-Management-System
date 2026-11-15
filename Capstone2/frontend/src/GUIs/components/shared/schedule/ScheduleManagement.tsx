@@ -12,25 +12,25 @@ import { addScheduleDays, vietnamClock } from '../../../../BLL/services/schedule
 import { useSelectedUser } from '../../../hooks/useSelectedUser';
 
 const days = [
-  ['Monday', 'Thứ Hai'],
-  ['Tuesday', 'Thứ Ba'],
-  ['Wednesday', 'Thứ Tư'],
-  ['Thursday', 'Thứ Năm'],
-  ['Friday', 'Thứ Sáu'],
-  ['Saturday', 'Thứ Bảy'],
-  ['Sunday', 'Chủ Nhật'],
+  ['Monday', 'Monday'],
+  ['Tuesday', 'Tuesday'],
+  ['Wednesday', 'Wednesday'],
+  ['Thursday', 'Thursday'],
+  ['Friday', 'Friday'],
+  ['Saturday', 'Saturday'],
+  ['Sunday', 'Sunday'],
 ];
 
 const outcomes: Record<string, string> = {
-  eligible: 'Hợp lệ (Sẽ tạo mới)',
-  existing: 'Đã có sẵn (Giữ nguyên)',
-  conflict: 'Xung đột lịch',
-  outside_class: 'Ngoài thời gian khóa học',
-  created: 'Đã tạo thành công',
+  eligible: 'Eligible (Will create)',
+  existing: 'Already exists (Unchanged)',
+  conflict: 'Schedule conflict',
+  outside_class: 'Outside course duration',
+  created: 'Successfully created',
 };
 
 const errorText = (cause: unknown) =>
-  cause instanceof Error ? cause.message : 'Không thực hiện được yêu cầu. Vui lòng tải lại.';
+  cause instanceof Error ? cause.message : 'Failed to process request. Please refresh.';
 
 const emptyForm = () => ({
   dayOfWeek: 'Monday',
@@ -208,7 +208,7 @@ function ManagementPanel({
     event.preventDefault();
     setTemplatePreview(null);
     if (operation !== 'retire' && (!form.startTime || !form.endTime || form.startTime >= form.endTime)) {
-      setError('Giờ bắt đầu phải trước giờ kết thúc.');
+      setError('Start time must be before end time.');
       return;
     }
     const input: ScheduleTemplateInput = {
@@ -270,7 +270,7 @@ function ManagementPanel({
       {!capabilities ? (
         <div className="text-center py-5 text-muted">
           <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-          Đang tải dữ liệu lớp và phân quyền hệ thống…
+          Loading class data and system permissions…
         </div>
       ) : (
         <>
@@ -279,16 +279,16 @@ function ManagementPanel({
             <div className="mb-3 p-3 bg-light rounded-3 border">
               <label className="form-label small fw-semibold text-secondary mb-1">
                 <i className="bi bi-mortarboard me-1" />
-                Chọn Lớp Học Cần Quản Lý:
+                Select Class to Manage:
               </label>
               <select
-                aria-label="Chọn Lớp Học"
+                aria-label="Select Class"
                 className="form-select form-select-sm"
                 value={classId}
                 disabled={busy}
                 onChange={(e) => selectClass(e.target.value)}
               >
-                <option value="">-- Vui lòng chọn lớp học --</option>
+                <option value="">-- Please select a class --</option>
                 {capabilities.classes.map((c) => (
                   <option key={c.classId} value={c.classId}>
                     #{c.classId} · {c.className}
@@ -301,7 +301,7 @@ function ManagementPanel({
           {!selectedClass ? (
             <div className="text-center py-4 text-muted border rounded-3 bg-light">
               <i className="bi bi-arrow-up-circle fs-3 d-block mb-1 text-primary" />
-              Vui lòng chọn một lớp học ở trên để quản lý ca học và xếp lịch tự động.
+              Please select a class above to manage recurring sessions and automatic scheduling.
             </div>
           ) : (
             <>
@@ -310,11 +310,11 @@ function ManagementPanel({
                 <div>
                   <h6 className="fw-bold mb-1 text-dark">
                     <i className="bi bi-journal-check me-2 text-primary" />
-                    Lớp: {selectedClass.className}
+                    Class: {selectedClass.className}
                   </h6>
                   <small className="text-muted">
-                    Thời gian khóa học: <strong>{selectedClass.startDate}</strong> →{' '}
-                    <strong>{selectedClass.endDate || 'Chưa định ngày kết thúc'}</strong>
+                    Course duration: <strong>{selectedClass.startDate}</strong> →{' '}
+                    <strong>{selectedClass.endDate || 'No end date'}</strong>
                   </small>
                 </div>
                 <button
@@ -327,7 +327,7 @@ function ManagementPanel({
                   }}
                 >
                   <i className="bi bi-arrow-clockwise me-1" />
-                  Làm mới
+                  Refresh
                 </button>
               </div>
 
@@ -345,7 +345,7 @@ function ManagementPanel({
                     }}
                   >
                     <i className="bi bi-calendar-week" />
-                    1. Ca Học Cố Định Hàng Tuần
+                    1. Weekly Recurring Sessions
                   </button>
                 </li>
                 <li className="nav-item">
@@ -360,29 +360,29 @@ function ManagementPanel({
                     }}
                   >
                     <i className="bi bi-calendar-check" />
-                    2. Tự Động Xếp Lịch Cả Tháng
+                    2. Auto-Generate Monthly Schedule
                   </button>
                 </li>
               </ul>
 
-              {/* TAB 1: CA HỌC CỐ ĐỊNH HÀNG TUẦN */}
+              {/* TAB 1: WEEKLY RECURRING SESSIONS */}
               {activeTab === 'templates' && (
                 <div className="schedule-tab-templates">
                   <div className="mb-3">
-                    <h6 className="fw-bold text-dark mb-1">Các Ca Học Cố Định Hiện Có:</h6>
+                    <h6 className="fw-bold text-dark mb-1">Current Recurring Sessions:</h6>
                     <small className="text-muted d-block mb-3">
-                      Đây là các khung giờ học định kỳ hàng tuần. Khi bạn tạo lịch theo tháng ở Tab 2, hệ thống sẽ tự động điền các buổi học theo đúng những ca này.
+                      These are weekly recurring time slots. When you generate a monthly schedule in Tab 2, the system will automatically schedule sessions matching these slots.
                     </small>
 
                     {!templates ? (
                       <div className="text-center py-3 text-muted">
                         <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                        Đang tải danh sách ca học…
+                        Loading session list…
                       </div>
                     ) : templates.length === 0 ? (
                       <div className="p-3 text-center border rounded-3 bg-light text-muted mb-3">
                         <i className="bi bi-calendar-x fs-3 d-block mb-1 text-secondary" />
-                        Lớp này hiện chưa có ca học cố định nào. Vui lòng thiết lập ở form bên dưới.
+                        This class does not have any recurring sessions yet. Please set them up in the form below.
                       </div>
                     ) : (
                       <div className="row g-2 mb-3">
@@ -397,11 +397,11 @@ function ManagementPanel({
                                   </span>
                                   {isRetiring ? (
                                     <span className="badge bg-danger-subtle text-danger border border-danger-subtle">
-                                      Ngừng từ {s.versions.at(-1)?.effectiveTo}
+                                      Discontinued from {s.versions.at(-1)?.effectiveTo}
                                     </span>
                                   ) : (
                                     <span className="badge bg-success-subtle text-success border border-success-subtle">
-                                      Đang áp dụng
+                                      Active
                                     </span>
                                   )}
                                 </div>
@@ -411,10 +411,10 @@ function ManagementPanel({
                                 </div>
                                 <div className="text-muted small mb-2">
                                   <i className="bi bi-geo-alt me-1 text-danger" />
-                                  Phòng học: <strong>{s.room || 'Chưa xếp phòng'}</strong>
+                                  Room: <strong>{s.room || 'Unassigned'}</strong>
                                 </div>
                                 <div className="small text-muted mb-2">
-                                  Hiệu lực từ: <strong>{s.versions.at(-1)?.effectiveFrom}</strong>
+                                  Effective from: <strong>{s.versions.at(-1)?.effectiveFrom}</strong>
                                 </div>
 
                                 {canManage && !isRetiring && (
@@ -426,7 +426,7 @@ function ManagementPanel({
                                       onClick={() => beginChange(s, 'replace')}
                                     >
                                       <i className="bi bi-pencil-square" />
-                                      Đổi giờ / phòng
+                                      Change time / room
                                     </button>
                                     <button
                                       type="button"
@@ -435,7 +435,7 @@ function ManagementPanel({
                                       onClick={() => beginChange(s, 'retire')}
                                     >
                                       <i className="bi bi-slash-circle" />
-                                      Ngừng ca này
+                                      Discontinue slot
                                     </button>
                                   </div>
                                 )}
@@ -447,16 +447,16 @@ function ManagementPanel({
                     )}
                   </div>
 
-                  {/* FORM THÊM / CẬP NHẬT CA HỌC */}
+                  {/* FORM ADD / UPDATE RECURRING SESSION */}
                   {canManage && (
                     <div className="card border rounded-3 p-3 bg-light shadow-xs">
                       <div className="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                         <h6 className="fw-bold mb-0 text-dark">
                           {operation === 'retire'
-                            ? `Ngừng áp dụng Ca học #${editing?.scheduleId}`
+                            ? `Discontinue Session Slot #${editing?.scheduleId}`
                             : editing
-                            ? `Cập nhật khung giờ mới cho Ca học #${editing.scheduleId}`
-                            : 'Thêm Ca Học Định Kỳ Mới'}
+                            ? `Update Time Slot for Session #${editing.scheduleId}`
+                            : 'Add New Recurring Session'}
                         </h6>
                         {editing && (
                           <button
@@ -469,7 +469,7 @@ function ManagementPanel({
                               invalidate();
                             }}
                           >
-                            Hủy sửa, tạo ca mới
+                            Cancel edit, create new slot
                           </button>
                         )}
                       </div>
@@ -480,9 +480,9 @@ function ManagementPanel({
                             {operation !== 'retire' && (
                               <>
                                 <div className="col-12 col-md-3">
-                                  <label className="form-label small fw-semibold mb-1">Thứ trong tuần</label>
+                                  <label className="form-label small fw-semibold mb-1">Day of week</label>
                                   <select
-                                    aria-label="Thứ trong tuần"
+                                    aria-label="Day of week"
                                     className="form-select form-select-sm"
                                     value={form.dayOfWeek}
                                     onChange={(e) => changeForm('dayOfWeek', e.target.value)}
@@ -495,7 +495,7 @@ function ManagementPanel({
                                   </select>
                                 </div>
                                 <div className="col-6 col-md-2">
-                                  <label className="form-label small fw-semibold mb-1">Bắt đầu</label>
+                                  <label className="form-label small fw-semibold mb-1">Start</label>
                                   <input
                                     type="time"
                                     className="form-control form-control-sm"
@@ -505,7 +505,7 @@ function ManagementPanel({
                                   />
                                 </div>
                                 <div className="col-6 col-md-2">
-                                  <label className="form-label small fw-semibold mb-1">Kết thúc</label>
+                                  <label className="form-label small fw-semibold mb-1">End</label>
                                   <input
                                     type="time"
                                     className="form-control form-control-sm"
@@ -515,12 +515,12 @@ function ManagementPanel({
                                   />
                                 </div>
                                 <div className="col-12 col-md-2">
-                                  <label className="form-label small fw-semibold mb-1">Phòng học</label>
+                                  <label className="form-label small fw-semibold mb-1">Room</label>
                                   <input
                                     type="text"
                                     className="form-control form-control-sm"
                                     maxLength={50}
-                                    placeholder="VD: Phòng 201"
+                                    placeholder="e.g. Room 201"
                                     value={form.room}
                                     onChange={(e) => changeForm('room', e.target.value)}
                                   />
@@ -530,7 +530,7 @@ function ManagementPanel({
 
                             <div className="col-12 col-md-3">
                               <label className="form-label small fw-semibold mb-1">
-                                Áp dụng từ Thứ Hai tuần:
+                                Effective from Monday of week:
                               </label>
                               <input
                                 type="date"
@@ -546,7 +546,7 @@ function ManagementPanel({
 
                           <button type="submit" className="btn btn-sm btn-primary" disabled={busy}>
                             <i className="bi bi-eye me-1" />
-                            {busy ? 'Đang kiểm tra…' : 'Xem trước & Áp dụng'}
+                            {busy ? 'Checking…' : 'Preview & Apply'}
                           </button>
                         </fieldset>
                       </form>
@@ -556,13 +556,13 @@ function ManagementPanel({
                         <div className="mt-3 p-3 bg-white border border-primary rounded-3 shadow-xs">
                           <h6 className="fw-bold text-dark mb-1">
                             <i className="bi bi-check2-circle text-primary me-2" />
-                            Xác nhận áp dụng {templatePreview.result.operation === 'retire' ? 'ngừng ca' : 'ca học cố định'} từ ngày {templatePreview.result.effectiveFrom}
+                            Confirm applying {templatePreview.result.operation === 'retire' ? 'slot discontinuation' : 'recurring session slot'} from {templatePreview.result.effectiveFrom}
                           </h6>
                           <p className="small text-muted mb-2">{templatePreview.result.message}</p>
                           {templatePreview.result.retainedSessions.length > 0 && (
                             <div className="alert alert-info py-2 small mb-2">
                               <i className="bi bi-shield-check me-1" />
-                              Bảo lưu <strong>{templatePreview.result.retainedSessions.length}</strong> buổi học đã tạo trong quá khứ không bị ảnh hưởng.
+                              Retaining <strong>{templatePreview.result.retainedSessions.length}</strong> past sessions unaffected.
                             </div>
                           )}
                           <div className="d-flex gap-2 mt-2">
@@ -579,23 +579,23 @@ function ManagementPanel({
                                   if (!mounted.current) return;
                                   refreshTemplates();
                                   setNotice(
-                                    `Đã lưu ${
-                                      result.operation === 'retire' ? 'ngừng ca học' : 'ca học cố định mới'
-                                    } thành công!`
+                                    `Successfully saved ${
+                                      result.operation === 'retire' ? 'slot discontinuation' : 'new recurring session'
+                                    }!`
                                   );
                                   onCreated();
                                 })
                               }
                             >
                               <i className="bi bi-check-lg me-1" />
-                              {busy ? 'Đang lưu…' : 'Xác nhận Lưu Ca Học'}
+                              {busy ? 'Saving…' : 'Confirm Save Slot'}
                             </button>
                             <button
                               type="button"
                               className="btn btn-sm btn-outline-secondary"
                               onClick={() => setTemplatePreview(null)}
                             >
-                              Đóng
+                              Close
                             </button>
                           </div>
                         </div>
@@ -605,27 +605,27 @@ function ManagementPanel({
                 </div>
               )}
 
-              {/* TAB 2: TỰ ĐỘNG XẾP LỊCH CẢ THÁNG */}
+              {/* TAB 2: AUTO-GENERATE MONTHLY SCHEDULE */}
               {activeTab === 'month' && (
                 <div className="schedule-tab-month">
                   <div className="p-3 bg-light rounded-3 border mb-3">
                     <h6 className="fw-bold text-dark mb-1">
                       <i className="bi bi-magic me-2 text-primary" />
-                      Tự Động Điền Lịch Cho Cả Tháng
+                      Auto-Generate Monthly Schedule
                     </h6>
                     <p className="small text-muted mb-3">
-                      Hệ thống sẽ quét các ca học cố định ở Tab 1 và tự động xếp tất cả các buổi học trong tháng bạn chọn vào thời khóa biểu. Các buổi học đã tồn tại hoặc đã dời ngày sẽ được giữ nguyên an toàn.
+                      The system will scan recurring session slots in Tab 1 and automatically schedule all sessions for the selected month. Existing or rescheduled sessions will be preserved safely.
                     </p>
 
                     {templates && templates.length === 0 ? (
                       <div className="alert alert-warning py-2 small" role="alert">
                         <i className="bi bi-exclamation-circle me-1" />
-                        Lớp học chưa có ca học cố định nào. Vui lòng chuyển sang Tab 1 để thiết lập ca học trước khi xếp lịch tự động.
+                        The class has no recurring session slots yet. Please switch to Tab 1 to set up slots before auto-generating the schedule.
                       </div>
                     ) : (
                       <form onSubmit={handleBuildMonthPreview} className="row g-2 align-items-end">
                         <div className="col-12 col-md-4">
-                          <label className="form-label small fw-semibold mb-1">Chọn Tháng &amp; Năm Cần Xếp Lịch</label>
+                          <label className="form-label small fw-semibold mb-1">Select Month &amp; Year to Schedule</label>
                           <input
                             type="month"
                             className="form-control form-control-sm"
@@ -642,41 +642,41 @@ function ManagementPanel({
                         <div className="col-12 col-md-4">
                           <button type="submit" className="btn btn-sm btn-primary w-100" disabled={busy}>
                             <i className="bi bi-search me-1" />
-                            {busy ? 'Đang kiểm tra lịch…' : 'Kiểm tra & Xem trước lịch tháng'}
+                            {busy ? 'Checking schedule…' : 'Check & Preview Monthly Schedule'}
                           </button>
                         </div>
                       </form>
                     )}
                   </div>
 
-                  {/* PREVIEW KẾT QUẢ XẾP LỊCH THÁNG */}
+                  {/* MONTHLY SCHEDULE PREVIEW RESULTS */}
                   {preview && (
                     <div className="card border rounded-3 p-3 bg-white shadow-xs mb-3">
                       <h6 className="fw-bold text-dark mb-2">
-                        {confirmed ? 'Kết Quả Xác Nhận Xếp Lịch:' : `Xem Trước Lịch Học Tháng ${month}:`}
+                        {confirmed ? 'Schedule Confirmation Results:' : `Preview Schedule for Month ${month}:`}
                       </h6>
 
                       {/* Summary Cards */}
                       <div className="row g-2 mb-3">
                         <div className="col-4">
                           <div className="p-2 border rounded-3 text-center bg-success-subtle border-success-subtle">
-                            <span className="small text-success d-block fw-semibold">Sẽ Tạo Mới</span>
+                            <span className="small text-success d-block fw-semibold">To Be Created</span>
                             <strong className="fs-5 text-success">
-                              {preview.result.rows.filter((r) => r.outcome === 'eligible').length} buổi
+                              {preview.result.rows.filter((r) => r.outcome === 'eligible').length} sessions
                             </strong>
                           </div>
                         </div>
                         <div className="col-4">
                           <div className="p-2 border rounded-3 text-center bg-info-subtle border-info-subtle">
-                            <span className="small text-info-emphasis d-block fw-semibold">Đã Có Sẵn</span>
+                            <span className="small text-info-emphasis d-block fw-semibold">Already Exists</span>
                             <strong className="fs-5 text-info-emphasis">
-                              {preview.result.rows.filter((r) => r.outcome === 'existing').length} buổi
+                              {preview.result.rows.filter((r) => r.outcome === 'existing').length} sessions
                             </strong>
                           </div>
                         </div>
                         <div className="col-4">
                           <div className="p-2 border rounded-3 text-center bg-light border">
-                            <span className="small text-muted d-block fw-semibold">Khác/Xung Đột</span>
+                            <span className="small text-muted d-block fw-semibold">Other/Conflict</span>
                             <strong className="fs-5 text-muted">
                               {
                                 preview.result.rows.filter((r) => !['eligible', 'existing'].includes(r.outcome))
@@ -687,10 +687,10 @@ function ManagementPanel({
                         </div>
                       </div>
 
-                      {/* Danh sách các ngày sẽ học */}
+                      {/* Expected sessions list */}
                       <div className="mb-3">
                         <small className="text-muted fw-semibold d-block mb-1">
-                          Danh sách các buổi học dự kiến trong tháng:
+                          Expected sessions list for the month:
                         </small>
                         <div className="d-flex flex-wrap gap-1" style={{ maxHeight: '180px', overflowY: 'auto' }}>
                           {preview.result.rows.map((r) => {
@@ -730,7 +730,7 @@ function ManagementPanel({
                                 setPreview({ ...preview, result });
                                 setConfirmed(true);
                                 setNotice(
-                                  `Đã tạo thành công ${result.created} buổi học cho tháng ${month}!`
+                                  `Successfully created ${result.created} sessions for month ${month}!`
                                 );
                                 onCreated();
                               })
@@ -738,8 +738,8 @@ function ManagementPanel({
                           >
                             <i className="bi bi-calendar-check me-2" />
                             {busy
-                              ? 'Đang tạo phiên học…'
-                              : `Xác nhận tạo ${preview.keys.length} buổi học`}
+                              ? 'Creating sessions…'
+                              : `Confirm creating ${preview.keys.length} sessions`}
                           </button>
                           <button
                             type="button"
@@ -747,7 +747,7 @@ function ManagementPanel({
                             disabled={busy}
                             onClick={() => setPreview(null)}
                           >
-                            Đóng xem trước
+                            Close Preview
                           </button>
                         </div>
                       )}
@@ -776,10 +776,10 @@ function ManagementPanel({
               <div className="d-flex align-items-center gap-2">
                 <span className="badge bg-primary fs-6">
                   <i className="bi bi-gear-fill me-1" />
-                  Cấu hình lịch
+                  Schedule Configuration
                 </span>
                 <h5 className="modal-title fw-bold mb-0 text-dark">
-                  Quản Lý Lịch Cố Định &amp; Xếp Lịch Theo Tháng
+                  Manage Recurring Schedule &amp; Monthly Generation
                 </h5>
               </div>
               <button type="button" className="btn-close" onClick={onClose} />
@@ -787,7 +787,7 @@ function ManagementPanel({
             <div className="modal-body p-4">{content}</div>
             <div className="modal-footer bg-light">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
-                Đóng
+                Close
               </button>
             </div>
           </div>
@@ -798,9 +798,9 @@ function ManagementPanel({
 
   // Standalone panel
   return (
-    <div className="schedule-management border rounded-4 bg-white p-3 mb-3" aria-label="Quản lý Schedule">
+    <div className="schedule-management border rounded-4 bg-white p-3 mb-3" aria-label="Schedule Management">
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-        <h2 className="h5 mb-0">Lịch Cố Định &amp; Phiên Học</h2>
+        <h2 className="h5 mb-0">Recurring Schedule &amp; Sessions</h2>
       </div>
       {content}
     </div>

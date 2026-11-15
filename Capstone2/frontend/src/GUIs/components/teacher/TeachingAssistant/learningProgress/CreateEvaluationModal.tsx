@@ -21,9 +21,9 @@ export default function CreateEvaluationModal({
   studentName,
   studentCode,
   classId = 1,
-  className = "Toán 10 - Nâng Cao",
+  className = "Math 10 - Advanced",
   evaluatorName = "Âu Dương Tài",
-  evaluatorRole = "Trợ giảng",
+  evaluatorRole = "Teaching Assistant",
   onSubmit,
 }: CreateEvaluationModalProps) {
   const [evaluationType, setEvaluationType] = useState<string>("attitude");
@@ -35,23 +35,23 @@ export default function CreateEvaluationModal({
   if (!isOpen) return null;
 
   const typeLabels: Record<string, string> = {
-    attitude: "Thái độ & Tinh thần học tập",
-    academic: "Tư duy & Năng lực chuyên môn",
-    progress: "Sự tiến bộ theo giai đoạn",
-    parent_note: "Nhận xét gửi Phụ huynh",
+    attitude: "Attitude & Learning Spirit",
+    academic: "Thinking & Subject Competence",
+    progress: "Progress Over Time",
+    parent_note: "Note to Parents",
   };
 
   const ratingLabels: Record<string, string> = {
-    excellent: "Xuất sắc / Rất tích cực",
-    good: "Tốt / Đạt yêu cầu",
-    needs_improvement: "Cần cải thiện thêm",
-    concern: "Cần lưu ý / Nhắc nhở",
+    excellent: "Excellent / Highly Active",
+    good: "Good / Satisfactory",
+    needs_improvement: "Needs Improvement",
+    concern: "Needs Attention / Reminder",
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) {
-      alert("Vui lòng nhập nội dung đánh giá cá nhân.");
+      alert("Please enter evaluation content.");
       return;
     }
 
@@ -63,9 +63,9 @@ export default function CreateEvaluationModal({
         evaluatorName,
         evaluatorRole,
         evaluationType,
-        typeLabel: typeLabels[evaluationType] || "Đánh giá chung",
+        typeLabel: typeLabels[evaluationType] || "General Evaluation",
         rating,
-        ratingLabel: ratingLabels[rating] || "Tốt",
+        ratingLabel: ratingLabels[rating] || "Good",
         content: content.trim(),
         suggestions: suggestions.trim() || undefined,
       });
@@ -90,7 +90,7 @@ export default function CreateEvaluationModal({
           <div className="modal-header bg-primary text-white py-3 px-4">
             <h5 className="modal-title d-flex align-items-center gap-2 fs-6 fw-bold mb-0">
               <i className="bi bi-pencil-square" />
-              Tạo Đánh Giá Cá Nhân Học Viên (Trợ Giảng)
+              Create Student Evaluation (Teaching Assistant)
             </h5>
             <button
               type="button"
@@ -115,14 +115,14 @@ export default function CreateEvaluationModal({
                   <div>
                     <h6 className="mb-0 fw-bold text-dark">{studentName}</h6>
                     <small className="text-muted">
-                      Mã HV: <strong className="text-primary">{studentCode}</strong> &bull; Lớp:{" "}
+                      Student ID: <strong className="text-primary">{studentCode}</strong> &bull; Class:{" "}
                       <strong>{className}</strong>
                     </small>
                   </div>
                 </div>
 
                 <div className="text-end small">
-                  <span className="text-muted d-block">Người đánh giá:</span>
+                  <span className="text-muted d-block">Evaluator:</span>
                   <span className="badge bg-secondary-subtle text-secondary fw-semibold">
                     {evaluatorName} ({evaluatorRole})
                   </span>
@@ -133,40 +133,40 @@ export default function CreateEvaluationModal({
                 {/* 1. Loại đánh giá */}
                 <div className="col-md-6">
                   <label className="form-label small fw-bold text-dark mb-1">
-                    1. Khía cạnh đánh giá <span className="text-danger">*</span>
+                    1. Evaluation Aspect <span className="text-danger">*</span>
                   </label>
                   <select
                     className="form-select form-select-sm"
                     value={evaluationType}
                     onChange={(e) => setEvaluationType(e.target.value)}
                   >
-                    <option value="attitude">Thái độ &amp; Tinh thần học tập</option>
-                    <option value="academic">Tư duy &amp; Năng lực chuyên môn</option>
-                    <option value="progress">Sự tiến bộ theo giai đoạn</option>
-                    <option value="parent_note">Nhận xét gửi Phụ huynh</option>
+                    <option value="attitude">Attitude &amp; Learning Spirit</option>
+                    <option value="academic">Thinking &amp; Subject Competence</option>
+                    <option value="progress">Progress Over Time</option>
+                    <option value="parent_note">Note to Parents</option>
                   </select>
                   <small className="text-muted" style={{ fontSize: "11px" }}>
-                    Đánh giá độc lập, không phụ thuộc vào điểm số bài tập.
+                    Independent evaluation, not dependent on assignment scores.
                   </small>
                 </div>
 
                 {/* 2. Mức độ / Xếp loại */}
                 <div className="col-md-6">
                   <label className="form-label small fw-bold text-dark mb-1">
-                    2. Mức độ ghi nhận <span className="text-danger">*</span>
+                    2. Rating / Level <span className="text-danger">*</span>
                   </label>
                   <select
                     className="form-select form-select-sm"
                     value={rating}
                     onChange={(e) => setRating(e.target.value as any)}
                   >
-                    <option value="excellent">Xuất sắc / Rất tích cực</option>
-                    <option value="good">Tốt / Đạt yêu cầu</option>
-                    <option value="needs_improvement">Cần cải thiện thêm</option>
-                    <option value="concern">Cần lưu ý / Nhắc nhở</option>
+                    <option value="excellent">Excellent / Highly Active</option>
+                    <option value="good">Good / Satisfactory</option>
+                    <option value="needs_improvement">Needs Improvement</option>
+                    <option value="concern">Needs Attention / Reminder</option>
                   </select>
                   <small className="text-muted" style={{ fontSize: "11px" }}>
-                    Mức độ đánh giá chung cho giai đoạn này.
+                    General evaluation rating for this period.
                   </small>
                 </div>
               </div>
@@ -174,12 +174,12 @@ export default function CreateEvaluationModal({
               {/* 3. Nội dung nhận xét chi tiết */}
               <div className="mb-3">
                 <label className="form-label small fw-bold text-dark mb-1">
-                  3. Nội dung đánh giá chi tiết <span className="text-danger">*</span>
+                  3. Detailed Evaluation Content <span className="text-danger">*</span>
                 </label>
                 <textarea
                   className="form-control form-control-sm"
                   rows={4}
-                  placeholder="Ghi nhận cụ thể về sự tập trung, khả năng tiếp thu, tinh thần phát biểu, làm việc nhóm hoặc điểm cần khắc phục của học viên..."
+                  placeholder="Specific notes on focus, comprehension, participation, teamwork, or areas for improvement..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   required
@@ -189,12 +189,12 @@ export default function CreateEvaluationModal({
               {/* 4. Đề xuất cải thiện hoặc nhắn nhủ */}
               <div className="mb-2">
                 <label className="form-label small fw-bold text-dark mb-1">
-                  4. Đề xuất rèn luyện / Nhắn nhủ (Tùy chọn)
+                  4. Recommendations / Notes (Optional)
                 </label>
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  placeholder="Ví dụ: Cần rèn thêm kỹ năng làm bài, nên ôn tập lại kiến thức tuần 1..."
+                  placeholder="E.g., Needs more practice on test-taking skills, should review week 1 knowledge..."
                   value={suggestions}
                   onChange={(e) => setSuggestions(e.target.value)}
                 />
@@ -209,7 +209,7 @@ export default function CreateEvaluationModal({
                 onClick={onClose}
                 disabled={submitting}
               >
-                Hủy bỏ
+                Cancel
               </button>
               <button
                 type="submit"
@@ -219,12 +219,12 @@ export default function CreateEvaluationModal({
                 {submitting ? (
                   <>
                     <span className="spinner-border spinner-border-sm" role="status" />
-                    Đang lưu...
+                    Saving...
                   </>
                 ) : (
                   <>
                     <i className="bi bi-check-lg" />
-                    Lưu đánh giá
+                    Save Evaluation
                   </>
                 )}
               </button>

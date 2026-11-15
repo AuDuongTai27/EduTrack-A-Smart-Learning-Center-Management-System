@@ -53,7 +53,7 @@ export default function TeachingAssistantStudentProgressDetailPage() {
       const res = await teachingDAL.createStudentEvaluation(classId, studentId, {
         ...payload,
         evaluatorName: "Âu Dương Tài",
-        evaluatorRole: "Trợ giảng",
+        evaluatorRole: "Teaching Assistant",
       });
 
       if (res.data && detail) {
@@ -63,10 +63,10 @@ export default function TeachingAssistantStudentProgressDetailPage() {
         });
       }
 
-      setToastMessage("Đã lưu đánh giá cá nhân thành công vào hệ thống!");
+      setToastMessage("Individual evaluation saved successfully to the system!");
     } catch (err) {
       console.warn("Lỗi khi lưu đánh giá:", err);
-      setToastMessage("Đã ghi nhận đánh giá cá nhân.");
+      setToastMessage("Individual evaluation recorded.");
     }
     setTimeout(() => setToastMessage(null), 3500);
   };
@@ -75,7 +75,7 @@ export default function TeachingAssistantStudentProgressDetailPage() {
     return (
       <div className="p-5 text-center">
         <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-        <p className="text-muted mb-0">Đang tải toàn bộ dữ liệu bài tập và đánh giá của học viên...</p>
+        <p className="text-muted mb-0">Loading all assignment and evaluation data for the student...</p>
       </div>
     );
   }
@@ -84,9 +84,9 @@ export default function TeachingAssistantStudentProgressDetailPage() {
     return (
       <div className="p-5 text-center">
         <i className="bi bi-exclamation-triangle fs-1 text-warning d-block mb-2" />
-        <h5>Không tìm thấy thông tin học viên</h5>
+        <h5>Student information not found</h5>
         <Link to="/teaching-assistant/learning-progress" className="btn btn-outline-primary btn-sm mt-2">
-          Quay lại danh sách
+          Back to List
         </Link>
       </div>
     );
@@ -118,10 +118,10 @@ export default function TeachingAssistantStudentProgressDetailPage() {
 
       {/* Page Header */}
       <PageHeader
-        title={`Chi Tiết Tiến Độ - ${detail.fullName}`}
+        title={`Progress Details - ${detail.fullName}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Tiến độ học tập", path: "/teaching-assistant/learning-progress" },
+          { label: "Learning Progress", path: "/teaching-assistant/learning-progress" },
           { label: detail.className },
           { label: detail.fullName },
         ]}
@@ -131,7 +131,7 @@ export default function TeachingAssistantStudentProgressDetailPage() {
               to="/teaching-assistant/learning-progress"
               className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
             >
-              <i className="bi bi-arrow-left" /> Quay lại danh sách
+              <i className="bi bi-arrow-left" /> Back to List
             </Link>
           </div>
         }
@@ -162,7 +162,7 @@ export default function TeachingAssistantStudentProgressDetailPage() {
         classId={classId}
         className={detail.className}
         evaluatorName="Âu Dương Tài"
-        evaluatorRole="Trợ giảng"
+        evaluatorRole="Teaching Assistant"
         onSubmit={handleCreateEvaluation}
       />
     </>

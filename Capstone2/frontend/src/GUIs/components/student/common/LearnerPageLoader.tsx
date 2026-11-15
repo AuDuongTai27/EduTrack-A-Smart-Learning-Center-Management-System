@@ -8,8 +8,8 @@ interface LearnerPageLoaderProps {
 }
 
 export function LearnerPageLoader({
-  title = 'Đang tải dữ liệu...',
-  message = 'Hệ thống đang đồng bộ thông tin mới nhất, vui lòng đợi trong giây lát.',
+  title = 'Loading data...',
+  message = 'The system is synchronizing the latest information, please wait a moment.',
   fullPage = true,
   containerClassName = '',
 }: LearnerPageLoaderProps) {
@@ -32,7 +32,7 @@ export function LearnerPageLoader({
           role="status"
           style={{ width: '2rem', height: '2rem', borderWidth: '0.22em' }}
         >
-          <span className="visually-hidden">Đang tải...</span>
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
       <h2 className="h6 fw-bold text-dark mb-1">{title}</h2>

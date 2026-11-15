@@ -35,7 +35,7 @@ export default function NewAssignmentAttachment({
         setFileSizeText(formatFileSize(result.fileSize || file.size));
         onChange(result.fileUrl);
       } catch (err: any) {
-        setUploadError(err?.message || "Lỗi khi tải tệp tin lên máy chủ.");
+        setUploadError(err?.message || "Error uploading file to server.");
       } finally {
         setUploading(false);
       }

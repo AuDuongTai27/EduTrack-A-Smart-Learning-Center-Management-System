@@ -22,7 +22,7 @@ import type { TuitionDto, PaymentDto } from "../../../../BLL/models/TuitionDto";
 
 function receiptDateLabel(paidAt: string) {
   try { return paymentInstant(paidAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }); }
-  catch { return "Ngày thanh toán cần đối soát"; }
+  catch { return "Payment date needs reconciliation"; }
 }
 
 export default function TuitionManagementPage({ role }: { role: "center-manager" | "admin-staff" }) {
@@ -92,7 +92,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
         setClasses(classRes.data); setLookupError(null);
         setSelectedClass(previous => previous === "All" || classRes.data.some(c => String(c.classId) === previous) ? previous : "All");
       }
-    }).catch(cause => { if (active) setLookupError(cause instanceof Error ? cause.message : "Không tải được lớp học."); });
+    }).catch(cause => { if (active) setLookupError(cause instanceof Error ? cause.message : "Failed to load classes."); });
     const focus = () => setLookupRevision(value => value + 1);
     window.addEventListener("focus", focus);
     return () => { active = false; window.removeEventListener("focus", focus); };
@@ -102,7 +102,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
     e.preventDefault();
 
     if (!editingTuition || editBusy) return;
-    if (!editAllowed) { setEditError("Hóa đơn đã có khoản thu hoặc đang chờ điều chỉnh; không sửa trực tiếp các trường tài chính. Tải lại để đối soát."); return; }
+    if (!editAllowed) { setEditError("The invoice already has recorded payments or is pending adjustment; financial fields cannot be edited directly. Reload to reconcile."); return; }
     setEditBusy(true); setEditError(null);
 
     try {
@@ -123,12 +123,12 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
       setEditingTuition(null);
 
       setActionSuccessMsg(
-        `Đã cập nhật hóa đơn #${res.data.invoiceId} thành công!`,
+        `Successfully updated invoice #${res.data.invoiceId}!`,
       );
 
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Không cập nhật được hóa đơn.");
+      setEditError(err instanceof Error ? err.message : "Failed to update invoice.");
     } finally {
       setEditBusy(false);
     }
@@ -148,10 +148,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
     });
   };
 
-  // Record Payment: không tự tạo payment giả nếu API thất bại.
+  // Record Payment: do not create fake payment if API fails.
   const handleOpenPayment = (tuition: TuitionDto) => {
     const remaining = actionsFor(tuition).remaining ?? 0;
-    // Không mở phiếu thu với dữ liệu giả hoặc chưa tải được công nợ thực.
+    // Do not open payment receipt with fake data or before actual debt is loaded.
     if (!actionsFor(tuition).canPay || !tuition.invoiceId) return;
 
     setPayingTuition(tuition);
@@ -173,13 +173,13 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
     const current = tuitions.find(t => t.invoiceId === payingTuition.invoiceId) ?? payingTuition;
     if (!actionsFor(current).canPay) {
       setPaymentNeedsReview(true);
-      setPaymentError("Hóa đơn không còn dư nợ hợp lệ hoặc dữ liệu thanh toán chưa sẵn sàng; cần tải lại để đối soát.");
+      setPaymentError("Invoice has no valid outstanding balance or payment data is not ready; reload to reconcile.");
       return;
     }
 
     const remaining = actionsFor(current).remaining ?? 0;
     if (remaining <= 0) {
-      setPaymentError("Hóa đơn này đã được tất toán trước đó.");
+      setPaymentError("This invoice has already been fully paid.");
       return;
     }
 
@@ -198,17 +198,17 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
       const invoiceId = payingTuition.invoiceId;
       setPayingTuition(null);
       setActionSuccessMsg(
-        `Đã ghi nhận thanh toán tiền mặt ${remaining.toLocaleString("vi-VN")} VND cho hóa đơn #${invoiceId}.`,
+        `Successfully recorded cash payment of ${remaining.toLocaleString("vi-VN")} VND for invoice #${invoiceId}.`,
       );
 
       await refresh();
     } catch (error) {
-      console.error("Lỗi ghi nhận thanh toán:", error);
+      console.error("Error recording payment:", error);
       setPaymentNeedsReview(true);
       setPaymentError(
         error instanceof Error
           ? error.message
-          : "Không ghi nhận được thanh toán.",
+          : "Failed to record payment.",
       );
     } finally {
       paymentSubmission.current = false;
@@ -261,11 +261,11 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
     try {
       const [detail, receipts] = await Promise.all([tuitionDAL.getTuitionById(targetId), tuitionDAL.getAllPayments()]);
       if (request !== detailRequest.current) return;
-      if (!detail) throw new Error("Không tải được hóa đơn để đối soát.");
+      if (!detail) throw new Error("Failed to load invoice for reconciliation.");
       setSelectedTuition(withInvoiceBalances([detail], receipts.data, new Date())[0]);
       setDetailPayments(receipts.data.filter(payment => payment.invoiceId === targetId));
     } catch (cause) {
-      if (request === detailRequest.current) setDetailError(cause instanceof Error ? cause.message : "Không tải được dữ liệu thanh toán; không giả định đã thu bằng 0.");
+      if (request === detailRequest.current) setDetailError(cause instanceof Error ? cause.message : "Failed to load payment data; paid amount cannot be assumed to be 0.");
     } finally {
       if (request === detailRequest.current) setLoadingDetail(false);
     }
@@ -289,7 +289,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
             }}
           >
             <i className="bi bi-plus-square me-2" />
-            Lập hóa đơn
+            Create Invoice
           </button>
         }
       />
@@ -311,7 +311,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
         </div>
       )}
 
-      {lookupError && <div className="alert alert-warning mb-3" role="alert">{lookupError} <button type="button" className="btn btn-link" onClick={() => setLookupRevision(v => v + 1)}>Tải lại Class</button></div>}
+      {lookupError && <div className="alert alert-warning mb-3" role="alert">{lookupError} <button type="button" className="btn btn-link" onClick={() => setLookupRevision(v => v + 1)}>Reload Classes</button></div>}
       {paymentDataWarning && (
         <div className="alert alert-warning" role="alert">
           <i className="bi bi-exclamation-triangle me-2" />
@@ -342,7 +342,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                 <input
                   type="text"
                   className="form-control ps-5"
-                  placeholder="Tìm theo học sinh, mã HV, mã HĐ..."
+                  placeholder="Search by student, student code, invoice code..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -356,14 +356,14 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
             <div className="col-xl-3 col-lg-3 col-md-6 col-12">
               <select
                 className="form-select"
-                aria-label="Lọc theo Lớp học"
+                aria-label="Filter by Class"
                 value={selectedClass}
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setCurrentPage(1);
                 }}
               >
-                <option value="All">Tất cả lớp học ({classes.length})</option>
+                <option value="All">All Classes ({classes.length})</option>
                 {classes.map((cls) => (
                   <option key={cls.classId} value={String(cls.classId)}>
                     {cls.className}
@@ -376,19 +376,19 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
             <div className="col-xl-3 col-lg-3 col-md-6 col-12">
               <select
                 className="form-select"
-                aria-label="Lọc theo Trạng thái học phí"
+                aria-label="Filter by Tuition Status"
                 value={selectedStatus}
                 onChange={(e) => {
                   setSelectedStatus(e.target.value);
                   setCurrentPage(1);
                 }}
               >
-                <option value="All">Tất cả trạng thái</option>
-                <option value="Unpaid">Chưa thanh toán (Unpaid)</option>
-                <option value="Partially Paid">Thanh toán một phần</option>
-                <option value="Paid">Đã thanh toán (Paid)</option>
-                <option value="Overdue">Quá hạn (Overdue)</option>
-                <option value="pending_adjustment">Đang chờ điều chỉnh</option>
+                <option value="All">All Statuses</option>
+                <option value="Unpaid">Unpaid</option>
+                <option value="Partially Paid">Partially Paid</option>
+                <option value="Paid">Paid</option>
+                <option value="Overdue">Overdue</option>
+                <option value="pending_adjustment">Pending Adjustment</option>
               </select>
             </div>
 
@@ -396,14 +396,14 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
             <div className="col-xl-2 col-lg-2 col-md-6 col-12">
               <select
                 className="form-select"
-                aria-label="Sắp xếp danh sách"
+                aria-label="Sort list"
                 value={selectedSort}
                 onChange={(e) => setSelectedSort(e.target.value)}
               >
-                <option value="newest">Hạn đóng: Mới nhất</option>
-                <option value="oldest">Hạn đóng: Cũ nhất</option>
-                <option value="az">Tên học sinh: A → Z</option>
-                <option value="za">Tên học sinh: Z → A</option>
+                <option value="newest">Due Date: Newest</option>
+                <option value="oldest">Due Date: Oldest</option>
+                <option value="az">Student Name: A → Z</option>
+                <option value="za">Student Name: Z → A</option>
               </select>
             </div>
           </div>
@@ -443,14 +443,14 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
                     />
-                    Đang nạp danh sách học phí...
+                    Loading tuition list...
                   </td>
                 </tr>
               ) : paginatedTuitions.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-cash fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy bản ghi học phí nào phù hợp.
+                    No tuition records found matching filters.
                   </td>
                 </tr>
               ) : (
@@ -476,7 +476,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       </td>
                       <td>
                         <div className="d-flex align-items-center gap-2">
-                          <UserAvatar name={t.studentName || "Học viên"} />
+                          <UserAvatar name={t.studentName || "Student"} />
                           <div>
                             <h6 className="mb-0 fw-bold text-dark">
                               {t.studentName}
@@ -497,12 +497,12 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                           )}{" "}
                           VND
                         </strong>
-                        {balanceReady && <div className="small text-muted">Đã thu: {formatVND(t.paidAmount)} · Còn: {formatVND(actions.remaining)}</div>}
+                        {balanceReady && <div className="small text-muted">Paid: {formatVND(t.paidAmount)} · Remaining: {formatVND(actions.remaining)}</div>}
                       </td>
                       <td>{dueDateStr}</td>
                       <td>
                         <DotStatusBadge status={t.status || "Unpaid"} />
-                        {actions.partiallyPaid && <small className="d-block text-muted">Thanh toán một phần</small>}
+                        {actions.partiallyPaid && <small className="d-block text-muted">Partially Paid</small>}
                       </td>
                       <td className="text-center">
                         <div className="d-flex justify-content-center gap-2">
@@ -510,10 +510,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                             type="button"
                             className="btn btn-sm btn-outline-warning"
                             onClick={() => handleOpenEdit(t)}
-                            title="Chỉnh sửa hóa đơn"
+                            title="Edit invoice"
                           >
                             <i className="bi bi-pencil-square me-1" />
-                            Sửa
+                            Edit
                           </button>}
 
                           {actions.canPay && <button
@@ -523,22 +523,22 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                             disabled={!balanceReady || !t.invoiceId}
                             title={
                               paymentDataWarning
-                                ? "Chưa tải được dữ liệu thật: kiểm tra kết nối backend"
-                                : "Ghi nhận thanh toán"
+                                ? "Real data not loaded: check backend connection"
+                                : "Record payment"
                             }
                           >
                             <i className="bi bi-cash-coin me-1" />
-                            Thanh toán
+                            Pay
                           </button>}
 
                           <button
                             type="button"
                             className="btn btn-sm btn-outline-primary"
                             onClick={() => handleViewDetails(t)}
-                            title="Xem hóa đơn"
+                            title="View invoice"
                           >
                             <i className="bi bi-receipt me-1" />
-                            Xem hóa đơn
+                            View Invoice
                           </button>
                         </div>
                       </td>
@@ -578,7 +578,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
               <div className="modal-header bg-warning">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-pencil-square me-2" />
-                  Chỉnh sửa hóa đơn #{editingTuition.invoiceId}
+                  Edit Invoice #{editingTuition.invoiceId}
                 </h5>
 
                 <button
@@ -591,10 +591,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
               <form onSubmit={handleUpdateSubmit}>
                 {editError && <div className="alert alert-danger m-3" role="alert">{editError}</div>}
                 <div className="modal-body p-4">
-                  {!editAllowed && <div className="alert alert-warning">Không thể sửa trực tiếp khi đã có khoản thu hoặc đang chờ điều chỉnh. Cần đối soát và xử lý theo quy trình phê duyệt hiện có.</div>}
+                  {!editAllowed && <div className="alert alert-warning">Cannot edit directly when payments have been recorded or adjustment is pending. Reconciliation and existing approval process required.</div>}
                   <fieldset className="row g-3" disabled={editBusy || !editAllowed}>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Học viên</label>
+                      <label className="form-label fw-bold">Student</label>
 
                       <input
                         type="text"
@@ -605,7 +605,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Lớp</label>
+                      <label className="form-label fw-bold">Class</label>
 
                       <input
                         type="text"
@@ -616,7 +616,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     </div>
 
                     <div className="col-md-3">
-                      <label className="form-label fw-bold">Tháng</label>
+                      <label className="form-label fw-bold">Month</label>
 
                       <input
                         type="number"
@@ -635,7 +635,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     </div>
 
                     <div className="col-md-3">
-                      <label className="form-label fw-bold">Năm</label>
+                      <label className="form-label fw-bold">Year</label>
 
                       <input
                         type="number"
@@ -655,7 +655,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
 
                     <div className="col-md-6">
                       <label className="form-label fw-bold" htmlFor="manager-edit-amount">
-                        Số tiền học phí
+                        Tuition Amount
                       </label>
 
                       <MoneyInput
@@ -663,14 +663,14 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                         name="amountDue"
                         value={editForm.amountDue}
                         onValueChange={amountDue => setEditForm({...editForm, amountDue})}
-                        placeholder="Nhập số tiền học phí"
+                        placeholder="Enter tuition amount"
                         required
                       />
                     </div>
 
                     <div className="col-md-6">
                       <label className="form-label fw-bold">
-                        Hạn thanh toán
+                        Due Date
                       </label>
 
                       <input
@@ -688,10 +688,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Trạng thái</label>
+                      <label className="form-label fw-bold">Status</label>
 
                       <div data-testid="invoice-edit-status"><DotStatusBadge status={currentEdit?.status || "unpaid"} /></div>
-                      <small className="text-muted">Do hệ thống tính từ khoản thu và hạn thanh toán. Không thể chọn trạng thái thủ công.</small>
+                      <small className="text-muted">Calculated by the system based on collected amount and due date. Cannot be selected manually.</small>
                     </div>
                   </fieldset>
                 </div>
@@ -702,12 +702,12 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     className="btn btn-outline-secondary"
                     onClick={() => setEditingTuition(null)}
                   >
-                    Hủy
+                    Cancel
                   </button>
 
                   <button type="submit" className="btn btn-warning px-4" disabled={editBusy || !editAllowed}>
                     <i className="bi bi-save me-2" />
-                    Lưu thay đổi
+                    Save Changes
                   </button>
                 </div>
               </form>
@@ -727,7 +727,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
               <div className="modal-header bg-success text-white">
                 <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
                   <i className="bi bi-cash-stack" />
-                  <span>Ghi nhận thu tiền mặt tại quầy – Hóa đơn #{payingTuition.invoiceId}</span>
+                  <span>Record In-Person Cash Payment – Invoice #{payingTuition.invoiceId}</span>
                 </h5>
                 <button
                   type="button"
@@ -739,23 +739,23 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
 
               <form onSubmit={handlePaymentSubmit}>
                 <div className="modal-body p-4">
-                  {/* Thông tin học viên & lớp học */}
+                  {/* Student & Class Info */}
                   <div className="bg-light p-3 rounded-3 mb-3 border">
                     <div className="row g-2 small">
                       <div className="col-sm-6">
-                        <strong className="text-muted">Học viên:</strong>{" "}
+                        <strong className="text-muted">Student:</strong>{" "}
                         <span className="fw-semibold text-dark">{payingTuition.studentName}</span>
                       </div>
                       <div className="col-sm-6">
-                        <strong className="text-muted">Lớp học:</strong>{" "}
+                        <strong className="text-muted">Class:</strong>{" "}
                         <span className="fw-semibold text-dark">{payingTuition.className}</span>
                       </div>
                       <div className="col-sm-6">
-                        <strong className="text-muted">Kỳ thu:</strong>{" "}
-                        <span className="text-dark">Tháng {payingTuition.periodMonth}/{payingTuition.periodYear}</span>
+                        <strong className="text-muted">Period:</strong>{" "}
+                        <span className="text-dark">Month {payingTuition.periodMonth}/{payingTuition.periodYear}</span>
                       </div>
                       <div className="col-sm-6">
-                        <strong className="text-muted">Tổng học phí:</strong>{" "}
+                        <strong className="text-muted">Total Tuition:</strong>{" "}
                         <span className="text-dark">
                           {(payingTuition.amountDue ?? payingTuition.amount ?? 0).toLocaleString("vi-VN")} VND
                         </span>
@@ -768,7 +768,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       {paymentError}
                       {paymentNeedsReview && (
                         <div className="mt-2">
-                          Kết quả có thể chưa được xác nhận. Không gửi lại khoản thu trước khi đối chiếu.{" "}
+                          Result may not have been confirmed. Do not resubmit payment before reconciliation.{" "}
                           <button
                             type="button"
                             className="btn btn-sm btn-outline-danger"
@@ -777,21 +777,21 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                               void refresh();
                             }}
                           >
-                            Đóng và tải lại công nợ
+                            Close and reload balance
                           </button>
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* Số tiền cần thu - Cố định 100% toàn phần */}
+                  {/* Amount to collect - Fixed 100% full payment */}
                   <div className="p-3 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle d-flex justify-content-between align-items-center mb-3">
                     <div>
                       <div className="text-muted small fw-semibold">
-                        Số tiền cần thu (Đóng toàn phần 100%):
+                        Amount to collect (100% full payment):
                       </div>
                       <div className="small text-secondary">
-                        Cố định đúng bằng dư nợ còn lại của hóa đơn
+                        Fixed to exact remaining balance of invoice
                       </div>
                     </div>
                     <div className="fs-3 fw-bold text-success font-monospace">
@@ -803,36 +803,36 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     </div>
                   </div>
 
-                  {/* Phương thức thanh toán - Cố định tiền mặt */}
+                  {/* Payment Method - Fixed Cash */}
                   <div className="mb-3">
                     <label className="form-label small fw-bold text-muted text-uppercase mb-1">
-                      Phương thức thanh toán
+                      Payment Method
                     </label>
                     <div className="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between">
                       <div className="d-flex align-items-center gap-2">
                         <i className="bi bi-cash text-success fs-5"></i>
                         <div>
-                          <strong className="text-dark">Tiền mặt (Cash)</strong>
+                          <strong className="text-dark">Cash</strong>
                           <div className="small text-muted">
-                            Thu trực tiếp khi phụ huynh đến văn phòng trung tâm đóng học phí
+                            Collected in person when parent pays tuition at the center office
                           </div>
                         </div>
                       </div>
                       <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-semibold">
-                        Mặc định
+                        Default
                       </span>
                     </div>
                   </div>
 
-                  {/* Ghi chú thu tiền */}
+                  {/* Receipt Note */}
                   <div className="mb-2">
                     <label className="form-label small fw-bold text-muted text-uppercase mb-1">
-                      Ghi chú biên nhận (Tùy chọn)
+                      Receipt Note (Optional)
                     </label>
                     <textarea
                       className="form-control"
                       rows={2}
-                      placeholder="VD: Phụ huynh đến văn phòng trung tâm đóng trực tiếp..."
+                      placeholder="e.g., Parent paid in person at center office..."
                       value={paymentForm.note}
                       onChange={(e) =>
                         setPaymentForm({
@@ -851,7 +851,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     disabled={paymentSubmitting}
                     onClick={() => setPayingTuition(null)}
                   >
-                    Hủy
+                    Cancel
                   </button>
                   <button
                     type="submit"
@@ -866,7 +866,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     }
                   >
                     {paymentSubmitting && <span className="spinner-border spinner-border-sm"></span>}
-                    <span>{paymentSubmitting ? "Đang ghi nhận..." : "Xác nhận thu tiền mặt"}</span>
+                    <span>{paymentSubmitting ? "Recording..." : "Confirm Cash Payment"}</span>
                   </button>
                 </div>
               </form>
@@ -891,7 +891,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       `INV-${selectedTuition.tuitionId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0 text-dark">
-                    Chi tiết hóa đơn học phí
+                    Tuition Invoice Details
                   </h5>
                 </div>
                 <button
@@ -908,7 +908,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
                     />
-                    Đang nạp chi tiết hóa đơn...
+                    Loading invoice details...
                   </div>
                 ) : (
                   <>
@@ -919,10 +919,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                         </h4>
                         <div className="d-flex align-items-center gap-3 text-muted small">
                           <span>
-                            Lớp: <strong>{selectedTuition.className}</strong>
+                            Class: <strong>{selectedTuition.className}</strong>
                           </span>
                           <span>
-                            Kỳ:{" "}
+                            Period:{" "}
                             <strong>
                               {invoicePeriodLabel(selectedTuition)}
                             </strong>
@@ -938,7 +938,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
                           <small className="text-muted d-block mb-1">
-                            Tổng học phí
+                            Total Tuition
                           </small>
                           <h6 className="fw-bold text-dark mb-0">
                             {(
@@ -953,7 +953,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
                           <small className="text-muted d-block mb-1">
-                            Đã đóng
+                            Paid
                           </small>
                           <h6 className="fw-bold text-success mb-0">
                             {formatVND(detailPayments != null ? selectedTuition.paidAmount : null)}
@@ -963,7 +963,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
                           <small className="text-muted d-block mb-1">
-                            Còn nợ
+                            Remaining Balance
                           </small>
                           <h6 className="fw-bold text-danger mb-0">
                             {formatVND(detailPayments != null && selectedTuition.paidAmount != null ? Math.max(0, Math.round(selectedTuition.amountDue * 100) - Math.round(selectedTuition.paidAmount * 100)) / 100 : null)}
@@ -971,11 +971,11 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                         </div>
                       </div>
                     </div>
-                    {detailError && <div role="alert" className="alert alert-danger">{detailError} Chưa xác nhận được số đã thu/còn nợ; đóng và tải lại để đối soát.</div>}
-                    <h6>Lịch sử thanh toán</h6>
-                    {detailPayments == null ? <p className="text-muted">Chưa tải được lịch sử thanh toán.</p> : detailPayments.length === 0 ? <p>Chưa có khoản thanh toán.</p> : <ul className="list-group" data-testid="invoice-payment-history">{detailPayments.map(payment => <li key={payment.paymentId} className="list-group-item small">
+                    {detailError && <div role="alert" className="alert alert-danger">{detailError} Paid/remaining amount not verified; close and reload to reconcile.</div>}
+                    <h6>Payment History</h6>
+                    {detailPayments == null ? <p className="text-muted">Could not load payment history.</p> : detailPayments.length === 0 ? <p>No payment records found.</p> : <ul className="list-group" data-testid="invoice-payment-history">{detailPayments.map(payment => <li key={payment.paymentId} className="list-group-item small">
                       <strong>{formatVND(payment.amount)}</strong> · {payment.paymentMethod} · {receiptDateLabel(payment.paidAt)}
-                      {payment.transactionCode && <div>Mã giao dịch: {payment.transactionCode}</div>}{payment.additionalChargeNote && <div>Phụ phí: {formatVND(payment.additionalChargeAmount)} — {payment.additionalChargeNote}</div>}
+                      {payment.transactionCode && <div>Transaction Code: {payment.transactionCode}</div>}{payment.additionalChargeNote && <div>Surcharge: {formatVND(payment.additionalChargeAmount)} — {payment.additionalChargeNote}</div>}
                     </li>)}</ul>}
                   </>
                 )}
@@ -987,7 +987,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                   className="btn btn-secondary"
                   onClick={closeDetail}
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>

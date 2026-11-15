@@ -30,7 +30,7 @@ export function useStudentEnrollment(gradeId: number | null, enabled: boolean) {
         const classes = await classApi.getAll();
         if (current) setState({requestKey, gradeId: selectedGradeId, classes: eligibleEnrollmentClasses(classes, selectedGradeId), selected: [], loading: false, error: null});
       } catch (error) {
-        if (current) setState({...empty(gradeId, requestKey), loading: false, error: error instanceof Error ? error.message : "Không tải được danh sách lớp học."});
+        if (current) setState({...empty(gradeId, requestKey), loading: false, error: error instanceof Error ? error.message : "Failed to load class list."});
       }
     }
     void load();

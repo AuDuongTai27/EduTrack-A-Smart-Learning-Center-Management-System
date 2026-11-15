@@ -16,9 +16,9 @@ export function ClassesGridSection({
       {/* Section Header */}
       <div className="section-header">
         <div className="section-title-wrap">
-          <h2 className="section-title">Lớp học của tôi</h2>
+          <h2 className="section-title">My Classes</h2>
           <span className="section-count-badge">
-            {loading ? 'Đang tải...' : `${classes.length} lớp`}
+            {loading ? 'Loading...' : `${classes.length} ${classes.length === 1 ? 'class' : 'classes'}`}
           </span>
         </div>
       </div>
@@ -26,7 +26,7 @@ export function ClassesGridSection({
       {/* Classes Grid */}
       <div className="classes-grid">
         {loading && classes.length === 0 ? (
-          <div className="p-4 text-center text-muted w-100">Đang tải danh sách lớp học...</div>
+          <div className="p-4 text-center text-muted w-100">Loading classes list...</div>
         ) : (
           classes.map((cls) => (
             <ClassItem key={cls.classId} classItem={cls} />

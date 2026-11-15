@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import teachingDAL, { type TeachingSessionItemDto } from "../../../../../DAL/teachingDAL";
+import teachingDAL, { type TeachingSessionItemDto, isSessionStarted } from "../../../../../DAL/teachingDAL";
 
 export interface SessionsSectionProps {
   classId?: string | number;
@@ -21,7 +21,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
           setSessions(data);
         }
       } catch (err) {
-        console.warn("Lỗi tải buổi học của lớp cho TA:", err);
+        console.warn("Error loading class sessions for TA:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -38,11 +38,11 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-calendar-week-fill text-primary fs-5" />
           <h4 className="class-list-title mb-0">
-            Lịch các buổi học ({sessions.length > 0 ? sessions.length : 3})
+            Class Sessions Schedule ({sessions.length > 0 ? sessions.length : 3})
           </h4>
         </div>
         <div className="d-flex align-items-center gap-2">
-          <span className="text-muted small">Thu gọn / Mở rộng</span>
+          <span className="text-muted small">Toggle Section</span>
           <i className="bi bi-chevron-down details-chevron text-muted" />
         </div>
       </summary>
@@ -50,29 +50,31 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
       {loading ? (
         <div className="p-4 text-center">
           <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-          <span className="text-muted small">Đang tải danh sách các buổi học...</span>
+          <span className="text-muted small">Loading sessions list...</span>
         </div>
       ) : (
         <div className="table-responsive-container">
           <table className="table custom-table align-middle mb-0">
             <thead>
               <tr>
-                <th>Buổi học</th>
-                <th>Ngày học</th>
-                <th>Thời gian</th>
-                <th>Phòng học</th>
-                <th>Trạng thái</th>
-                <th className="text-end">Hành động</th>
+                <th>Session</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Room</th>
+                <th>Status</th>
+                <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sessions.map((s, idx) => {
                 const isCompleted = s.status === "completed" || s.isRecorded;
+                const hasStarted = s.hasStarted !== undefined ? s.hasStarted : (isCompleted || isSessionStarted(s));
+
                 return (
                   <tr key={s.sessionId} className={isCompleted ? "session-row-ended" : ""}>
                     <td className="fw-semibold text-dark">
                       <i className="bi bi-book me-1 text-primary" />
-                      Buổi {idx + 1}: Hỗ trợ giảng dạy &amp; Thực hành
+                      Session {idx + 1}: Teaching Support &amp; Practice
                     </td>
                     <td>{s.sessionDate}</td>
                     <td>{s.timePeriod || "18:00 - 20:00"}</td>
@@ -85,25 +87,47 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
                     <td>
                       {isCompleted ? (
                         <span className="badge bg-success-subtle text-success fw-medium px-2.5 py-1">
-                          <i className="bi bi-check-circle me-1" /> Đã điểm danh
+                          <i className="bi bi-check-circle me-1" /> Attendance Taken
+                        </span>
+                      ) : !hasStarted ? (
+                        <span className="badge bg-secondary-subtle text-secondary fw-medium px-2.5 py-1" title="Session has not started yet">
+                          <i className="bi bi-hourglass-split me-1" /> Not Started
                         </span>
                       ) : (
                         <span className="badge bg-warning-subtle text-warning-emphasis fw-medium px-2.5 py-1">
-                          <i className="bi bi-clock me-1" /> Chưa điểm danh
+                          <i className="bi bi-clock me-1" /> Attendance Not Taken
                         </span>
                       )}
                     </td>
                     <td className="text-end">
                       <div className="d-inline-flex align-items-center gap-1">
-                        <Link
-                          to={`${baseRolePath}/classes/${classId}/attendance?sessionId=${s.sessionId}`}
-                          className={`btn btn-sm ${
-                            isCompleted ? "btn-outline-success" : "btn-primary"
-                          } d-inline-flex align-items-center gap-1 shadow-sm`}
-                        >
-                          <i className="bi bi-clipboard-check" />
-                          <span>{isCompleted ? "Xem điểm danh" : "Hỗ trợ điểm danh"}</span>
-                        </Link>
+                        {isCompleted ? (
+                          <Link
+                            to={`${baseRolePath}/classes/${classId}/attendance?sessionId=${s.sessionId}`}
+                            className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 shadow-sm"
+                          >
+                            <i className="bi bi-clipboard-check" />
+                            <span>View Attendance</span>
+                          </Link>
+                        ) : hasStarted ? (
+                          <Link
+                            to={`${baseRolePath}/classes/${classId}/attendance?sessionId=${s.sessionId}`}
+                            className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
+                          >
+                            <i className="bi bi-clipboard-check" />
+                            <span>Take Attendance</span>
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border text-muted d-inline-flex align-items-center gap-1 opacity-75"
+                            disabled
+                            title="Only started sessions can take attendance"
+                          >
+                            <i className="bi bi-lock-fill text-secondary" />
+                            <span>Not Started</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

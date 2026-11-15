@@ -11,7 +11,7 @@
 export const DASHBOARD_STATS: DashboardStatItem[] = [
   {
     id: 'classes',
-    label: 'Tổng số lớp đang học',
+    label: 'Total Active Classes',
     value: 6,
     icon: 'bi-journal-bookmark-fill',
     bgColor: '#EFF6FF',
@@ -19,9 +19,9 @@ export const DASHBOARD_STATS: DashboardStatItem[] = [
   },
   {
     id: 'assignments',
-    label: 'Bài tập sắp hết hạn',
+    label: 'Assignments Due Soon',
     value: 2,
-    badge: 'Sắp hết hạn',
+    badge: 'Due Soon',
     icon: 'bi-clock-fill',
     bgColor: '#FFFBEB',
     color: '#D97706',

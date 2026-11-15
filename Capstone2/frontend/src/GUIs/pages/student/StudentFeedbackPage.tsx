@@ -10,7 +10,7 @@ export function StudentFeedbackPage() {
   const studentPhone = authUser?.primaryRole === 'student' ? (authUser.phone || '0956 789 012') : '0956 789 012';
 
   useEffect(() => {
-    document.title = 'Phản hồi & Góp ý – EduTrack';
+    document.title = 'Feedback & Support – EduTrack';
   }, []);
 
   return (

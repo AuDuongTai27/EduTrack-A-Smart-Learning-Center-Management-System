@@ -33,7 +33,7 @@ export function FeedbackView({
   const [requests, setRequests] = useState<FeedbackApprovalRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [title, setTitle] = useState<string>(
-    isLinkStudentRequest ? 'Yêu cầu liên kết thêm hồ sơ học sinh' : ''
+    isLinkStudentRequest ? 'Request to link student profile' : ''
   );
   const [description, setDescription] = useState<string>('');
   const [editingItem, setEditingItem] = useState<FeedbackApprovalRequest | null>(null);
@@ -43,7 +43,7 @@ export function FeedbackView({
 
   useEffect(() => {
     if (isLinkStudentRequest && !editingItem && !title.trim()) {
-      setTitle('Yêu cầu liên kết thêm hồ sơ học sinh');
+      setTitle('Request to link student profile');
     }
   }, [isLinkStudentRequest, editingItem]);
 
@@ -121,7 +121,7 @@ export function FeedbackView({
         setDescription('');
 
         setToastMessage(
-          `Đã cập nhật phản hồi #${updated.requestCode || editingItem.id} thành công!`
+          `Successfully updated feedback #${updated.requestCode || editingItem.id}!`
         );
       } else {
         const created = await learningDAL.createLearnerFeedback(
@@ -142,11 +142,11 @@ export function FeedbackView({
         setDescription('');
 
         setToastMessage(
-          'Đã gửi phản hồi thành công lên hệ thống Giáo vụ (Trạng thái: Chưa xem xét giải quyết — bạn vẫn có thể chỉnh sửa trước khi Giáo vụ tiếp nhận).'
+          'Feedback submitted successfully to Admin Staff (Status: Pending Review — you can still edit before Admin Staff reviews it).'
         );
       }
     } catch (err) {
-      console.warn('Không kết nối được Backend khi lưu phản hồi, cập nhật trên giao diện:', err);
+      console.warn('Backend connection error when saving feedback, updating UI locally:', err);
       if (editingItem) {
         setRequests((prev) =>
           prev.map((item) =>
@@ -158,7 +158,7 @@ export function FeedbackView({
         setEditingItem(null);
         setTitle('');
         setDescription('');
-        setToastMessage('Đã cập nhật nội dung phản hồi thành công!');
+        setToastMessage('Feedback updated successfully!');
       } else {
         const fallbackReq: FeedbackApprovalRequest = {
           id: Date.now(),
@@ -168,7 +168,7 @@ export function FeedbackView({
           description: description.trim(),
           senderName: userName,
           senderRole: userRole,
-          createdAt: new Date().toLocaleString('vi-VN', {
+          createdAt: new Date().toLocaleString('en-US', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -176,7 +176,7 @@ export function FeedbackView({
             minute: '2-digit',
           }),
           status: 'pending',
-          statusLabel: 'Chưa xem xét giải quyết',
+          statusLabel: 'Pending Review',
           canEdit: true,
         };
 
@@ -184,7 +184,7 @@ export function FeedbackView({
         setSelectedId(fallbackReq.id);
         setTitle('');
         setDescription('');
-        setToastMessage('Đã gửi phản hồi thành công lên hệ thống Giáo vụ!');
+        setToastMessage('Feedback submitted successfully to Admin Staff!');
       }
     } finally {
       setIsSubmitting(false);
@@ -195,8 +195,8 @@ export function FeedbackView({
   if (loading) {
     return (
       <LearnerPageLoader
-        title="Đang tải phản hồi & yêu cầu..."
-        message="Hệ thống đang tải lịch sử phản hồi của bạn gửi tới Giáo vụ."
+        title="Loading feedback & requests..."
+        message="The system is loading your feedback history sent to Admin Staff."
       />
     );
   }
@@ -209,7 +209,7 @@ export function FeedbackView({
           <div className="alert alert-success border-0 rounded-4 shadow-sm d-flex align-items-center gap-3 mb-4 p-3.5">
             <i className="bi bi-check-circle-fill fs-4 text-success flex-shrink-0"></i>
             <div className="flex-grow-1">
-              <strong>Thành công!</strong> {toastMessage}
+              <strong>Success!</strong> {toastMessage}
             </div>
             <button
               type="button"
@@ -221,21 +221,21 @@ export function FeedbackView({
 
         {/* Page Header */}
         <StudentPageHeader
-          title="Phản hồi & Ý kiến đóng góp"
-          subtitle="Gửi phản hồi, thắc mắc hoặc yêu cầu hỗ trợ trực tiếp về Giáo vụ (Admin Staff)"
+          title="Feedback & Support"
+          subtitle="Submit feedback, inquiries, or support requests directly to Admin Staff"
           breadcrumbs={[
-            { label: 'Trang chủ', href: userRole === 'parent' ? '/parent/dashboard' : '/student/dashboard' },
-            { label: 'Phản hồi & Ý kiến' },
+            { label: 'Home', href: userRole === 'parent' ? '/parent/dashboard' : '/student/dashboard' },
+            { label: 'Feedback & Support' },
           ]}
           actions={
             <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
               <i className="bi bi-person-circle me-1"></i>
-              {userName} ({userRole === 'parent' ? 'Phụ huynh' : 'Học sinh'})
+              {userName} ({userRole === 'parent' ? 'Parent' : 'Student'})
             </span>
           }
         />
 
-        {/* 2 Cột: Form gửi/sửa & Lịch sử */}
+        {/* 2 Columns: Form & History */}
         <div className="row g-4">
           <div className="col-lg-6">
             <FeedbackFormCard
@@ -255,17 +255,17 @@ export function FeedbackView({
               <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h2 className="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                   <i className="bi bi-clock-history text-primary"></i>
-                  Lịch sử phản hồi ({requests.length})
+                  Feedback History ({requests.length})
                 </h2>
-                <span className="badge bg-light text-muted border">Mặc định: Feedback gửi Admin Staff</span>
+                <span className="badge bg-light text-muted border">Default: Feedback sent to Admin Staff</span>
               </div>
 
               <div className="d-flex flex-column gap-2.5" style={{ maxHeight: '550px', overflowY: 'auto' }}>
                 {requests.length === 0 ? (
                   <div className="text-center text-muted py-5">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
-                    <p className="mb-0 fw-semibold">Chưa có phản hồi nào</p>
-                    <small>Các ý kiến hoặc yêu cầu hỗ trợ bạn gửi sẽ hiển thị tại đây.</small>
+                    <p className="mb-0 fw-semibold">No feedback yet</p>
+                    <small>Your feedback or support requests will appear here.</small>
                   </div>
                 ) : (
                   requests.map((item) => (

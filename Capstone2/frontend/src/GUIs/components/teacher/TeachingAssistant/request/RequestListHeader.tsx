@@ -19,7 +19,7 @@ export default function RequestListHeader({
   onSortOrderChange,
   onRequestCreated,
   defaultRequestedBy = 5,
-  userRoleName = "Trợ giảng",
+  userRoleName = "Teaching Assistant",
 }: RequestListHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -29,8 +29,8 @@ export default function RequestListHeader({
     <>
       <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
         <div>
-          <h4 className="class-list-title mb-1">Đơn Từ &amp; Đề Xuất Trợ Giảng</h4>
-          <small className="text-muted">Gửi và quản lý đơn xin nghỉ trực, đề xuất hỗ trợ lớp học</small>
+          <h4 className="class-list-title mb-1">Teaching Assistant Requests &amp; Proposals</h4>
+          <small className="text-muted">Submit and manage duty leave requests, class support proposals</small>
         </div>
 
         <div className="d-flex align-items-center gap-2 flex-wrap position-relative">
@@ -48,12 +48,12 @@ export default function RequestListHeader({
               <i className="bi bi-funnel" />
               <span>
                 {filterStatus === "all"
-                  ? "Tất cả trạng thái"
+                  ? "All Statuses"
                   : filterStatus === "pending"
-                  ? "Chờ duyệt"
+                  ? "Pending"
                   : filterStatus === "approved"
-                  ? "Đã duyệt"
-                  : "Từ chối"}
+                  ? "Approved"
+                  : "Rejected"}
               </span>
               <i className="bi bi-chevron-down ms-1" />
             </button>
@@ -63,7 +63,7 @@ export default function RequestListHeader({
                 className="dropdown-menu dropdown-menu-end show p-3 shadow border-0"
                 style={{ minWidth: 200, zIndex: 1050, position: "absolute", right: 0 }}
               >
-                <label className="form-label small fw-bold mb-2">Lọc trạng thái:</label>
+                <label className="form-label small fw-bold mb-2">Filter by status:</label>
                 <div className="d-flex flex-column gap-1">
                   <button
                     type="button"
@@ -73,7 +73,7 @@ export default function RequestListHeader({
                       setFilterOpen(false);
                     }}
                   >
-                    Tất cả đơn
+                    All requests
                   </button>
                   <button
                     type="button"
@@ -83,7 +83,7 @@ export default function RequestListHeader({
                       setFilterOpen(false);
                     }}
                   >
-                    Chờ duyệt (Pending)
+                    Pending
                   </button>
                   <button
                     type="button"
@@ -93,7 +93,7 @@ export default function RequestListHeader({
                       setFilterOpen(false);
                     }}
                   >
-                    Đã duyệt (Approved)
+                    Approved
                   </button>
                   <button
                     type="button"
@@ -103,7 +103,7 @@ export default function RequestListHeader({
                       setFilterOpen(false);
                     }}
                   >
-                    Đã từ chối (Rejected)
+                    Rejected
                   </button>
                 </div>
               </div>
@@ -122,7 +122,7 @@ export default function RequestListHeader({
               }}
             >
               <i className="bi bi-arrow-down-up" />
-              <span>{sortOrder === "desc" ? "Mới nhất" : "Cũ nhất"}</span>
+              <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
               <i className="bi bi-chevron-down ms-1" />
             </button>
 
@@ -140,7 +140,7 @@ export default function RequestListHeader({
                       setSortOpen(false);
                     }}
                   >
-                    <i className="bi bi-arrow-down me-1" /> Mới nhất trước
+                    <i className="bi bi-arrow-down me-1" /> Newest first
                   </button>
                 </li>
                 <li>
@@ -152,7 +152,7 @@ export default function RequestListHeader({
                       setSortOpen(false);
                     }}
                   >
-                    <i className="bi bi-arrow-up me-1" /> Cũ nhất trước
+                    <i className="bi bi-arrow-up me-1" /> Oldest first
                   </button>
                 </li>
               </ul>
@@ -166,7 +166,7 @@ export default function RequestListHeader({
             onClick={() => setIsModalOpen(true)}
           >
             <i className="bi bi-plus-lg" />
-            <span>Tạo đơn mới</span>
+            <span>Create Request</span>
           </button>
         </div>
       </div>

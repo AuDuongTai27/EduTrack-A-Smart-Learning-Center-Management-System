@@ -29,7 +29,7 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
       })
       .catch((err) => {
         if (!abort.signal.aborted) {
-          setError(err instanceof Error ? err.message : 'Không tải được danh sách lớp học.');
+          setError(err instanceof Error ? err.message : 'Failed to load class list.');
           setLoading(false);
         }
       });
@@ -64,10 +64,10 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
   return (
     <>
       <PageHeader
-        title={selectedClass ? `Lịch Học · ${selectedClass.className}` : 'Quản lý Lịch học theo Lớp'}
+        title={selectedClass ? `Schedule · ${selectedClass.className}` : 'Class Schedule Management'}
         breadcrumbItems={[
           { label: role === 'center-manager' ? 'Center Manager' : 'Admin Staff', path: `/${role}/dashboard` },
-          { label: 'Lịch học trung tâm' },
+          { label: 'Center Schedule' },
           ...(selectedClass ? [{ label: selectedClass.className }] : []),
         ]}
         action={
@@ -79,12 +79,12 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                 onClick={() => setSelectedClassId(null)}
               >
                 <i className="bi bi-arrow-left" />
-                Về danh sách lớp
+                Back to Class List
               </button>
               <div className="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded-3 border shadow-xs">
                 <label className="small text-muted text-nowrap mb-0 fw-semibold" htmlFor="quickClassSwitch">
                   <i className="bi bi-arrow-left-right text-primary me-1" />
-                  Đổi nhanh lớp:
+                  Quick switch class:
                 </label>
                 <select
                   id="quickClassSwitch"
@@ -108,26 +108,26 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
       {loading && !capabilities ? (
         <div className="p-5 text-center bg-white rounded-4 border shadow-sm my-3">
           <div className="spinner-border text-primary mb-2" role="status" />
-          <p className="text-muted mb-0">Đang tải danh sách lớp học của trung tâm…</p>
+          <p className="text-muted mb-0">Loading center class list…</p>
         </div>
       ) : error ? (
         <div className="alert alert-danger d-flex align-items-center justify-content-between rounded-4 my-3" role="alert">
           <span>{error}</span>
           <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => setReload((r) => r + 1)}>
-            Thử lại
+            Retry
           </button>
         </div>
       ) : !selectedClass ? (
-        /* BƯỚC 1: CHƯA CHỌN LỚP -> CHỈ HIỆN DANH SÁCH LỚP ĐỂ CHỌN, KHÔNG HIỆN LỊCH */
-        <section className="bg-white rounded-4 border shadow-sm p-4 mb-4" aria-label="Chọn lớp học để xem lịch">
+        /* STEP 1: CLASS NOT SELECTED -> SHOW CLASS LIST TO SELECT, DO NOT SHOW SCHEDULE */
+        <section className="bg-white rounded-4 border shadow-sm p-4 mb-4" aria-label="Select class to view schedule">
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
             <div>
               <h2 className="h5 fw-bold mb-1">
                 <i className="bi bi-journal-bookmark-fill text-primary me-2" />
-                Chọn lớp học để xem & điều chỉnh lịch
+                Select a class to view & adjust schedule
               </h2>
               <p className="text-muted small mb-0">
-                Vui lòng chọn một lớp học bên dưới để xem thời khóa biểu chi tiết, dời buổi học sang ngày bất kỳ, xóa buổi nghỉ hoặc tạo buổi học bù.
+                Please select a class below to view detailed schedule, reschedule sessions, remove cancelled sessions, or create make-up sessions.
               </p>
             </div>
             <div className="d-flex flex-wrap align-items-center gap-2">
@@ -138,21 +138,21 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                 <input
                   type="search"
                   className="form-control"
-                  placeholder="Tìm tên lớp, môn, giáo viên, phòng…"
+                  placeholder="Search by class, subject, teacher, room…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <select
-                aria-label="Lọc trạng thái lớp"
+                aria-label="Filter class status"
                 className="form-select form-select-sm"
                 style={{ width: 'auto' }}
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'upcoming')}
               >
-                <option value="all">Tất cả trạng thái ({classes.length})</option>
-                <option value="active">Đang học (Active)</option>
-                <option value="upcoming">Sắp khai giảng (Upcoming)</option>
+                <option value="all">All Statuses ({classes.length})</option>
+                <option value="active">Active</option>
+                <option value="upcoming">Upcoming</option>
               </select>
             </div>
           </div>
@@ -160,13 +160,13 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
           {filteredClasses.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <i className="bi bi-inbox fs-2 d-block mb-2" />
-              Không tìm thấy lớp học nào phù hợp với bộ lọc.
+              No classes match the filter.
             </div>
           ) : (
             <div className="row g-3">
               {filteredClasses.map((c) => {
-                const teachers = (c.teachers ?? []).map((t) => t.name).join(', ') || 'Chưa phân công';
-                const tas = (c.teachingAssistants ?? []).map((t) => t.name).join(', ') || 'Chưa phân công';
+                const teachers = (c.teachers ?? []).map((t) => t.name).join(', ') || 'Unassigned';
+                const tas = (c.teachingAssistants ?? []).map((t) => t.name).join(', ') || 'Unassigned';
                 const schedules = c.scheduleSummary ?? [];
                 return (
                   <div key={c.classId} className="col-12 col-md-6 col-xl-4">
@@ -190,7 +190,7 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                                   : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle')
                               }
                             >
-                              {c.status === 'active' ? 'Đang học' : 'Sắp mở'}
+                              {c.status === 'active' ? 'Active' : 'Upcoming'}
                             </span>
                           </div>
 
@@ -199,7 +199,7 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                           <div className="small text-muted mb-2">
                             <div className="mb-1">
                               <i className="bi bi-person-workspace me-1 text-primary" />
-                              <strong>GV:</strong> {teachers}
+                              <strong>Teacher:</strong> {teachers}
                             </div>
                             <div className="mb-1">
                               <i className="bi bi-person-badge me-1 text-info" />
@@ -207,18 +207,18 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                             </div>
                             <div className="mb-1">
                               <i className="bi bi-geo-alt me-1 text-danger" />
-                              <strong>Phòng mặc định:</strong> {c.room || 'Chưa xếp phòng'}
+                              <strong>Default Room:</strong> {c.room || 'No room assigned'}
                             </div>
                             <div>
                               <i className="bi bi-calendar-range me-1 text-secondary" />
-                              <strong>Khóa học:</strong> {c.startDate} → {c.endDate || 'Chưa định ngày kết thúc'}
+                              <strong>Duration:</strong> {c.startDate} → {c.endDate || 'End date not set'}
                             </div>
                           </div>
 
                           <div className="bg-light rounded-3 p-2 mb-3 small">
                             <div className="fw-semibold text-secondary mb-1">
                               <i className="bi bi-clock-history me-1" />
-                              Lịch cố định hàng tuần:
+                              Weekly Fixed Schedule:
                             </div>
                             {schedules.length > 0 ? (
                               <ul className="list-unstyled mb-0 ps-2">
@@ -229,14 +229,14 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                                 ))}
                               </ul>
                             ) : (
-                              <span className="text-muted fst-italic">Chưa thiết lập ca cố định</span>
+                              <span className="text-muted fst-italic">No fixed sessions set</span>
                             )}
                           </div>
                         </div>
 
                         <div className="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
                           <span className="small text-muted">
-                            Đã xếp: <strong>{c.totalSessions ?? 0}</strong> buổi học
+                            Scheduled: <strong>{c.totalSessions ?? 0}</strong> sessions
                           </span>
                           <button
                             type="button"
@@ -244,7 +244,7 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                             onClick={() => setSelectedClassId(c.classId)}
                           >
                             <i className="bi bi-calendar3 me-1" />
-                            Xem & Sửa lịch
+                            View & Edit Schedule
                           </button>
                         </div>
                       </div>
@@ -256,7 +256,7 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
           )}
         </section>
       ) : (
-        /* BƯỚC 2: ĐÃ CHỌN LỚP -> HIỂN THỊ TRỰC TIẾP LỊCH HỌC (NÚT VỀ DS LỚP & ĐỔI NHANH LỚP ĐẶT TRÊN HEADER) */
+        /* STEP 2: CLASS SELECTED -> SHOW SCHEDULE DIRECTLY */
         <ScheduleWorkspace
           key={`${role}:${selectedClass.classId}`}
           role={role}

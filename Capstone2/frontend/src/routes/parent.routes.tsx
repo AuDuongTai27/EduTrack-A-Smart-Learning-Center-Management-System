@@ -33,7 +33,7 @@ export const parentRoutes: RouteObject = {
     { path: "classes/:id", element: <ParentClassDetailPage /> },
     { path: "class-detail", element: <ParentClassDetailPage /> },
     { path: "*", element: <NotFoundPage /> },
-    // Lưu ý: Không có route assignment detail cho Parent theo yêu cầu đặc tả nghiệp vụ
+    // Note: No assignment detail route for Parent per business specification requirements
   ],
 };
 

@@ -1,4 +1,5 @@
 import type { AssignmentDto } from '../BLL/models/AssignmentDto';
+import { getAuthHeaders } from './authApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -15,6 +16,7 @@ export const assignmentApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -33,6 +35,7 @@ export const assignmentApi = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 

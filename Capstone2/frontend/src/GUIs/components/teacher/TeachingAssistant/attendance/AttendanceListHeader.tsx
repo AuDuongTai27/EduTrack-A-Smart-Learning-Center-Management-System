@@ -8,7 +8,7 @@ export interface AttendanceListHeaderProps {
 }
 
 export function AttendanceListHeader({
-  className = "Lớp học",
+  className = "Class",
   session,
   totalStudents = 0,
 }: AttendanceListHeaderProps) {
@@ -28,7 +28,7 @@ export function AttendanceListHeader({
               } px-2.5 py-1`}
             >
               <i className={`bi ${isCompleted ? "bi-check-circle-fill" : "bi-clock-history"} me-1`} />
-              {isCompleted ? "Đã điểm danh" : "Chưa điểm danh"}
+              {isCompleted ? "Attendance Taken" : "Attendance Not Taken"}
             </span>
           )}
         </div>
@@ -39,7 +39,7 @@ export function AttendanceListHeader({
               <span>{session.title}</span>
             </>
           ) : (
-            <span>Danh sách điểm danh chuyên cần của học viên (Trợ giảng phụ trách)</span>
+            <span>Student attendance list (Managed by Teaching Assistant)</span>
           )}
         </p>
       </div>
@@ -47,7 +47,7 @@ export function AttendanceListHeader({
       <div className="d-flex align-items-center gap-2">
         <span className="badge bg-light text-dark border px-3 py-2 fw-semibold">
           <i className="bi bi-people-fill text-primary me-1" />
-          Sĩ số: {totalStudents} học sinh
+          Class size: {totalStudents} students
         </span>
       </div>
     </div>

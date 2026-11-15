@@ -49,8 +49,8 @@ export function StudentDashboardPage() {
   if (loading) {
     return (
       <LearnerPageLoader
-        title="Đang tải tổng quan học tập..."
-        message="Hệ thống đang đồng bộ danh sách lớp học và bài tập của bạn."
+        title="Loading learning overview..."
+        message="The system is synchronizing your classes and assignments."
       />
     );
   }
@@ -61,9 +61,9 @@ export function StudentDashboardPage() {
         {/* 1. Page Header */}
         <StudentPageHeader
           title="Dashboard"
-          subtitle="Tổng quan học tập của bạn"
+          subtitle="Your learning overview"
           breadcrumbs={[
-            { label: 'Cổng học sinh' },
+            { label: 'Student Portal' },
             { label: 'Dashboard' },
           ]}
         />

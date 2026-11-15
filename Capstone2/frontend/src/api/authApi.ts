@@ -24,6 +24,7 @@ export interface LoginResponseDto {
 }
 
 const TOKEN_STORAGE_KEY = 'edutrack_auth_token';
+const LEGACY_TOKEN_STORAGE_KEY = 'token';
 const USER_STORAGE_KEY = 'edutrack_auth_user';
 
 const authListeners = new Set<() => void>();
@@ -44,7 +45,7 @@ export function subscribeAuth(listener: () => void): () => void {
 
 export function getAuthToken(): string | null {
   try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
+    return localStorage.getItem(TOKEN_STORAGE_KEY) || localStorage.getItem(LEGACY_TOKEN_STORAGE_KEY);
   } catch {
     return null;
   }
@@ -84,6 +85,7 @@ export function saveAuthSession(token: string, user: AuthUserDto): void {
   try {
     const serialized = JSON.stringify(user);
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    localStorage.setItem(LEGACY_TOKEN_STORAGE_KEY, token);
     localStorage.setItem(USER_STORAGE_KEY, serialized);
     cachedRawUser = serialized;
     cachedAuthUser = user;
@@ -103,6 +105,7 @@ export function saveAuthSession(token: string, user: AuthUserDto): void {
 export function clearAuthSession(): void {
   try {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
   } catch {
     // Ignore storage errors
@@ -158,8 +161,8 @@ export function installAuthFetchInterceptor(): void {
 
     const response = await originalFetch(input, nextInit);
 
-    const isLoginEndpoint = requestUrl.includes('/api/auth/login');
-    if (response.status === 401 && !isLoginEndpoint && token) {
+    const isMeEndpoint = requestUrl.includes('/api/auth/me');
+    if (response.status === 401 && isMeEndpoint && token) {
       clearAuthSession();
     }
 

@@ -59,7 +59,7 @@ export default function CenterManagerSubjectPage() {
           setSubjects(res.data);
         }
       } catch (err) {
-        console.warn("Lỗi tải danh sách môn học center manager:", err);
+        console.warn("Failed to load subject list for center manager:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -128,10 +128,10 @@ export default function CenterManagerSubjectPage() {
       setSubjects([res.data, ...subjects]);
       setShowAddModal(false);
       setAddForm({ subjectName: "", subjectCode: "", description: "" });
-      setActionSuccessMsg(`Đã tạo môn học mới: "${res.data.subjectName}" (${res.data.subjectCode}) thành công!`);
+      setActionSuccessMsg(`New subject created: "${res.data.subjectName}" (${res.data.subjectCode}) successfully!`);
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Không thể tạo môn học mới.");
+      setActionErrorMsg(err.message || "Failed to create new subject.");
     } finally {
       setSubmitting(false);
     }
@@ -165,10 +165,10 @@ export default function CenterManagerSubjectPage() {
 
       setSubjects(subjects.map((s) => (s.subjectId === editForm.subjectId ? res.data : s)));
       setShowEditModal(false);
-      setActionSuccessMsg(`Đã cập nhật môn học: "${res.data.subjectName}" (${res.data.subjectCode}) thành công!`);
+      setActionSuccessMsg(`Subject updated: "${res.data.subjectName}" (${res.data.subjectCode}) successfully!`);
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Không thể cập nhật môn học.");
+      setActionErrorMsg(err.message || "Failed to update subject.");
     } finally {
       setSubmitting(false);
     }
@@ -192,13 +192,13 @@ export default function CenterManagerSubjectPage() {
       if (res.success) {
         setSubjects(subjects.filter((s) => s.subjectId !== subjectToDelete.subjectId));
         setShowDeleteModal(false);
-        setActionSuccessMsg(`Đã xóa môn học "${subjectToDelete.subjectName}" thành công!`);
+        setActionSuccessMsg(`Deleted subject "${subjectToDelete.subjectName}" successfully!`);
         setTimeout(() => setActionSuccessMsg(null), 3500);
       } else {
-        setActionErrorMsg(res.message || "Xóa môn học không thành công.");
+        setActionErrorMsg(res.message || "Failed to delete subject.");
       }
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Lỗi xóa môn học.");
+      setActionErrorMsg(err.message || "Error deleting subject.");
     } finally {
       setSubmitting(false);
       setSubjectToDelete(null);
@@ -312,14 +312,14 @@ export default function CenterManagerSubjectPage() {
                 <tr>
                   <td colSpan={7} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang nạp danh sách môn học...
+                    Loading subjects...
                   </td>
                 </tr>
               ) : paginatedSubjects.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-5 text-muted">
                     <i className="bi bi-journal-x fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy môn học nào phù hợp.
+                    No matching subjects found.
                   </td>
                 </tr>
               ) : (
@@ -344,7 +344,7 @@ export default function CenterManagerSubjectPage() {
                       </td>
                       <td className="text-center">
                         <span className="badge bg-secondary-subtle text-secondary px-3 py-1">
-                          {sub.totalClasses || 0} lớp
+                          {sub.totalClasses || 0} classes
                         </span>
                       </td>
                       <td>
@@ -355,17 +355,17 @@ export default function CenterManagerSubjectPage() {
                           <TableActionButton
                             action="View"
                             onClick={() => handleViewDetails(sub)}
-                            title="Xem chi tiết môn học"
+                            title="View subject details"
                           />
                           <TableActionButton
                             action="Edit"
                             onClick={() => handleOpenEditModal(sub)}
-                            title="Sửa môn học"
+                            title="Edit subject"
                           />
                           <TableActionButton
                             action="Delete"
                             onClick={() => handleOpenDeleteModal(sub)}
-                            title="Xóa môn học"
+                            title="Delete subject"
                           />
                         </div>
                       </td>
@@ -397,7 +397,7 @@ export default function CenterManagerSubjectPage() {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-journal-plus me-2" />
-                  Mở môn học mới (Center Manager)
+                  Add New Subject (Center Manager)
                 </h5>
                 <button
                   type="button"
@@ -408,33 +408,33 @@ export default function CenterManagerSubjectPage() {
               <form onSubmit={handleAddSubmit}>
                 <div className="modal-body p-4">
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Tên môn học <span className="text-danger">*</span></label>
+                    <label className="form-label fw-bold">Subject Name <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Ví dụ: Lập trình Python, Sinh học nâng cao..."
+                      placeholder="e.g. Python Programming, Advanced Biology..."
                       value={addForm.subjectName}
                       onChange={(e) => setAddForm({ ...addForm, subjectName: e.target.value })}
                       required
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Mã môn học (Code) <span className="text-danger">*</span></label>
+                    <label className="form-label fw-bold">Subject Code <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control font-monospace"
-                      placeholder="Ví dụ: BIO, PYT, ENG..."
+                      placeholder="e.g. BIO, PYT, ENG..."
                       value={addForm.subjectCode}
                       onChange={(e) => setAddForm({ ...addForm, subjectCode: e.target.value })}
                       required
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Mô tả giáo trình / Mục tiêu môn học</label>
+                    <label className="form-label fw-bold">Curriculum Description / Objectives</label>
                     <textarea
                       className="form-control"
                       rows={3}
-                      placeholder="Mô tả tóm tắt nội dung môn học..."
+                      placeholder="Summary description of subject content..."
                       value={addForm.description}
                       onChange={(e) => setAddForm({ ...addForm, description: e.target.value })}
                     />
@@ -447,16 +447,16 @@ export default function CenterManagerSubjectPage() {
                     onClick={() => setShowAddModal(false)}
                     disabled={submitting}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-primary px-4" disabled={submitting}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Đang lưu...
+                        Saving...
                       </>
                     ) : (
-                      "Lưu môn học"
+                      "Save Subject"
                     )}
                   </button>
                 </div>
@@ -474,7 +474,7 @@ export default function CenterManagerSubjectPage() {
               <div className="modal-header bg-warning-subtle border-bottom">
                 <h5 className="modal-title fw-bold text-dark">
                   <i className="bi bi-pencil-square me-2 text-warning" />
-                  Chỉnh sửa môn học: #{editForm.subjectCode}
+                  Edit Subject: #{editForm.subjectCode}
                 </h5>
                 <button
                   type="button"
@@ -485,7 +485,7 @@ export default function CenterManagerSubjectPage() {
               <form onSubmit={handleEditSubmit}>
                 <div className="modal-body p-4">
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Tên môn học <span className="text-danger">*</span></label>
+                    <label className="form-label fw-bold">Subject Name <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -495,7 +495,7 @@ export default function CenterManagerSubjectPage() {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Mã môn học (Code)</label>
+                    <label className="form-label fw-bold">Subject Code</label>
                     <input
                       type="text"
                       className="form-control font-monospace"
@@ -504,7 +504,7 @@ export default function CenterManagerSubjectPage() {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Mô tả giáo trình</label>
+                    <label className="form-label fw-bold">Curriculum Description</label>
                     <textarea
                       className="form-control"
                       rows={3}
@@ -520,16 +520,16 @@ export default function CenterManagerSubjectPage() {
                     onClick={() => setShowEditModal(false)}
                     disabled={submitting}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Đang lưu...
+                        Saving...
                       </>
                     ) : (
-                      "Cập nhật môn học"
+                      "Update Subject"
                     )}
                   </button>
                 </div>
@@ -547,7 +547,7 @@ export default function CenterManagerSubjectPage() {
               <div className="modal-header bg-danger text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-exclamation-triangle-fill me-2" />
-                  Xác nhận xóa môn học
+                  Confirm Delete Subject
                 </h5>
                 <button
                   type="button"
@@ -557,16 +557,16 @@ export default function CenterManagerSubjectPage() {
               </div>
               <div className="modal-body p-4">
                 <p className="mb-2">
-                  Bạn có chắc chắn muốn xóa môn học sau khỏi hệ thống không?
+                  Are you sure you want to delete this subject from the system?
                 </p>
                 <div className="p-3 bg-light rounded border mb-3">
                   <h6 className="fw-bold mb-1 text-dark">{subjectToDelete.subjectName}</h6>
                   <span className="badge bg-secondary font-monospace me-2">#{subjectToDelete.subjectCode}</span>
-                  <small className="text-muted">Đang có {subjectToDelete.totalClasses || 0} lớp học</small>
+                  <small className="text-muted">Currently has {subjectToDelete.totalClasses || 0} classes</small>
                 </div>
                 <div className="alert alert-warning py-2 mb-0 small">
                   <i className="bi bi-info-circle me-1" />
-                  Hành động này không thể hoàn tác nếu môn học chưa liên kết với lớp học nào.
+                  This action cannot be undone if the subject has not been linked to any classes.
                 </div>
               </div>
               <div className="modal-footer bg-light">
@@ -576,7 +576,7 @@ export default function CenterManagerSubjectPage() {
                   onClick={() => setShowDeleteModal(false)}
                   disabled={submitting}
                 >
-                  Hủy bỏ
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -587,10 +587,10 @@ export default function CenterManagerSubjectPage() {
                   {submitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" />
-                      Đang xóa...
+                      Deleting...
                     </>
                   ) : (
-                    "Xác nhận xóa"
+                    "Confirm Delete"
                   )}
                 </button>
               </div>
@@ -610,7 +610,7 @@ export default function CenterManagerSubjectPage() {
                     #{selectedSubject.subjectCode}
                   </span>
                   <h5 className="modal-title fw-bold mb-0 text-dark">
-                    Chi tiết môn học
+                    Subject Details
                   </h5>
                 </div>
                 <button
@@ -624,31 +624,31 @@ export default function CenterManagerSubjectPage() {
                 {loadingDetail ? (
                   <div className="text-center py-4 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang nạp thông tin môn học...
+                    Loading subject information...
                   </div>
                 ) : (
                   <>
                     <div className="mb-3">
-                      <small className="text-muted d-block mb-1">Tên môn học</small>
+                      <small className="text-muted d-block mb-1">Subject Name</small>
                       <h4 className="fw-bold text-dark">{selectedSubject.subjectName}</h4>
                     </div>
 
                     <div className="mb-3">
-                      <small className="text-muted d-block mb-1">Mã định danh</small>
+                      <small className="text-muted d-block mb-1">Identifier Code</small>
                       <span className="badge bg-light text-dark border font-monospace fs-6">
                         {selectedSubject.subjectCode}
                       </span>
                     </div>
 
                     <div className="mb-3">
-                      <small className="text-muted d-block mb-1">Số lớp học đang vận hành</small>
-                      <strong className="text-primary">{selectedSubject.totalClasses || 0} lớp học</strong>
+                      <small className="text-muted d-block mb-1">Active Classes Count</small>
+                      <strong className="text-primary">{selectedSubject.totalClasses || 0} classes</strong>
                     </div>
 
                     <div className="mb-3">
-                      <small className="text-muted d-block mb-1">Mô tả chương trình học</small>
+                      <small className="text-muted d-block mb-1">Curriculum Description</small>
                       <div className="p-3 bg-light rounded border text-secondary">
-                        {selectedSubject.description || "Không có ghi chú thêm."}
+                        {selectedSubject.description || "No additional notes."}
                       </div>
                     </div>
                   </>
@@ -661,7 +661,7 @@ export default function CenterManagerSubjectPage() {
                   className="btn btn-secondary"
                   onClick={() => setSelectedSubject(null)}
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>

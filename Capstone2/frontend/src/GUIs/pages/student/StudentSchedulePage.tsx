@@ -3,8 +3,8 @@ import { ScheduleWorkspace } from '../../components/shared/schedule/ScheduleWork
 
 export function StudentSchedulePage() {
   return <main className="main-content"><div className="content-container">
-    <StudentPageHeader title="Lịch học" subtitle="Các phiên học chính thức thuộc đăng ký lớp hợp lệ"
-      breadcrumbs={[{label: 'Trang chủ', href: '/student/dashboard'}, {label: 'Lịch học'}]} />
+    <StudentPageHeader title="Schedule" subtitle="Official class sessions under valid enrollments"
+      breadcrumbs={[{label: 'Home', href: '/student/dashboard'}, {label: 'Schedule'}]} />
     <ScheduleWorkspace />
   </div></main>;
 }

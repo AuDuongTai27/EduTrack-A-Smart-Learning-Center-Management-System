@@ -59,10 +59,10 @@ export default function TeachingAssistantRequestPage() {
     <>
       {/* Page Header Title & Breadcrumb */}
       <PageHeader
-        title="Đơn Từ &amp; Yêu Cầu Đã Gửi"
+        title="Submitted Requests"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Yêu cầu trợ giảng" },
+          { label: "Teaching Assistant Requests" },
         ]}
       />
 
@@ -76,13 +76,13 @@ export default function TeachingAssistantRequestPage() {
           onSortOrderChange={(o) => setSortOrder(o)}
           onRequestCreated={handleRequestCreated}
           defaultRequestedBy={DEFAULT_TA_ID}
-          userRoleName="Trợ giảng"
+          userRoleName="Teaching Assistant"
         />
 
         {loading ? (
           <div className="p-5 text-center">
             <div className="spinner-border text-primary mx-auto mb-2" role="status" />
-            <p className="text-muted mb-0">Đang tải danh sách đơn từ và yêu cầu...</p>
+            <p className="text-muted mb-0">Loading requests...</p>
           </div>
         ) : (
           <>

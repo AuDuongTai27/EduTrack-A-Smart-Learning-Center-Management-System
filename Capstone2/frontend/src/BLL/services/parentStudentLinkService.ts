@@ -13,5 +13,5 @@ export function selectParentStudentPair(previous: ParentStudentLinkForm, patch: 
 
 export function parentStudentLinkError(form: ParentStudentLinkForm): string | null {
   return form.parentId > 0 && form.studentId > 0 && form.parentId !== form.studentId
-    ? null : "Vui lòng chọn đầy đủ phụ huynh và học sinh hợp lệ.";
+    ? null : "Please select both a valid parent and student.";
 }

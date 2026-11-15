@@ -8,9 +8,7 @@ import {
   NewAssignmentFormAction,
   NewAssignmentTitle,
 } from "../../../components/teacher/Teacher/newAssignment";
-import classDAL from "../../../../DAL/classDAL";
-import teachingDAL, { DEFAULT_TEACHER_ID } from "../../../../DAL/teachingDAL";
-import type { ClassDto } from "../../../../BLL/models/ClassDto";
+import teachingDAL, { DEFAULT_TEACHER_ID, type TeachingClassItemDto } from "../../../../DAL/teachingDAL";
 
 const getDefaultDeadline = () => {
   const d = new Date();
@@ -26,7 +24,7 @@ export default function TeacherNewAssignmentPage() {
   const numClassId = Number(classId || id || "1");
   const targetClassId = String(numClassId);
 
-  const [classInfo, setClassInfo] = useState<ClassDto | null>(null);
+  const [classInfo, setClassInfo] = useState<TeachingClassItemDto | null>(null);
 
   // Form states
   const [title, setTitle] = useState<string>("");
@@ -47,7 +45,7 @@ export default function TeacherNewAssignmentPage() {
     let isMounted = true;
     async function fetchClass() {
       try {
-        const cls = await classDAL.getClassById(numClassId);
+        const cls = await teachingDAL.getClassById(numClassId, DEFAULT_TEACHER_ID);
         if (isMounted) setClassInfo(cls);
       } catch (err) {
         console.error("Failed to load class for new assignment:", err);

@@ -4,10 +4,10 @@ import { eligibleEnrollmentClasses } from "./studentEnrollmentService";
 
 export function enrollmentStatus(status: string) {
   switch (status.trim().toLowerCase()) {
-    case "active": return { label: "Đang học", badge: "bg-success-subtle text-success", canDrop: true };
-    case "completed": return { label: "Đã hoàn thành", badge: "bg-primary-subtle text-primary", canDrop: false };
-    case "dropped": return { label: "Đã nghỉ", badge: "bg-secondary-subtle text-secondary", canDrop: false };
-    default: return { label: `Trạng thái khác: ${status}`, badge: "bg-warning-subtle text-dark", canDrop: false };
+    case "active": return { label: "Active", badge: "bg-success-subtle text-success", canDrop: true };
+    case "completed": return { label: "Completed", badge: "bg-primary-subtle text-primary", canDrop: false };
+    case "dropped": return { label: "Dropped", badge: "bg-secondary-subtle text-secondary", canDrop: false };
+    default: return { label: `Other status: ${status}`, badge: "bg-warning-subtle text-dark", canDrop: false };
   }
 }
 

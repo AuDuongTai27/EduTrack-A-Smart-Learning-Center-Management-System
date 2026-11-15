@@ -35,3 +35,12 @@ public sealed class ScheduleSessionDto
     public List<SchedulePersonDto> TeachingAssistants { get; set; } = new();
     public bool HasAttendance { get; set; }
 }
+
+public sealed class ScheduleClassSummaryDto
+{
+    public int ClassId { get; set; }
+    public string ClassName { get; set; } = "";
+    public string StartDate { get; set; } = "";
+    public string? EndDate { get; set; }
+    public string Status { get; set; } = "";
+}

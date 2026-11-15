@@ -70,7 +70,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Student Dashboard`);
+      throw new Error(`HTTP ${response.status} while loading Student Dashboard`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
@@ -86,7 +86,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Parent Children Overview`);
+      throw new Error(`HTTP ${response.status} while loading Parent Children Overview`);
     }
     const json = await response.json();
     if (Array.isArray(json)) return json;
@@ -104,7 +104,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Student Class Detail`);
+      throw new Error(`HTTP ${response.status} while loading Student Class Detail`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
@@ -120,7 +120,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Student Schedule`);
+      throw new Error(`HTTP ${response.status} while loading Student Schedule`);
     }
     const json = await response.json();
     if (Array.isArray(json)) return json;
@@ -138,7 +138,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Student Progress`);
+      throw new Error(`HTTP ${response.status} while loading Student Progress`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
@@ -154,7 +154,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Student Tuition`);
+      throw new Error(`HTTP ${response.status} while loading Student Tuition`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
@@ -176,7 +176,7 @@ export const learningApi = {
     });
     const json = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new Error(json?.message || `HTTP ${response.status} khi thanh toán học phí`);
+      throw new Error(json?.message || `HTTP ${response.status} while paying tuition`);
     }
     return json?.data ?? json;
   },
@@ -191,7 +191,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi khôi phục hóa đơn demo`);
+      throw new Error(`HTTP ${response.status} while restoring demo invoice`);
     }
     const json = await response.json();
     return json?.data ?? json;
@@ -213,7 +213,7 @@ export const learningApi = {
       }
     );
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Student Assignment Detail`);
+      throw new Error(`HTTP ${response.status} while loading Student Assignment Detail`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
@@ -233,7 +233,7 @@ export const learningApi = {
       body: JSON.stringify(finalPayload),
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi nộp bài tập`);
+      throw new Error(`HTTP ${response.status} while submitting assignment`);
     }
     const json = await response.json();
     return json?.data ?? json;
@@ -252,7 +252,7 @@ export const learningApi = {
       }
     );
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi xóa bài nộp`);
+      throw new Error(`HTTP ${response.status} while deleting submission`);
     }
     return true;
   },
@@ -269,7 +269,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải danh sách phản hồi`);
+      throw new Error(`HTTP ${response.status} while loading feedback list`);
     }
     const json = await response.json();
     if (Array.isArray(json)) return json;
@@ -292,7 +292,7 @@ export const learningApi = {
       body: JSON.stringify(finalPayload),
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi gửi phản hồi mới`);
+      throw new Error(`HTTP ${response.status} while sending new feedback`);
     }
     const json = await response.json();
     return json?.data ?? json;
@@ -311,7 +311,7 @@ export const learningApi = {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi cập nhật phản hồi`);
+      throw new Error(`HTTP ${response.status} while updating feedback`);
     }
     const json = await response.json();
     return json?.data ?? json;
@@ -327,7 +327,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải thông báo học sinh`);
+      throw new Error(`HTTP ${response.status} while loading student notifications`);
     }
     const json = await response.json();
     if (Array.isArray(json)) return json;
@@ -347,7 +347,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải thông báo phụ huynh`);
+      throw new Error(`HTTP ${response.status} while loading parent notifications`);
     }
     const json = await response.json();
     if (Array.isArray(json)) return json;
@@ -366,7 +366,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi đánh dấu đã đọc thông báo`);
+      throw new Error(`HTTP ${response.status} while marking notification as read`);
     }
     return true;
   },
@@ -383,7 +383,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi đánh dấu đã đọc tất cả thông báo`);
+      throw new Error(`HTTP ${response.status} while marking all notifications as read`);
     }
     const json = await response.json();
     return json?.updatedCount ?? 0;
@@ -399,7 +399,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải hồ sơ học sinh`);
+      throw new Error(`HTTP ${response.status} while loading student profile`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
@@ -419,7 +419,7 @@ export const learningApi = {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi cập nhật hồ sơ học sinh`);
+      throw new Error(`HTTP ${response.status} while updating student profile`);
     }
     const json = await response.json();
     return json?.data ?? json;
@@ -435,7 +435,7 @@ export const learningApi = {
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải hồ sơ phụ huynh`);
+      throw new Error(`HTTP ${response.status} while loading parent profile`);
     }
     const json = await response.json();
     return json?.data ?? json ?? null;
@@ -455,7 +455,7 @@ export const learningApi = {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi cập nhật hồ sơ phụ huynh`);
+      throw new Error(`HTTP ${response.status} while updating parent profile`);
     }
     const json = await response.json();
     return json?.data ?? json;

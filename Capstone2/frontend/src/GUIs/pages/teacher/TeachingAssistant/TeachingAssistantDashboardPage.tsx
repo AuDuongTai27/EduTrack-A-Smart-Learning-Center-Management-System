@@ -45,11 +45,11 @@ export default function TeachingAssistantDashboardPage() {
   const userCode = profile?.userCode ? `#${profile.userCode}` : "#TA001";
   const specialty = profile?.specialty || "Teaching Assistant";
   const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const roleTitle = profile?.roleTitle || "Trợ giảng chuyên môn";
+  const roleTitle = profile?.roleTitle || "Teaching Assistant";
 
   const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || [])
     .filter((cls) => {
-      // Bỏ qua lớp đã hoàn thành
+      // Bỏ qua lớp đã hoàn thành hoặc đã quá giờ kết thúc
       if (cls.status?.toLowerCase() === "completed") return false;
       if (cls.endTime) {
         const now = new Date();
@@ -83,6 +83,7 @@ export default function TeachingAssistantDashboardPage() {
 
       return {
         id: cls.classId,
+        sessionId: cls.sessionId,
         className: cls.className,
         timePeriod: cls.timePeriod,
         room: cls.room || "Room 201",
@@ -92,39 +93,46 @@ export default function TeachingAssistantDashboardPage() {
         startTime: cls.startTime,
         endTime: cls.endTime,
       };
+    })
+    .sort((a, b) => {
+      const aOngoing = a.status === "Ongoing";
+      const bOngoing = b.status === "Ongoing";
+      if (aOngoing && !bOngoing) return -1;
+      if (!aOngoing && bOngoing) return 1;
+      return (a.startTime || "").localeCompare(b.startTime || "");
     });
 
   return (
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Bảng Điều Khiển Trợ Giảng"
+        title="Teaching Assistant Dashboard"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Tổng quan trợ giảng" },
+          { label: "Teaching Assistant Overview" },
         ]}
       />
 
       {/* Greeting section */}
-      <GreetingSection name={taName} message="Chúc bạn một ngày làm việc hỗ trợ lớp học thật hiệu quả tại EduTrack!" />
+      <GreetingSection name={taName} message="Wishing you an effective day supporting classes at EduTrack!" />
 
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Đang tải...</span>
+            <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="text-muted mt-2">Đang tải thông tin bảng điều khiển...</p>
+          <p className="text-muted mt-2">Loading dashboard information...</p>
         </div>
       ) : (
         <>
           {/* Dashboard KPI Cards - Chiếm toàn bộ chiều ngang */}
           <TeachingAssistantKpiCards
-            activeAssignments={kpis?.activeAssignments}
-            assignmentsDueToday={kpis?.assignmentsDueToday}
-            activeClasses={kpis?.activeClasses}
-            classesToday={kpis?.classesToday ?? mappedTodayClasses.length}
-            totalStudents={kpis?.totalStudents}
-            pendingAttendance={kpis?.pendingAttendance}
+            activeAssignments={kpis?.activeAssignments ?? 0}
+            assignmentsDueToday={kpis?.assignmentsDueToday ?? 0}
+            activeClasses={kpis?.activeClasses ?? 0}
+            classesToday={kpis?.classesToday ?? 0}
+            totalStudents={kpis?.totalStudents ?? 0}
+            pendingAttendance={kpis?.pendingAttendance ?? 0}
           />
 
           <div className="row">
