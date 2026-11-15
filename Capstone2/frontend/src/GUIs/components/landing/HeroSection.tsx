@@ -1,71 +1,15 @@
-import React from 'react';
-
-export interface HeroSectionProps {
-  centerName?: string;
-  slogan?: string;
-  onOpenWorkspace?: () => void;
+import { useState } from 'react';
+import { Icon } from './LandingUI';
+export function HeroSection() {
+  const [failed, setFailed] = useState(false);
+  return <section id="hero" className="et-hero"><div className="et-container et-hero-grid">
+    <div className="et-hero-copy"><span className="et-pill"><Icon name="leaf"/> EduTrack Learning Center</span>
+      <h1>The Right Learning<br className="et-desktop-break"/> Path for Greater<br className="et-desktop-break"/> <span>Academic Success</span></h1>
+      <p>A place to ask questions, build confidence, and move forward. Discover a learning path that brings out your potential.</p>
+      <div className="et-actions"><a className="et-button et-primary" href="#classes"><Icon name="book"/>Explore Classes<Icon name="arrow"/></a><a className="et-button et-outline" href="#contact"><Icon name="calendar"/>Book a Consultation</a></div>
+    </div>
+    <figure className="et-hero-visual">{!failed ? <img src="/assets/landing/hero.webp" srcSet="/assets/landing/hero-mobile.webp 700w, /assets/landing/hero.webp 1200w" sizes="(max-width: 600px) calc(100vw - 40px), (max-width: 1199px) 48vw, 620px" width="1200" height="800" fetchPriority="high" alt="Illustration of students learning together around a laptop" onError={() => setFailed(true)}/> : <div className="et-hero-placeholder"><Icon name="books"/>Room to learn. Space to grow.</div>}
+      {/* Illustrative artwork, not a verified photograph of the center. */}
+    </figure>
+  </div></section>;
 }
-
-export function HeroSection({
-  centerName = 'EduTrack Smart Learning Center',
-  slogan = 'Đồng Hành Cùng Tri Thức - Nâng Tầm Tương Lai',
-  onOpenWorkspace,
-}: HeroSectionProps) {
-  const handleScrollToCourses = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const element = document.getElementById('courses');
-    if (element) {
-      const header = document.getElementById('header');
-      const headerOffset = header ? header.offsetHeight : 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
-  };
-
-  return (
-    <section id="hero" className="hero section dark-background">
-      <img src="/assets/img/hero-bg.jpg" alt={centerName} data-aos="fade-in" className="aos-init aos-animate" />
-
-      <div className="container">
-        <div data-aos="fade-up" className="aos-init aos-animate mb-3">
-          <span className="badge bg-success bg-opacity-25 text-white border border-success border-opacity-50 px-3 py-2 rounded-pill fw-medium">
-            <i className="bi bi-stars me-1 text-warning"></i> Chuyển đổi số giáo dục &amp; Ứng dụng AI thông minh
-          </span>
-        </div>
-
-        <h2 data-aos="fade-up" data-aos-delay="100" className="aos-init aos-animate">
-          {centerName}<br />
-          <span className="fs-3 fw-normal opacity-75">{slogan}</span>
-        </h2>
-        <p data-aos="fade-up" data-aos-delay="200" className="aos-init aos-animate">
-          Nền tảng quản lý học tập, lịch học, điểm danh và chấm bài tự động bằng AI thế hệ mới.
-        </p>
-        <div className="d-flex align-items-center flex-wrap gap-3 mt-4 aos-init aos-animate" data-aos="fade-up" data-aos-delay="300">
-          <button
-            type="button"
-            className="btn btn-success rounded-pill px-4 py-2.5 fw-semibold d-inline-flex align-items-center shadow-sm"
-            onClick={onOpenWorkspace}
-          >
-            <i className="bi bi-box-arrow-in-right me-2"></i>
-            Chọn giao diện
-          </button>
-          <a
-            href="#courses"
-            onClick={handleScrollToCourses}
-            className="btn btn-outline-light rounded-pill px-4 py-2.5 fw-semibold d-inline-flex align-items-center"
-          >
-            Xem khóa học
-            <i className="bi bi-arrow-down-short ms-1 fs-5"></i>
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export default HeroSection;

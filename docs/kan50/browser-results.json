@@ -1,0 +1,49 @@
+[
+  {
+    "width": 1440,
+    "overflow": false,
+    "columns": 3,
+    "login": "passed",
+    "filter": "passed",
+    "faq": "passed"
+  },
+  {
+    "width": 768,
+    "overflow": false,
+    "columns": 2,
+    "login": "passed",
+    "filter": "passed",
+    "faq": "passed"
+  },
+  {
+    "width": 390,
+    "overflow": false,
+    "columns": 1,
+    "login": "passed",
+    "filter": "passed",
+    "faq": "passed"
+  },
+  {
+    "width": 360,
+    "overflow": false,
+    "columns": 1,
+    "login": "passed",
+    "filter": "passed",
+    "faq": "passed"
+  },
+  {
+    "state": "empty",
+    "noMockRecords": true,
+    "staticContentVisible": true
+  },
+  {
+    "state": "error",
+    "noMockRecords": true,
+    "staticContentVisible": true
+  },
+  {
+    "state": "loading",
+    "noMockRecords": true,
+    "staticContentVisible": true
+  }
+]

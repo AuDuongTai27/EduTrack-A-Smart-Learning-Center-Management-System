@@ -31,11 +31,11 @@ namespace EduTrack.API.Services.Implementation
             overview.CenterInfo = new LandingCenterInfoDto
             {
                 CenterName = GetSetting("center_name", "EduTrack Smart Learning Center"),
-                Slogan = GetSetting("center_slogan", "Đồng Hành Cùng Tri Thức - Nâng Tầm Tương Lai"),
-                Address = GetSetting("center_address", "123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh"),
-                Hotline = GetSetting("center_hotline", "1900 6868"),
-                Email = GetSetting("center_email", "contact@edutrack.edu.vn"),
-                AcademicYear = GetSetting("academic_year", "2026 - 2027")
+                Slogan = GetSetting("center_slogan", string.Empty),
+                Address = GetSetting("center_address", string.Empty),
+                Hotline = GetSetting("center_hotline", string.Empty),
+                Email = GetSetting("center_email", string.Empty),
+                AcademicYear = GetSetting("academic_year", string.Empty)
             };
 
             // 2. Thống kê quy mô thực tế (Stats)
@@ -62,10 +62,10 @@ namespace EduTrack.API.Services.Implementation
 
             overview.Stats = new LandingStatsDto
             {
-                TotalStudents = realStudentCount > 0 ? realStudentCount : 12,
-                TotalCourses = realClassCount > 0 ? realClassCount : 6,
-                TotalSchedules = realScheduleCount > 0 ? realScheduleCount : 18,
-                TotalTrainers = realTrainerCount > 0 ? realTrainerCount : 4
+                TotalStudents = realStudentCount,
+                TotalCourses = realClassCount,
+                TotalSchedules = realScheduleCount,
+                TotalTrainers = realTrainerCount
             };
 
             // 3. Danh sách môn học trọng điểm (Subjects)
@@ -79,97 +79,37 @@ namespace EduTrack.API.Services.Implementation
                 SubjectId = s.SubjectId,
                 SubjectCode = s.SubjectCode,
                 SubjectName = s.SubjectName,
-                Description = s.Description ?? $"Chương trình đào tạo chuẩn môn {s.SubjectName}",
+                Description = s.Description ?? string.Empty,
                 ActiveClassesCount = s.Classes.Count(c => c.Status == "active")
             }).ToList();
 
-            // 4. Danh sách khóa học / lớp học đang mở (Courses)
-            var classes = await _context.Classes
-                .AsNoTracking()
-                .Include(c => c.Subject)
-                .Include(c => c.TeacherClasses)
-                    .ThenInclude(tc => tc.Teacher)
-                .Include(c => c.StudentClasses)
-                .Where(c => c.Status == "active")
-                .OrderBy(c => c.ClassId)
-                .Take(6)
-                .ToListAsync();
-
-            string[] courseImages = new[]
-            {
-                "/assets/img/course-1.webp",
-                "/assets/img/course-2.webp",
-                "/assets/img/course-3.webp"
-            };
-
-            int imgIdx = 0;
-            overview.Courses = classes.Select(cls =>
-            {
-                var primaryTeacher = cls.TeacherClasses
-                    .Where(tc => tc.Status == "active")
-                    .Select(tc => tc.Teacher)
-                    .FirstOrDefault();
-
-                int enrolled = cls.StudentClasses.Count(sc => sc.Status != "dropped");
-
-                string img = courseImages[imgIdx % courseImages.Length];
-                if ((cls.Subject?.SubjectCode ?? "").Contains("PHYS", StringComparison.OrdinalIgnoreCase))
-                    img = "/assets/img/course-2.webp";
-                else if ((cls.Subject?.SubjectCode ?? "").Contains("ENG", StringComparison.OrdinalIgnoreCase))
-                    img = "/assets/img/course-3.webp";
-                else if ((cls.Subject?.SubjectCode ?? "").Contains("MATH", StringComparison.OrdinalIgnoreCase))
-                    img = "/assets/img/course-1.webp";
-                imgIdx++;
-
-                return new LandingCourseItemDto
-                {
-                    ClassId = cls.ClassId,
-                    ClassName = cls.ClassName,
-                    SubjectId = cls.SubjectId,
-                    SubjectName = cls.Subject?.SubjectName ?? "Khóa học chất lượng cao",
-                    SubjectCode = cls.Subject?.SubjectCode ?? "MH",
-                    TuitionFee = cls.TuitionFee,
-                    Room = !string.IsNullOrWhiteSpace(cls.Room) ? cls.Room : "Phòng học chuẩn quốc tế",
-                    TeacherName = primaryTeacher?.FullName ?? "ThS. Hoàng Quốc Việt",
-                    TeacherAvatar = primaryTeacher?.AvatarUrl,
-                    StudentsCount = enrolled > 0 ? enrolled : 15,
-                    LikesCount = 40 + ((cls.ClassId * 9) % 35),
-                    ImageUrl = img
-                };
-            }).ToList();
+            // Compatibility preview only. Public filtering/pagination uses /landing/classes.
+            overview.Courses = (await GetClassesAsync(null, 1, 3)).Items;
 
             // 5. Danh sách Giảng viên & Trợ giảng tiêu biểu (Trainers)
             var trainers = await _context.Users
                 .AsNoTracking()
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
-                .Where(u => u.UserRoles.Any(ur => ur.Role != null &&
+                .Include(u => u.TeacherClasses).ThenInclude(a => a.Class).ThenInclude(c => c.Subject)
+                .Include(u => u.TaClasses).ThenInclude(a => a.Class).ThenInclude(c => c.Subject)
+                .AsSplitQuery()
+                .Where(u => u.Status == "active" && u.UserRoles.Any(ur => ur.Role != null &&
                     (ur.Role.RoleName.ToLower() == "teacher" || ur.Role.RoleName.ToLower() == "teaching_assistant")))
                 .OrderBy(u => u.UserId)
                 .Take(6)
                 .ToListAsync();
 
-            string[] fallbackAvatars = new[]
-            {
-                "/assets/img/trainer-1.jpg",
-                "/assets/img/trainer-2.jpg",
-                "/assets/img/trainer-3.jpg"
-            };
-
-            int avatarIdx = 0;
             overview.Trainers = trainers.Select(t =>
             {
                 bool isAssistant = t.UserRoles.Any(ur => ur.Role?.RoleName.ToLower() == "teaching_assistant");
-                string roleTitle = isAssistant ? "Trợ giảng chuyên trách" : "Giảng viên bộ môn";
+                string roleTitle = isAssistant ? "Teaching Assistant" : "Teacher";
 
-                string avatar = !string.IsNullOrWhiteSpace(t.AvatarUrl) && !t.AvatarUrl.Contains("dicebear")
-                    ? t.AvatarUrl
-                    : fallbackAvatars[avatarIdx % fallbackAvatars.Length];
-                avatarIdx++;
+                string avatar = t.AvatarUrl ?? string.Empty;
 
                 string specialty = !string.IsNullOrWhiteSpace(t.Specialty)
                     ? t.Specialty
-                    : (isAssistant ? "Trợ giảng chuyên đề & giải đáp học tập" : "Giảng viên luyện thi chuyên sâu");
+                    : string.Empty;
 
                 return new LandingTrainerItemDto
                 {
@@ -177,14 +117,55 @@ namespace EduTrack.API.Services.Implementation
                     UserCode = t.UserCode,
                     FullName = t.FullName,
                     Specialty = specialty,
-                    Email = t.Email ?? "contact@edutrack.edu.vn",
-                    Phone = t.Phone ?? string.Empty,
+                    Email = string.Empty,
+                    Phone = string.Empty,
                     AvatarUrl = avatar,
-                    RoleTitle = roleTitle
+                    RoleTitle = roleTitle,
+                    Subjects = t.TeacherClasses.Where(a => a.Status == "active" && a.Class.Status == "active").Select(a => a.Class.Subject)
+                        .Concat(t.TaClasses.Where(a => a.Status == "active" && a.Class.Status == "active").Select(a => a.Class.Subject))
+                        .Where(s => s != null).DistinctBy(s => s.SubjectId).OrderBy(s => s.SubjectId)
+                        .Select(s => new LandingSubjectItemDto { SubjectId = s.SubjectId, SubjectCode = s.SubjectCode, SubjectName = s.SubjectName }).ToList()
                 };
             }).ToList();
 
             return overview;
+        }
+
+        public async Task<LandingClassesPageDto> GetClassesAsync(int? subjectId, int page, int pageSize,
+            System.Threading.CancellationToken ct = default)
+        {
+            if ((subjectId.HasValue && subjectId <= 0) || page < 1 || page > 10000 || pageSize < 1 || pageSize > 12)
+                throw new ArgumentOutOfRangeException(nameof(page), "Invalid public class pagination.");
+            var query = _context.Classes.AsNoTracking().Where(c => c.Status == "active");
+            if (subjectId.HasValue) query = query.Where(c => c.SubjectId == subjectId);
+            var count = await query.CountAsync(ct);
+            var classes = await query.OrderBy(c => c.ClassId).Skip((page - 1) * pageSize).Take(pageSize)
+                .Select(c => new LandingCourseItemDto
+                {
+                    ClassId = c.ClassId, ClassName = c.ClassName, SubjectId = c.SubjectId,
+                    SubjectCode = c.Subject.SubjectCode, SubjectName = c.Subject.SubjectName,
+                    GradeId = c.GradeId, GradeName = c.Grade != null ? c.Grade.GradeName : null,
+                    TuitionFee = c.TuitionFee, Room = c.Room ?? string.Empty,
+                    TeacherName = c.TeacherClasses.Where(a => a.Status == "active" && a.Teacher.Status == "active")
+                        .OrderBy(a => a.TeacherId).Select(a => a.Teacher.FullName).FirstOrDefault() ?? string.Empty
+                }).ToListAsync(ct);
+            var classIds = classes.Select(c => c.ClassId).ToList();
+            var now = DateTime.UtcNow.AddHours(7);
+            var today = now.Date;
+            var horizon = today.AddDays(60);
+            // Only actual upcoming sessions; old recurring slots are never reconstructed.
+            var sessions = await _context.ClassSessions.AsNoTracking().Include(s => s.ScheduleVersion)
+                .Where(s => classIds.Contains(s.ClassId) && s.Status == "scheduled" && s.SessionDate >= today && s.SessionDate < horizon)
+                .OrderBy(s => s.SessionDate).ThenBy(s => s.StartTime).ToListAsync(ct);
+            var bounds = await _context.Classes.AsNoTracking().Where(c => classIds.Contains(c.ClassId))
+                .Select(c => new { c.ClassId, c.StartDate, c.EndDate }).ToDictionaryAsync(c => c.ClassId, ct);
+            foreach (var item in classes)
+            {
+                var range = bounds[item.ClassId];
+                item.UpcomingSessions = LandingSchedulePresentation.Upcoming(sessions.Where(s => s.ClassId == item.ClassId),
+                    range.StartDate, range.EndDate, now);
+            }
+            return new LandingClassesPageDto { Items = classes, Page = page, PageSize = pageSize, TotalCount = count };
         }
 
         public async Task<bool> RecordNewsletterSubscriptionAsync(string email)

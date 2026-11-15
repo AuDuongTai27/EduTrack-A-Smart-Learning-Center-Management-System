@@ -1,22 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-
+import { Icon } from './LandingUI';
 export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (!isOpen) return;
-    const key = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key);
-  }, [isOpen, onClose]);
+    const previous = document.activeElement as HTMLElement | null;
+    const element = dialog.current;
+    element?.showModal();
+    return () => { element?.close(); previous?.focus(); };
+  }, [isOpen]);
   if (!isOpen) return null;
-  return <div className="modal d-block" style={{ background: '#0007' }} onClick={onClose}>
-    <div className="modal-dialog modal-dialog-centered" role="dialog" aria-modal="true" aria-label="Chọn giao diện" onClick={e => e.stopPropagation()}>
-      <div className="modal-content"><div className="modal-header"><h5>Chọn giao diện</h5><button type="button" className="btn-close" aria-label="Đóng" onClick={onClose} /></div>
-        <div className="modal-body d-grid gap-2">{[
-          ['center-manager', 'Quản lý trung tâm'], ['admin-staff', 'Giáo vụ'], ['teacher', 'Giáo viên'],
-          ['teaching-assistant', 'Trợ giảng'], ['student', 'Học sinh'], ['parent', 'Phụ huynh'],
-        ].map(([route, label]) => <Link key={route} className="btn btn-outline-primary" to={`/${route}/dashboard`} onClick={onClose}>{label}</Link>)}
-          <small>Chọn giao diện và tài khoản dữ liệu. Hệ thống hiện chưa có Authentication/Authorization.</small>
-        </div></div>
-    </div>
-  </div>;
+  return <dialog ref={dialog} className="et-workspace-dialog" aria-labelledby="workspace-title" onCancel={onClose} onClick={e => { if (e.target === dialog.current) { const r = dialog.current.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose(); } }}><div className="et-dialog-heading"><div><h2 id="workspace-title">Choose Your Workspace</h2></div><button className="et-menu-toggle" aria-label="Close workspace chooser" onClick={onClose} autoFocus><Icon name="close"/></button></div><p>Continue to your learning workspace.</p><Link className="et-button et-primary et-student-link" to="/student/dashboard" onClick={onClose}><Icon name="user"/>Student Portal<Icon name="arrow"/></Link><div className="et-workspace-options">{[
+    ['parent', 'Parent'], ['teacher', 'Teacher'], ['teaching-assistant', 'Teaching Assistant'], ['admin-staff', 'Academic Staff'], ['center-manager', 'Center Manager'],
+  ].map(([route, label]) => <Link key={route} to={`/${route}/dashboard`} onClick={onClose}>{label}<Icon name="arrow"/></Link>)}</div><p className="et-demo-note">Demo access: sign-in is not enabled. Choose your workspace and an available demo account.</p></dialog>;
 }

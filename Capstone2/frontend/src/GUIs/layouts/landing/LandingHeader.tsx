@@ -1,85 +1,16 @@
-import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
-
-interface LandingHeaderProps {
-  onOpenWorkspace?: () => void;
+import { useEffect, useRef, useState } from 'react';
+import { Brand, Icon } from '../../components/landing/LandingUI';
+import { NAV_ITEMS } from '../../components/landing/landingContent';
+export function LandingHeader({ onOpenWorkspace }: { onOpenWorkspace: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState('hero');
+  const toggle = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id);
+    }, { rootMargin: '-15% 0px -60% 0px' });
+    NAV_ITEMS.forEach(([id]) => { const section = document.getElementById(id); if (section) observer.observe(section); });
+    return () => observer.disconnect();
+  }, []);
+  return <header className="et-header"><a href="#main-content" className="et-skip">Skip to content</a><div className="et-container et-header-inner"><Brand/><button ref={toggle} className="et-menu-toggle" aria-expanded={open} aria-controls="landing-navigation" aria-label={open ? 'Close navigation' : 'Open navigation'} onClick={() => setOpen(!open)}><Icon name={open ? 'close' : 'menu'}/></button><div id="landing-navigation" className={`et-navigation ${open ? 'is-open' : ''}`} onKeyDown={e => { if (e.key === 'Escape') { setOpen(false); toggle.current?.focus(); } }}><nav aria-label="Main navigation">{NAV_ITEMS.map(([id, label]) => <a key={id} href={`#${id}`} aria-current={active === id ? 'location' : undefined} className={active === id ? 'is-active' : ''} onClick={() => { setOpen(false); setActive(id); }}>{label}</a>)}</nav><div className="et-header-actions"><button className="et-button et-outline" onClick={() => { setOpen(false); onOpenWorkspace(); }}><Icon name="user"/>Student Login</button><a className="et-button et-primary" href="#contact" onClick={() => setOpen(false)}><Icon name="calendar"/>Book a Consultation</a></div></div></div></header>;
 }
-
-export function LandingHeader({ onOpenWorkspace }: LandingHeaderProps) {
-  const [activeSection, setActiveSection] = useState('hero');
-
-  const scrollTo = (id: string) => {
-    setActiveSection(id);
-    const element = document.getElementById(id);
-    if (element) {
-      const header = document.getElementById('header');
-      const headerOffset = header ? header.offsetHeight : 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
-  };
-
-  const navItems = [
-    { id: 'hero', label: 'Trang chủ' },
-    { id: 'about', label: 'Về trung tâm' },
-    { id: 'features', label: 'Chương trình học' },
-    { id: 'courses', label: 'Khóa học' },
-    { id: 'trainers-index', label: 'Giảng viên' },
-  ];
-
-  return (
-    <header id="header" className="header d-flex align-items-center sticky-top">
-      <div className="container-fluid container-xl position-relative d-flex align-items-center">
-        {/* Dùng Link chuyển về trang chủ */}
-        <Link to="/" className="logo d-flex align-items-center me-auto text-decoration-none">
-          <h1 className="sitename mb-0 fw-bold">EduTrack</h1>
-        </Link>
-
-        {/* Menu điều hướng với NavLink/Link và Smooth Scroll chuẩn vị trí */}
-        <nav id="navmenu" className="navmenu">
-          <ul className="d-flex list-unstyled mb-0 gap-3">
-            {navItems.map((item) => (
-              <li key={item.id}>
-                <NavLink
-                  to={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollTo(item.id);
-                  }}
-                  className={`text-decoration-none ${activeSection === item.id ? 'active' : ''}`}
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="d-flex align-items-center gap-2 ms-4">
-          <button
-            type="button"
-            className="btn btn-outline-success btn-sm rounded-pill px-3"
-            onClick={onOpenWorkspace}
-          >
-            <i className="bi bi-box-arrow-in-right me-1"></i>Chọn giao diện
-          </button>
-
-          {/* Dùng Link để chuyển trang sang Cổng học sinh */}
-          <Link
-            to="/student/dashboard"
-            className="btn btn-success btn-sm rounded-pill px-3 text-white text-decoration-none"
-          >
-            Cổng học sinh <i className="bi bi-arrow-right ms-1"></i>
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-};
-
-export default LandingHeader;

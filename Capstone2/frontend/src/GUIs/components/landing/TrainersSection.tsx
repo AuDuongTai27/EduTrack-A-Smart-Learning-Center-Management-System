@@ -1,133 +1,71 @@
-import React from 'react';
-import type { UserDto } from '../../../BLL/models/UserDto';
+import { useEffect, useRef, useState } from 'react';
 import type { LandingTrainerItemDto } from '../../../BLL/models/LandingOverviewDto';
+import { DataState, Icon, SectionHeading } from './LandingUI';
+import type { DataStatus } from './LandingUI';
+import { englishText, subjectInfo, specialtyLabel, teacherImageUrl } from './landingContent';
 
-export interface TrainersSectionProps {
-  trainers?: Array<UserDto | LandingTrainerItemDto>;
+function TeacherPhoto({ teacher }: { teacher: LandingTrainerItemDto }) {
+  const [failed, setFailed] = useState(false);
+  const url = teacherImageUrl(teacher.avatarUrl);
+  const initials = teacher.fullName.trim().split(/\s+/).slice(-2).map(n => n[0]).join('');
+  return <div className="et-teacher-photo">
+    {url && !failed
+      ? <img src={url} loading="lazy" decoding="async" width="480" height="300" alt={teacher.fullName} onError={() => setFailed(true)}/>
+      : <span className="et-initials" aria-label={`Avatar for ${teacher.fullName}`}>{initials || 'ET'}</span>}
+  </div>;
 }
-
-const DEFAULT_TRAINERS: LandingTrainerItemDto[] = [
-  {
-    userId: 3,
-    userCode: 'TC001',
-    fullName: 'ThS. Hoàng Quốc Việt',
-    email: 'viet.hoang@edutrack.edu.vn',
-    phone: '0923456789',
-    avatarUrl: '/assets/img/trainer-1.jpg',
-    specialty: 'Chuyên gia Toán Học & Luyện thi THPT',
-    roleTitle: 'Giáo viên Toán học',
-  },
-  {
-    userId: 4,
-    userCode: 'TC002',
-    fullName: 'ThS. Huỳnh Khánh Duy',
-    email: 'duy.huynh@edutrack.edu.vn',
-    phone: '0934567890',
-    avatarUrl: '/assets/img/trainer-2.jpg',
-    specialty: 'Thạc sĩ Vật Lý Ứng Dụng',
-    roleTitle: 'Giáo viên Vật lý',
-  },
-  {
-    userId: 5,
-    userCode: 'TA001',
-    fullName: 'Thầy Âu Dương Tài',
-    email: 'tai.auduong@edutrack.edu.vn',
-    phone: '0945678901',
-    avatarUrl: '/assets/img/trainer-3.jpg',
-    specialty: 'Giảng viên Tiếng Anh IELTS 8.5',
-    roleTitle: 'Trợ giảng Tiếng Anh',
-  },
-];
-
-export function TrainersSection({ trainers }: TrainersSectionProps) {
-  const fallbackImages = [
-    '/assets/img/trainer-1.jpg',
-    '/assets/img/trainer-2.jpg',
-    '/assets/img/trainer-3.jpg',
-  ];
-
-  // Lọc giảng viên hoặc dùng danh sách mặc định
-  const teacherList = (trainers && trainers.length > 0)
-    ? trainers.filter((u) => {
-        const roles = 'roles' in u ? (u.roles as string[]) : undefined;
-        return (
-          roles?.some((r) => r.toLowerCase().includes('teacher') || r.toLowerCase().includes('assistant')) ||
-          Boolean(u.specialty) ||
-          ('roleTitle' in u && Boolean((u as LandingTrainerItemDto).roleTitle))
-        );
-      })
-    : DEFAULT_TRAINERS;
-
-  const displayTrainers = (teacherList.length > 0 ? teacherList : DEFAULT_TRAINERS).slice(0, 3);
-
-  return (
-    <section id="trainers-index" className="section trainers-index light-background py-5">
-      <div className="container section-title aos-init aos-animate text-center mb-5" data-aos="fade-up">
-        <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fw-medium mb-2">
-          Đội ngũ giảng viên
-        </span>
-        <h2 className="fw-bold fs-2 text-dark">Thầy cô tâm huyết & giàu kinh nghiệm</h2>
-        <p className="text-muted mx-auto" style={{ maxWidth: '600px' }}>
-          Đội ngũ giáo viên và trợ giảng chuyên môn cao, đồng hành cùng sự tiến bộ của từng học viên.
-        </p>
-      </div>
-
-      <div className="container">
-        <div className="row g-4">
-          {displayTrainers.map((trainer, idx) => {
-            const roleBadge = ('roleTitle' in trainer && trainer.roleTitle)
-              ? trainer.roleTitle
-              : (trainer.specialty || 'Giảng viên chuyên trách');
-
-            return (
-              <div
-                key={trainer.userId || idx}
-                className="col-lg-4 col-md-6 d-flex aos-init aos-animate"
-                data-aos="fade-up"
-                data-aos-delay={(idx + 1) * 100}
-              >
-                <div className="member shadow-sm rounded-4 overflow-hidden w-100 bg-white border border-light d-flex flex-column">
-                  <div className="position-relative overflow-hidden" style={{ height: '280px' }}>
-                    <img
-                      src={trainer.avatarUrl || fallbackImages[idx % fallbackImages.length]}
-                      className="img-fluid w-100 h-100"
-                      style={{ objectFit: 'cover' }}
-                      alt={trainer.fullName}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = fallbackImages[idx % fallbackImages.length];
-                      }}
-                    />
-                  </div>
-                  <div className="member-content p-4 d-flex flex-column flex-grow-1">
-                    <h4 className="fw-bold mb-1 text-dark fs-5">{trainer.fullName}</h4>
-                    <div className="mb-2">
-                      <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 rounded-pill small fw-medium">
-                        {roleBadge}
-                      </span>
-                    </div>
-                    <p className="text-muted small mb-4 flex-grow-1">
-                      {trainer.specialty || (trainer.email ? `Email: ${trainer.email}` : 'Giảng viên giàu kinh nghiệm sư phạm và truyền cảm hứng.')}
-                    </p>
-                    <div className="social d-flex gap-2 pt-3 border-top mt-auto">
-                      <a href={`mailto:${trainer.email || 'info@edutrack.edu.vn'}`} className="btn btn-sm btn-outline-secondary rounded-circle" title="Gửi email">
-                        <i className="bi bi-envelope"></i>
-                      </a>
-                      <a href="#trainers-index" className="btn btn-sm btn-outline-secondary rounded-circle" title="Facebook">
-                        <i className="bi bi-facebook"></i>
-                      </a>
-                      <a href="#trainers-index" className="btn btn-sm btn-outline-secondary rounded-circle" title="LinkedIn">
-                        <i className="bi bi-linkedin"></i>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+function teacherContent(teacher: LandingTrainerItemDto) {
+  const role = teacher.roleTitle === 'Teaching Assistant' ? 'Teaching Assistant' : 'Teacher';
+  const subjects = teacher.subjects?.map(s => subjectInfo(s.subjectCode, s.subjectName, s.subjectId).name) ?? [];
+  const specialty = specialtyLabel(teacher.specialty);
+  const subject = subjects.join(', ') || (specialty.length <= 60 ? specialty : '') || 'Academic Support';
+  const introduction = englishText(teacher.specialty);
+  const isLabel = /^(Mathematics|Physics|Chemistry|English|Biology|Computer Science|Literature|History|Geography|Teaching Assistant|Teacher)$/i.test(introduction);
+  return { role, subject, specialty, introduction: introduction && introduction !== subject && !isLabel ? introduction
+    : role === 'Teaching Assistant' ? 'Supports students with classroom learning.' : 'Guides students in their subject learning.' };
+}
+function TeacherProfile({ teacher, onClose }: { teacher: LandingTrainerItemDto; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const content = teacherContent(teacher);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const element = dialog.current;
+    element?.showModal();
+    return () => { element?.close(); previous?.focus(); };
+  }, []);
+  return <dialog ref={dialog} className="et-workspace-dialog et-profile-dialog" aria-labelledby="teacher-profile-title" onCancel={onClose}
+    onClick={e => {
+      if (e.target !== dialog.current) return;
+      const r = dialog.current.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose();
+    }}>
+    <div className="et-dialog-heading"><button className="et-menu-toggle" autoFocus aria-label="Close teacher profile" onClick={onClose}><Icon name="close"/></button></div>
+    <TeacherPhoto key={teacher.avatarUrl} teacher={teacher}/>
+    <h2 id="teacher-profile-title">{teacher.fullName}</h2>
+    <span className="et-pill"><Icon name="user"/>{content.role}</span>
+    <p className="et-profile-subject"><strong>Subject:</strong> {content.subject}</p>
+    {content.specialty && content.specialty !== content.subject && <p><strong>Specialty:</strong> {content.specialty}</p>}
+    <p>{content.introduction}</p>
+    <a className="et-button et-primary" href="#contact" onClick={onClose}>Ask About Classes<Icon name="arrow"/></a>
+  </dialog>;
+}
+export function TrainersSection({ trainers, status, retry }: { trainers: LandingTrainerItemDto[]; status: DataStatus; retry: () => void }) {
+  const [profile, setProfile] = useState<LandingTrainerItemDto>();
+  return <section id="teachers" className="et-section et-teachers"><div className="et-container">
+    <SectionHeading title="Meet Our Teachers">Get to know the educators supporting our students along the way.</SectionHeading>
+    <DataState status={status} empty={!trainers.length} noun="teachers" retry={retry}/>
+    {status === 'ready' && <div className="et-teacher-grid">{trainers.slice(0, 3).map(teacher => {
+      const content = teacherContent(teacher);
+      return <article className="et-teacher-card" key={teacher.userId}>
+        <TeacherPhoto key={teacher.avatarUrl} teacher={teacher}/>
+        <div className="et-teacher-content"><h3>{teacher.fullName}</h3>
+          <span className="et-pill"><Icon name="user"/>{content.role}</span>
+          <p className="et-teacher-subject"><Icon name="book"/><span>Subject: <strong>{content.subject}</strong></span></p>
+          <p className="et-teacher-intro"><Icon name="star"/><span>{content.introduction}</span></p>
+          <button className="et-button et-profile-button" onClick={() => setProfile(teacher)} aria-label={`View profile for ${teacher.fullName}`}>View Profile<Icon name="arrow"/></button>
         </div>
-      </div>
-    </section>
-  );
+      </article>;
+    })}</div>}
+    {profile && <TeacherProfile teacher={profile} onClose={() => setProfile(undefined)}/>}
+  </div></section>;
 }
-
-export default TrainersSection;

@@ -1,0 +1,16 @@
+{
+  "readOnly": true,
+  "productionStartupInvoked": false,
+  "subjectCount": 4,
+  "teacherCount": 3,
+  "diceBearAvatars": 3,
+  "missingAvatars": 0,
+  "otherAvatars": 0,
+  "publicTeacherContactEmpty": true,
+  "pages": [
+    { "SubjectId": 1, "SubjectCode": "MATH", "TotalCount": 0, "HasMore": false, "scheduleCards": 0 },
+    { "SubjectId": 2, "SubjectCode": "PHYS", "TotalCount": 1, "HasMore": false, "scheduleCards": 0 },
+    { "SubjectId": 3, "SubjectCode": "CHEM", "TotalCount": 0, "HasMore": false, "scheduleCards": 0 },
+    { "SubjectId": 4, "SubjectCode": "ENG", "TotalCount": 1, "HasMore": false, "scheduleCards": 0 }
+  ]
+}

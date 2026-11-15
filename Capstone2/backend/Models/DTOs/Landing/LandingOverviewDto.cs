@@ -6,11 +6,11 @@ namespace EduTrack.API.Models.DTOs.Landing
     public class LandingCenterInfoDto
     {
         public string CenterName { get; set; } = "EduTrack Smart Learning Center";
-        public string Slogan { get; set; } = "Đồng Hành Cùng Tri Thức - Nâng Tầm Tương Lai";
-        public string Address { get; set; } = "123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh";
-        public string Hotline { get; set; } = "1900 6868";
-        public string Email { get; set; } = "contact@edutrack.edu.vn";
-        public string AcademicYear { get; set; } = "2026 - 2027";
+        public string Slogan { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string Hotline { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string AcademicYear { get; set; } = string.Empty;
     }
 
     public class LandingStatsDto
@@ -42,8 +42,11 @@ namespace EduTrack.API.Models.DTOs.Landing
         public string TeacherName { get; set; } = string.Empty;
         public string? TeacherAvatar { get; set; }
         public int StudentsCount { get; set; }
-        public int LikesCount { get; set; } = 45;
-        public string ImageUrl { get; set; } = "/assets/img/course-1.webp";
+        public int LikesCount { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
+        public int? GradeId { get; set; }
+        public string? GradeName { get; set; }
+        public List<LandingSessionDto> UpcomingSessions { get; set; } = new();
     }
 
     public class LandingTrainerItemDto
@@ -55,7 +58,19 @@ namespace EduTrack.API.Models.DTOs.Landing
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string AvatarUrl { get; set; } = string.Empty;
-        public string RoleTitle { get; set; } = "Giảng viên chuyên môn";
+        public string RoleTitle { get; set; } = string.Empty;
+        public List<LandingSubjectItemDto> Subjects { get; set; } = new();
+    }
+
+    public record LandingSessionDto(string Date, string StartTime, string EndTime);
+
+    public class LandingClassesPageDto
+    {
+        public List<LandingCourseItemDto> Items { get; set; } = new();
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalCount { get; set; }
+        public bool HasMore => (long)Page * PageSize < TotalCount;
     }
 
     public class LandingOverviewDto

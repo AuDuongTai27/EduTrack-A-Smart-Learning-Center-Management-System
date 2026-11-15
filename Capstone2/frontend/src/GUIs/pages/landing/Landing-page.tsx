@@ -1,83 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { HeroSection } from '../../components/landing/HeroSection';
-import { AboutSection } from '../../components/landing/AboutSection';
 import { CountsSection } from '../../components/landing/CountsSection';
+import { AboutSection } from '../../components/landing/AboutSection';
 import { FeaturesSection } from '../../components/landing/FeaturesSection';
 import { CoursesSection } from '../../components/landing/CoursesSection';
 import { TrainersSection } from '../../components/landing/TrainersSection';
-
-// Tầng DAL điều phối dữ liệu
-import { landingDAL } from '../../../DAL/landingDAL';
-import type { LandingOverviewDto } from '../../../BLL/models/LandingOverviewDto';
-
-interface LandingOutletContext {
-  onOpenWorkspace?: () => void;
-}
-
+import { EnrollmentSection } from '../../components/landing/EnrollmentSection';
+import { FaqSection } from '../../components/landing/FaqSection';
+import { ContactSection } from '../../components/landing/ContactSection';
+import type { LandingContext } from '../../components/landing/useLandingOverview';
 export function LandingPage() {
-  const context = useOutletContext<LandingOutletContext>();
-  const handleOpenWorkspace = context?.onOpenWorkspace;
-
-  const [overview, setOverview] = useState<LandingOverviewDto | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadLandingData() {
-      try {
-        const res = await landingDAL.getLandingOverview();
-        if (isMounted && res.data) {
-          setOverview(res.data);
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải dữ liệu trang Landing:', err);
-      }
-    }
-
-    loadLandingData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const centerInfo = overview?.centerInfo;
-  const stats = overview?.stats;
-  const subjects = overview?.subjects || [];
-  const courses = overview?.courses || [];
-  const trainers = overview?.trainers || [];
-
-  return (
-    <main className="main">
-      {/* 1. Hero Section */}
-      <HeroSection
-        centerName={centerInfo?.centerName}
-        slogan={centerInfo?.slogan}
-        onOpenWorkspace={handleOpenWorkspace}
-      />
-
-      {/* 2. Counts Section (Chỉ số quy mô trung tâm thực tế từ Database) */}
-      <CountsSection
-        studentCount={stats?.totalStudents}
-        courseCount={stats?.totalCourses}
-        eventCount={stats?.totalSchedules}
-        trainerCount={stats?.totalTrainers}
-      />
-
-      {/* 3. About Section */}
-      <AboutSection centerInfo={centerInfo} />
-
-      {/* 4. Features Section (Môn học) */}
-      <FeaturesSection subjects={subjects} />
-
-      {/* 5. Courses Section (Khóa học/Lớp học) */}
-      <CoursesSection courses={courses} />
-
-      {/* 6. Trainers Section (Giảng viên) */}
-      <TrainersSection trainers={trainers} />
-    </main>
-  );
+  const { data, status, retry } = useOutletContext<LandingContext>();
+  const [selected, select] = useState<number | null>(null);
+  return <main id="main-content"><HeroSection/><CountsSection/><AboutSection/>
+    <FeaturesSection subjects={data?.subjects ?? []} status={status} retry={retry} select={select}/>
+    <CoursesSection subjects={data?.subjects ?? []} selected={selected} select={select}/>
+    <TrainersSection trainers={data?.trainers ?? []} status={status} retry={retry}/>
+    <EnrollmentSection/><FaqSection/><ContactSection info={data?.centerInfo} status={status} retry={retry}/>
+  </main>;
 }
-
 export default LandingPage;

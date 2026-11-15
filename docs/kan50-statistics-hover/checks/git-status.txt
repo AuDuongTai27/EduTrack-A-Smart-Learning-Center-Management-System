@@ -1,0 +1,41 @@
+﻿ M Capstone2/backend/Controllers/Queries/LandingPortalController.cs
+ M Capstone2/backend/Models/DTOs/Landing/LandingOverviewDto.cs
+ M Capstone2/backend/Services/Implementation/LandingPortalService.cs
+ M Capstone2/backend/Services/Interfaces/ILandingPortalService.cs
+ M Capstone2/frontend/src/BLL/models/LandingOverviewDto.ts
+ M Capstone2/frontend/src/DAL/landingDAL.ts
+ M Capstone2/frontend/src/GUIs/components/landing/AboutSection.tsx
+ M Capstone2/frontend/src/GUIs/components/landing/CountsSection.tsx
+ M Capstone2/frontend/src/GUIs/components/landing/CoursesSection.tsx
+ M Capstone2/frontend/src/GUIs/components/landing/FeaturesSection.tsx
+ M Capstone2/frontend/src/GUIs/components/landing/HeroSection.tsx
+ M Capstone2/frontend/src/GUIs/components/landing/TrainersSection.tsx
+ M Capstone2/frontend/src/GUIs/components/landing/WorkspaceChooser.tsx
+ M Capstone2/frontend/src/GUIs/layouts/landing/Landing-page-layout.tsx
+ M Capstone2/frontend/src/GUIs/layouts/landing/LandingFooter.tsx
+ M Capstone2/frontend/src/GUIs/layouts/landing/LandingHeader.tsx
+ M Capstone2/frontend/src/GUIs/pages/landing/Landing-page.tsx
+ M Capstone2/frontend/src/api/landingApi.ts
+?? Capstone2/backend.Tests/Landing/
+?? Capstone2/backend/Services/Implementation/LandingSchedulePresentation.cs
+?? Capstone2/frontend/public/assets/landing/
+?? Capstone2/frontend/src/GUIs/components/landing/BackToTop.tsx
+?? Capstone2/frontend/src/GUIs/components/landing/ContactSection.tsx
+?? Capstone2/frontend/src/GUIs/components/landing/EnrollmentSection.tsx
+?? Capstone2/frontend/src/GUIs/components/landing/FaqSection.tsx
+?? Capstone2/frontend/src/GUIs/components/landing/LandingUI.tsx
+?? Capstone2/frontend/src/GUIs/components/landing/SubjectVisual.tsx
+?? Capstone2/frontend/src/GUIs/components/landing/landingContent.ts
+?? Capstone2/frontend/src/GUIs/components/landing/useLandingClasses.ts
+?? Capstone2/frontend/src/GUIs/components/landing/useLandingOverview.ts
+?? Capstone2/frontend/src/assets/css/landing.css
+?? Capstone2/frontend/tests/landing.browser.mjs
+?? Capstone2/frontend/tests/landing.test.mjs
+?? docs/EDUTRACK_KAN50_FINAL_POLISH_RESULT.md
+?? docs/EDUTRACK_KAN50_LANDING_REDESIGN_RESULT.md
+?? docs/EDUTRACK_KAN50_REFINEMENT_RESULT.md
+?? docs/EDUTRACK_KAN50_STATISTICS_HOVER_RESULT.md
+?? docs/kan50-polish/
+?? docs/kan50-refinement/
+?? docs/kan50-statistics-hover/
+?? docs/kan50/

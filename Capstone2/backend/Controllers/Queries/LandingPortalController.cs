@@ -36,6 +36,15 @@ namespace EduTrack.API.Controllers.Queries
             });
         }
 
+        [HttpGet("classes")]
+        public async Task<IActionResult> GetClasses([FromQuery] int? subjectId, [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 3, System.Threading.CancellationToken ct = default)
+        {
+            if ((subjectId.HasValue && subjectId <= 0) || page < 1 || page > 10000 || pageSize < 1 || pageSize > 12)
+                return BadRequest(new { success = false, message = "Invalid class filters. Use a positive subjectId, page 1–10000, and pageSize 1–12." });
+            return Ok(new { success = true, data = await _landingService.GetClassesAsync(subjectId, page, pageSize, ct) });
+        }
+
         /// <summary>
         /// Tiếp nhận đăng ký nhận bản tin tuyển sinh từ khách hàng trên Landing Page
         /// POST: api/landing/newsletter
