@@ -89,17 +89,17 @@ export default function TeachingAssistantClassesPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Lớp Trợ Giảng Của Tôi"
+        title="My Teaching Assistant Classes"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Danh sách lớp học" },
+          { label: "Class List" },
         ]}
       />
 
       {loading && (
         <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
           <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang tải danh sách lớp trợ giảng...</span>
+          <span>Loading teaching assistant class list...</span>
         </div>
       )}
 

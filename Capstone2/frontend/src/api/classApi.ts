@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 export function readClassResponse(data: unknown): ClassDto {
   if (!data || typeof data !== 'object' || !('classId' in data) || !Number.isSafeInteger(data.classId)
       || Number(data.classId) <= 0 || !('className' in data) || typeof data.className !== 'string' || !data.className.trim()) {
-    throw new Error('Phản hồi lớp học không hợp lệ. Hãy tải lại danh sách để kiểm tra kết quả.');
+    throw new Error('Invalid class response. Please reload the list to verify the result.');
   }
   return data as ClassDto;
 }
@@ -27,11 +27,11 @@ export const classApi = {
     });
 
     if (!res.ok) {
-      throw await apiError(res, 'Không tải được danh sách lớp học.');
+      throw await apiError(res, 'Failed to load class list.');
     }
 
     const data: unknown = await res.json();
-    if (!Array.isArray(data)) throw new Error('Danh sách lớp học không hợp lệ.');
+    if (!Array.isArray(data)) throw new Error('Invalid class list.');
     return data.map(readClassResponse);
   },
 
@@ -47,11 +47,11 @@ export const classApi = {
     });
 
     if (!res.ok) {
-      throw await apiError(res, 'Không tải được chi tiết lớp học.');
+      throw await apiError(res, 'Failed to load class details.');
     }
 
     const item = readClassResponse(await res.json());
-    if (item.classId !== id) throw new Error('Máy chủ trả về sai lớp học. Vui lòng tải lại.');
+    if (item.classId !== id) throw new Error('Server returned the wrong class. Please reload.');
     return item;
   },
 };

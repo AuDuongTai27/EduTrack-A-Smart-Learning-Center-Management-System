@@ -20,7 +20,7 @@ export function NotificationsFilterTabs({
         className={`btn-notif-tab ${activeTab === 'All' ? 'active' : ''}`}
         onClick={() => onTabChange('All')}
       >
-        <span>Tất cả</span>
+        <span>All</span>
       </button>
 
       <button
@@ -28,7 +28,7 @@ export function NotificationsFilterTabs({
         className={`btn-notif-tab ${activeTab === 'Unread' ? 'active' : ''}`}
         onClick={() => onTabChange('Unread')}
       >
-        <span>Chưa đọc</span>
+        <span>Unread</span>
         {unreadCount > 0 && (
           <span className="tab-unread-counter" id="unreadTabCounter">
             {unreadCount}
@@ -41,7 +41,7 @@ export function NotificationsFilterTabs({
         className={`btn-notif-tab ${activeTab === 'Class' ? 'active' : ''}`}
         onClick={() => onTabChange('Class')}
       >
-        <span>Lớp học</span>
+        <span>Class</span>
       </button>
 
       <button
@@ -49,7 +49,7 @@ export function NotificationsFilterTabs({
         className={`btn-notif-tab ${activeTab === 'System' ? 'active' : ''}`}
         onClick={() => onTabChange('System')}
       >
-        <span>Hệ thống</span>
+        <span>System</span>
       </button>
     </div>
   );

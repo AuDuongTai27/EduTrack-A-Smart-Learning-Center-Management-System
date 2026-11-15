@@ -27,7 +27,7 @@ export function useClassManagement() {
     void read(async () => (await classDAL.getAllClasses()).data).then(result => {if (active) setClasses(result);});
     void read(async () => {
       const result = await subjectDAL.getAllSubjects();
-      if (!Array.isArray(result.data)) throw new Error("Danh sách môn học không hợp lệ.");
+      if (!Array.isArray(result.data)) throw new Error("Invalid subject list.");
       return result.data;
     }).then(result => {if (active) setSubjects(result);});
     return () => {active = false;};
@@ -49,9 +49,9 @@ export function useClassDetails(classId: number) {
       if (active) setState(previous => ({id: classId, sections: {...previous.sections, [key]: result}}));
     };
     void read(async () => {
-      if (!Number.isSafeInteger(classId) || classId <= 0) throw new Error("Mã lớp học không hợp lệ.");
+      if (!Number.isSafeInteger(classId) || classId <= 0) throw new Error("Invalid class ID.");
       const item = await classDAL.getClassById(classId);
-      if (!item) throw new Error("Không tìm thấy lớp học.");
+      if (!item) throw new Error("Class not found.");
       return item;
     }).then(overview => {
       if (!active) return;

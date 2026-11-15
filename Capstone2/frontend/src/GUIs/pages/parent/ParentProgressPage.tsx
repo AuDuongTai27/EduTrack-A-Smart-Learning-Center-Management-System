@@ -59,8 +59,8 @@ export function ParentProgressPage() {
   if (parentLoading || loading || !selectedChild) {
     return (
       <LearnerPageLoader
-        title="Đang tải báo cáo tiến độ..."
-        message="Hệ thống đang tổng hợp dữ liệu điểm danh và nhận xét từ giáo viên về con."
+        title="Loading progress report..."
+        message="The system is compiling attendance data and teacher evaluations for your child."
       />
     );
   }
@@ -72,7 +72,7 @@ export function ParentProgressPage() {
         <div className="d-flex align-items-center justify-content-between mb-3">
           <div className="d-flex align-items-center gap-2">
             <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-semibold">
-              <i className="bi bi-graph-up me-1"></i> Báo cáo tiến độ: {selectedChild.name}
+              <i className="bi bi-graph-up me-1"></i> Progress Report: {selectedChild.name}
             </span>
             <span className="small text-muted">{selectedChild.grade} · {selectedChild.school}</span>
           </div>

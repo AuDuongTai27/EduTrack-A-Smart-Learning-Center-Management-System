@@ -29,4 +29,12 @@ public sealed class ScheduleController(EduTrackDbContext context) : ControllerBa
         }
         catch (ScheduleAccessException ex) { return StatusCode(ex.StatusCode, new { message = ex.Message }); }
     }
+
+    [HttpGet("~/api/schedule/classes")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> GetClasses([FromQuery] int userId, CancellationToken ct)
+    {
+        try { return Ok(await new ScheduleReadService(context).GetScopedClasses(userId, ct)); }
+        catch (ScheduleAccessException ex) { return StatusCode(ex.StatusCode, new { message = ex.Message }); }
+    }
 }

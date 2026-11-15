@@ -11,7 +11,7 @@ export function useStudentGrades() {
     void gradeApi.getAll().then(grades => {
       if (current) setState({ grades: sortedStudentGrades(grades), loading: false, loaded: true, error: null });
     }, error => {
-      if (current) setState(previous => ({ ...previous, loading: false, error: error instanceof Error ? error.message : "Không tải được danh mục khối lớp." }));
+      if (current) setState(previous => ({ ...previous, loading: false, error: error instanceof Error ? error.message : "Failed to load grade list." }));
     });
     const focus = () => setRevision(value => value + 1);
     window.addEventListener("focus", focus);

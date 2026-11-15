@@ -47,7 +47,7 @@ function AssignmentOverviewCard({
         const res = await teachingDAL.uploadFile(file);
         setEditFileUrl(res.fileUrl);
       } catch (err: any) {
-        setErrorMsg(err?.message || "Lỗi khi tải tệp tin lên máy chủ.");
+        setErrorMsg(err?.message || "Error uploading file to server.");
       } finally {
         setUploadingEditFile(false);
       }
@@ -272,7 +272,7 @@ function AssignmentOverviewCard({
                             saving || uploadingEditFile ? "disabled" : ""
                           }`}
                           htmlFor="editAssignmentFileInput"
-                          title="Tải tệp tin đính kèm mới"
+                          title="Upload new attached file"
                         >
                           {uploadingEditFile ? (
                             <span className="spinner-border spinner-border-sm" role="status" />

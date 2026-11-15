@@ -141,7 +141,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
           dispatch({ type: 'RESET_CHILDREN', payload: liveChildren || [] });
         }
       } catch (err) {
-        console.warn('[ParentContext] Không thể tải dữ liệu con từ Backend, dùng fallback:', err);
+        console.warn('[ParentContext] Failed to load children data from Backend, using fallback:', err);
         if (isMounted) {
           dispatch({
             type: 'RESET_CHILDREN',
@@ -179,7 +179,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
   ): Promise<{ success: boolean; message: string; student?: ChildStudent }> => {
     return {
       success: false,
-      message: 'Phụ huynh không tự liên kết học sinh trực tiếp. Vui lòng gửi phản hồi tới Admin Staff để được hỗ trợ liên kết.',
+      message: 'Parents cannot link students directly. Please submit a request to Admin Staff for assistance.',
     };
   };
 
@@ -195,8 +195,8 @@ export function ParentProvider({ children }: ParentProviderProps) {
         {
           userId: DEFAULT_PARENT_ID,
           studentId: selectedChild?.id || DEFAULT_STUDENT_ID,
-          title: `Yêu cầu liên kết thêm hồ sơ học sinh: ${studentName.trim()}`,
-          description: `Phụ huynh đề nghị Giáo vụ đối soát và liên kết hồ sơ học sinh: Họ tên: ${studentName.trim()} | Ngày sinh: ${dob.trim()} | Trường: ${school.trim() || 'Chưa rõ'} | SĐT Phụ huynh: ${parentPhone.trim()}.${note ? ` Ghi chú: ${note.trim()}` : ''}`,
+          title: `Request to link student profile: ${studentName.trim()}`,
+          description: `Parent requested Admin Staff to verify and link student profile: Full Name: ${studentName.trim()} | Date of Birth: ${dob.trim()} | School: ${school.trim() || 'Unknown'} | Parent Phone: ${parentPhone.trim()}.${note ? ` Note: ${note.trim()}` : ''}`,
           priority: 'medium',
         },
         'parent',
@@ -220,10 +220,10 @@ export function ParentProvider({ children }: ParentProviderProps) {
       return {
         success: true,
         ticketId,
-        message: `Đã gửi phiếu phản hồi liên kết hồ sơ cho học sinh ${studentName} tới Admin Staff. Mã phiếu: #${ticketId}.`,
+        message: `Submitted profile linking request for student ${studentName} to Admin Staff. Ticket ID: #${ticketId}.`,
       };
     } catch (err) {
-      console.warn('[ParentContext] Không kết nối được Backend khi gửi yêu cầu liên kết con:', err);
+      console.warn('[ParentContext] Failed to connect to Backend when submitting child linking request:', err);
       const randomTicketNumber = Math.floor(1000 + Math.random() * 9000);
       const ticketId = `FB${randomTicketNumber}`;
 
@@ -243,7 +243,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
       return {
         success: true,
         ticketId,
-        message: `Đã gửi yêu cầu liên kết hồ sơ cho học sinh ${studentName}. Mã phiếu: #${ticketId}.`,
+        message: `Submitted profile linking request for student ${studentName}. Ticket ID: #${ticketId}.`,
       };
     }
   };
@@ -261,7 +261,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
         return;
       }
     } catch (err) {
-      console.warn('[ParentContext] Không kết nối được Backend khi tải lại danh sách con:', err);
+      console.warn('[ParentContext] Failed to connect to Backend when reloading children list:', err);
     }
     dispatch({
       type: 'RESET_CHILDREN',

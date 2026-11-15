@@ -10,14 +10,14 @@ export function ParentFeedbackPage() {
   const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
 
   useEffect(() => {
-    document.title = 'Phản hồi & Yêu cầu hỗ trợ (Phụ huynh) – EduTrack';
+    document.title = 'Feedback & Support (Parent) – EduTrack';
   }, []);
 
   if (loading) {
     return (
       <LearnerPageLoader
-        title="Đang tải phản hồi & yêu cầu hỗ trợ..."
-        message="Hệ thống đang đồng bộ hồ sơ phụ huynh và lịch sử phản hồi gửi tới Giáo vụ."
+        title="Loading feedback & support..."
+        message="The system is synchronizing parent profile and feedback history sent to Admin Staff."
       />
     );
   }

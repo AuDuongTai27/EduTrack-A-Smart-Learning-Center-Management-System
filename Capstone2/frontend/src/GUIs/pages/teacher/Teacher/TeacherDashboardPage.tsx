@@ -43,9 +43,9 @@ export default function TeacherDashboardPage() {
   const kpis = dashboardData?.kpis;
   const teacherName = profile?.fullName || "ThS. Hoàng Quốc Việt";
   const userCode = profile?.userCode ? `#${profile.userCode}` : "#TC001";
-  const specialty = profile?.specialty || "Toán học & Luyện thi";
+  const specialty = profile?.specialty || "Mathematics & Exam Preparation";
   const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const roleTitle = profile?.roleTitle || "Giáo viên chuyên môn";
+  const roleTitle = profile?.roleTitle || "Subject Teacher";
 
   const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || [])
     .filter((cls) => {
@@ -106,22 +106,22 @@ export default function TeacherDashboardPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Bảng Điều Khiển Giáo Viên"
+        title="Teacher Dashboard"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "Tổng quan giảng dạy" },
+          { label: "Teaching Overview" },
         ]}
       />
 
       {/* Greeting section */}
-      <GreetingSection name={teacherName} message="Chúc thầy/cô một ngày giảng dạy hiệu quả tại EduTrack!" />
+      <GreetingSection name={teacherName} message="Wishing you an effective teaching day at EduTrack!" />
 
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Đang tải...</span>
+            <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="text-muted mt-2">Đang tải thông tin bảng điều khiển...</p>
+          <p className="text-muted mt-2">Loading dashboard information...</p>
         </div>
       ) : (
         <>

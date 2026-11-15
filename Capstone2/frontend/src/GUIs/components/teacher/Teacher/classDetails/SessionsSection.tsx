@@ -38,11 +38,11 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-calendar-week-fill text-primary fs-5" />
           <h4 className="class-list-title mb-0">
-            Lịch các buổi học ({sessions.length > 0 ? sessions.length : 3})
+            Class Sessions Schedule ({sessions.length > 0 ? sessions.length : 3})
           </h4>
         </div>
         <div className="d-flex align-items-center gap-2">
-          <span className="text-muted small">Thu gọn / Mở rộng</span>
+          <span className="text-muted small">Collapse / Expand</span>
           <i className="bi bi-chevron-down details-chevron text-muted" />
         </div>
       </summary>
@@ -50,19 +50,19 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
       {loading ? (
         <div className="p-4 text-center">
           <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-          <span className="text-muted small">Đang tải danh sách các buổi học...</span>
+          <span className="text-muted small">Loading class sessions...</span>
         </div>
       ) : (
         <div className="table-responsive-container">
           <table className="table custom-table align-middle mb-0">
             <thead>
               <tr>
-                <th>Buổi học</th>
-                <th>Ngày học</th>
-                <th>Thời gian</th>
-                <th>Phòng học</th>
-                <th>Trạng thái</th>
-                <th className="text-end">Hành động</th>
+                <th>Session</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Room</th>
+                <th>Status</th>
+                <th className="text-end">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -74,7 +74,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
                   <tr key={s.sessionId} className={isCompleted ? "session-row-ended" : ""}>
                     <td className="fw-semibold text-dark">
                       <i className="bi bi-book me-1 text-primary" />
-                      Buổi {idx + 1}: Bài giảng &amp; Thực hành
+                      Session {idx + 1}: Lecture &amp; Practice
                     </td>
                     <td>{s.sessionDate}</td>
                     <td>{s.timePeriod || "18:00 - 20:00"}</td>
@@ -87,15 +87,15 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
                     <td>
                       {isCompleted ? (
                         <span className="badge bg-success-subtle text-success fw-medium px-2.5 py-1">
-                          <i className="bi bi-check-circle me-1" /> Đã điểm danh
+                          <i className="bi bi-check-circle me-1" /> Attendance Recorded
                         </span>
                       ) : !hasStarted ? (
-                        <span className="badge bg-secondary-subtle text-secondary fw-medium px-2.5 py-1" title="Buổi học chưa đến giờ">
-                          <i className="bi bi-hourglass-split me-1" /> Chưa bắt đầu
+                        <span className="badge bg-secondary-subtle text-secondary fw-medium px-2.5 py-1" title="Session has not started yet">
+                          <i className="bi bi-hourglass-split me-1" /> Not Started
                         </span>
                       ) : (
                         <span className="badge bg-warning-subtle text-warning-emphasis fw-medium px-2.5 py-1">
-                          <i className="bi bi-clock me-1" /> Chưa điểm danh
+                          <i className="bi bi-clock me-1" /> Not Recorded
                         </span>
                       )}
                     </td>
@@ -107,7 +107,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
                             className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 shadow-sm"
                           >
                             <i className="bi bi-clipboard-check" />
-                            <span>Xem điểm danh</span>
+                            <span>View Attendance</span>
                           </Link>
                         ) : hasStarted ? (
                           <Link
@@ -115,17 +115,17 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
                             className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
                           >
                             <i className="bi bi-clipboard-check" />
-                            <span>Điểm danh</span>
+                            <span>Take Attendance</span>
                           </Link>
                         ) : (
                           <button
                             type="button"
                             className="btn btn-sm btn-light border text-muted d-inline-flex align-items-center gap-1 opacity-75"
                             disabled
-                            title="Chỉ có buổi học đã bắt đầu mới có thể điểm danh"
+                            title="Only started sessions can be marked for attendance"
                           >
                             <i className="bi bi-lock-fill text-secondary" />
-                            <span>Chưa bắt đầu</span>
+                            <span>Not Started</span>
                           </button>
                         )}
                       </div>

@@ -89,17 +89,17 @@ export default function TeacherClassesPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title="Lớp Học Của Tôi"
+        title="My Classes"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "Danh sách lớp học" },
+          { label: "Class List" },
         ]}
       />
 
       {loading && (
         <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2">
           <div className="spinner-border spinner-border-sm" role="status" />
-          <span>Đang tải danh sách lớp học phụ trách...</span>
+          <span>Loading assigned classes...</span>
         </div>
       )}
 

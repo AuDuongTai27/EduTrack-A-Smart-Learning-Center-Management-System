@@ -20,15 +20,15 @@ export function ProgressPageHeader({
   const attendanceActions = (
     <div
       className="overall-attendance-pill shadow-sm"
-      title={`Điểm danh chung = ${attendedSessionsCount} buổi có mặt / ${totalSessionsCount} buổi đã học tính đến hiện tại`}
+      title={`Overall Attendance = ${attendedSessionsCount} sessions present / ${totalSessionsCount} sessions to date`}
     >
       <div>
-        <div className="overall-label">Điểm danh chung</div>
+        <div className="overall-label">Overall Attendance</div>
         <div className="overall-value">{computedRate}%</div>
       </div>
       <div className="overall-divider"></div>
       <div>
-        <div className="overall-label">Có mặt / Đã học</div>
+        <div className="overall-label">Present / Completed</div>
         <div className="overall-value">
           {attendedSessionsCount}/{totalSessionsCount}
         </div>
@@ -38,11 +38,11 @@ export function ProgressPageHeader({
 
   return (
     <StudentPageHeader
-      title="Tiến độ học tập"
-      subtitle="Tổng hợp điểm danh và nhận xét tính đến thời điểm hiện tại"
+      title="Learning Progress"
+      subtitle="Summary of attendance and feedback to date"
       breadcrumbs={[
-        { label: 'Trang chủ', href: '/student/dashboard' },
-        { label: 'Tiến độ học tập' },
+        { label: 'Home', href: '/student/dashboard' },
+        { label: 'Learning Progress' },
       ]}
       actions={attendanceActions}
     />

@@ -5,15 +5,15 @@ export const sortedStudentGrades = (grades: GradeDto[]) => [...grades]
   .sort((a, b) => a.gradeName.localeCompare(b.gradeName, "vi", { numeric: true }) || a.gradeId - b.gradeId);
 
 export function studentGradeLabel(student: Pick<UserDto, "gradeId" | "gradeName">, grades: GradeDto[], loaded = true): string {
-  if (student.gradeId == null) return "Chưa liên kết khối";
+  if (student.gradeId == null) return "Unassigned Grade";
   const grade = grades.find(g => g.gradeId === student.gradeId);
   if (grade) return grade.gradeName;
-  if (!loaded) return student.gradeName || `Đang tải khối #${student.gradeId}`;
-  return `Khối không còn hợp lệ (#${student.gradeId})`;
+  if (!loaded) return student.gradeName || `Loading grade #${student.gradeId}`;
+  return `Invalid grade (#${student.gradeId})`;
 }
 
 export function legacyStudentGradeNote(student: Pick<UserDto, "gradeId" | "specialty">): string | null {
-  return student.gradeId == null && student.specialty ? `Dữ liệu cũ: ${student.specialty}` : null;
+  return student.gradeId == null && student.specialty ? `Legacy data: ${student.specialty}` : null;
 }
 
 export function matchesStudentGrade(student: Pick<UserDto, "gradeId">, filter: string, grades: GradeDto[]): boolean {

@@ -31,7 +31,7 @@ function readTemplatePreview(value: unknown, input: ScheduleTemplateInput, confi
         mondayOf(s.plannedOccurrenceDate) === s.occurrenceWeekStart && s.occurrenceWeekStart >= input.effectiveFrom && validDate(s.sessionDate) &&
         validTime(s.startTime) && validTime(s.endTime) && room(s.room) && text(s.status) && typeof s.hasAttendance === 'boolean') ||
       (confirmed && (!template(p.template) || p.template.classId !== input.classId || (input.scheduleId && p.template.scheduleId !== input.scheduleId) || p.previewToken !== input.previewToken)))
-    throw new Error('Dữ liệu Preview timeline từ máy chủ không hợp lệ. Tải lại trước khi xác nhận.');
+    throw new Error('Invalid timeline preview data from server. Reload before confirming.');
   return p;
 }
 export function readScheduleGeneration(value: unknown, input: ScheduleGenerationInput): ScheduleGenerationPreview {
@@ -48,7 +48,7 @@ export function readScheduleGeneration(value: unknown, input: ScheduleGeneration
         (input.mode === 'single' ? r.scheduleId === input.scheduleId && validDate(input.sessionDate) && r.occurrenceWeekStart === mondayOf(input.sessionDate) :
           r.plannedOccurrenceDate.startsWith(monthPrefix) || r.proposedPlannedDate?.startsWith(monthPrefix))) ||
       p.created !== p.rows.filter(r => r.outcome === 'created').length)
-    throw new Error('Dữ liệu occurrence từ máy chủ không hợp lệ. Tải lại để kiểm tra.');
+    throw new Error('Invalid occurrence data from server. Reload to verify.');
   return p;
 }
 export function createScheduleManagementApi(baseUrl: string, selectedUserId?: number) {
@@ -58,12 +58,12 @@ export function createScheduleManagementApi(baseUrl: string, selectedUserId?: nu
       headers:{Accept:'application/json', ...(body === undefined ? {} : {'Content-Type':'application/json'})}, ...(body === undefined ? {} : {body:JSON.stringify(body)})});}
     catch (error) {
       if (signal?.aborted) throw error;
-      throw new Error(method === 'GET' || path.endsWith('/preview') ? 'Không kết nối được máy chủ. Vui lòng thử lại.' :
-        'Chưa xác định được kết quả lưu. Tải lại timeline/Preview để kiểm tra trước khi thử lại.');
+      throw new Error(method === 'GET' || path.endsWith('/preview') ? 'Failed to connect to server. Please try again.' :
+        'Save result undetermined. Reload timeline/preview to check before retrying.');
     }
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      throw new Error(data?.message || `Không thực hiện được yêu cầu (HTTP ${response.status}).`);
+      throw new Error(data?.message || `Failed to process request (HTTP ${response.status}).`);
     }
     return response.json();
   }
@@ -72,13 +72,13 @@ export function createScheduleManagementApi(baseUrl: string, selectedUserId?: nu
       const data = await request('/capabilities','GET',undefined,signal) as ScheduleCapabilities;
       if (!data || typeof data.canManageTemplates !== 'boolean' || typeof data.canCreateSessions !== 'boolean' || !validWeek(data.earliestEffectiveFrom) || !Array.isArray(data.classes) ||
           new Set(data.classes.map(c => c?.classId)).size !== data.classes.length || !data.classes.every(c => positive(c?.classId) && text(c.className) && text(c.status) &&
-            validDate(c.startDate) && (c.endDate === null || validDate(c.endDate)))) throw new Error('Thông tin phân quyền/Class từ máy chủ không hợp lệ.');
+            validDate(c.startDate) && (c.endDate === null || validDate(c.endDate)))) throw new Error('Invalid permissions/Class information from server.');
       return data;
     },
     async templates(classId: number, signal?: AbortSignal): Promise<ScheduleTemplate[]> {
       const data = await request(`/templates?classId=${classId}`,'GET',undefined,signal);
       if (!Array.isArray(data) || !data.every(s => template(s) && s.classId === classId) || new Set(data.map(s => s.scheduleId)).size !== data.length)
-        throw new Error('Danh sách timeline template không hợp lệ.');
+        throw new Error('Invalid timeline template list.');
       return data;
     },
     async previewTemplate(input: ScheduleTemplateInput): Promise<ScheduleTemplatePreview> {
@@ -93,7 +93,7 @@ export function createScheduleManagementApi(baseUrl: string, selectedUserId?: nu
     async confirm(input: ScheduleGenerationInput): Promise<ScheduleGenerationPreview> {
       const result = readScheduleGeneration(await request('/sessions/confirm','POST',input),input);
       if (result.previewToken !== input.previewToken || result.rows.some(r => r.outcome === 'created' && !input.selectedKeys?.includes(r.key)))
-        throw new Error('Xác nhận trả về khác Preview đã chọn. Tải lại lịch để kiểm tra kết quả.');
+        throw new Error('Confirmation returned different from selected Preview. Reload schedule to verify results.');
       return result;
     },
     async createSessionDirect(input: DirectSessionCreateInput): Promise<ScheduleSession> {

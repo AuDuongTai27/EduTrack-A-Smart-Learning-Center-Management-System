@@ -15,20 +15,20 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 async function getList<T>(endpoint: string): Promise<T[]> {
   const response = await fetch(`${API_BASE_URL}/${endpoint}`, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(`Không tải được lịch học (HTTP ${response.status}). Vui lòng thử lại.`);
+  if (!response.ok) throw new Error(`Failed to load schedule (HTTP ${response.status}). Please try again.`);
   const data: unknown = await response.json();
-  if (!Array.isArray(data)) throw new Error("Không tải được lịch học. Vui lòng thử lại.");
+  if (!Array.isArray(data)) throw new Error("Failed to load schedule. Please try again.");
   return data as T[];
 }
 
 async function getCurrentStaff(userId: number | null) {
   if (userId == null) {
-    throw new Error("Chưa chọn được tài khoản giáo vụ từ dữ liệu hệ thống.");
+    throw new Error("Unable to select admin staff account from system data.");
   }
   const user = await userDAL.getUserById(userId);
   if (!user || user.userId !== userId || user.status.trim().toLowerCase() !== "active"
     || !user.roles?.some((role) => role.trim().toLowerCase() === "admin_staff")) {
-    throw new Error("Tài khoản hiện tại không có quyền giáo vụ đang hoạt động.");
+    throw new Error("Current account does not have active admin staff permissions.");
   }
   return user;
 }

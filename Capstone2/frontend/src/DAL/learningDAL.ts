@@ -127,23 +127,23 @@ function fmtVnd(amount: number): string {
 function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): StudentTuitionViewModel {
   const totalUnpaid = apiData.totalUnpaidAmount || 0;
   const unpaidItems = (apiData.unpaidInvoices || []).map((inv) => ({
-    name: `${inv.className} (Tháng ${inv.periodMonth}/${inv.periodYear})`,
+    name: `${inv.className} (Month ${inv.periodMonth}/${inv.periodYear})`,
     amount: fmtVnd(inv.amountDue),
   }));
 
   const bill: TuitionBill = {
-    period: apiData.period || 'Kỳ tháng 10 / 2026',
+    period: apiData.period || 'Term October / 2026',
     totalAmount: fmtVnd(totalUnpaid),
     dueDate: apiData.dueDate || '10/11/2026',
     remainingDaysText:
       apiData.remainingDaysText ||
-      (totalUnpaid > 0 ? 'Còn hạn thanh toán học phí' : 'Đã hoàn thành toàn bộ học phí kỳ này'),
+      (totalUnpaid > 0 ? 'Tuition payment due' : 'Completed all tuition for this term'),
     items:
       unpaidItems.length > 0
         ? unpaidItems
         : [
             {
-              name: 'Đã hoàn thành học phí tất cả các môn học trong kỳ',
+              name: 'Completed tuition for all subjects this term',
               amount: '0 đ',
             },
           ],
@@ -155,7 +155,7 @@ function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): Studen
     period: p.period,
     amount: fmtVnd(p.amount),
     date: p.paidAt,
-    status: p.status || 'Đã nộp',
+    status: p.status || 'Paid',
   }));
 
   return {
@@ -175,21 +175,21 @@ function mapSubjectTheme(subjectCode?: string, subjectName?: string): {
 } {
   const combined = `${subjectCode || ''} ${subjectName || ''}`.toUpperCase();
   if (combined.includes('PHYS') || combined.includes('VAT') || combined.includes('LY') || combined.includes('LÝ')) {
-    return { subjectThemeClass: 'theme-physics', badge: subjectName || 'Vật lý' };
+    return { subjectThemeClass: 'theme-physics', badge: subjectName || 'Physics' };
   }
   if (combined.includes('CHEM') || combined.includes('HOA') || combined.includes('HÓA')) {
-    return { subjectThemeClass: 'theme-chemistry', badge: subjectName || 'Hóa học' };
+    return { subjectThemeClass: 'theme-chemistry', badge: subjectName || 'Chemistry' };
   }
   if (combined.includes('ENG') || combined.includes('ANH') || combined.includes('IELTS')) {
-    return { subjectThemeClass: 'theme-english', badge: subjectName || 'Tiếng Anh' };
+    return { subjectThemeClass: 'theme-english', badge: subjectName || 'English' };
   }
   if (combined.includes('LIT') || combined.includes('VAN') || combined.includes('VĂN')) {
-    return { subjectThemeClass: 'theme-literature', badge: subjectName || 'Ngữ văn' };
+    return { subjectThemeClass: 'theme-literature', badge: subjectName || 'Literature' };
   }
   if (combined.includes('BIO') || combined.includes('SINH')) {
-    return { subjectThemeClass: 'theme-biology', badge: subjectName || 'Sinh học' };
+    return { subjectThemeClass: 'theme-biology', badge: subjectName || 'Biology' };
   }
-  return { subjectThemeClass: 'theme-math', badge: subjectName || 'Toán học' };
+  return { subjectThemeClass: 'theme-math', badge: subjectName || 'Mathematics' };
 }
 
 function mapSubjectBannerTheme(subjectCode?: string, subjectName?: string): {
@@ -265,10 +265,10 @@ function mapApiClassToEnrolledItem(dto: StudentEnrolledClassApiDto): EnrolledCla
     className: dto.className,
     badge,
     subjectThemeClass,
-    teacherName: dto.teacherName || 'Giáo viên phụ trách',
-    teacherInitials: dto.teacherInitials || 'GV',
-    scheduleText: dto.scheduleText || 'Đang cập nhật lịch',
-    room: dto.room || 'Phòng học chính',
+    teacherName: dto.teacherName || 'Teacher in charge',
+    teacherInitials: dto.teacherInitials || 'TC',
+    scheduleText: dto.scheduleText || 'Updating schedule',
+    room: dto.room || 'Main Classroom',
   };
 }
 
@@ -303,10 +303,10 @@ export function mapApiFeedbackToViewModel(
 
   let statusLabel = dto.statusLabel || '';
   if (!statusLabel) {
-    if (statusLower === 'approved') statusLabel = 'Đã giải quyết';
-    else if (statusLower === 'rejected') statusLabel = 'Đã từ chối';
-    else if (dto.reviewedBy) statusLabel = 'Chờ duyệt';
-    else statusLabel = 'Chưa xem xét giải quyết';
+    if (statusLower === 'approved') statusLabel = 'Resolved';
+    else if (statusLower === 'rejected') statusLabel = 'Rejected';
+    else if (dto.reviewedBy) statusLabel = 'Pending';
+    else statusLabel = 'Pending Review';
   }
 
   const role: 'parent' | 'student' =
@@ -320,19 +320,19 @@ export function mapApiFeedbackToViewModel(
     id: dto.requestId,
     requestCode: dto.requestCode,
     requestType: 'feedback',
-    title: dto.title || `Phản hồi #${dto.requestCode}`,
+    title: dto.title || `Feedback #${dto.requestCode}`,
     description: dto.description || '',
     senderName: dto.requesterName || fallbackName,
     senderRole: role,
     className: dto.className || undefined,
-    createdAt: formatDateTimeVi(dto.createdAt) || 'Vừa xong',
+    createdAt: formatDateTimeVi(dto.createdAt) || 'Just now',
     status: (statusLower === 'approved' || statusLower === 'rejected' ? statusLower : 'pending') as
       | 'pending'
       | 'approved'
       | 'rejected',
     statusLabel,
     canEdit,
-    reviewedBy: dto.reviewerName || (dto.reviewedBy ? 'Admin Staff (Giáo vụ)' : undefined),
+    reviewedBy: dto.reviewerName || (dto.reviewedBy ? 'Admin Staff' : undefined),
     reviewedAt: formatDateTimeVi(dto.reviewedAt) || undefined,
     reviewNotes: dto.reviewNotes || undefined,
   };
@@ -361,7 +361,7 @@ export function mapApiLearnerNotifToStudentItem(dto: LearnerNotificationItemApiD
     category,
     title: dto.title,
     summary: dto.content,
-    timestamp: formatDateTimeVi(dto.createdAt) || 'Vừa xong',
+    timestamp: formatDateTimeVi(dto.createdAt) || 'Just now',
     unread: !dto.isRead,
   };
 }
@@ -640,7 +640,7 @@ export const learningDAL = {
       sessions: [],
       attendedLessons: 5,
       totalLessons: 6,
-      latestTeacherNote: 'Điểm danh đầy đủ, tương tác tích cực trên lớp.',
+      latestTeacherNote: 'Full attendance, actively participates in class.',
       source: 'mock',
     };
   },
@@ -705,7 +705,7 @@ export const learningDAL = {
                 statusType: fb.statusType,
                 statusIcon: fb.statusIcon,
                 statusLabel: fb.statusLabel,
-                category: fb.category || (fb.assignmentTitle.includes('[Đánh giá') ? 'evaluation' : 'assignment'),
+                category: fb.category || (fb.assignmentTitle.includes('[Đánh giá') || fb.assignmentTitle.includes('[Evaluation') ? 'evaluation' : 'assignment'),
               })),
             };
           }
@@ -765,7 +765,7 @@ export const learningDAL = {
   async getStudentTuition(studentId = DEFAULT_STUDENT_ID): Promise<StudentTuitionViewModel> {
     const apiData = await learningApi.getStudentTuition(studentId);
     if (!apiData) {
-      throw new Error('Không tải được dữ liệu học phí từ hệ thống.');
+      throw new Error('Failed to load tuition data from the system.');
     }
     return mapApiTuitionToViewModel(apiData);
   },
@@ -821,11 +821,11 @@ export const learningDAL = {
 
         let scoreText: string | undefined;
         if (sub?.score !== null && sub?.score !== undefined) {
-          scoreText = `${sub.score} / ${apiData.maxScore} (GV đã chấm)`;
+          scoreText = `${sub.score} / ${apiData.maxScore} (Graded by Teacher)`;
         } else if (sub?.aiScore !== null && sub?.aiScore !== undefined) {
-          scoreText = `${sub.aiScore} / ${apiData.maxScore} (AI chấm sơ bộ)`;
+          scoreText = `${sub.aiScore} / ${apiData.maxScore} (Preliminary AI score)`;
         } else {
-          scoreText = `Chờ chấm (Tối đa ${apiData.maxScore} đ)`;
+          scoreText = `Pending grading (Max ${apiData.maxScore} pts)`;
         }
 
         const asg: AssignmentDetailItem = {
@@ -842,8 +842,8 @@ export const learningDAL = {
         return {
           asg,
           status,
-          submittedFileName: sub?.fileName || 'Bai_lam_hoc_sinh.pdf',
-          submittedMeta: sub ? `Đã nộp lúc ${sub.submittedAt} • Đã lưu trên hệ thống` : '',
+          submittedFileName: sub?.fileName || 'Student_submission.pdf',
+          submittedMeta: sub ? `Submitted at ${sub.submittedAt} • Saved on system` : '',
           submission: sub,
           source: 'api',
         };
@@ -855,8 +855,8 @@ export const learningDAL = {
     return {
       asg: fallbackAsg,
       status: fallbackAsg.defaultStatus || 'not-submitted',
-      submittedFileName: 'Bai_lam_PT_bac2_LeVanAn.pdf',
-      submittedMeta: 'Đã nộp lúc 18:42, 13/09/2026 • 2.4 MB',
+      submittedFileName: 'HW_Quadratic_Equation_LeVanAn.pdf',
+      submittedMeta: 'Submitted at 18:42, 13/09/2026 • 2.4 MB',
       submission: null,
       source: 'mock',
     };
@@ -975,26 +975,26 @@ export const learningDAL = {
     return [
       {
         notificationId: 1,
-        title: 'Thông báo học phí kỳ mới tháng 10/2026',
-        content: 'Hóa đơn học phí kỳ tháng 10/2026 của học sinh Lê Văn An đã được phát hành. Quý phụ huynh có thể kiểm tra và thanh toán trực tuyến tại mục Học phí.',
+        title: 'New tuition notice for October 2026',
+        content: 'Tuition invoice for October 2026 for student Le Van An has been issued. Parents can check and pay online in the Tuition section.',
         type: 'tuition',
-        className: 'Toán Nâng Cao 9',
+        className: 'Advanced Math 9',
         createdAt: '2026-10-14T09:00:00Z',
         isRead: false,
       },
       {
         notificationId: 2,
-        title: 'Cập nhật nhận xét định kỳ từ Giáo viên',
-        content: 'Giáo viên phụ trách lớp Toán Nâng Cao 9 đã cập nhật phiếu đánh giá tiến độ và chuyên cần tháng 10 cho học sinh Lê Văn An.',
+        title: 'Periodic feedback update from Teacher',
+        content: 'The teacher in charge of Advanced Math 9 has updated the October progress and attendance evaluation for student Le Van An.',
         type: 'class_review',
-        className: 'Toán Nâng Cao 9',
+        className: 'Advanced Math 9',
         createdAt: '2026-10-13T17:45:00Z',
         isRead: false,
       },
       {
         notificationId: 3,
-        title: 'Thông báo lịch nghỉ lễ và học bù của trung tâm',
-        content: 'EduTrack xin gửi tới Quý phụ huynh kế hoạch nghỉ lễ và lịch học bù của các lớp trong tuần tới.',
+        title: 'Notice of holiday schedule and make-up classes',
+        content: 'EduTrack would like to send parents the holiday schedule and make-up class plan for next week.',
         type: 'system',
         className: undefined,
         createdAt: '2026-10-10T08:00:00Z',
@@ -1082,7 +1082,7 @@ export const learningDAL = {
   async getParentProfile(parentId = DEFAULT_PARENT_ID): Promise<LearnerProfileApiDto> {
     const dto = await learningApi.getParentProfile(parentId);
     if (!dto) {
-      throw new Error('Không tìm thấy hồ sơ phụ huynh');
+      throw new Error('Parent profile not found');
     }
     return dto;
   },

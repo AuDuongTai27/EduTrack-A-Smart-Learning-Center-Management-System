@@ -110,7 +110,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
           if (linksRes.data) setLinks(linksRes.data);
         }
       } catch (err) {
-        console.warn("Lỗi nạp dữ liệu học sinh & phụ huynh:", err);
+        console.warn("Error loading student & parent data:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -239,7 +239,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
     try {
       const saved = await userDAL.getUserById(enrollmentConflict.studentId);
       if (!saved || saved.userId !== enrollmentConflict.studentId || saved.userCode !== enrollmentConflict.studentCode)
-        throw new Error("Chưa xác minh được hồ sơ đã lưu. Vui lòng thử xem lại.");
+        throw new Error("Could not verify saved profile. Please check again.");
       enrollment.saved();
       setUsers(previous => [saved, ...previous.filter(user => user.userId !== saved.userId)]);
       setSelectedUser(saved);
@@ -248,7 +248,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
       setEnrollmentConflict(null);
       setActionErrorMsg(null);
     } catch (error) {
-      setActionErrorMsg(error instanceof Error ? error.message : "Không tải được hồ sơ đã lưu. Vui lòng thử lại.");
+      setActionErrorMsg(error instanceof Error ? error.message : "Failed to load saved profile. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -287,12 +287,12 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
         gender: "male",
       });
       setActionSuccessMsg(
-        `Đã tạo tài khoản ${activeTab === "students" ? "học viên" : "phụ huynh"} mới: "${res.data.fullName}" (${res.data.userCode}) thành công!`
+        `Successfully created new ${activeTab === "students" ? "student" : "parent"} account: "${res.data.fullName}" (${res.data.userCode})!`
       );
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
       if (err instanceof StudentCreationConflictError) setEnrollmentConflict(err);
-      setActionErrorMsg(err.message || "Không thể tạo tài khoản.");
+      setActionErrorMsg(err.message || "Unable to create account.");
     } finally {
       setSubmitting(false);
     }
@@ -340,10 +340,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
 
       setUsers(users.map((item) => (item.userId === editForm.userId ? res.data : item)));
       setShowEditModal(false);
-      setActionSuccessMsg(`Đã cập nhật hồ sơ "${res.data.fullName}" thành công!`);
+      setActionSuccessMsg(`Successfully updated profile "${res.data.fullName}"!`);
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Không thể cập nhật hồ sơ.");
+      setActionErrorMsg(err.message || "Unable to update profile.");
     } finally {
       setSubmitting(false);
     }
@@ -401,10 +401,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
       }
 
       setShowLinkModal(false);
-      setActionSuccessMsg(`Đã liên kết thành công giữa Phụ huynh và Học sinh!`);
+      setActionSuccessMsg("Successfully linked Parent and Student!");
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Không thể lưu liên kết.");
+      setActionErrorMsg(err.message || "Unable to save link.");
     } finally {
       setSubmitting(false);
     }
@@ -418,11 +418,11 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
       const res = await managementDAL.removeLink(parentId, studentId);
       if (res.success) {
         setLinks(links.filter((l) => !(l.parentId === parentId && l.studentId === studentId)));
-        setActionSuccessMsg("Đã hủy liên kết Phụ huynh - Học sinh thành công!");
+        setActionSuccessMsg("Successfully unlinked Parent - Student!");
         setTimeout(() => setActionSuccessMsg(null), 3500);
       }
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Lỗi hủy liên kết.");
+      setActionErrorMsg(err.message || "Failed to unlink.");
     } finally {
       setSubmitting(false);
     }
@@ -448,13 +448,13 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
         // Remove related links
         setLinks(links.filter((l) => l.studentId !== userToDelete.userId && l.parentId !== userToDelete.userId));
         setShowDeleteModal(false);
-        setActionSuccessMsg(`Đã xóa tài khoản "${userToDelete.fullName}" (${userToDelete.userCode}) thành công!`);
+        setActionSuccessMsg(`Successfully deleted account "${userToDelete.fullName}" (${userToDelete.userCode})!`);
         setTimeout(() => setActionSuccessMsg(null), 3500);
       } else {
-        setActionErrorMsg(res.message || "Không thể xóa tài khoản.");
+        setActionErrorMsg(res.message || "Unable to delete account.");
       }
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Lỗi khi xóa tài khoản.");
+      setActionErrorMsg(err.message || "Error deleting account.");
     } finally {
       setSubmitting(false);
       setUserToDelete(null);
@@ -491,10 +491,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               type="button"
               className="btn btn-outline-primary d-flex align-items-center shadow-sm"
               onClick={handleOpenGeneralLinkModal}
-              title="Tạo liên kết Phụ huynh - Học sinh mới"
+              title="Create new Parent - Student link"
             >
               <i className="bi bi-link-45deg me-1 fs-5" />
-              Tạo liên kết PH - HS
+              Link Parent - Student
             </button>
             <button
               type="button"
@@ -543,7 +543,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               }}
             >
               <i className="bi bi-mortarboard me-2" />
-              Học viên (Students)
+              Students
               <span className="badge bg-primary-subtle text-primary ms-2">{studentsList.length}</span>
             </button>
           </li>
@@ -557,7 +557,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               }}
             >
               <i className="bi bi-people me-2" />
-              Phụ huynh (Parents)
+              Parents
               <span className="badge bg-info-subtle text-info ms-2">{parentsList.length}</span>
             </button>
           </li>
@@ -566,7 +566,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
 
       {/* Main Table Card */}
       {catalogue.error && <div className="alert alert-warning" role="alert">
-        {catalogue.error} <button type="button" className="btn btn-link btn-sm p-0" onClick={catalogue.refresh}>Tải lại khối lớp</button>
+        {catalogue.error} <button type="button" className="btn btn-link btn-sm p-0" onClick={catalogue.refresh}>Reload grades</button>
       </div>}
       <div className="card user-list-card border-0 shadow-sm">
         {/* Filters Header */}
@@ -598,12 +598,12 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   setCurrentPage(1);
                 }}
               >
-                <option value="All">🔗 Tất cả trạng thái liên kết</option>
+                <option value="All">🔗 All Link Statuses</option>
                 <option value="linked">
-                  {activeTab === "students" ? "✅ Đã có phụ huynh" : "✅ Đã có học sinh"}
+                  {activeTab === "students" ? "✅ Linked with parent" : "✅ Linked with student"}
                 </option>
                 <option value="unlinked">
-                  {activeTab === "students" ? "⚠️ Chưa có phụ huynh (Chưa liên kết)" : "⚠️ Chưa có học sinh"}
+                  {activeTab === "students" ? "⚠️ No linked parent (Unlinked)" : "⚠️ No linked student"}
                 </option>
               </select>
             </div>
@@ -613,7 +613,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               <div className="col-xl-2 col-lg-2 col-md-4">
                 <select
                   className="form-select"
-                  aria-label="Lọc khối lớp"
+                  aria-label="Filter by grade"
                   disabled={catalogue.loading}
                   value={selectedGradeFilter}
                   onChange={(e) => {
@@ -624,10 +624,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   <option value="All">All Grades</option>
                   {catalogue.loaded && !["All", "unassigned", "invalid"].includes(selectedGradeFilter)
                     && !catalogue.grades.some(g => String(g.gradeId) === selectedGradeFilter)
-                    && <option value={selectedGradeFilter}>Khối không còn hợp lệ (#{selectedGradeFilter})</option>}
+                    && <option value={selectedGradeFilter}>Invalid grade (#{selectedGradeFilter})</option>}
                   {catalogue.grades.map(grade => <option key={grade.gradeId} value={grade.gradeId}>{grade.gradeName}</option>)}
-                  <option value="unassigned">Chưa liên kết khối</option>
-                  <option value="invalid" disabled={!catalogue.loaded}>Khối không còn hợp lệ</option>
+                  <option value="unassigned">Unassigned Grade</option>
+                  <option value="invalid" disabled={!catalogue.loaded}>Invalid Grade</option>
                 </select>
               </div>
             )}
@@ -653,15 +653,15 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
             <div className="col-xl-1 col-lg-2 col-md-4">
               <select
                 className="form-select"
-                aria-label="Sắp xếp học sinh"
+                aria-label="Sort students"
                 value={selectedSort}
                 onChange={(e) => setSelectedSort(e.target.value)}
               >
                 <option value="az">A-Z</option>
                 <option value="za">Z-A</option>
                 <option value="newest">Newest</option>
-                {activeTab === "students" && <option value="grade-az">Khối A-Z</option>}
-                {activeTab === "students" && <option value="grade-za">Khối Z-A</option>}
+                {activeTab === "students" && <option value="grade-az">Grade A-Z</option>}
+                {activeTab === "students" && <option value="grade-za">Grade Z-A</option>}
               </select>
             </div>
           </div>
@@ -684,15 +684,15 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
             <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
-                <th className="fw-bold">Mã</th>
-                <th className="fw-bold">{activeTab === "students" ? "Học viên" : "Phụ huynh"}</th>
-                {activeTab === "students" && <th className="fw-bold">Lớp / Khối</th>}
-                <th className="fw-bold">Số điện thoại</th>
+                <th className="fw-bold">Code</th>
+                <th className="fw-bold">{activeTab === "students" ? "Student" : "Parent"}</th>
+                {activeTab === "students" && <th className="fw-bold">Class / Grade</th>}
+                <th className="fw-bold">Phone Number</th>
                 <th className="fw-bold">
-                  {activeTab === "students" ? "Phụ huynh liên kết" : "Học sinh phụ trách"}
+                  {activeTab === "students" ? "Linked Parent" : "Assigned Student"}
                 </th>
-                <th className="fw-bold">Trạng thái</th>
-                <th className="text-center fw-bold">Thao tác</th>
+                <th className="fw-bold">Status</th>
+                <th className="text-center fw-bold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -700,14 +700,14 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang nạp danh sách {activeTab === "students" ? "học viên" : "phụ huynh"}...
+                    Loading {activeTab === "students" ? "students" : "parents"} list...
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy {activeTab === "students" ? "học viên" : "phụ huynh"} nào phù hợp với bộ lọc.
+                    No {activeTab === "students" ? "students" : "parents"} found matching filters.
                   </td>
                 </tr>
               ) : (
@@ -751,7 +751,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                               {linkedParents.map((lp) => (
                                 <div key={lp.parentId} className="d-flex align-items-center gap-1 mb-1">
                                   <span className="badge bg-info-subtle text-info border">
-                                    {lp.relationship || "Phụ huynh"}
+                                    {lp.relationship || "Parent"}
                                   </span>
                                   <span className="fw-semibold text-dark small">{lp.parentName}</span>
                                   <small className="text-muted">({lp.parentPhone || "—"})</small>
@@ -761,7 +761,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                           ) : (
                             <span className="badge bg-warning-subtle text-warning border">
                               <i className="bi bi-exclamation-triangle me-1" />
-                              Chưa có phụ huynh
+                              No linked parent
                             </span>
                           )
                         ) : (
@@ -769,14 +769,14 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                             <div className="d-flex flex-wrap gap-1">
                               {linkedStudents.map((ls) => (
                                 <span key={ls.studentId} className="badge bg-light text-dark border">
-                                  🎓 {ls.studentName} ({ls.relationship || "Con"})
+                                  🎓 {ls.studentName} ({ls.relationship || "Child"})
                                 </span>
                               ))}
                             </div>
                           ) : (
                             <span className="badge bg-secondary-subtle text-secondary border">
                               <i className="bi bi-person-x me-1" />
-                              Chưa có học sinh
+                              No assigned student
                             </span>
                           )
                         )}
@@ -791,7 +791,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                           <TableActionButton
                             action="View"
                             onClick={() => handleViewDetails(item)}
-                            title="Xem chi tiết hồ sơ"
+                            title="View profile details"
                           />
 
                           <TableActionButton
@@ -803,19 +803,19 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                                 handleOpenLinkModalForParent(item);
                               }
                             }}
-                            title={activeTab === "students" ? "Gán phụ huynh cho học sinh này" : "Gán học sinh cho phụ huynh này"}
+                            title={activeTab === "students" ? "Assign parent to this student" : "Assign student to this parent"}
                           />
 
                           <TableActionButton
                             action="Edit"
                             onClick={() => handleOpenEditModal(item)}
-                            title="Sửa thông tin"
+                            title="Edit information"
                           />
 
                           <TableActionButton
                             action="Delete"
                             onClick={() => handleOpenDeleteModal(item)}
-                            title="Xóa tài khoản"
+                            title="Delete account"
                           />
                         </div>
                       </td>
@@ -847,7 +847,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
                   <i className={activeTab === "students" ? "bi bi-mortarboard-fill me-2" : "bi bi-people-fill me-2"} />
-                  {activeTab === "students" ? "Thêm học viên mới" : "Thêm phụ huynh mới"} ({roleLabel})
+                  {activeTab === "students" ? "Add New Student" : "Add New Parent"} ({roleLabel})
                 </h5>
                 <button
                   type="button"
@@ -860,18 +860,18 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 <div className="modal-body p-4">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Họ và tên <span className="text-danger">*</span></label>
+                      <label className="form-label fw-bold">Full Name <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Nhập họ và tên..."
+                        placeholder="Enter full name..."
                         value={addForm.fullName}
                         onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })}
                         required
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Số điện thoại</label>
+                      <label className="form-label fw-bold">Phone Number</label>
                       <input
                         type="tel"
                         className="form-control"
@@ -891,21 +891,21 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Giới tính</label>
+                      <label className="form-label fw-bold">Gender</label>
                       <select
                         className="form-select"
                         value={addForm.gender}
                         onChange={(e) => setAddForm({ ...addForm, gender: e.target.value })}
                       >
-                        <option value="male">Nam (Male)</option>
-                        <option value="female">Nữ (Female)</option>
-                        <option value="other">Khác</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
 
                     {activeTab === "students" && (
                       <div className="col-md-12">
-                        <label className="form-label fw-bold">Khối lớp</label>
+                        <label className="form-label fw-bold">Grade</label>
                         <StudentGradeSelect {...catalogue} value={addForm.gradeId} disabled={submitting}
                           onChange={gradeId => setAddForm({ ...addForm, gradeId })} />
                       </div>
@@ -915,7 +915,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                     )}
                     {actionErrorMsg && <div className="col-12"><div className="alert alert-danger mb-0" role="alert">
                       <div>{actionErrorMsg}</div>
-                      {enrollmentConflict && <button type="button" className="btn btn-sm btn-outline-danger mt-2" disabled={submitting} onClick={handleViewSavedStudent}>Xem hồ sơ đã lưu</button>}
+                      {enrollmentConflict && <button type="button" className="btn btn-sm btn-outline-danger mt-2" disabled={submitting} onClick={handleViewSavedStudent}>View saved profile</button>}
                     </div></div>}
                   </div>
                 </div>
@@ -926,16 +926,16 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                     onClick={() => setShowAddModal(false)}
                     disabled={submitting}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-primary px-4" disabled={submitting}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Đang lưu...
+                        Saving...
                       </>
                     ) : (
-                      "Lưu hồ sơ"
+                      "Save Profile"
                     )}
                   </button>
                 </div>
@@ -953,7 +953,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               <div className="modal-header bg-warning-subtle border-bottom">
                 <h5 className="modal-title fw-bold text-dark">
                   <i className="bi bi-pencil-square me-2 text-warning" />
-                  Chỉnh sửa hồ sơ: #{editForm.userCode}
+                  Edit Profile: #{editForm.userCode}
                 </h5>
                 <button
                   type="button"
@@ -966,7 +966,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 <div className="modal-body p-4">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Họ và tên <span className="text-danger">*</span></label>
+                      <label className="form-label fw-bold">Full Name <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         className="form-control"
@@ -976,7 +976,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Số điện thoại</label>
+                      <label className="form-label fw-bold">Phone Number</label>
                       <input
                         type="tel"
                         className="form-control"
@@ -994,25 +994,25 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-bold">Trạng thái</label>
+                      <label className="form-label fw-bold">Status</label>
                       <select
                         className="form-select"
                         value={editForm.status}
                         onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                       >
-                        <option value="active">Active (Hoạt động)</option>
-                        <option value="inactive">Inactive (Tạm ngừng)</option>
-                        <option value="locked">Locked (Đã khóa)</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="locked">Locked</option>
                       </select>
                     </div>
 
                     {editForm.role === "student" && (
                       <div className="col-md-12">
-                        <label className="form-label fw-bold">Khối lớp</label>
+                        <label className="form-label fw-bold">Grade</label>
                         <StudentGradeSelect {...catalogue} value={editForm.gradeId} disabled={submitting || editEnrollmentBusy}
                           legacyNote={legacyStudentGradeNote({ gradeId: editForm.originalGradeId ? Number(editForm.originalGradeId) : null, specialty: editForm.specialty })}
                           onChange={gradeId => setEditForm({ ...editForm, gradeId })} />
-                        <small className="d-block text-muted mt-1">Khối phổ thông hiện tại. Thay đổi khối không điều chỉnh các lớp đã ghi danh hoặc lịch sử học.</small>
+                        <small className="d-block text-muted mt-1">Current school grade. Changing grade does not adjust enrolled classes or learning history.</small>
                       </div>
                     )}
                     {editForm.role === "student" && <StudentCenterClassesSection key={editForm.userId}
@@ -1029,16 +1029,16 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                     onClick={() => setShowEditModal(false)}
                     disabled={submitting || editEnrollmentBusy}
                   >
-                    Hủy bỏ
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting || editEnrollmentBusy}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
-                        Đang lưu...
+                        Saving...
                       </>
                     ) : (
-                      "Cập nhật hồ sơ"
+                      "Update Profile"
                     )}
                   </button>
                 </div>
@@ -1057,10 +1057,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-link-45deg me-2" />
                   {linkContext.mode === "student" && linkContext.targetUser
-                    ? `Liên kết Phụ huynh cho Học sinh: ${linkContext.targetUser.fullName}`
+                    ? `Link Parent for Student: ${linkContext.targetUser.fullName}`
                     : linkContext.mode === "parent" && linkContext.targetUser
-                    ? `Gán Học sinh cho Phụ huynh: ${linkContext.targetUser.fullName}`
-                    : "Thiết lập liên kết Phụ huynh & Học sinh"}
+                    ? `Assign Student to Parent: ${linkContext.targetUser.fullName}`
+                    : "Configure Parent & Student Link"}
                 </h5>
                 <button
                   type="button"
@@ -1076,7 +1076,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       <div className="d-flex align-items-center gap-2">
                         <UserAvatar name={linkContext.targetUser.fullName} />
                         <div>
-                          <small className="text-muted d-block">Học sinh đang được chọn (Cố định):</small>
+                          <small className="text-muted d-block">Selected Student (Locked):</small>
                           <h6 className="fw-bold mb-0 text-dark">
                             {linkContext.targetUser.fullName}{" "}
                             <span className="badge bg-primary font-monospace ms-1">
@@ -1094,14 +1094,14 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       <div className="d-flex align-items-center gap-2">
                         <UserAvatar name={linkContext.targetUser.fullName} />
                         <div>
-                          <small className="text-muted d-block">Phụ huynh đang được chọn (Cố định):</small>
+                          <small className="text-muted d-block">Selected Parent (Locked):</small>
                           <h6 className="fw-bold mb-0 text-dark">
                             {linkContext.targetUser.fullName}{" "}
                             <span className="badge bg-info text-dark font-monospace ms-1">
                               #{linkContext.targetUser.userCode}
                             </span>
                           </h6>
-                          <small className="text-secondary">{linkContext.targetUser.phone || "Chưa có SĐT"}</small>
+                          <small className="text-secondary">{linkContext.targetUser.phone || "No phone number"}</small>
                         </div>
                       </div>
                     </div>
@@ -1110,7 +1110,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   {/* LIST CURRENTLY LINKED PERSONS WITH UNLINK BUTTON */}
                   {linkContext.mode === "student" && targetLinkedParents.length > 0 && (
                     <div className="mb-3">
-                      <label className="form-label fw-bold text-muted small">Phụ huynh hiện đang liên kết:</label>
+                      <label className="form-label fw-bold text-muted small">Currently linked parents:</label>
                       <div className="list-group">
                         {targetLinkedParents.map((lp) => (
                           <div
@@ -1119,7 +1119,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                           >
                             <div className="d-flex align-items-center gap-2">
                               <span className="badge bg-secondary-subtle text-secondary border">
-                                {lp.relationship || "Phụ huynh"}
+                                {lp.relationship || "Parent"}
                               </span>
                               <span className="fw-bold text-dark">{lp.parentName}</span>
                               <small className="text-muted">({lp.parentPhone || "—"})</small>
@@ -1129,10 +1129,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                               className="btn btn-outline-danger btn-sm py-0 px-2"
                               onClick={() => handleUnlink(lp.parentId, lp.studentId)}
                               disabled={submitting}
-                              title="Hủy liên kết với phụ huynh này"
+                              title="Unlink this parent"
                             >
                               <i className="bi bi-x-circle me-1" />
-                              Hủy
+                              Unlink
                             </button>
                           </div>
                         ))}
@@ -1142,7 +1142,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
 
                   {linkContext.mode === "parent" && targetLinkedStudents.length > 0 && (
                     <div className="mb-3">
-                      <label className="form-label fw-bold text-muted small">Các học sinh hiện đang phụ trách:</label>
+                      <label className="form-label fw-bold text-muted small">Currently assigned students:</label>
                       <div className="list-group">
                         {targetLinkedStudents.map((ls) => (
                           <div
@@ -1151,7 +1151,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                           >
                             <div className="d-flex align-items-center gap-2">
                               <span className="badge bg-secondary-subtle text-secondary border">
-                                {ls.relationship || "Con"}
+                                {ls.relationship || "Child"}
                               </span>
                               <span className="fw-bold text-dark">{ls.studentName}</span>
                               <small className="text-muted font-monospace">#{ls.studentCode}</small>
@@ -1161,10 +1161,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                               className="btn btn-outline-danger btn-sm py-0 px-2"
                               onClick={() => handleUnlink(ls.parentId, ls.studentId)}
                               disabled={submitting}
-                              title="Hủy liên kết với học sinh này"
+                              title="Unlink this student"
                             >
                               <i className="bi bi-x-circle me-1" />
-                              Hủy
+                              Unlink
                             </button>
                           </div>
                         ))}
@@ -1175,27 +1175,27 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   {/* INPUT FIELDS ACCORDING TO MODE */}
                   <div className="border-top pt-3">
                     {actionErrorMsg && <div className="alert alert-danger" role="alert">{actionErrorMsg}</div>}
-                    {linkForm.updateExisting && <div className="alert alert-info py-2" role="status">Cặp này đã có liên kết. Quan hệ hiển thị là dữ liệu đã lưu; xác nhận sẽ cập nhật liên kết hiện có.</div>}
+                    {linkForm.updateExisting && <div className="alert alert-info py-2" role="status">This pair is already linked. The displayed relationship is saved data; confirming will update the existing link.</div>}
                     <h6 className="fw-bold text-primary mb-3">
                       {linkContext.mode === "student"
-                        ? "➕ Thêm / Đổi Phụ huynh cho học sinh này"
+                        ? "➕ Add / Change Parent for this student"
                         : linkContext.mode === "parent"
-                        ? "➕ Gán thêm Học sinh cho phụ huynh này"
-                        : "🔗 Chọn Học sinh và Phụ huynh"}
+                        ? "➕ Assign Student to this parent"
+                        : "🔗 Select Student and Parent"}
                     </h6>
 
                     {/* Show Student Select only if general mode or parent mode */}
                     {linkContext.mode !== "student" && (
                       <div className="mb-3">
-                        <label className="form-label fw-bold">Chọn Học sinh <span className="text-danger">*</span></label>
+                        <label className="form-label fw-bold">Select Student <span className="text-danger">*</span></label>
                         <select
                           className="form-select font-monospace"
                           value={linkForm.studentId || ""}
-                          aria-label="Chọn học sinh"
+                          aria-label="Select student"
                           onChange={(e) => setLinkForm(previous => selectParentStudentPair(previous, { studentId: Number(e.target.value) }, links))}
                           required
                         >
-                          <option value="">-- Chọn học sinh --</option>
+                          <option value="">-- Select student --</option>
                           {studentsList.map((s) => (
                             <option key={s.userId} value={s.userId}>
                               #{s.userCode} - {s.fullName} ({gradeLabel(s)})
@@ -1208,18 +1208,18 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                     {/* Show Parent Select only if general mode or student mode */}
                     {linkContext.mode !== "parent" && (
                       <div className="mb-3">
-                        <label className="form-label fw-bold">Chọn Phụ huynh phụ trách <span className="text-danger">*</span></label>
+                        <label className="form-label fw-bold">Select Assigned Parent <span className="text-danger">*</span></label>
                         <select
                           className="form-select font-monospace"
                           value={linkForm.parentId || ""}
-                          aria-label="Chọn phụ huynh"
+                          aria-label="Select parent"
                           onChange={(e) => setLinkForm(previous => selectParentStudentPair(previous, { parentId: Number(e.target.value) }, links))}
                           required
                         >
-                          <option value="">-- Chọn phụ huynh --</option>
+                          <option value="">-- Select parent --</option>
                           {parentsList.map((p) => (
                             <option key={p.userId} value={p.userId}>
-                              #{p.userCode} - {p.fullName} ({p.phone || p.email || "Liên hệ"})
+                              #{p.userCode} - {p.fullName} ({p.phone || p.email || "Contact"})
                             </option>
                           ))}
                         </select>
@@ -1228,17 +1228,17 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
 
                     <div className="row g-3">
                       <div className="col-md-6">
-                        <label className="form-label fw-bold">Mối quan hệ thân nhân</label>
+                        <label className="form-label fw-bold">Relationship</label>
                         <select
                           className="form-select"
                           value={linkForm.relationship}
-                          aria-label="Mối quan hệ"
+                          aria-label="Relationship"
                           onChange={(e) => setLinkForm({ ...linkForm, relationship: e.target.value })}
                         >
-                          <option value="Father">Bố (Father)</option>
-                          <option value="Mother">Mẹ (Mother)</option>
-                          <option value="Guardian">Người giám hộ (Guardian)</option>
-                          <option value="Relative">Người thân khác</option>
+                          <option value="Father">Father</option>
+                          <option value="Mother">Mother</option>
+                          <option value="Guardian">Guardian</option>
+                          <option value="Relative">Other Relative</option>
                           {!["Father", "Mother", "Guardian", "Relative"].includes(linkForm.relationship) && <option value={linkForm.relationship}>{linkForm.relationship}</option>}
                         </select>
                       </div>
@@ -1253,7 +1253,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                             onChange={(e) => setLinkForm({ ...linkForm, isPrimaryContact: e.target.checked })}
                           />
                           <label className="form-check-label small" htmlFor="primaryContactCheck">
-                            Người liên hệ chính nhận thông báo
+                            Primary contact for notifications
                           </label>
                         </div>
                       </div>
@@ -1268,10 +1268,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                     onClick={() => setShowLinkModal(false)}
                     disabled={submitting}
                   >
-                    Đóng
+                    Close
                   </button>
                   <button type="submit" className="btn btn-info text-white px-4 fw-bold" disabled={submitting}>
-                    {submitting ? "Đang lưu..." : "Xác nhận liên kết"}
+                    {submitting ? "Saving..." : "Confirm Link"}
                   </button>
                 </div>
               </form>
@@ -1288,7 +1288,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               <div className="modal-header bg-danger text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-exclamation-triangle-fill me-2" />
-                  Xác nhận xóa tài khoản
+                  Confirm Delete Account
                 </h5>
                 <button
                   type="button"
@@ -1298,7 +1298,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               </div>
               <div className="modal-body p-4">
                 <p className="mb-2">
-                  Bạn có chắc chắn muốn xóa tài khoản sau khỏi hệ thống không?
+                  Are you sure you want to delete the following account from the system?
                 </p>
                 <div className="p-3 bg-light rounded border mb-3">
                   <div className="d-flex align-items-center gap-2 mb-2">
@@ -1315,7 +1315,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 </div>
                 <div className="alert alert-warning py-2 mb-0 small">
                   <i className="bi bi-info-circle me-1" />
-                  Dữ liệu liên kết học sinh - phụ huynh liên quan cũng sẽ được tự động giải phóng.
+                  Related student-parent link data will also be automatically released.
                 </div>
               </div>
               <div className="modal-footer bg-light">
@@ -1325,7 +1325,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   onClick={() => setShowDeleteModal(false)}
                   disabled={submitting}
                 >
-                  Hủy bỏ
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -1333,7 +1333,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   onClick={handleConfirmDelete}
                   disabled={submitting}
                 >
-                  {submitting ? "Đang xóa..." : "Xác nhận xóa"}
+                  {submitting ? "Deleting..." : "Confirm Delete"}
                 </button>
               </div>
             </div>
@@ -1352,7 +1352,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                     #{selectedUser.userCode || `USR${selectedUser.userId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0 text-dark">
-                    Hồ sơ chi tiết {selectedUser.roles?.[0] === "student" ? "Học viên" : "Phụ huynh"}
+                    {selectedUser.roles?.[0] === "student" ? "Student" : "Parent"} Profile Details
                   </h5>
                 </div>
                 <button
@@ -1366,7 +1366,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 {loadingDetail ? (
                   <div className="text-center py-4 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang nạp thông tin...
+                    Loading information...
                   </div>
                 ) : (
                   <>
@@ -1390,20 +1390,20 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       </div>
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
-                          <small className="text-muted d-block mb-1">Số điện thoại</small>
+                          <small className="text-muted d-block mb-1">Phone Number</small>
                           <strong className="text-dark">{selectedUser.phone || "—"}</strong>
                         </div>
                       </div>
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
-                          <small className="text-muted d-block mb-1">{selectedUser.roles?.includes("student") ? "Khối lớp" : "Chuyên môn"}</small>
-                          <strong className="text-dark">{selectedUser.roles?.includes("student") ? gradeLabel(selectedUser) : selectedUser.specialty || "Chưa cập nhật"}</strong>
+                          <small className="text-muted d-block mb-1">{selectedUser.roles?.includes("student") ? "Grade" : "Specialty"}</small>
+                          <strong className="text-dark">{selectedUser.roles?.includes("student") ? gradeLabel(selectedUser) : selectedUser.specialty || "Not updated"}</strong>
                           {selectedUser.roles?.includes("student") && legacyStudentGradeNote(selectedUser) && <small className="d-block text-muted">{legacyStudentGradeNote(selectedUser)}</small>}
                         </div>
                       </div>
                       <div className="col-md-6">
                         <div className="p-3 bg-light rounded-3">
-                          <small className="text-muted d-block mb-1">Ngày tham gia hệ thống</small>
+                          <small className="text-muted d-block mb-1">Joined Date</small>
                           <strong className="text-dark">
                             {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString("vi-VN") : "01/08/2026"}
                           </strong>
@@ -1420,7 +1420,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   className="btn btn-secondary"
                   onClick={() => setSelectedUser(null)}
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>

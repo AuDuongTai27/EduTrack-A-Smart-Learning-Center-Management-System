@@ -31,10 +31,10 @@ export function useTuitionData() {
       let next: QueryState<T>;
       try {
         const result = await fetch();
-        if (!Array.isArray(result.data)) throw new Error("API học phí trả về dữ liệu không hợp lệ.");
+        if (!Array.isArray(result.data)) throw new Error("Tuition API returned invalid data.");
         next = { data: result.data, error: null, loading: false };
       } catch (cause) {
-        next = { data: null, error: cause instanceof Error ? cause.message : "Không tải được dữ liệu học phí.", loading: false };
+        next = { data: null, error: cause instanceof Error ? cause.message : "Failed to load tuition data.", loading: false };
       }
       if (active()) set(next);
       return next;
@@ -63,7 +63,7 @@ export function useTuitionData() {
   const monthly = useMemo(() => {
     if (!paymentReady) return { amount: null, error: null };
     try { return { amount: collectedInMonth(payments.data!, now), error: null }; }
-    catch (cause) { return { amount: null, error: cause instanceof Error ? cause.message : "Không tính được tiền thực thu tháng này." }; }
+    catch (cause) { return { amount: null, error: cause instanceof Error ? cause.message : "Failed to calculate actual collections for this month." }; }
   }, [payments.data, paymentReady, now]);
 
   const upsertInvoice = useCallback((invoice: TuitionDto) => {
@@ -77,7 +77,7 @@ export function useTuitionData() {
   return {
     invoices, payments, rows, now, invoiceReady, paymentReady, balanceReady, refresh, upsertInvoice,
     loading: invoices.loading,
-    error: [invoices.error && `Hóa đơn: ${invoices.error}`, payments.error && `Payments: ${payments.error}`].filter(Boolean).join(" ") || null,
+    error: [invoices.error && `Invoices: ${invoices.error}`, payments.error && `Payments: ${payments.error}`].filter(Boolean).join(" ") || null,
     monthlyCollected: monthly.amount,
     monthlyError: monthly.error,
     collectionLabel: currentCollectionLabel(now),

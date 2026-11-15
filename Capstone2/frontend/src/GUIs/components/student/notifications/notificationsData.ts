@@ -14,108 +14,108 @@ export interface CategoryMeta {
 }
 
 export const CATEGORY_CONFIG: Record<string, CategoryMeta> = {
-  class: { label: 'Lớp học', icon: 'bi-book-fill', cls: 'notif-cat-class' },
-  system: { label: 'Hệ thống', icon: 'bi-shield-fill-check', cls: 'notif-cat-system' },
-  payment: { label: 'Học phí', icon: 'bi-credit-card-fill', cls: 'notif-cat-payment' },
-  message: { label: 'Tin nhắn', icon: 'bi-chat-dots-fill', cls: 'notif-cat-message' },
-  achievement: { label: 'Thành tích', icon: 'bi-star-fill', cls: 'notif-cat-achievement' },
+  class: { label: 'Classes', icon: 'bi-book-fill', cls: 'notif-cat-class' },
+  system: { label: 'System', icon: 'bi-shield-fill-check', cls: 'notif-cat-system' },
+  payment: { label: 'Tuition', icon: 'bi-credit-card-fill', cls: 'notif-cat-payment' },
+  message: { label: 'Messages', icon: 'bi-chat-dots-fill', cls: 'notif-cat-message' },
+  achievement: { label: 'Achievements', icon: 'bi-star-fill', cls: 'notif-cat-achievement' },
 };
 
 export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 1,
     category: 'class',
-    title: '[FE-Mock] Bài tập mới: Phương trình lượng giác nâng cao',
-    summary: 'Thầy Nguyễn Văn An vừa giao 5 bài tập tự luận mới cho lớp Toán 10A. Hạn nộp: 23:59 Chủ Nhật tuần này.',
-    timestamp: '10 phút trước',
+    title: '[FE-Mock] New Assignment: Advanced Trigonometric Equations',
+    summary: 'Teacher Nguyen Van An has just assigned 5 new essay exercises for class Math 10A. Deadline: 23:59 this Sunday.',
+    timestamp: '10 minutes ago',
     unread: true,
   },
   {
     id: 2,
     category: 'payment',
-    title: '[FE-Mock] Hóa đơn học phí Tháng 8 đã phát hành',
-    summary: 'Học phí kỳ Tháng 8 / 2026 với tổng số tiền 7.500.000 đ đã được tạo. Hạn thanh toán đến hết ngày 15/08/2026.',
-    timestamp: '2 giờ trước',
+    title: '[FE-Mock] August Tuition Invoice Issued',
+    summary: 'Tuition for August 2026 totaling 7,500,000 VND has been created. Payment deadline is until August 15, 2026.',
+    timestamp: '2 hours ago',
     unread: true,
   },
   {
     id: 3,
     category: 'class',
-    title: '[FE-Mock] Thay đổi phòng học môn Vật Lý 10B',
-    summary: 'Buổi học chiều Thứ 5 (17:00) chuyển từ Phòng P.103 sang Lab Thực hành Lý L.02 (Tầng 2, Tòa B).',
-    timestamp: '5 giờ trước',
+    title: '[FE-Mock] Room Change for Physics 10B',
+    summary: 'Thursday afternoon session (17:00) moved from Room P.103 to Physics Practice Lab L.02 (2nd Floor, Building B).',
+    timestamp: '5 hours ago',
     unread: true,
   },
   {
     id: 4,
     category: 'message',
-    title: 'Tin nhắn từ Cô Trần Thị Mai',
-    summary: '“Em nhớ chuẩn bị bài thuyết trình phần Sóng cơ học trước buổi học ngày mai nhé.”',
-    timestamp: 'Hôm qua',
+    title: 'Message from Ms. Tran Thi Mai',
+    summary: '“Please remember to prepare your presentation on Mechanical Waves before tomorrow’s session.”',
+    timestamp: 'Yesterday',
     unread: false,
   },
   {
     id: 5,
     category: 'system',
-    title: 'Đổi mật khẩu thành công',
-    summary: 'Mật khẩu tài khoản EduTrack của bạn đã được cập nhật. Nếu không phải bạn thực hiện, hãy liên hệ hỗ trợ ngay.',
-    timestamp: '2 ngày trước',
+    title: 'Password Changed Successfully',
+    summary: 'Your EduTrack account password has been updated. If you did not make this change, please contact support immediately.',
+    timestamp: '2 days ago',
     unread: false,
   },
   {
     id: 6,
     category: 'payment',
-    title: 'Hạn nộp học phí còn 3 ngày',
-    summary: 'Hóa đơn học phí Tháng 8 số tiền 7.500.000 đ sẽ đến hạn thanh toán vào ngày 15/08/2026.',
-    timestamp: '2 ngày trước',
+    title: 'Tuition Payment Due in 3 Days',
+    summary: 'August tuition invoice for the amount of 7,500,000 VND will be due on August 15, 2026.',
+    timestamp: '2 days ago',
     unread: true,
   },
   {
     id: 7,
     category: 'class',
-    title: 'Tài liệu học tập mới đã tải lên',
-    summary: 'Thầy An vừa đăng tải 3 phiếu bài tập mới cho môn Toán Nâng Cao — Chương 3: Phương trình bậc hai.',
-    timestamp: '3 ngày trước',
+    title: 'New Learning Materials Uploaded',
+    summary: 'Teacher An has uploaded 3 new assignment worksheets for Advanced Mathematics — Chapter 3: Quadratic Equations.',
+    timestamp: '3 days ago',
     unread: false,
   },
   {
     id: 8,
     category: 'class',
-    title: 'Ghi nhận điểm danh — Hóa Học',
-    summary: 'Hệ thống đã ghi nhận bạn có mặt trong buổi học ngày 16/08 với Cô Phạm Thu Hà.',
-    timestamp: '4 ngày trước',
+    title: 'Attendance Recorded — Chemistry',
+    summary: 'The system has recorded your attendance as present in the session on August 16 with Ms. Pham Thu Ha.',
+    timestamp: '4 days ago',
     unread: false,
   },
   {
     id: 9,
     category: 'system',
-    title: 'Cập nhật hồ sơ cá nhân',
-    summary: 'Email liên hệ của bạn đã được cập nhật thành minhanh.nguyen@gmail.com.',
-    timestamp: '5 ngày trước',
+    title: 'Personal Profile Updated',
+    summary: 'Your contact email has been updated to minhanh.nguyen@gmail.com.',
+    timestamp: '5 days ago',
     unread: false,
   },
   {
     id: 10,
     category: 'achievement',
-    title: 'Báo cáo tiến độ học tập tháng',
-    summary: 'Báo cáo tháng 7 của bạn đã hoàn tất. Điểm tổng kết: A−. Xem chi tiết tại trang Tiến độ.',
-    timestamp: '1 tuần trước',
+    title: 'Monthly Learning Progress Report',
+    summary: 'Your July report is complete. Overall grade: A−. See details on the Progress page.',
+    timestamp: '1 week ago',
     unread: false,
   },
   {
     id: 11,
     category: 'class',
-    title: 'Buổi học được nghỉ — Workshop Viết luận',
-    summary: 'Buổi học ngày 12/08 nghỉ lễ. Buổi học tiếp theo sẽ diễn ra vào ngày 19/08.',
-    timestamp: '1 tuần trước',
+    title: 'Class Cancelled — Essay Writing Workshop',
+    summary: 'Session on August 12 is cancelled for holiday. The next session will take place on August 19.',
+    timestamp: '1 week ago',
     unread: false,
   },
   {
     id: 12,
     category: 'system',
-    title: 'Bảo trì hệ thống EduTrack',
-    summary: 'Hệ thống sẽ tạm dừng hoạt động từ 02:00 – 04:00 ngày 21/08 để nâng cấp định kỳ.',
-    timestamp: '1 tuần trước',
+    title: 'EduTrack System Maintenance',
+    summary: 'The system will temporarily pause operations from 02:00 – 04:00 on August 21 for scheduled maintenance.',
+    timestamp: '1 week ago',
     unread: false,
   },
 ];
@@ -123,7 +123,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
 import type { NotificationDto } from '../../../../BLL/models/NotificationDto';
 
 /**
- * Chuyển đổi NotificationDto từ Backend sang NotificationItem cho UI
+ * Convert NotificationDto from Backend to NotificationItem for UI
  */
 export function mapNotificationDtoToItem(dto: NotificationDto): NotificationItem {
   let category: NotificationItem['category'] = 'system';
@@ -138,7 +138,7 @@ export function mapNotificationDtoToItem(dto: NotificationDto): NotificationItem
     category = 'achievement';
   }
 
-  let timestamp = 'Vừa xong';
+  let timestamp = 'Just now';
   if (dto.createdAt) {
     try {
       const d = new Date(dto.createdAt);

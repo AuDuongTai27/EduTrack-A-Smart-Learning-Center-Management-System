@@ -10,8 +10,8 @@ export async function notificationRequest(path: string, method = 'GET', signal?:
   const value: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const message = value && typeof value === 'object' && 'message' in value ? String(value.message)
-      : response.status === 400 ? 'Dữ liệu không hợp lệ. Vui lòng kiểm tra tiêu đề, nội dung và người nhận.'
-      : 'Không thể thực hiện thao tác. Vui lòng thử lại.';
+      : response.status === 400 ? 'Invalid data. Please check title, content, and recipients.'
+      : 'Unable to perform operation. Please try again.';
     const error = new Error(message) as Error & { status: number }; error.status = response.status; throw error;
   }
   return value;

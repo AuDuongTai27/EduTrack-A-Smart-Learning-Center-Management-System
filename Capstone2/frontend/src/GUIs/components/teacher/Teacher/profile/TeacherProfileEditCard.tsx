@@ -36,7 +36,7 @@ export function TeacherProfileEditCard({
   const [specialty, setSpecialty] = useState(profile.specialty || '');
   const [phone, setPhone] = useState(profile.phone || '');
   const [email, setEmail] = useState(profile.email || '');
-  const [address, setAddress] = useState(profile.address || '123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh');
+  const [address, setAddress] = useState(profile.address || '123 Nguyen Van Cu, District 5, Ho Chi Minh City');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || '/assets/img/profiles/avatar-27.jpg');
   const [customAvatarInput, setCustomAvatarInput] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -44,15 +44,15 @@ export function TeacherProfileEditCard({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
-      setValidationError('Họ và tên không được để trống.');
+      setValidationError('Full name cannot be empty.');
       return;
     }
     if (!email.trim()) {
-      setValidationError('Email liên hệ không được để trống.');
+      setValidationError('Contact email cannot be empty.');
       return;
     }
     if (!phone.trim()) {
-      setValidationError('Số điện thoại không được để trống.');
+      setValidationError('Phone number cannot be empty.');
       return;
     }
 
@@ -75,14 +75,14 @@ export function TeacherProfileEditCard({
         <div>
           <h5 className="mb-1 text-dark fw-bold">
             <i className="bi bi-pencil-square text-primary me-2" />
-            Chỉnh sửa thông tin hồ sơ
+            Edit Profile Information
           </h5>
           <p className="text-muted small mb-0">
-            Cập nhật thông tin cá nhân và tài khoản giảng dạy của bạn trên hệ thống EduTrack.
+            Update your personal and teaching account details in the EduTrack system.
           </p>
         </div>
         <span className="badge bg-warning-subtle text-warning-emphasis border border-warning px-3 py-2">
-          <i className="bi bi-pencil-fill me-1" /> Đang chỉnh sửa
+          <i className="bi bi-pencil-fill me-1" /> Editing
         </span>
       </div>
 
@@ -97,7 +97,7 @@ export function TeacherProfileEditCard({
       <div className="card bg-light border-0 p-3 mb-4 rounded-3">
         <label className="form-label fw-bold text-dark small mb-2">
           <i className="bi bi-person-bounding-box me-1 text-primary" />
-          Ảnh đại diện
+          Profile Picture
         </label>
         <div className="d-flex flex-wrap align-items-center gap-4">
           <img
@@ -110,7 +110,7 @@ export function TeacherProfileEditCard({
             }}
           />
           <div className="flex-grow-1">
-            <div className="small text-muted mb-2">Chọn ảnh có sẵn hoặc nhập link ảnh trực tiếp:</div>
+            <div className="small text-muted mb-2">Choose a preset avatar or enter direct image link:</div>
             <div className="d-flex flex-wrap gap-2 mb-2">
               {PRESET_AVATARS.map((item, idx) => (
                 <button
@@ -139,7 +139,7 @@ export function TeacherProfileEditCard({
                 className={`btn btn-sm ${customAvatarInput ? 'btn-secondary' : 'btn-outline-secondary'}`}
               >
                 <i className="bi bi-link-45deg me-1" />
-                Nhập link tùy chọn
+                Custom URL
               </button>
             </div>
             {customAvatarInput && (
@@ -150,7 +150,7 @@ export function TeacherProfileEditCard({
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="https://... hoặc /assets/img/..."
+                  placeholder="https://... or /assets/img/..."
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
                 />
@@ -165,7 +165,7 @@ export function TeacherProfileEditCard({
         {/* Full Name */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="edit-fullName">
-            Họ và tên <span className="text-danger">*</span>
+            Full Name <span className="text-danger">*</span>
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -175,7 +175,7 @@ export function TeacherProfileEditCard({
               id="edit-fullName"
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="Nhập họ và tên đầy đủ"
+              placeholder="Enter full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
@@ -186,7 +186,7 @@ export function TeacherProfileEditCard({
         {/* Specialty */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="edit-specialty">
-            Chuyên môn / Bộ môn
+            Specialty / Department
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -196,7 +196,7 @@ export function TeacherProfileEditCard({
               id="edit-specialty"
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="Ví dụ: Toán học & Luyện thi ĐH"
+              placeholder="E.g., Mathematics & Exam Preparation"
               value={specialty}
               onChange={(e) => setSpecialty(e.target.value)}
             />
@@ -206,7 +206,7 @@ export function TeacherProfileEditCard({
         {/* Date of Birth */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="edit-dob">
-            Ngày sinh
+            Date of Birth
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -225,7 +225,7 @@ export function TeacherProfileEditCard({
         {/* Gender */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="edit-gender">
-            Giới tính
+            Gender
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -237,9 +237,9 @@ export function TeacherProfileEditCard({
               value={gender}
               onChange={(e) => setGender(e.target.value)}
             >
-              <option value="Nam">Nam</option>
-              <option value="Nữ">Nữ</option>
-              <option value="Khác">Khác</option>
+              <option value="Nam">Male</option>
+              <option value="Nữ">Female</option>
+              <option value="Khác">Other</option>
             </select>
           </div>
         </div>
@@ -247,7 +247,7 @@ export function TeacherProfileEditCard({
         {/* Phone */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="edit-phone">
-            Số điện thoại <span className="text-danger">*</span>
+            Phone Number <span className="text-danger">*</span>
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -268,7 +268,7 @@ export function TeacherProfileEditCard({
         {/* Email */}
         <div className="col-md-6">
           <label className="form-label fw-bold text-dark small" htmlFor="edit-email">
-            Email liên hệ <span className="text-danger">*</span>
+            Contact Email <span className="text-danger">*</span>
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -289,7 +289,7 @@ export function TeacherProfileEditCard({
         {/* Address */}
         <div className="col-12">
           <label className="form-label fw-bold text-dark small" htmlFor="edit-address">
-            Địa chỉ công tác / liên lạc
+            Work / Contact Address
           </label>
           <div className="input-group">
             <span className="input-group-text bg-light border-end-0">
@@ -299,7 +299,7 @@ export function TeacherProfileEditCard({
               id="edit-address"
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh"
+              placeholder="123 Nguyen Van Cu, District 5, Ho Chi Minh City"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
@@ -311,19 +311,19 @@ export function TeacherProfileEditCard({
       <div className="p-3 bg-light rounded-3 border mb-4">
         <div className="d-flex align-items-center gap-2 mb-2 text-primary fw-semibold small">
           <i className="bi bi-shield-lock-fill" />
-          <span>Thông tin do hệ thống quản trị EduTrack quản lý</span>
+          <span>Information managed by EduTrack system administration</span>
         </div>
         <div className="row g-2 text-muted small">
           <div className="col-md-4">
-            <span className="me-1">Mã cán bộ:</span>
+            <span className="me-1">Staff ID:</span>
             <strong className="badge bg-secondary-subtle text-secondary-emphasis">#{profile.userCode}</strong>
           </div>
           <div className="col-md-4">
-            <span className="me-1">Vai trò hệ thống:</span>
+            <span className="me-1">System Role:</span>
             <strong className="badge bg-primary-subtle text-primary">{profile.roleTitle || profile.role}</strong>
           </div>
           <div className="col-md-4">
-            <span className="me-1">Ngày tham gia:</span>
+            <span className="me-1">Joined Date:</span>
             <strong className="text-dark">{profile.enrolledSince || '15/08/2023'}</strong>
           </div>
         </div>
@@ -337,7 +337,7 @@ export function TeacherProfileEditCard({
           onClick={onCancel}
           disabled={isSaving}
         >
-          <i className="bi bi-x-lg" /> Hủy
+          <i className="bi bi-x-lg" /> Cancel
         </button>
         <button
           type="submit"
@@ -347,12 +347,12 @@ export function TeacherProfileEditCard({
           {isSaving ? (
             <>
               <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-              <span>Đang lưu...</span>
+              <span>Saving...</span>
             </>
           ) : (
             <>
               <i className="bi bi-check-lg fs-6" />
-              <span>Lưu thay đổi</span>
+              <span>Save Changes</span>
             </>
           )}
         </button>

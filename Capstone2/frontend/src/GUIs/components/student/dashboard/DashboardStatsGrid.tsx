@@ -18,7 +18,7 @@ export function DashboardStatsGrid({
       return {
         ...stat,
         value: pendingAssignmentsCount,
-        badge: pendingAssignmentsCount > 0 ? 'Sắp hết hạn' : 'Đã hoàn thành',
+        badge: pendingAssignmentsCount > 0 ? 'Due Soon' : 'Completed',
       };
     }
     return stat;

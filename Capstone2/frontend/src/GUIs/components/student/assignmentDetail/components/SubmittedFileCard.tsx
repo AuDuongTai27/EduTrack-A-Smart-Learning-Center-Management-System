@@ -38,7 +38,7 @@ export function SubmittedFileCard({
             onClick={onEdit}
           >
             <i className="bi bi-pencil-square"></i>
-            <span>Nộp lại file khác</span>
+            <span>Resubmit File</span>
           </button>
           <button
             type="button"
@@ -47,15 +47,15 @@ export function SubmittedFileCard({
             onClick={onDelete}
           >
             <i className="bi bi-trash3"></i>
-            <span>Xóa bài nộp</span>
+            <span>Delete Submission</span>
           </button>
         </div>
       </div>
 
-      {/* Khu vực hiển thị Kết quả chấm của Giáo viên & AI */}
+      {/* Teacher & AI Grading Results */}
       {submission && (submission.score !== null || submission.aiScore !== null || submission.feedback || submission.aiSummary) && (
         <div className="mt-3 d-flex flex-column gap-3">
-          {/* 1. Kết quả Giáo viên chấm chính thức */}
+          {/* 1. Official Teacher Grading Result */}
           {submission.score !== null && submission.score !== undefined && (
             <div
               className="p-3 rounded-4 border"
@@ -64,21 +64,21 @@ export function SubmittedFileCard({
               <div className="d-flex align-items-center justify-content-between mb-1">
                 <span className="fw-bold text-success d-flex align-items-center gap-2">
                   <i className="bi bi-patch-check-fill"></i>
-                  Kết quả chấm chính thức từ Giáo viên
+                  Official Evaluation from Teacher
                 </span>
                 <span className="badge bg-success text-white px-3 py-1.5 rounded-pill fs-6">
-                  {submission.score} / 10 điểm
+                  {submission.score} / 10 pts
                 </span>
               </div>
               {submission.feedback && (
                 <p className="mb-0 text-dark small mt-1">
-                  <strong>Nhận xét của Giáo viên:</strong> {submission.feedback}
+                  <strong>Teacher Feedback:</strong> {submission.feedback}
                 </p>
               )}
             </div>
           )}
 
-          {/* 2. Kết quả AI chấm tự động (AI Grading Assistant) */}
+          {/* 2. Automated AI Grading (AI Grading Assistant) */}
           {(submission.aiScore !== null && submission.aiScore !== undefined) && (
             <div
               className="p-3 rounded-4 border"
@@ -87,10 +87,10 @@ export function SubmittedFileCard({
               <div className="d-flex align-items-center justify-content-between mb-1">
                 <span className="fw-bold text-primary d-flex align-items-center gap-2">
                   <i className="bi bi-robot"></i>
-                  Trợ lý AI Đánh giá & Chấm điểm sơ bộ
+                  AI Assistant Preliminary Assessment & Score
                 </span>
                 <span className="badge bg-primary text-white px-3 py-1.5 rounded-pill">
-                  Điểm AI gợi ý: {submission.aiScore} / 10
+                  Suggested AI Score: {submission.aiScore} / 10
                 </span>
               </div>
               {submission.aiSummary && (

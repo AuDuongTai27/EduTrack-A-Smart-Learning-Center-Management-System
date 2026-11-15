@@ -35,3 +35,19 @@ export interface ScheduleFilters {
 }
 
 export type ScheduleRole = 'center-manager' | 'admin-staff' | 'teacher' | 'teaching-assistant' | 'student';
+
+export type SemesterPeriod = 'current' | 'previous' | 'next';
+
+export interface ScheduleClassSummary {
+  classId: number;
+  className: string;
+  startDate: string;
+  endDate: string | null;
+  status: string;
+}
+
+export interface SemesterWeekOption {
+  monday: string;
+  weekNumber: number;
+  label: string;
+}

@@ -79,7 +79,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-collection"></i></span>
-              <span className="nav-label">Lớp học</span>
+              <span className="nav-label">Classes</span>
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
@@ -91,7 +91,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-calendar-event"></i></span>
-              <span className="nav-label">Lịch học</span>
+              <span className="nav-label">Schedule</span>
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
@@ -103,7 +103,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-graph-up-arrow"></i></span>
-              <span className="nav-label">Tiến độ</span>
+              <span className="nav-label">Progress</span>
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
@@ -115,7 +115,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-credit-card"></i></span>
-              <span className="nav-label">Học phí</span>
+              <span className="nav-label">Tuition</span>
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
@@ -127,7 +127,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-bell"></i></span>
-              <span className="nav-label">Thông báo</span>
+              <span className="nav-label">Notifications</span>
               {unreadCount > 0 && <span className="sidebar-badge">{unreadCount}</span>}
             </NavLink>
           </li>
@@ -140,7 +140,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-chat-dots"></i></span>
-              <span className="nav-label">Phản hồi & Góp ý</span>
+              <span className="nav-label">Feedback & Support</span>
             </NavLink>
           </li>
         </ul>
@@ -155,7 +155,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
                 Lê Văn An
               </div>
               <div className="text-muted text-truncate" style={{ fontSize: "11px" }}>
-                Học sinh · Lớp 9
+                Student · Grade 9
               </div>
             </div>
 
@@ -165,7 +165,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               onClick={handleGoProfile}
             >
               <i className="bi bi-person-gear text-primary fs-6" />
-              <span>Chỉnh sửa hồ sơ</span>
+              <span>Edit Profile</span>
             </button>
 
             <div className="my-1 border-top" style={{ borderColor: "var(--et-border-subtle)" }} />
@@ -176,7 +176,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
               onClick={handleHome}
             >
               <i className="bi bi-box-arrow-right fs-6" />
-              <span>Về trang chủ</span>
+              <span>Back to Home</span>
             </button>
           </div>
         )}
@@ -186,13 +186,13 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
           type="button"
           className={`student-chip-btn ${isDropupOpen ? "active" : ""}`}
           onClick={() => setIsDropupOpen(!isDropupOpen)}
-          title="Tài khoản học sinh"
+          title="Student Account"
           aria-expanded={isDropupOpen}
         >
           <div className="student-avatar">VA</div>
           <div className="student-info">
             <div className="student-name" title="Lê Văn An">Lê Văn An</div>
-            <div className="student-grade">Học sinh · Lớp 9</div>
+            <div className="student-grade">Student · Grade 9</div>
           </div>
           <i className="bi bi-three-dots-vertical text-muted ms-auto small" />
         </button>

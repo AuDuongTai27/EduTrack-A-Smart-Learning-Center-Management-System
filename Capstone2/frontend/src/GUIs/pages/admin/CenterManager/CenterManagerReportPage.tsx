@@ -87,7 +87,7 @@ export default function CenterManagerReportPage() {
 
   const handleConfirmExport = () => {
     setShowExportModal(false);
-    setExportSuccessMsg(`Đã tạo và xuất bản báo cáo định dạng ${exportFormat} thành công cho Center Manager!`);
+    setExportSuccessMsg(`Report in ${exportFormat} format generated and exported successfully for Center Manager!`);
     setTimeout(() => setExportSuccessMsg(null), 4000);
   };
 
@@ -164,10 +164,10 @@ export default function CenterManagerReportPage() {
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
               >
-                <option value="Tuition Report">Tuition Report (Báo cáo học phí)</option>
-                <option value="Revenue Report">Revenue Report (Báo cáo doanh thu viện)</option>
-                <option value="Student Report">Student Report (Báo cáo phát triển học viên)</option>
-                <option value="Class Report">Class Report (Báo cáo vận hành lớp)</option>
+                <option value="Tuition Report">Tuition Report</option>
+                <option value="Revenue Report">Revenue Report</option>
+                <option value="Student Report">Student Report</option>
+                <option value="Class Report">Class Report</option>
               </select>
             </div>
 
@@ -231,10 +231,10 @@ export default function CenterManagerReportPage() {
       <div className="d-flex align-items-center justify-content-between mb-3">
         <div>
           <h4 className="mb-1 fw-bold text-dark">{reportType}</h4>
-          <p className="text-muted mb-0">Hệ thống tổng hợp và phân tích hiệu suất trung tâm</p>
+          <p className="text-muted mb-0">Aggregated system and performance analysis for the center</p>
         </div>
         <span className="badge bg-light text-secondary border px-3 py-2">
-          <i className="bi bi-shield-check text-success me-1" /> Theo bộ lọc hiện tại
+          <i className="bi bi-shield-check text-success me-1" /> Current filters applied
         </span>
       </div>
 
@@ -255,7 +255,7 @@ export default function CenterManagerReportPage() {
           <div>
             <h5 className="mb-1 fw-bold text-dark">Detailed Report Data</h5>
             <small className="text-muted">
-              Hiển thị danh sách {filteredTuitions.length} bản ghi chi tiết
+              Showing {filteredTuitions.length} detailed records
             </small>
           </div>
         </div>
@@ -292,21 +292,21 @@ export default function CenterManagerReportPage() {
                 <tr>
                   <td colSpan={9} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang tính toán và tải dữ liệu báo cáo...
+                    Calculating and loading report data...
                   </td>
                 </tr>
               ) : paginatedTuitions.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-5 text-muted">
                     <i className="bi bi-file-earmark-bar-graph fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy bản ghi dữ liệu nào phù hợp với bộ lọc.
+                    No records found matching the filters.
                   </td>
                 </tr>
               ) : (
                 paginatedTuitions.map((t, idx) => {
                   const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
                   const dueDateStr = t.dueDate
-                    ? new Date(t.dueDate).toLocaleDateString("vi-VN", {
+                    ? new Date(t.dueDate).toLocaleDateString("en-US", {
                         day: "2-digit",
                         month: "2-digit",
                         year: "numeric",
@@ -331,7 +331,7 @@ export default function CenterManagerReportPage() {
                       <td>{invoicePeriodLabel(t)}</td>
                       <td>
                         <strong className="text-dark">
-                          {(t.amount || t.amountDue || 0).toLocaleString("vi-VN")} VND
+                          {(t.amount || t.amountDue || 0).toLocaleString("en-US")} VND
                         </strong>
                       </td>
                       <td>{dueDateStr}</td>
@@ -346,7 +346,7 @@ export default function CenterManagerReportPage() {
                           title="View Details"
                         >
                           <i className="bi bi-eye me-1" />
-                          Chi tiết
+                          Details
                         </button>
                       </td>
                     </tr>
@@ -377,7 +377,7 @@ export default function CenterManagerReportPage() {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-download me-2" />
-                  Xuất dữ liệu báo cáo ({exportFormat}) - Center Manager
+                  Export Report Data ({exportFormat}) - Center Manager
                 </h5>
                 <button
                   type="button"
@@ -387,26 +387,26 @@ export default function CenterManagerReportPage() {
               </div>
               <div className="modal-body p-4">
                 <p className="mb-3 text-secondary">
-                  Bạn đang chuẩn bị xuất file báo cáo <strong>{reportType}</strong> với <strong>{filteredTuitions.length} bản ghi</strong> theo bộ lọc hiện tại.
+                  You are about to export <strong>{reportType}</strong> with <strong>{filteredTuitions.length} records</strong> based on current filters.
                 </p>
                 <div className="p-3 bg-light rounded-3 border mb-3">
                   <div className="d-flex justify-content-between mb-2">
-                    <span className="text-muted">Định dạng file:</span>
+                    <span className="text-muted">File format:</span>
                     <strong className="text-primary">{exportFormat.toUpperCase()}</strong>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span className="text-muted">Tổng số bản ghi:</span>
+                    <span className="text-muted">Total records:</span>
                     <strong>{filteredTuitions.length}</strong>
                   </div>
                   <div className="d-flex justify-content-between">
-                    <span className="text-muted">Thời điểm tạo:</span>
-                    <span>{new Date().toLocaleDateString("vi-VN")}</span>
+                    <span className="text-muted">Generated date:</span>
+                    <span>{new Date().toLocaleDateString("en-US")}</span>
                   </div>
                 </div>
                 <div className="form-check">
                   <input className="form-check-input" type="checkbox" id="includeCharts" defaultChecked />
                   <label className="form-check-label" htmlFor="includeCharts">
-                    Bao gồm các chỉ số phân tích tài chính tổng hợp
+                    Include aggregate financial analytics
                   </label>
                 </div>
               </div>
@@ -416,7 +416,7 @@ export default function CenterManagerReportPage() {
                   className="btn btn-outline-secondary"
                   onClick={() => setShowExportModal(false)}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -424,7 +424,7 @@ export default function CenterManagerReportPage() {
                   onClick={handleConfirmExport}
                 >
                   <i className="bi bi-file-earmark-arrow-down me-1" />
-                  Xác nhận xuất file
+                  Confirm Export
                 </button>
               </div>
             </div>
@@ -443,7 +443,7 @@ export default function CenterManagerReportPage() {
                     {selectedTuition.invoiceCode || `INV-${selectedTuition.tuitionId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0 text-dark">
-                    Chi tiết bản ghi học phí
+                    Tuition Record Details
                   </h5>
                 </div>
                 <button
@@ -457,7 +457,7 @@ export default function CenterManagerReportPage() {
                 {loadingDetail ? (
                   <div className="text-center py-4 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    Đang tải chi tiết bản ghi...
+                    Loading record details...
                   </div>
                 ) : (
                   <>
@@ -467,11 +467,11 @@ export default function CenterManagerReportPage() {
                         <div className="d-flex align-items-center gap-3 text-muted small">
                           <span>
                             <i className="bi bi-collection me-1" />
-                            Lớp: <strong>{selectedTuition.className}</strong>
+                            Class: <strong>{selectedTuition.className}</strong>
                           </span>
                           <span>
                             <i className="bi bi-calendar me-1" />
-                            Kỳ học: {invoicePeriodLabel(selectedTuition)}
+                            Term: {invoicePeriodLabel(selectedTuition)}
                           </span>
                         </div>
                       </div>
@@ -481,15 +481,15 @@ export default function CenterManagerReportPage() {
                     <div className="row g-3 mb-4">
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
-                          <small className="text-muted d-block mb-1">Tổng học phí</small>
+                          <small className="text-muted d-block mb-1">Total Tuition</small>
                           <h6 className="fw-bold text-dark mb-0">
-                            {(selectedTuition.amount || selectedTuition.amountDue || 0).toLocaleString("vi-VN")} VND
+                            {(selectedTuition.amount || selectedTuition.amountDue || 0).toLocaleString("en-US")} VND
                           </h6>
                         </div>
                       </div>
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
-                          <small className="text-muted d-block mb-1">Đã thanh toán</small>
+                          <small className="text-muted d-block mb-1">Paid Amount</small>
                           <h6 className="fw-bold text-success mb-0">
                             {formatVND(paymentReady ? selectedTuition.paidAmount : null)}
                           </h6>
@@ -497,7 +497,7 @@ export default function CenterManagerReportPage() {
                       </div>
                       <div className="col-md-4">
                         <div className="p-3 bg-light rounded-3 text-center">
-                          <small className="text-muted d-block mb-1">Còn lại</small>
+                          <small className="text-muted d-block mb-1">Remaining Balance</small>
                           <h6 className="fw-bold text-danger mb-0">
                             {formatVND(paymentReady && selectedTuition.paidAmount != null ? Math.max(0, selectedTuition.amountDue - selectedTuition.paidAmount) : null)}
                           </h6>
@@ -514,7 +514,7 @@ export default function CenterManagerReportPage() {
                   className="btn btn-secondary"
                   onClick={() => setSelectedTuition(null)}
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>

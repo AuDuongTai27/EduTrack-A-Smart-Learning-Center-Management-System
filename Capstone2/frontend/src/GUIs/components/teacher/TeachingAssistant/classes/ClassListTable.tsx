@@ -24,20 +24,20 @@ export function ClassListTable({
                 type="button"
                 className="btn btn-link p-0 text-decoration-none text-dark fw-bold d-inline-flex align-items-center gap-1 border-0 shadow-none"
                 onClick={onToggleSort}
-                title={`Đang sắp xếp theo lớp: ${sortOrder === "asc" ? "Tăng dần (Class 8 < Class 9)" : "Giảm dần"}. Nhấp để đổi chiều.`}
+                title={`Sorting by class: ${sortOrder === "asc" ? "Ascending (Class 8 < Class 9)" : "Descending"}. Click to toggle.`}
               >
-                <span>Mã &amp; Tên Lớp Học</span>
+                <span>Class Code &amp; Name</span>
                 <i className="bi bi-arrow-down-up small text-primary fw-bold" />
                 <small className="text-primary fw-semibold" style={{ fontSize: "11px" }}>
-                  ({sortOrder === "asc" ? "Tăng dần" : "Giảm dần"})
+                  ({sortOrder === "asc" ? "Ascending" : "Descending"})
                 </small>
               </button>
             </th>
-            <th>Môn Học</th>
-            <th>Phòng Học</th>
-            <th>Giảng Viên Chính</th>
-            <th>Trạng Thái</th>
-            <th className="text-end">Thao Tác</th>
+            <th>Subject</th>
+            <th>Room</th>
+            <th>Main Teacher</th>
+            <th>Status</th>
+            <th className="text-end">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -49,14 +49,14 @@ export function ClassListTable({
                 cls.status === "Đang học" ||
                 cls.status === "open";
               const teacherName =
-                item.teacherName || item.partnerName || "ThS. Hoàng Quốc Việt";
+                item.teacherName || item.partnerName || "MSc. Hoàng Quốc Việt";
               const teacherInitials =
                 teacherName
                   .split(" ")
                   .map((w: string) => w[0])
                   .join("")
                   .toUpperCase()
-                  .slice(-2) || "GV";
+                  .slice(-2) || "T";
 
               return (
                 <tr key={cls.classId}>
@@ -67,17 +67,17 @@ export function ClassListTable({
                     >
                       {cls.className}
                     </Link>
-                    <small className="text-muted d-block">Mã lớp: #{cls.classId}</small>
+                    <small className="text-muted d-block">Class ID: #{cls.classId}</small>
                   </td>
                   <td>
                     <span className="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill">
-                      {cls.subjectName || "Môn học"}
+                      {cls.subjectName || "Subject"}
                     </span>
                   </td>
                   <td>
                     <span className="text-secondary small">
                       <i className="bi bi-geo-alt me-1 text-muted" />
-                      {cls.room || "Phòng P.201"}
+                      {cls.room || "Room 201"}
                     </span>
                   </td>
                   <td>
@@ -102,7 +102,7 @@ export function ClassListTable({
                         isActive ? "badge-status-active" : "badge-status-inactive"
                       }`}
                     >
-                      {isActive ? "Đang trợ giảng" : "Đã kết thúc"}
+                      {isActive ? "Assisting" : "Completed"}
                     </span>
                   </td>
                   <td className="text-end">
@@ -110,7 +110,7 @@ export function ClassListTable({
                       to={`/teaching-assistant/classes/${cls.classId}`}
                       className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                     >
-                      <i className="bi bi-eye" /> Chi tiết
+                      <i className="bi bi-eye" /> Details
                     </Link>
                   </td>
                 </tr>
@@ -120,7 +120,7 @@ export function ClassListTable({
             <tr>
               <td colSpan={6} className="text-center py-4 text-muted">
                 <i className="bi bi-search fs-3 d-block mb-1 text-secondary" />
-                Không tìm thấy lớp học nào phù hợp với từ khóa hoặc bộ lọc.
+                No classes found matching the keywords or filters.
               </td>
             </tr>
           )}

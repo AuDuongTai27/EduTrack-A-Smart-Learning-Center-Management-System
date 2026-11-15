@@ -198,7 +198,7 @@ function StudentSubmissionsTable({
                             {fileName}
                           </a>
                         ) : (
-                          <span className="text-muted small fst-italic">Chưa nộp bài</span>
+                          <span className="text-muted small fst-italic">Not submitted</span>
                         )}
                       </td>
                       <td>
@@ -215,10 +215,10 @@ function StudentSubmissionsTable({
                               {sub.score} / 10
                             </span>
                           ) : (
-                            <span className="badge bg-warning-subtle text-warning fw-normal">Chờ chấm</span>
+                            <span className="badge bg-warning-subtle text-warning fw-normal">Pending grading</span>
                           )
                         ) : (
-                          <span className="badge bg-secondary-subtle text-secondary fw-normal">Chưa nộp</span>
+                          <span className="badge bg-secondary-subtle text-secondary fw-normal">Not submitted</span>
                         )}
                       </td>
                       <td>
@@ -243,7 +243,7 @@ function StudentSubmissionsTable({
                           </button>
                         ) : (
                           <span className="badge bg-light text-muted border px-2 py-1 small fw-normal">
-                            Chưa có bài
+                            No submission
                           </span>
                         )}
                       </td>

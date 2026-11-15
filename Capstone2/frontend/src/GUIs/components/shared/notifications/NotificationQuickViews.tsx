@@ -26,23 +26,23 @@ function useDismiss(open: boolean, close: () => void, root: React.RefObject<HTML
 function QuickList({ close, dashboard = false }: { close?: () => void; dashboard?: boolean }) {
   const { data, quick, error, loading, store, basePath } = useNotificationInbox();
   return <>
-    {error ? <div role="alert" className="p-3 text-danger">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Thử lại</button></div>
-      : !data && loading ? <p role="status" className="p-3">Đang tải thông báo...</p>
+    {error ? <div role="alert" className="p-3 text-danger">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Retry</button></div>
+      : !data && loading ? <p role="status" className="p-3">Loading notifications...</p>
       : quick.length ? <ul className="ntf-quick-list">{quick.map(n => <li key={n.notificationId}>
         <Link to={`${basePath}?notificationId=${n.notificationId}`} onClick={close} className={`ntf-item ${!n.isRead ? 'ntf-unread' : ''}`}>
           <TypeIcon type={n.type} />
           <div><strong>{n.title}</strong><p className="ntf-clamp">{n.content}</p>
-            <small>{notificationTypeLabel(n.type)} · {n.senderName || 'Không có thông tin người gửi'} · {notificationTime(n.createdAt)}</small>
-          </div>{!n.isRead && <span className="ntf-dot" aria-label="Chưa đọc" />}
+            <small>{notificationTypeLabel(n.type)} · {n.senderName || 'No sender information'} · {notificationTime(n.createdAt)}</small>
+          </div>{!n.isRead && <span className="ntf-dot" aria-label="Unread" />}
         </Link></li>)}</ul>
-      : dashboard && data ? <NotificationEmptyState /> : <p className="p-3 text-muted">Bạn đã xem hết thông báo mới.</p>}
-    <Link className="ntf-view-all" to={basePath} onClick={close}>Xem tất cả</Link>
+      : dashboard && data ? <NotificationEmptyState /> : <p className="p-3 text-muted">You're all caught up with new notifications.</p>}
+    <Link className="ntf-view-all" to={basePath} onClick={close}>View All</Link>
   </>;
 }
 export function DashboardNotificationsCard() {
   const { data } = useNotificationInbox();
-  return <section className="ntf-scope card dashboard-card border-0 shadow-sm ntf-dashboard" aria-label="Thông báo gần đây">
-    <div className="ntf-heading"><h5>Thông báo gần đây</h5><span aria-label="Số thông báo chưa đọc">{data ? data.unreadCount : '—'}</span></div>
+  return <section className="ntf-scope card dashboard-card border-0 shadow-sm ntf-dashboard" aria-label="Recent notifications">
+    <div className="ntf-heading"><h5>Recent Notifications</h5><span aria-label="Unread notifications count">{data ? data.unreadCount : '—'}</span></div>
     <QuickList dashboard />
   </section>;
 }
@@ -51,12 +51,12 @@ export function NotificationBellDropdown() {
   const root = useRef<HTMLDivElement>(null); const trigger = useRef<HTMLButtonElement>(null); const id = useId();
   useDismiss(open, () => setOpen(false), root, trigger);
   return <div ref={root} className="ntf-scope ntf-anchor">
-    <button ref={trigger} type="button" className="icon-btn notification-btn position-relative" aria-label={`Thông báo (${data?.unreadCount ?? 'chưa tải'} chưa đọc)`}
+    <button ref={trigger} type="button" className="icon-btn notification-btn position-relative" aria-label={`Notifications (${data?.unreadCount ?? 'not loaded'} unread)`}
       aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>{data && data.unreadCount > 0 && <span className="ntf-count">{data.unreadCount > 99 ? '99+' : data.unreadCount}</span>}
     </button>
-    {open && <div id={id} className="ntf-popover" role="region" aria-label="Thông báo gần đây">
-      <div className="ntf-heading"><h5>Thông báo gần đây</h5><span>{data ? data.unreadCount : '—'} chưa đọc</span></div><QuickList close={() => setOpen(false)} />
+    {open && <div id={id} className="ntf-popover" role="region" aria-label="Recent notifications">
+      <div className="ntf-heading"><h5>Recent Notifications</h5><span>{data ? data.unreadCount : '—'} unread</span></div><QuickList close={() => setOpen(false)} />
     </div>}
   </div>;
 }
@@ -69,16 +69,16 @@ export function AdminAccountDropdown() {
   useDismiss(open, () => setOpen(false), root, trigger);
   const initials = identity?.fullName.split(' ').filter(Boolean).slice(-2).map(w => w[0]).join('') || '?';
   return <div ref={root} className="ntf-scope ntf-anchor">
-    <button ref={trigger} className="ntf-account-trigger" type="button" aria-label="Tài khoản" aria-controls={id} aria-expanded={open} onClick={() => setOpen(!open)}>
+    <button ref={trigger} className="ntf-account-trigger" type="button" aria-label="Account" aria-controls={id} aria-expanded={open} onClick={() => setOpen(!open)}>
       {identity?.avatarUrl && !imageError ? <img src={identity.avatarUrl} alt="" onError={() => setImageError(true)} /> : <span className="ntf-avatar">{initials}</span>}
-      <span className="ntf-account-label"><strong>{identity?.fullName || (loading ? 'Đang tải tài khoản...' : 'Chưa chọn tài khoản')}</strong><small>{identity?.userCode || 'Chọn từ dữ liệu hệ thống'}</small></span>
+      <span className="ntf-account-label"><strong>{identity?.fullName || (loading ? 'Loading account...' : 'No account selected')}</strong><small>{identity?.userCode || 'Select from system data'}</small></span>
       <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
     </button>
-    {open && <div className="ntf-popover ntf-account-menu" id={id} role="region" aria-label="Thông tin tài khoản">
-      {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'Chưa có email'}</p><small>{identity.userCode} · {identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
-        : <p>{error || 'Chưa có tài khoản để chọn.'}</p>}
-      <label className="d-block mt-2">Tài khoản dữ liệu<select className="form-select" value={identity?.userId ?? ''} onChange={e => { if (pathname.endsWith('/notifications')) navigate({ search: '' }, { replace: true }); clearNotificationInbox(); selection.select(Number(e.target.value)); }}><option value="" disabled>Chọn tài khoản</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}</select></label>
-      <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setOpen(false); clearNotificationInbox(); navigate('/'); }}>Về trang chủ</button>
+    {open && <div className="ntf-popover ntf-account-menu" id={id} role="region" aria-label="Account information">
+      {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'No email'}</p><small>{identity.userCode} · {identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
+        : <p>{error || 'No account available to select.'}</p>}
+      <label className="d-block mt-2">Data Account<select className="form-select" value={identity?.userId ?? ''} onChange={e => { if (pathname.endsWith('/notifications')) navigate({ search: '' }, { replace: true }); clearNotificationInbox(); selection.select(Number(e.target.value)); }}><option value="" disabled>Select account</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}</select></label>
+      <button type="button" className="btn btn-outline-secondary mt-3" onClick={() => { setOpen(false); clearNotificationInbox(); navigate('/'); }}>Back to Home</button>
     </div>}
   </div>;
 }

@@ -58,9 +58,9 @@ export function TeachingAssistantTopBar() {
       <div className="topbar-actions">
         <button className="academic-year-btn" type="button">
           <i className="bi bi-calendar3" />
-          <span>Năm học: 2026 - 2027</span>
+          <span>Academic Year: 2026 - 2027</span>
         </button>
-        <button className="icon-btn" type="button" title="Giao diện">
+        <button className="icon-btn" type="button" title="Theme">
           <i className="bi bi-moon-stars" />
         </button>
         <NotificationBellDropdown />
@@ -127,7 +127,7 @@ export function TeachingAssistantTopBar() {
                     #{userCode}
                   </span>
                   <span className="badge bg-light text-secondary border" style={{ fontSize: "11px" }}>
-                    Trợ giảng
+                    Teaching Assistant
                   </span>
                 </div>
 
@@ -139,7 +139,7 @@ export function TeachingAssistantTopBar() {
                     style={{ fontSize: "12px" }}
                     onClick={() => setIsDropdownOpen(false)}
                   >
-                    <span>Xem hồ sơ</span>
+                    <span>View Profile</span>
                     <i className="bi bi-arrow-right" style={{ fontSize: "11px" }} />
                   </Link>
                 </div>
@@ -153,7 +153,7 @@ export function TeachingAssistantTopBar() {
                   onClick={handleHome}
                 >
                   <i className="bi bi-box-arrow-right fs-6" />
-                  <span>Về trang chủ</span>
+                  <span>Back to Home</span>
                 </button>
               </div>
             </div>

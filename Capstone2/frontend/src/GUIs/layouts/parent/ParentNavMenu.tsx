@@ -66,7 +66,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
 
       {/* MENU ĐIỀU HƯỚNG */}
       <nav className="sidebar-nav">
-        <div className="sidebar-nav-title">Menu Phụ huynh</div>
+        <div className="sidebar-nav-title">Parent Menu</div>
         <ul className="sidebar-nav-list">
           <li className="sidebar-nav-item">
             <NavLink
@@ -89,7 +89,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-collection"></i></span>
-              <span className="nav-label">Lớp học của con</span>
+              <span className="nav-label">Child's Classes</span>
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
@@ -101,7 +101,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-calendar-event"></i></span>
-              <span className="nav-label">Lịch học</span>
+              <span className="nav-label">Schedule</span>
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
@@ -113,7 +113,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-graph-up-arrow"></i></span>
-              <span className="nav-label">Tiến độ & Điểm danh</span>
+              <span className="nav-label">Progress & Attendance</span>
             </NavLink>
           </li>
           <li className="sidebar-nav-item">
@@ -125,9 +125,9 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-credit-card"></i></span>
-              <span className="nav-label">Học phí</span>
+              <span className="nav-label">Tuition</span>
               {selectedChild && selectedChild.unpaidAmount > 0 && (
-                <span className="sidebar-badge bg-danger text-white">Cần nộp</span>
+                <span className="sidebar-badge bg-danger text-white">Due</span>
               )}
             </NavLink>
           </li>
@@ -140,7 +140,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-bell"></i></span>
-              <span className="nav-label">Thông báo</span>
+              <span className="nav-label">Notifications</span>
               {unreadCount > 0 && <span className="sidebar-badge">{unreadCount}</span>}
             </NavLink>
           </li>
@@ -153,7 +153,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               }
             >
               <span className="nav-icon"><i className="bi bi-chat-dots"></i></span>
-              <span className="nav-label">Phản hồi & Hỗ trợ</span>
+              <span className="nav-label">Feedback & Support</span>
             </NavLink>
           </li>
         </ul>
@@ -169,7 +169,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
                 Lê Văn Nam
               </div>
               <div className="text-muted text-truncate" style={{ fontSize: '11px' }}>
-                {selectedChild ? `Phụ huynh em ${selectedChild.name}` : 'Phụ huynh học sinh'}
+                {selectedChild ? `Parent of ${selectedChild.name}` : 'Student Parent'}
               </div>
             </div>
 
@@ -179,7 +179,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               onClick={handleGoProfile}
             >
               <i className="bi bi-person-gear text-primary fs-6" />
-              <span>Chỉnh sửa hồ sơ</span>
+              <span>Edit Profile</span>
             </button>
 
             <div className="my-1 border-top" style={{ borderColor: 'var(--et-border-subtle)' }} />
@@ -190,7 +190,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
               onClick={handleHome}
             >
               <i className="bi bi-box-arrow-right fs-6" />
-              <span>Về trang chủ</span>
+              <span>Back to Home</span>
             </button>
           </div>
         )}
@@ -200,7 +200,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
           type="button"
           className={`student-chip-btn ${isDropupOpen ? 'active' : ''}`}
           onClick={() => setIsDropupOpen(!isDropupOpen)}
-          title="Tài khoản phụ huynh"
+          title="Parent Account"
           aria-expanded={isDropupOpen}
         >
           <div
@@ -212,7 +212,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
           <div className="student-info">
             <div className="student-name">Lê Văn Nam</div>
             <div className="student-grade">
-              {selectedChild ? `Phụ huynh em ${selectedChild.name}` : 'Phụ huynh học sinh'}
+              {selectedChild ? `Parent of ${selectedChild.name}` : 'Student Parent'}
             </div>
           </div>
           <i className="bi bi-three-dots-vertical text-muted ms-auto small" />

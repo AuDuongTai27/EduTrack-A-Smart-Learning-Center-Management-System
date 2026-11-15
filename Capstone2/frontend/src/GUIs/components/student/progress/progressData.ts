@@ -19,7 +19,11 @@ export function isEvaluationFeedback(fb: ProgressFeedback): boolean {
     title.includes('[đánh giá') ||
     title.includes('đánh giá') ||
     title.includes('nhận xét định kỳ') ||
-    title.includes('ghi chú tiến độ')
+    title.includes('ghi chú tiến độ') ||
+    title.includes('[evaluation') ||
+    title.includes('evaluation') ||
+    title.includes('periodic review') ||
+    title.includes('progress note')
   );
 }
 
@@ -46,8 +50,8 @@ export interface ProgressClassItem {
 export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
   {
     id: 'card1',
-    className: '[FE-Mock] Lớp Toán 10A',
-    subjectName: 'Toán học',
+    className: '[FE-Mock] Class Math 10A',
+    subjectName: 'Mathematics',
     colorTheme: 'prog-blue',
     icon: 'bi-calculator',
     attended: 12,
@@ -55,47 +59,47 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
     percentage: 75,
     feedbacks: [
       {
-        assignmentTitle: '[Đánh giá định kỳ] Nhận xét giữa kỳ: Nắm chắc kiến thức',
-        quote: 'Em có tinh thần học tập nghiêm túc, phát biểu xây dựng bài sôi nổi.',
-        teacherName: 'Cô Hương',
+        assignmentTitle: '[Periodic Evaluation] Midterm Review: Solid Knowledge',
+        quote: 'The student has a serious learning attitude and actively participates in discussions.',
+        teacherName: 'Ms. Huong',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Khen ngợi',
+        statusLabel: 'Praise',
         category: 'evaluation',
       },
       {
-        assignmentTitle: 'Bài tập chương 3: Phương trình bậc hai',
-        quote: 'Em làm bài khá tốt, cần chú ý phần đặt ẩn phụ hơn ở câu cuối.',
-        teacherName: 'Cô Hương',
+        assignmentTitle: 'Chapter 3 Assignment: Quadratic Equations',
+        quote: 'Good performance, pay more attention to auxiliary variable substitution in the last problem.',
+        teacherName: 'Ms. Huong',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Đạt',
+        statusLabel: 'Passed',
         category: 'assignment',
       },
       {
-        assignmentTitle: 'Kiểm tra 15 phút: Bất đẳng thức Cauchy',
-        quote: 'Nắm vững lý thuyết, tuy nhiên còn lúng túng khi gặp bài toán thực tế.',
-        teacherName: 'Cô Hương',
+        assignmentTitle: '15-minute Quiz: Cauchy Inequality',
+        quote: 'Mastered theory, but still hesitant when encountering real-world problems.',
+        teacherName: 'Ms. Huong',
         statusType: 'canluuy',
         statusIcon: 'bi-exclamation-triangle-fill',
-        statusLabel: 'Cần lưu ý',
+        statusLabel: 'Needs Attention',
         category: 'assignment',
       },
       {
-        assignmentTitle: 'Bài tập về nhà tuần 6: Hệ thức Vi-ét',
-        quote: 'Bài làm đầy đủ, trình bày sạch đẹp và có cách giải ngắn gọn.',
-        teacherName: 'Cô Hương',
+        assignmentTitle: 'Week 6 Homework: Vieta\'s Formulas',
+        quote: 'Complete work, clean presentation with concise solutions.',
+        teacherName: 'Ms. Huong',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Đạt',
+        statusLabel: 'Passed',
         category: 'assignment',
       },
     ],
   },
   {
     id: 'card2',
-    className: '[FE-Mock] Lớp Vật Lý 10B',
-    subjectName: 'Vật lý',
+    className: '[FE-Mock] Class Physics 10B',
+    subjectName: 'Physics',
     colorTheme: 'prog-purple',
     icon: 'bi-lightning-charge',
     attended: 14,
@@ -103,38 +107,38 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
     percentage: 88,
     feedbacks: [
       {
-        assignmentTitle: '[Đánh giá định kỳ] Kỹ năng thực hành thí nghiệm và làm việc nhóm',
-        quote: 'Hăng hái tham gia bài thí nghiệm chuyển động, cần ghi chép số liệu tỉ mỉ hơn.',
-        teacherName: 'Thầy Hùng',
+        assignmentTitle: '[Periodic Evaluation] Lab Experiment Skills and Teamwork',
+        quote: 'Actively participates in motion experiments, needs to record data more thoroughly.',
+        teacherName: 'Mr. Hung',
         statusType: 'canluuy',
         statusIcon: 'bi-exclamation-triangle-fill',
-        statusLabel: 'Cần lưu ý',
+        statusLabel: 'Needs Attention',
         category: 'evaluation',
       },
       {
-        assignmentTitle: 'Bài tập: Chuyển động thẳng biến đổi đều',
-        quote: 'Tính toán chính xác các thông số gia tốc và vận tốc tức thời.',
-        teacherName: 'Thầy Hùng',
+        assignmentTitle: 'Assignment: Uniformly Accelerated Linear Motion',
+        quote: 'Accurate calculations of acceleration and instantaneous velocity.',
+        teacherName: 'Mr. Hung',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Đạt',
+        statusLabel: 'Passed',
         category: 'assignment',
       },
       {
-        assignmentTitle: 'Báo cáo thực hành: Rơi tự do',
-        quote: 'Số liệu thực nghiệm sai số còn hơi lớn, cần ghi chép cẩn thận hơn.',
-        teacherName: 'Thầy Hùng',
+        assignmentTitle: 'Lab Report: Free Fall',
+        quote: 'Experimental data has a slightly large error margin, needs more careful recording.',
+        teacherName: 'Mr. Hung',
         statusType: 'canluuy',
         statusIcon: 'bi-exclamation-triangle-fill',
-        statusLabel: 'Cần lưu ý',
+        statusLabel: 'Needs Attention',
         category: 'assignment',
       },
     ],
   },
   {
     id: 'card3',
-    className: '[FE-Mock] Lớp Tiếng Anh B1',
-    subjectName: 'Tiếng Anh',
+    className: '[FE-Mock] Class English B1',
+    subjectName: 'English',
     colorTheme: 'prog-green',
     icon: 'bi-translate',
     attended: 10,
@@ -142,30 +146,30 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
     percentage: 63,
     feedbacks: [
       {
-        assignmentTitle: '[Đánh giá định kỳ] Đánh giá phản xạ giao tiếp và tự tin',
-        quote: 'Khả năng phát âm cải thiện rõ rệt, tích cực tham gia các buổi debate trên lớp.',
-        teacherName: 'Thầy David',
+        assignmentTitle: '[Periodic Evaluation] Communication Reflex and Confidence Evaluation',
+        quote: 'Pronunciation improved significantly, actively participates in classroom debates.',
+        teacherName: 'Mr. David',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Tiến bộ tốt',
+        statusLabel: 'Good Progress',
         category: 'evaluation',
       },
       {
         assignmentTitle: 'Essay: The Impact of Technology on Education',
         quote: 'Good vocabulary and coherent arguments. Watch out for grammatical tenses.',
-        teacherName: 'Thầy David',
+        teacherName: 'Mr. David',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Đạt',
+        statusLabel: 'Passed',
         category: 'assignment',
       },
       {
         assignmentTitle: 'Listening Test: Cambridge Preliminary Exam',
-        quote: 'Cần luyện thêm phần nghe dạng câu hỏi Multiple Choice.',
-        teacherName: 'Thầy David',
+        quote: 'Need more practice on Multiple Choice listening questions.',
+        teacherName: 'Mr. David',
         statusType: 'chuadat',
         statusIcon: 'bi-x-circle-fill',
-        statusLabel: 'Chưa đạt',
+        statusLabel: 'Not Passed',
         category: 'assignment',
       },
     ],
@@ -175,8 +179,8 @@ export const CURRENT_PROGRESS_CLASSES: ProgressClassItem[] = [
 export const PAST_PROGRESS_CLASSES: ProgressClassItem[] = [
   {
     id: 'card4',
-    className: 'Lớp Hóa học 9A',
-    subjectName: 'Hóa học',
+    className: 'Class Chemistry 9A',
+    subjectName: 'Chemistry',
     colorTheme: 'prog-orange',
     icon: 'bi-droplet',
     attended: 20,
@@ -185,38 +189,38 @@ export const PAST_PROGRESS_CLASSES: ProgressClassItem[] = [
     isCompleted: true,
     feedbacks: [
       {
-        assignmentTitle: '[Đánh giá tổng kết] Nhận xét hoàn thành khóa học Hóa 9',
-        quote: 'Học sinh đạt danh hiệu học viên xuất sắc của bộ môn Hóa học năm học vừa qua.',
-        teacherName: 'Cô Lan',
+        assignmentTitle: '[Final Evaluation] Chemistry 9 Course Completion Review',
+        quote: 'Student achieved the title of Outstanding Student in Chemistry for the past school year.',
+        teacherName: 'Ms. Lan',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Khen ngợi',
+        statusLabel: 'Praise',
         category: 'evaluation',
       },
       {
-        assignmentTitle: 'Kiểm tra học kỳ 2: Axit và Bazơ',
-        quote: 'Hoàn thành xuất sắc toàn bộ bài tập và phần lý thuyết mở rộng.',
-        teacherName: 'Cô Lan',
+        assignmentTitle: 'Semester 2 Exam: Acids and Bases',
+        quote: 'Excellently completed all exercises and extended theory questions.',
+        teacherName: 'Ms. Lan',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Đạt',
+        statusLabel: 'Passed',
         category: 'assignment',
       },
       {
-        assignmentTitle: 'Bài thu hoạch: Chuỗi phản ứng Hóa vô cơ',
-        quote: 'Cân bằng phương trình tốt, nắm chắc tính chất hóa học.',
-        teacherName: 'Cô Lan',
+        assignmentTitle: 'Term Paper: Inorganic Chemical Reaction Series',
+        quote: 'Good equation balancing, solid grasp of chemical properties.',
+        teacherName: 'Ms. Lan',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Đạt',
+        statusLabel: 'Passed',
         category: 'assignment',
       },
     ],
   },
   {
     id: 'card5',
-    className: 'Lớp Ngữ Văn 9B',
-    subjectName: 'Ngữ Văn',
+    className: 'Class Literature 9B',
+    subjectName: 'Literature',
     colorTheme: 'prog-blue',
     icon: 'bi-journal-richtext',
     attended: 18,
@@ -225,12 +229,12 @@ export const PAST_PROGRESS_CLASSES: ProgressClassItem[] = [
     isCompleted: true,
     feedbacks: [
       {
-        assignmentTitle: 'Nghị luận văn học: Bài thơ Ánh trăng',
-        quote: 'Cảm thụ tác phẩm sâu sắc, lời văn mượt mà và cảm xúc.',
-        teacherName: 'Thầy Tuấn',
+        assignmentTitle: 'Literary Essay: Moonlight Poem',
+        quote: 'Deep appreciation of the literary work, fluent and emotional writing.',
+        teacherName: 'Mr. Tuan',
         statusType: 'dat',
         statusIcon: 'bi-check2-all',
-        statusLabel: 'Đạt',
+        statusLabel: 'Passed',
       },
     ],
   },
@@ -246,14 +250,14 @@ export function mapNotesAndAttendancesToClasses(
     return CURRENT_PROGRESS_CLASSES;
   }
 
-  // Nhóm theo lớp học
+  // Group by class
   const classMap = new Map<number, { className: string; feedbacks: ProgressFeedback[]; attended: number; total: number }>();
 
   attendances.forEach((att) => {
     const cid = att.classId || 1;
     if (!classMap.has(cid)) {
       classMap.set(cid, {
-        className: att.className || `Lớp học #${cid}`,
+        className: att.className || `Class #${cid}`,
         feedbacks: [],
         attended: 0,
         total: 0,
@@ -270,7 +274,7 @@ export function mapNotesAndAttendancesToClasses(
     const cid = note.classId || 1;
     if (!classMap.has(cid)) {
       classMap.set(cid, {
-        className: note.className || `Lớp học #${cid}`,
+        className: note.className || `Class #${cid}`,
         feedbacks: [],
         attended: 10,
         total: 12,
@@ -280,12 +284,12 @@ export function mapNotesAndAttendancesToClasses(
     const isWarning = note.noteType === 'warning' || note.noteType === 'concern' || note.noteType === 'needs_improvement';
     const isPraise = note.noteType === 'praise' || note.noteType === 'excellent';
     record.feedbacks.push({
-      assignmentTitle: `[Đánh giá định kỳ] Ghi chú tiến độ`,
+      assignmentTitle: `[Periodic Evaluation] Progress Note`,
       quote: note.content,
-      teacherName: note.authorName || 'Giáo viên',
+      teacherName: note.authorName || 'Teacher',
       statusType: isWarning ? 'canluuy' : 'dat',
       statusIcon: isWarning ? 'bi-exclamation-triangle-fill' : 'bi-check2-all',
-      statusLabel: isPraise ? 'Khen ngợi' : isWarning ? 'Cần lưu ý' : 'Đạt',
+      statusLabel: isPraise ? 'Praise' : isWarning ? 'Needs Attention' : 'Passed',
       category: 'evaluation',
     });
   });
@@ -300,7 +304,7 @@ export function mapNotesAndAttendancesToClasses(
     return {
       id: `live-card-${cid}`,
       className: info.className,
-      subjectName: info.className.split('–')[0]?.trim() || 'Môn học',
+      subjectName: info.className.split('–')[0]?.trim() || 'Subject',
       colorTheme: colorThemes[index % colorThemes.length],
       icon: 'bi-calculator',
       attended,

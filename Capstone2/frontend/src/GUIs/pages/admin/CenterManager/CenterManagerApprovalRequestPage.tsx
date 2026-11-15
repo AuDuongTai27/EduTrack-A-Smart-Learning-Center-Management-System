@@ -38,7 +38,7 @@ function getDisplayStatus(req: ApprovalRequestDto): string {
   if (s === "approved") return "Approved";
   if (s === "rejected") return "Rejected";
   if (req.reviewedBy != null) return "Pending";
-  return "Chờ phê duyệt";
+  return "Waiting";
 }
 
 export default function CenterManagerApprovalRequestPage() {
@@ -77,14 +77,14 @@ export default function CenterManagerApprovalRequestPage() {
         }
       } catch (err) {
         console.warn(
-          "Lỗi tải danh sách yêu cầu phê duyệt center manager:",
+          "Failed to load approval request list:",
           err,
         );
         if (isMounted) {
           setLoadError(
             err instanceof Error
               ? err.message
-              : "Không thể tải danh sách yêu cầu phê duyệt từ máy chủ.",
+              : "Failed to load approval request list from server.",
           );
         }
       } finally {
@@ -157,7 +157,7 @@ export default function CenterManagerApprovalRequestPage() {
     }
   };
 
-  // Step 1: Mark request as "Pending" (Đang xem xét giải quyết)
+  // Step 1: Mark request as "Pending" (Under Review)
   // Locks Admin Staff from editing and unlocks Approve / Reject buttons for Center Manager
   const handleMarkPending = async () => {
     if (!selectedRequest || submittingReview) return;
@@ -180,13 +180,13 @@ export default function CenterManagerApprovalRequestPage() {
       );
       setSelectedRequest(updated);
       setActionSuccessMsg(
-        `Đơn ${updated.requestCode} đã chuyển sang trạng thái "Pending (Đang xem xét giải quyết)". Bạn có thể tiến hành Phê duyệt hoặc Từ chối.`,
+        `Request ${updated.requestCode} moved to "Pending (Under Review)". You can now proceed to Approve or Reject.`,
       );
     } catch (error) {
       alert(
         error instanceof Error
           ? error.message
-          : "Không thể chuyển trạng thái sang đang xem xét.",
+          : "Failed to change status to under review.",
       );
     } finally {
       setSubmittingReview(false);
@@ -198,19 +198,19 @@ export default function CenterManagerApprovalRequestPage() {
     if (!selectedRequest || submittingReview) return;
 
     if (selectedRequest.status.toLowerCase() !== "pending") {
-      alert("Yêu cầu này đã được xử lý.");
+      alert("This request has already been processed.");
       return;
     }
 
     if (selectedRequest.reviewedBy == null) {
       alert(
-        "Vui lòng nhấn nút 'Pending (Đang xem xét giải quyết)' trước khi phê duyệt hoặc từ chối.",
+        "Please click 'Pending (Under Review)' before approving or rejecting.",
       );
       return;
     }
 
     if (newStatus === "Rejected" && !reviewNotes.trim()) {
-      alert("Vui lòng nhập lý do từ chối.");
+      alert("Please enter a rejection reason.");
       return;
     }
 
@@ -233,10 +233,10 @@ export default function CenterManagerApprovalRequestPage() {
 
       setSelectedRequest(null);
       setActionSuccessMsg(
-        `Đã ${newStatus === "Approved" ? "phê duyệt" : "từ chối"} yêu cầu ${updated.requestCode} thành công!`,
+        `Request ${updated.requestCode} ${newStatus === "Approved" ? "approved" : "rejected"} successfully!`,
       );
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Xử lý yêu cầu thất bại.");
+      alert(error instanceof Error ? error.message : "Failed to process request.");
     } finally {
       setSubmittingReview(false);
     }
@@ -357,12 +357,12 @@ export default function CenterManagerApprovalRequestPage() {
                 }}
               >
                 <option value="All">All Statuses</option>
-                <option value="waiting">Chờ phê duyệt (Mới gửi)</option>
+                <option value="waiting">Waiting</option>
                 <option value="pending">
-                  Pending (Đang xem xét giải quyết)
+                  Pending (Under Review)
                 </option>
-                <option value="approved">Approved (Đã phê duyệt)</option>
-                <option value="rejected">Rejected (Đã từ chối)</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
           </div>
@@ -403,14 +403,14 @@ export default function CenterManagerApprovalRequestPage() {
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
                     />
-                    Đang nạp danh sách yêu cầu phê duyệt...
+                    Loading approval requests...
                   </td>
                 </tr>
               ) : paginatedRequests.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
-                    Không tìm thấy yêu cầu nào phù hợp từ Admin Staff.
+                    No matching requests found from Admin Staff.
                   </td>
                 </tr>
               ) : (
@@ -433,7 +433,7 @@ export default function CenterManagerApprovalRequestPage() {
                       </td>
                       <td>
                         <div className="fw-semibold text-dark">
-                          {req.studentName || "Trung tâm"}
+                          {req.studentName || "Center"}
                         </div>
                         {req.className && (
                           <small className="text-muted">{req.className}</small>
@@ -472,7 +472,7 @@ export default function CenterManagerApprovalRequestPage() {
                           onClick={() => handleReviewRequest(req)}
                         >
                           <i className="bi bi-shield-check" />
-                          Thẩm định
+                          Review
                         </button>
                       </td>
                     </tr>
@@ -511,7 +511,7 @@ export default function CenterManagerApprovalRequestPage() {
                       `AR${selectedRequest.requestId}`}
                   </span>
                   <h5 className="modal-title fw-bold mb-0">
-                    Thẩm định &amp; Phê duyệt yêu cầu
+                    Review &amp; Approve Request
                   </h5>
                 </div>
                 <button
@@ -528,7 +528,7 @@ export default function CenterManagerApprovalRequestPage() {
                       className="spinner-border spinner-border-sm text-primary"
                       role="status"
                     />
-                    <span>Đang đồng bộ dữ liệu chi tiết từ máy chủ...</span>
+                    <span>Synchronizing detailed data from server...</span>
                   </div>
                 )}
 
@@ -536,10 +536,10 @@ export default function CenterManagerApprovalRequestPage() {
                   <div className="alert alert-info d-flex align-items-start gap-2 mb-3 py-2 px-3">
                     <i className="bi bi-info-circle-fill mt-1" />
                     <div className="small">
-                      Đơn đang ở trạng thái <strong>Chờ phê duyệt</strong> (Giáo
-                      vụ vẫn có thể chỉnh sửa). Nhấn{" "}
-                      <strong>Pending (Đang xem xét giải quyết)</strong> để tiếp
-                      nhận xử lý và mở khóa chức năng Phê duyệt / Từ chối.
+                      Request status is <strong>Waiting</strong> (Admin
+                      Staff can still edit). Click{" "}
+                      <strong>Pending (Under Review)</strong> to accept
+                      for processing and unlock Approve / Reject actions.
                     </div>
                   </div>
                 )}
@@ -548,11 +548,11 @@ export default function CenterManagerApprovalRequestPage() {
                   <div className="alert alert-warning d-flex align-items-start gap-2 mb-3 py-2 px-3">
                     <i className="bi bi-hourglass-split mt-1" />
                     <div className="small">
-                      Đơn đang ở trạng thái{" "}
-                      <strong>Pending (Đang xem xét giải quyết)</strong>. Giáo
-                      vụ đã bị khóa quyền chỉnh sửa đơn này. Bạn có thể chọn{" "}
-                      <strong>Từ chối yêu cầu</strong> hoặc{" "}
-                      <strong>Phê duyệt chấp thuận</strong>.
+                      Request status is{" "}
+                      <strong>Pending (Under Review)</strong>. Admin
+                      Staff editing is locked. You can now select{" "}
+                      <strong>Reject Request</strong> or{" "}
+                      <strong>Approve Request</strong>.
                     </div>
                   </div>
                 )}
@@ -564,22 +564,22 @@ export default function CenterManagerApprovalRequestPage() {
                     </h5>
                     <div className="d-flex align-items-center gap-3 text-muted small flex-wrap">
                       <span>
-                        Loại:{" "}
+                        Type:{" "}
                         <strong>
                           {formatRequestType(selectedRequest.requestType)}
                         </strong>
                       </span>
                       <span>
-                        Người gửi:{" "}
+                        Requester:{" "}
                         <strong>
                           {selectedRequest.requesterName || "Admin Staff"}
                         </strong>
                       </span>
                       <span>
-                        Thời điểm gửi:{" "}
+                        Submitted Date:{" "}
                         {selectedRequest.createdAt
                           ? new Date(selectedRequest.createdAt).toLocaleString(
-                              "vi-VN",
+                              "en-US",
                             )
                           : "—"}
                       </span>
@@ -597,10 +597,10 @@ export default function CenterManagerApprovalRequestPage() {
                   <div className="col-md-6">
                     <div className="p-3 bg-light rounded-3">
                       <small className="text-muted d-block mb-1">
-                        Đối tượng áp dụng
+                        Target Subject
                       </small>
                       <strong className="text-dark">
-                        {selectedRequest.studentName || "Không xác định"}
+                        {selectedRequest.studentName || "Unknown"}
                       </strong>
                       {selectedRequest.className && (
                         <div className="small text-muted">
@@ -612,7 +612,7 @@ export default function CenterManagerApprovalRequestPage() {
                   <div className="col-md-6">
                     <div className="p-3 bg-light rounded-3">
                       <small className="text-muted d-block mb-1">
-                        Độ ưu tiên xử lý
+                        Priority
                       </small>
                       <strong className="text-dark text-capitalize">
                         {selectedRequest.priority || "Medium"}
@@ -623,7 +623,7 @@ export default function CenterManagerApprovalRequestPage() {
 
                 <div className="mb-4">
                   <h6 className="fw-bold text-dark mb-2">
-                    Lý do &amp; Nội dung yêu cầu từ Giáo vụ:
+                    Reason &amp; Request Content from Admin Staff:
                   </h6>
                   <div
                     className="p-3 bg-light rounded border text-secondary"
@@ -631,18 +631,18 @@ export default function CenterManagerApprovalRequestPage() {
                   >
                     {selectedRequest.description ||
                       selectedRequest.reason ||
-                      "Không có thêm thông tin chi tiết."}
+                      "No additional details provided."}
                   </div>
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label fw-bold text-dark">
-                    Ý kiến phê duyệt của Quản lý trung tâm (Center Manager):
+                    Approval Comments from Center Manager:
                   </label>
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="Nhập ghi chú phản hồi, căn cứ đồng ý hoặc lý do từ chối đơn..."
+                    placeholder="Enter review notes, approval justification, or rejection reason..."
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
                     readOnly={isSelectedProcessed}
@@ -656,11 +656,11 @@ export default function CenterManagerApprovalRequestPage() {
                   className="btn btn-outline-secondary"
                   onClick={() => setSelectedRequest(null)}
                 >
-                  Đóng
+                  Close
                 </button>
 
                 <div className="d-flex gap-2 align-items-center">
-                  {/* Step 1: When request is newly submitted ("Chờ phê duyệt"), prioritize the Pending button */}
+                  {/* Step 1: When request is newly submitted ("Waiting"), prioritize the Pending button */}
                   {isSelectedWaiting && (
                     <button
                       type="button"
@@ -670,8 +670,8 @@ export default function CenterManagerApprovalRequestPage() {
                     >
                       <i className="bi bi-hourglass-split" />
                       {submittingReview
-                        ? "Đang tiếp nhận..."
-                        : "Pending (Đang xem xét giải quyết)"}
+                        ? "Receiving..."
+                        : "Pending (Under Review)"}
                     </button>
                   )}
 
@@ -685,7 +685,7 @@ export default function CenterManagerApprovalRequestPage() {
                         onClick={() => handleProcessRequest("Rejected")}
                       >
                         <i className="bi bi-x-circle me-1" />
-                        Từ chối yêu cầu
+                        Reject Request
                       </button>
                       <button
                         type="button"
@@ -694,7 +694,7 @@ export default function CenterManagerApprovalRequestPage() {
                         onClick={() => handleProcessRequest("Approved")}
                       >
                         <i className="bi bi-check-circle me-1" />
-                        Phê duyệt chấp thuận
+                        Approve Request
                       </button>
                     </>
                   )}
@@ -703,7 +703,7 @@ export default function CenterManagerApprovalRequestPage() {
                   {isSelectedProcessed && (
                     <span className="text-muted small">
                       <i className="bi bi-check2-all me-1" />
-                      Yêu cầu này đã hoàn tất thẩm định (
+                      This request has been reviewed (
                       <strong>{getDisplayStatus(selectedRequest)}</strong>).
                     </span>
                   )}

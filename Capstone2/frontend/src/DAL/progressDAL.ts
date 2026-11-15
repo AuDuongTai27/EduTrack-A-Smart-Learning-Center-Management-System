@@ -40,14 +40,14 @@ export const progressDAL = {
           sessionId: att.sessionId,
           sessionDate: '2026-09-08',
           classId: 1,
-          className: '[FE-Mock] Lớp Toán Nâng Cao',
+          className: '[FE-Mock] Advanced Math Class',
           studentId: att.studentId,
-          studentName: student?.fullName || 'Học sinh',
+          studentName: student?.fullName || 'Student',
           studentCode: student?.userCode || `STU${att.studentId}`,
           status: att.status,
           note: att.note,
           recordedBy: att.recordedBy,
-          recorderName: recorder?.fullName || 'Giáo viên',
+          recorderName: recorder?.fullName || 'Teacher',
           recordedAt: att.recordedAt,
         };
       });
@@ -55,7 +55,7 @@ export const progressDAL = {
       return {
         data: fallback,
         isLiveApi: false,
-        error: 'Backend API chưa bật (Đang dùng dữ liệu dự phòng mockData)',
+        error: 'Backend API is not active (Using fallback mockData)',
       };
     }
   },
@@ -81,10 +81,10 @@ export const progressDAL = {
         return {
           noteId: n.noteId,
           studentId: n.studentId,
-          studentName: student?.fullName || 'Học sinh',
+          studentName: student?.fullName || 'Student',
           studentCode: student?.userCode || `STU${n.studentId}`,
           classId: n.classId,
-          className: cls?.className || '[FE-Mock] Lớp Toán',
+          className: cls?.className || '[FE-Mock] Math Class',
           writtenBy: n.writtenBy,
           authorName: author?.fullName || 'ThS. Hoàng Quốc Việt',
           content: n.content,
@@ -96,7 +96,7 @@ export const progressDAL = {
       return {
         data: fallback,
         isLiveApi: false,
-        error: 'Backend API chưa bật (Đang dùng dữ liệu dự phòng mockData)',
+        error: 'Backend API is not active (Using fallback mockData)',
       };
     }
   },

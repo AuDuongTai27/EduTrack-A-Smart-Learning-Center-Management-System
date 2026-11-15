@@ -45,9 +45,9 @@ export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: P
     <section className="mb-4">
       <div className="progress-section-header flex-wrap gap-2">
         <div>
-          <h2 className="progress-section-title">Tiến độ hiện tại</h2>
+          <h2 className="progress-section-title">Current Progress</h2>
           <div className="progress-section-subtitle">
-            {classes.length} lớp đang học &middot; Học kỳ hiện tại
+            {classes.length} active classes &middot; Current Semester
           </div>
         </div>
 
@@ -58,7 +58,7 @@ export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: P
               className={`progress-filter-btn ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
             >
-              <span>Tất cả</span>
+              <span>All</span>
               <span className="progress-filter-count">{totalFeedbacks}</span>
             </button>
             <button
@@ -67,7 +67,7 @@ export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: P
               onClick={() => setFilter('evaluation')}
             >
               <i className="bi bi-person-badge-fill me-1"></i>
-              <span>Đánh giá</span>
+              <span>Evaluations</span>
               <span className="progress-filter-count">{totalEvaluations}</span>
             </button>
             <button
@@ -76,7 +76,7 @@ export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: P
               onClick={() => setFilter('assignment')}
             >
               <i className="bi bi-journal-check me-1"></i>
-              <span>Bài tập</span>
+              <span>Assignments</span>
               <span className="progress-filter-count">{totalAssignments}</span>
             </button>
           </div>
@@ -86,7 +86,7 @@ export function ProgressCurrentSection({ classes = CURRENT_PROGRESS_CLASSES }: P
               <span className="ping"></span>
               <span className="dot"></span>
             </span>
-            <span>Đang học</span>
+            <span>Active</span>
           </div>
         </div>
       </div>

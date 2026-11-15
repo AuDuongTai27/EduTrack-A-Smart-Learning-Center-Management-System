@@ -25,15 +25,15 @@ export function ParentEmptyState() {
             <div className="row align-items-center">
               <div className="col-lg-8">
                 <span className="badge bg-white text-primary px-3 py-1.5 rounded-pill fw-bold mb-3">
-                  <i className="bi bi-shield-check me-1"></i> Cổng thông tin Phụ huynh EduTrack
+                  <i className="bi bi-shield-check me-1"></i> EduTrack Parent Portal
                 </span>
                 <h1 className="display-6 fw-bold mb-2">
-                  Chào mừng Quý Phụ huynh!
+                  Welcome, Parents!
                 </h1>
                 <p className="fs-6 opacity-90 mb-4" style={{ maxWidth: '640px' }}>
-                  Tài khoản của bạn hiện tại chưa được liên kết với hồ sơ học sinh nào.
-                  Để đảm bảo an toàn thông tin và bảo mật dữ liệu học viên, hệ thống <strong>không hỗ trợ tự tìm kiếm và liên kết tự do</strong>.
-                  Quý phụ huynh vui lòng gửi phiếu phản hồi/yêu cầu để bộ phận Giáo vụ đối soát và liên kết giúp bạn.
+                  Your account is currently not linked to any student profile.
+                  To ensure information security and student data privacy, the system <strong>does not support manual search and open linking</strong>.
+                  Please submit a feedback/request ticket so Admin Staff can verify and link the profile for you.
                 </p>
                 <div className="d-flex flex-wrap gap-2.5">
                   <Link
@@ -41,16 +41,16 @@ export function ParentEmptyState() {
                     className="btn btn-warning text-dark fw-bold px-4 py-2.5 rounded-3 shadow-sm d-flex align-items-center gap-2"
                   >
                     <i className="bi bi-chat-dots-fill"></i>
-                    <span>Gửi phản hồi yêu cầu liên kết hồ sơ</span>
+                    <span>Send Feedback to Request Profile Link</span>
                   </Link>
                   <button
                     type="button"
                     className="btn btn-outline-light px-3.5 py-2.5 rounded-3"
                     onClick={resetDemoChildren}
-                    title="Khôi phục dữ liệu demo 2 học sinh"
+                    title="Restore demo data (2 students)"
                   >
                     <i className="bi bi-arrow-counterclockwise me-1"></i>
-                    Khôi phục dữ liệu Demo (2 HS)
+                    Restore Demo Data (2 Students)
                   </button>
                 </div>
               </div>
@@ -71,13 +71,13 @@ export function ParentEmptyState() {
         <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
           <div className="text-center max-w-xl mx-auto mb-4">
             <span className="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill mb-2">
-              Quy trình an toàn
+              Secure Process
             </span>
             <h2 className="h5 fw-bold text-dark">
-              Cách thức kết nối hồ sơ học sinh với tài khoản Phụ huynh
+              How to Connect Student Profiles with Parent Accounts
             </h2>
             <p className="text-secondary small mb-0">
-              Mọi hồ sơ liên kết đều được nhân viên Giáo vụ tiếp nhận và giải quyết trực tiếp trên hệ thống quản lý
+              All link requests are received and processed directly by Admin Staff on the management system
             </p>
           </div>
 
@@ -91,9 +91,9 @@ export function ParentEmptyState() {
                 >
                   1
                 </div>
-                <h3 className="h6 fw-bold text-dark mb-1">Gửi phiếu Feedback</h3>
+                <h3 className="h6 fw-bold text-dark mb-1">Submit Feedback Ticket</h3>
                 <p className="small text-muted mb-0">
-                  Phụ huynh điền Họ tên con, Ngày sinh, Trường học và SĐT liên hệ qua trang Phản hồi.
+                  Parents provide child's Full Name, Date of Birth, School, and Contact Phone via the Feedback page.
                 </p>
               </div>
             </div>
@@ -107,9 +107,9 @@ export function ParentEmptyState() {
                 >
                   2
                 </div>
-                <h3 className="h6 fw-bold text-dark mb-1">Giáo vụ đối soát</h3>
+                <h3 className="h6 fw-bold text-dark mb-1">Admin Staff Verification</h3>
                 <p className="small text-muted mb-0">
-                  Nhân viên Staff kiểm tra đối chiếu với danh sách học viên đăng ký thực tế tại trung tâm.
+                  Admin Staff cross-checks against actual student enrollment records at the center.
                 </p>
               </div>
             </div>
@@ -123,9 +123,9 @@ export function ParentEmptyState() {
                 >
                   3
                 </div>
-                <h3 className="h6 fw-bold text-dark mb-1">Xử lý & Phản hồi</h3>
+                <h3 className="h6 fw-bold text-dark mb-1">Processing & Response</h3>
                 <p className="small text-muted mb-0">
-                  Giáo vụ kích hoạt liên kết tay và gửi phản hồi xác nhận tới Quý phụ huynh.
+                  Admin Staff manually activates the link and sends confirmation to parents.
                 </p>
               </div>
             </div>
@@ -139,9 +139,9 @@ export function ParentEmptyState() {
                 >
                   <i className="bi bi-check-lg"></i>
                 </div>
-                <h3 className="h6 fw-bold text-dark mb-1">Hoàn tất kết nối</h3>
+                <h3 className="h6 fw-bold text-dark mb-1">Connection Completed</h3>
                 <p className="small text-muted mb-0">
-                  Hồ sơ con hiển thị trên thanh menu, phụ huynh bắt đầu xem điểm danh và đóng học phí.
+                  Child profile appears on the menu; parents can start viewing attendance and paying tuition.
                 </p>
               </div>
             </div>
@@ -153,7 +153,7 @@ export function ParentEmptyState() {
               className="btn btn-primary px-4 py-2.5 rounded-3 fw-bold"
             >
               <i className="bi bi-send-fill me-1.5"></i>
-              Đi tới trang Phản hồi & Gửi yêu cầu ngay
+              Go to Feedback Page & Send Request Now
             </Link>
           </div>
         </div>
@@ -162,7 +162,7 @@ export function ParentEmptyState() {
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 bg-light rounded-4 border">
           <div className="d-flex align-items-center gap-2 text-muted small">
             <i className="bi bi-telephone-fill text-primary"></i>
-            <span>Hotline Giáo vụ hỗ trợ nhanh: <strong>1900 6868</strong> (8:00 – 21:00 hàng ngày)</span>
+            <span>Admin Staff quick support hotline: <strong>1900 6868</strong> (8:00 – 21:00 daily)</span>
           </div>
 
           <button
@@ -171,7 +171,7 @@ export function ParentEmptyState() {
             onClick={resetDemoChildren}
           >
             <i className="bi bi-arrow-counterclockwise me-1"></i>
-            Khôi phục 2 học sinh mẫu (Demo)
+            Restore 2 Sample Students (Demo)
           </button>
         </div>
       </div>

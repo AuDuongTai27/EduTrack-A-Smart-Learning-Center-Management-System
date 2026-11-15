@@ -51,7 +51,7 @@ export default function StudentProgressHeroCard({
                 </span>
                 <span>
                   <i className="bi bi-book me-1" />
-                  Môn: <strong>{student.subjectName}</strong>
+                  Subject: <strong>{student.subjectName}</strong>
                 </span>
               </div>
             </div>
@@ -66,9 +66,9 @@ export default function StudentProgressHeroCard({
             <i className="bi bi-calendar2-check-fill fs-5" />
           </div>
           <div>
-            <span className="small text-muted d-block">Tỷ lệ chuyên cần</span>
+            <span className="small text-muted d-block">Attendance Rate</span>
             <strong className="fs-6 text-dark">
-              {student.attendancePercentage}% ({student.presentDays}/{student.totalDays} buổi)
+              {student.attendancePercentage}% ({student.presentDays}/{student.totalDays} sessions)
             </strong>
           </div>
         </div>
@@ -80,9 +80,9 @@ export default function StudentProgressHeroCard({
             <i className="bi bi-journal-check fs-5" />
           </div>
           <div>
-            <span className="small text-muted d-block">Bài tập đã hoàn thành</span>
+            <span className="small text-muted d-block">Completed Assignments</span>
             <strong className="fs-6 text-dark">
-              {completedAssignmentsCount}/{student.assignments.length} bài
+              {completedAssignmentsCount}/{student.assignments.length} assignments
             </strong>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function StudentProgressHeroCard({
             <i className="bi bi-award-fill fs-5" />
           </div>
           <div>
-            <span className="small text-muted d-block">Điểm trung bình bài tập</span>
+            <span className="small text-muted d-block">Average Assignment Score</span>
             <strong className="fs-6 text-primary">{student.avgScore} / 10</strong>
           </div>
         </div>
@@ -106,8 +106,8 @@ export default function StudentProgressHeroCard({
             <i className="bi bi-chat-heart-fill fs-5" />
           </div>
           <div>
-            <span className="small text-muted d-block">Đánh giá cá nhân</span>
-            <strong className="fs-6 text-dark">{student.evaluations.length} lượt đánh giá</strong>
+            <span className="small text-muted d-block">Individual Evaluations</span>
+            <strong className="fs-6 text-dark">{student.evaluations.length} evaluations</strong>
           </div>
         </div>
       </div>

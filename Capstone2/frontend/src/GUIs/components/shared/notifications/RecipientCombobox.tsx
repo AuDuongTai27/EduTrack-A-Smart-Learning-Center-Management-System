@@ -17,7 +17,7 @@ export default function RecipientCombobox({ value, onChange, disabled }: {
     const timer = window.setTimeout(() => {
       void notificationInboxApi.recipients(term, controller.signal).then(result => {
         if (!controller.signal.aborted) setRows(result);
-      }).catch(() => { if (!controller.signal.aborted) setError('Không tải được người nhận. Vui lòng thử lại.'); })
+      }).catch(() => { if (!controller.signal.aborted) setError('Failed to load recipients. Please try again.'); })
         .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     }, 300);
     return () => { window.clearTimeout(timer); controller.abort(); };
@@ -34,25 +34,25 @@ export default function RecipientCombobox({ value, onChange, disabled }: {
     if (event.key === 'Enter') { event.preventDefault(); if (open && active >= 0 && rows[active]) pick(rows[active]); }
   }
   return <div className="ntf-recipient" onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
-    <label htmlFor={id}>Người nhận <span className="ntf-required" aria-hidden="true">*</span></label>
+    <label htmlFor={id}>Recipient <span className="ntf-required" aria-hidden="true">*</span></label>
     <input ref={input} id={id} className="form-control" role="combobox" autoComplete="off" aria-autocomplete="list"
       aria-expanded={open && !value} aria-controls={`${id}-results`} aria-activedescendant={open && active >= 0 ? `${id}-${active}` : undefined}
       aria-required="true" aria-describedby={`${id}-help`} disabled={disabled} readOnly={!!value} maxLength={100}
-      placeholder="Tìm theo họ tên hoặc mã tài khoản..." value={value ? `${value.fullName} (${value.userCode})` : query}
+      placeholder="Search by full name or user code..." value={value ? `${value.fullName} (${value.userCode})` : query}
       onFocus={() => { if (!value) setOpen(true); }} onKeyDown={keyboard}
       onChange={e => { setQuery(e.target.value); setRows([]); setActive(-1); setOpen(true); setError(''); setLoading(e.target.value.trim().length >= 2); }} />
-    <small id={`${id}-help`} className="text-muted">{value ? value.roles.map(notificationRoleLabel).join(', ') : 'Nhập ít nhất 2 ký tự. Tối đa 20 kết quả; chọn một người nhận.'}</small>
+    <small id={`${id}-help`} className="text-muted">{value ? value.roles.map(notificationRoleLabel).join(', ') : 'Enter at least 2 characters. Maximum 20 results; select a recipient.'}</small>
     {value && <button type="button" className="btn btn-sm btn-outline-secondary ntf-clear-recipient" disabled={disabled}
-      onClick={() => { onChange(null); setQuery(''); setOpen(true); resetResults(); input.current?.focus(); }}>Thay đổi / Xóa người nhận</button>}
-    <div id={`${id}-results`} role="listbox" aria-label="Kết quả tìm người nhận" hidden={!open || !!value} aria-busy={loading}>
+      onClick={() => { onChange(null); setQuery(''); setOpen(true); resetResults(); input.current?.focus(); }}>Change / Remove recipient</button>}
+    <div id={`${id}-results`} role="listbox" aria-label="Recipient search results" hidden={!open || !!value} aria-busy={loading}>
       {rows.map((row, index) => <div key={row.userId} id={`${id}-${index}`} role="option" aria-selected={index === active}
         className="ntf-recipient-option" onPointerDown={e => e.preventDefault()} onClick={() => pick(row)}>
         <strong>{row.fullName}</strong><small>{row.userCode} · {row.roles.map(notificationRoleLabel).join(', ')}</small>
       </div>)}
     </div>
     {open && !value && <div className="ntf-search-status" role={error ? 'alert' : 'status'}>
-      {loading ? 'Đang tìm người nhận...' : error || (term.length < 2 ? 'Nhập tên hoặc mã để tìm kiếm.' : !rows.length ? 'Không tìm thấy người nhận đang hoạt động.' : `${rows.length} kết quả. Dùng phím mũi tên và Enter để chọn.`)}
-      {error && <button type="button" className="btn btn-link btn-sm" onClick={() => { resetResults(); setLoading(true); setRetry(n => n + 1); }}>Thử lại</button>}
+      {loading ? 'Searching for recipients...' : error || (term.length < 2 ? 'Enter name or code to search.' : !rows.length ? 'No active recipients found.' : `${rows.length} results. Use arrow keys and Enter to select.`)}
+      {error && <button type="button" className="btn btn-link btn-sm" onClick={() => { resetResults(); setLoading(true); setRetry(n => n + 1); }}>Retry</button>}
     </div>}
   </div>;
 }

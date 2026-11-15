@@ -4,7 +4,7 @@ import { DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function StudentFeedbackPage() {
   useEffect(() => {
-    document.title = 'Phản hồi & Góp ý – EduTrack';
+    document.title = 'Feedback & Support – EduTrack';
   }, []);
 
   return (

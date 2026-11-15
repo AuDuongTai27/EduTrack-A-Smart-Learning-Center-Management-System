@@ -8,7 +8,7 @@ export const classStaffDAL = {
     if (!Array.isArray(data) || data.some(user => !user || !Number.isSafeInteger(user.userId) || user.userId <= 0
       || typeof user.fullName !== "string" || typeof user.status !== "string"
       || (user.roles != null && (!Array.isArray(user.roles) || user.roles.some(role => typeof role !== "string")))))
-      throw new Error("Danh sách tài khoản không hợp lệ. Vui lòng thử tải lại.");
+      throw new Error("User account list is invalid. Please try reloading.");
     return eligibleClassStaff(data, kind, assignments);
   },
   assign: classStaffApi.assign,

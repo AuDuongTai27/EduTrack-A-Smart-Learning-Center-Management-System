@@ -68,7 +68,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải Dashboard giảng dạy`);
+      throw new Error(`HTTP ${response.status} while loading Teaching Dashboard`);
     }
 
     const json = await response.json();
@@ -88,7 +88,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải thời khóa biểu cá nhân`);
+      throw new Error(`HTTP ${response.status} while loading personal schedule`);
     }
 
     const json = await response.json();
@@ -108,7 +108,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải danh sách lớp phụ trách`);
+      throw new Error(`HTTP ${response.status} while loading assigned class list`);
     }
 
     const json = await response.json();
@@ -128,7 +128,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải danh sách học sinh của lớp #${classId}`);
+      throw new Error(`HTTP ${response.status} while loading student list for class #${classId}`);
     }
 
     const json = await response.json();
@@ -151,7 +151,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải tiến độ học tập của lớp ${classId}`);
+      throw new Error(`HTTP ${response.status} while loading learning progress for class ${classId}`);
     }
 
     const json = await response.json();
@@ -176,7 +176,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải danh sách thông báo`);
+      throw new Error(`HTTP ${response.status} while loading notifications list`);
     }
 
     const json = await response.json();
@@ -198,7 +198,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi đánh dấu đã đọc thông báo #${notificationId}`);
+      throw new Error(`HTTP ${response.status} while marking notification #${notificationId} as read`);
     }
 
     const json = await response.json();
@@ -219,7 +219,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi đánh dấu tất cả thông báo là đã đọc`);
+      throw new Error(`HTTP ${response.status} while marking all notifications as read`);
     }
 
     const json = await response.json();
@@ -245,7 +245,7 @@ export const teachingApi = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} khi tải danh sách đơn từ và yêu cầu`);
+      throw new Error(`HTTP ${response.status} while loading requests list`);
     }
 
     const json = await response.json();
@@ -326,7 +326,7 @@ export const teachingApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} khi tải hồ sơ người dùng #${userId}`);
+      throw new Error(`HTTP ${res.status} while loading user profile #${userId}`);
     }
 
     const json = await res.json();
@@ -348,7 +348,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi đổi mật khẩu`);
+      throw new Error(err.message || `HTTP ${res.status} while changing password`);
     }
 
     return await res.json();
@@ -365,7 +365,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi cập nhật hồ sơ`);
+      throw new Error(err.message || `HTTP ${res.status} while updating profile`);
     }
 
     const json = await res.json();
@@ -390,7 +390,7 @@ export const teachingApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} khi tải bảng điểm danh lớp #${classId}`);
+      throw new Error(`HTTP ${res.status} while loading attendance sheet for class #${classId}`);
     }
 
     const json = await res.json();
@@ -410,7 +410,7 @@ export const teachingApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} khi tải danh sách buổi học của lớp #${classId}`);
+      throw new Error(`HTTP ${res.status} while loading session list for class #${classId}`);
     }
 
     const json = await res.json();
@@ -432,7 +432,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi lưu điểm danh`);
+      throw new Error(err.message || `HTTP ${res.status} while saving attendance`);
     }
 
     const json = await res.json();
@@ -454,7 +454,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi cập nhật điểm danh #${attendanceId}`);
+      throw new Error(err.message || `HTTP ${res.status} while updating attendance #${attendanceId}`);
     }
 
     const json = await res.json();
@@ -476,7 +476,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi tạo bài tập mới`);
+      throw new Error(err.message || `HTTP ${res.status} while creating new assignment`);
     }
 
     const json = await res.json();
@@ -496,7 +496,7 @@ export const teachingApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} khi tải danh sách bài tập của lớp #${classId}`);
+      throw new Error(`HTTP ${res.status} while loading assignments list for class #${classId}`);
     }
 
     const json = await res.json();
@@ -516,7 +516,7 @@ export const teachingApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} khi tải chi tiết bài tập #${id}`);
+      throw new Error(`HTTP ${res.status} while loading assignment details #${id}`);
     }
 
     const json = await res.json();
@@ -538,7 +538,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi cập nhật bài tập #${id}`);
+      throw new Error(err.message || `HTTP ${res.status} while updating assignment #${id}`);
     }
 
     const json = await res.json();
@@ -559,7 +559,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi xóa bài tập #${id}`);
+      throw new Error(err.message || `HTTP ${res.status} while deleting assignment #${id}`);
     }
 
     return true;
@@ -578,7 +578,7 @@ export const teachingApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} khi tải bài nộp của bài tập #${id}`);
+      throw new Error(`HTTP ${res.status} while loading submissions for assignment #${id}`);
     }
 
     const json = await res.json();
@@ -604,7 +604,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi chấm điểm bài nộp #${submissionId}`);
+      throw new Error(err.message || `HTTP ${res.status} while grading submission #${submissionId}`);
     }
 
     const json = await res.json();
@@ -633,7 +633,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi tải tệp tin lên máy chủ`);
+      throw new Error(err.message || `HTTP ${res.status} while uploading file to server`);
     }
 
     return await res.json();
@@ -651,7 +651,7 @@ export const teachingApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} khi tải chi tiết tiến độ học sinh #${studentId}`);
+      throw new Error(`HTTP ${res.status} while loading student progress details #${studentId}`);
     }
 
     const json = await res.json();
@@ -677,7 +677,7 @@ export const teachingApi = {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status} khi lưu đánh giá`);
+      throw new Error(err.message || `HTTP ${res.status} while saving evaluation`);
     }
 
     const json = await res.json();

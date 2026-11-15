@@ -18,14 +18,14 @@ export function ClassHeroBanner({
       {/* Back Button */}
       <Link to="/student/classes" className="btn-back-hero">
         <i className="bi bi-arrow-left"></i>
-        <span>Quay lại</span>
+        <span>Back</span>
       </Link>
 
       {/* Breadcrumbs */}
       <div className="hero-breadcrumbs">
         <Link to="/student/dashboard">Dashboard</Link>
         <i className="bi bi-chevron-right fs-xs"></i>
-        <Link to="/student/classes">Lớp học của tôi</Link>
+        <Link to="/student/classes">My Classes</Link>
         <i className="bi bi-chevron-right fs-xs"></i>
         <span className="breadcrumb-current" id="breadcrumbClass">{cls.name}</span>
       </div>
@@ -36,9 +36,9 @@ export function ClassHeroBanner({
           <span className="hero-subject-pill" id="heroSubject">{cls.subject}</span>
           <h1 className="hero-class-title" id="heroTitle">{cls.name} – {cls.subject}</h1>
           <p className="hero-class-meta" id="heroMeta">
-            <span>Giáo viên: <strong>{cls.teacher}</strong></span>
+            <span>Teacher: <strong>{cls.teacher}</strong></span>
             <span className="opacity-50">·</span>
-            <span>Phòng {cls.room}</span>
+            <span>{cls.room.startsWith('Room') || cls.room.startsWith('Lab') ? cls.room : `Room ${cls.room}`}</span>
             <span className="opacity-50">·</span>
             <span>{cls.schedule}</span>
           </p>
@@ -48,15 +48,15 @@ export function ClassHeroBanner({
         <div className="hero-stats-group">
           <div className="hero-stat-chip">
             <div className="hero-stat-number" id="statStudents">{cls.studentCount}</div>
-            <div className="hero-stat-label">Học sinh</div>
+            <div className="hero-stat-label">Students</div>
           </div>
           <div className="hero-stat-chip">
             <div className="hero-stat-number" id="statMaterials">{materialsCount}</div>
-            <div className="hero-stat-label">Tài liệu</div>
+            <div className="hero-stat-label">Materials</div>
           </div>
           <div className="hero-stat-chip">
             <div className="hero-stat-number" id="statAssignments">{assignmentsCount}</div>
-            <div className="hero-stat-label">Bài tập</div>
+            <div className="hero-stat-label">Assignments</div>
           </div>
         </div>
       </div>

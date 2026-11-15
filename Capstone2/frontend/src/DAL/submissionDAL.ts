@@ -42,9 +42,9 @@ export const submissionDAL = {
         return {
           submissionId: sub.submissionId,
           assignmentId: sub.assignmentId,
-          assignmentTitle: assign?.title || '[FE-Mock] Bài tập 1',
+          assignmentTitle: assign?.title || '[FE-Mock] Assignment 1',
           studentId: sub.studentId,
-          studentName: student?.fullName || '[FE-Mock] Học sinh',
+          studentName: student?.fullName || '[FE-Mock] Student',
           studentCode: student?.userCode || `STU00${sub.studentId}`,
           fileUrl: sub.fileUrl,
           submittedAt: sub.submittedAt,
@@ -61,7 +61,7 @@ export const submissionDAL = {
       return {
         data: fallbackData,
         isLiveApi: false,
-        error: 'Backend API chưa bật (Đang dùng dữ liệu dự phòng mockData)',
+        error: 'Backend API is not active (Using fallback mockData)',
       };
     }
   },
@@ -96,7 +96,7 @@ export const submissionDAL = {
       return {
         data: found || null,
         isLiveApi: false,
-        error: found ? undefined : `Không tìm thấy submission có ID = ${id}`,
+        error: found ? undefined : `Submission with ID = ${id} not found`,
       };
     }
   },

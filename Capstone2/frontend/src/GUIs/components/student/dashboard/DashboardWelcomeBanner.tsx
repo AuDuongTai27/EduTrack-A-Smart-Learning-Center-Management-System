@@ -6,13 +6,13 @@ export interface DashboardWelcomeBannerProps {
 }
 
 export function DashboardWelcomeBanner({
-  studentName = 'Lê Văn An',
+  studentName = 'Le Van An',
   avatarInitials = 'VA',
 }: DashboardWelcomeBannerProps) {
   const getFormattedDate = (): string => {
     try {
       const now = new Date();
-      const formatted = now.toLocaleDateString('vi-VN', {
+      const formatted = now.toLocaleDateString('en-US', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -20,7 +20,7 @@ export function DashboardWelcomeBanner({
       });
       return formatted.charAt(0).toUpperCase() + formatted.slice(1);
     } catch {
-      return 'Hôm nay';
+      return 'Today';
     }
   };
 
@@ -28,7 +28,7 @@ export function DashboardWelcomeBanner({
     <div className="welcome-banner">
       <div className="banner-avatar">{avatarInitials}</div>
       <div className="banner-content">
-        <h2 className="banner-title">Chào mừng trở lại, {studentName}!</h2>
+        <h2 className="banner-title">Welcome back, {studentName}!</h2>
         <p className="banner-date" id="currentDateText">{getFormattedDate()}</p>
       </div>
       <div className="banner-watermark">
