@@ -1,0 +1,201 @@
+# KAN-50 — Kiểm tra trước commit và danh sách file
+
+Branch: `Duy`. Message được người dùng phê duyệt: `Frontend - Complete KAN-50 landing page redesign and refinements`.
+
+Commit gộp toàn bộ bốn vòng: Landing Page Redesign; UI/UX Refinement & Dynamic Data; Final UI Polish; Statistics Layout & Class Button Hover. Không thay đổi thêm code trong bước chốt commit.
+
+## Kiểm tra trước commit
+
+- Đã kiểm tra git status/diff và đối chiếu toàn bộ file modified/untracked với phạm vi KAN-50.
+- Frontend lint, typecheck, production build: PASS. Warnings lint ngoài Landing và cảnh báo bundle lớn giữ nguyên.
+- Frontend unit tests: 174/178 PASS; đúng bốn lỗi Notifications đã biết về read-notification grace period, không có lỗi mới. Không sửa hoặc bỏ qua test để ép PASS.
+- Landing frontend unit tests: 11/11 PASS trong lần chạy toàn bộ frontend tests.
+- Backend build: PASS. Landing backend checks: 18/18 PASS, đã build lại executable test và không dùng database.
+- git diff --check: PASS.
+- Không chạy startup backend, seeding, migration, reset hoặc truy vấn database trong bước chốt commit.
+- Đã kiểm tra phạm vi, chữ ký định dạng ảnh và quét credential/private key/token trong các file text, kể cả logs UTF-16. Không phát hiện dữ liệu nhạy cảm; không đưa dump, secrets, cache hoặc build output vào danh sách stage.
+- Các ảnh và log kiểm thử KAN-50 là bằng chứng nghiệm thu, không phải build output. Ảnh dữ liệu development chỉ hiển thị các trường public đã dùng cho Landing; bản inspection chỉ chứa số đếm tổng hợp. Không có connection string, credential hoặc thông tin liên hệ cá nhân giáo viên.
+- Không push, merge, tạo PR, amend hoặc rewrite lịch sử. Hash commit và git status sau commit được báo trong phản hồi cuối.
+
+## Danh sách file
+
+Tổng cộng **176 file**: 7 file backend/test backend; 31 file frontend/assets/tests; 138 file tài liệu, screenshots và bằng chứng kiểm thử (bao gồm manifest này).
+
+<!-- KAN50_FILES -->
+
+- `Capstone2/backend.Tests/Landing/Landing.Tests.csproj`
+- `Capstone2/backend.Tests/Landing/Program.cs`
+- `Capstone2/backend/Controllers/Queries/LandingPortalController.cs`
+- `Capstone2/backend/Models/DTOs/Landing/LandingOverviewDto.cs`
+- `Capstone2/backend/Services/Implementation/LandingPortalService.cs`
+- `Capstone2/backend/Services/Implementation/LandingSchedulePresentation.cs`
+- `Capstone2/backend/Services/Interfaces/ILandingPortalService.cs`
+- `Capstone2/frontend/public/assets/landing/english.webp`
+- `Capstone2/frontend/public/assets/landing/hero-mobile.webp`
+- `Capstone2/frontend/public/assets/landing/hero.webp`
+- `Capstone2/frontend/public/assets/landing/mathematics.webp`
+- `Capstone2/frontend/public/assets/landing/physics.webp`
+- `Capstone2/frontend/src/BLL/models/LandingOverviewDto.ts`
+- `Capstone2/frontend/src/DAL/landingDAL.ts`
+- `Capstone2/frontend/src/GUIs/components/landing/AboutSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/BackToTop.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/ContactSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/CountsSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/CoursesSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/EnrollmentSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/FaqSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/FeaturesSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/HeroSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/LandingUI.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/SubjectVisual.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/TrainersSection.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/WorkspaceChooser.tsx`
+- `Capstone2/frontend/src/GUIs/components/landing/landingContent.ts`
+- `Capstone2/frontend/src/GUIs/components/landing/useLandingClasses.ts`
+- `Capstone2/frontend/src/GUIs/components/landing/useLandingOverview.ts`
+- `Capstone2/frontend/src/GUIs/layouts/landing/Landing-page-layout.tsx`
+- `Capstone2/frontend/src/GUIs/layouts/landing/LandingFooter.tsx`
+- `Capstone2/frontend/src/GUIs/layouts/landing/LandingHeader.tsx`
+- `Capstone2/frontend/src/GUIs/pages/landing/Landing-page.tsx`
+- `Capstone2/frontend/src/api/landingApi.ts`
+- `Capstone2/frontend/src/assets/css/landing.css`
+- `Capstone2/frontend/tests/landing.browser.mjs`
+- `Capstone2/frontend/tests/landing.test.mjs`
+- `docs/EDUTRACK_KAN50_COMMIT_MANIFEST.md`
+- `docs/EDUTRACK_KAN50_FINAL_POLISH_RESULT.md`
+- `docs/EDUTRACK_KAN50_LANDING_REDESIGN_RESULT.md`
+- `docs/EDUTRACK_KAN50_REFINEMENT_RESULT.md`
+- `docs/EDUTRACK_KAN50_STATISTICS_HOVER_RESULT.md`
+- `docs/kan50-polish/browser-results.json`
+- `docs/kan50-polish/checks/build.txt`
+- `docs/kan50-polish/checks/frontend-tests.txt`
+- `docs/kan50-polish/checks/git-status.txt`
+- `docs/kan50-polish/checks/lint.txt`
+- `docs/kan50-polish/checks/typecheck.txt`
+- `docs/kan50-polish/screenshots/empty-1440-full.png`
+- `docs/kan50-polish/screenshots/error-1440-full.png`
+- `docs/kan50-polish/screenshots/fixture-1440-about.png`
+- `docs/kan50-polish/screenshots/fixture-1440-classes.png`
+- `docs/kan50-polish/screenshots/fixture-1440-contact.png`
+- `docs/kan50-polish/screenshots/fixture-1440-enrollment.png`
+- `docs/kan50-polish/screenshots/fixture-1440-faq-open.png`
+- `docs/kan50-polish/screenshots/fixture-1440-faq.png`
+- `docs/kan50-polish/screenshots/fixture-1440-full.png`
+- `docs/kan50-polish/screenshots/fixture-1440-hero.png`
+- `docs/kan50-polish/screenshots/fixture-1440-programs.png`
+- `docs/kan50-polish/screenshots/fixture-1440-teachers.png`
+- `docs/kan50-polish/screenshots/fixture-360-faq-open.png`
+- `docs/kan50-polish/screenshots/fixture-360-full.png`
+- `docs/kan50-polish/screenshots/fixture-390-faq-open.png`
+- `docs/kan50-polish/screenshots/fixture-390-full.png`
+- `docs/kan50-polish/screenshots/fixture-390-workspace.png`
+- `docs/kan50-polish/screenshots/fixture-768-faq-open.png`
+- `docs/kan50-polish/screenshots/fixture-768-full.png`
+- `docs/kan50-polish/screenshots/fixture-missing-avatars.png`
+- `docs/kan50-polish/screenshots/fixture-profile-modal.png`
+- `docs/kan50-polish/screenshots/loading-1440-full.png`
+- `docs/kan50-refinement/browser-results.json`
+- `docs/kan50-refinement/checks/backend-build.txt`
+- `docs/kan50-refinement/checks/backend-tests.txt`
+- `docs/kan50-refinement/checks/database-inspection.json`
+- `docs/kan50-refinement/checks/frontend-tests.txt`
+- `docs/kan50-refinement/checks/git-status.txt`
+- `docs/kan50-refinement/checks/lint.txt`
+- `docs/kan50-refinement/checks/typecheck.txt`
+- `docs/kan50-refinement/screenshots/actual-classes.png`
+- `docs/kan50-refinement/screenshots/actual-readonly-db-1440.png`
+- `docs/kan50-refinement/screenshots/actual-readonly-db-360.png`
+- `docs/kan50-refinement/screenshots/actual-readonly-db-390.png`
+- `docs/kan50-refinement/screenshots/actual-readonly-db-768.png`
+- `docs/kan50-refinement/screenshots/actual-teacher-cards.png`
+- `docs/kan50-refinement/screenshots/empty-1440-full.png`
+- `docs/kan50-refinement/screenshots/error-1440-full.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-about.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-classes.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-contact.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-enrollment.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-faq.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-full.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-hero.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-programs.png`
+- `docs/kan50-refinement/screenshots/fixture-1440-teachers.png`
+- `docs/kan50-refinement/screenshots/fixture-360-full.png`
+- `docs/kan50-refinement/screenshots/fixture-390-full.png`
+- `docs/kan50-refinement/screenshots/fixture-390-workspace.png`
+- `docs/kan50-refinement/screenshots/fixture-768-full.png`
+- `docs/kan50-refinement/screenshots/fixture-missing-avatars.png`
+- `docs/kan50-refinement/screenshots/fixture-profile-modal.png`
+- `docs/kan50-refinement/screenshots/loading-1440-full.png`
+- `docs/kan50-statistics-hover/baseline/browser-results.json`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-1280-focus.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-1280-hover.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-1280-normal.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-1440-focus.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-1440-hover.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-1440-normal.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-360-focus.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-360-hover.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-360-normal.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-390-focus.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-390-hover.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-390-normal.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-768-focus.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-768-hover.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/button-768-normal.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/statistics-1280.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/statistics-1440.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/statistics-360.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/statistics-390.png`
+- `docs/kan50-statistics-hover/baseline/screenshots/statistics-768.png`
+- `docs/kan50-statistics-hover/browser-results.json`
+- `docs/kan50-statistics-hover/checks/browser.txt`
+- `docs/kan50-statistics-hover/checks/build.txt`
+- `docs/kan50-statistics-hover/checks/frontend-tests.txt`
+- `docs/kan50-statistics-hover/checks/git-status.txt`
+- `docs/kan50-statistics-hover/checks/lint.txt`
+- `docs/kan50-statistics-hover/checks/typecheck.txt`
+- `docs/kan50-statistics-hover/screenshots/button-1280-focus.png`
+- `docs/kan50-statistics-hover/screenshots/button-1280-hover.png`
+- `docs/kan50-statistics-hover/screenshots/button-1280-normal.png`
+- `docs/kan50-statistics-hover/screenshots/button-1440-focus.png`
+- `docs/kan50-statistics-hover/screenshots/button-1440-hover.png`
+- `docs/kan50-statistics-hover/screenshots/button-1440-normal.png`
+- `docs/kan50-statistics-hover/screenshots/button-360-focus.png`
+- `docs/kan50-statistics-hover/screenshots/button-360-hover.png`
+- `docs/kan50-statistics-hover/screenshots/button-360-normal.png`
+- `docs/kan50-statistics-hover/screenshots/button-390-focus.png`
+- `docs/kan50-statistics-hover/screenshots/button-390-hover.png`
+- `docs/kan50-statistics-hover/screenshots/button-390-normal.png`
+- `docs/kan50-statistics-hover/screenshots/button-768-focus.png`
+- `docs/kan50-statistics-hover/screenshots/button-768-hover.png`
+- `docs/kan50-statistics-hover/screenshots/button-768-normal.png`
+- `docs/kan50-statistics-hover/screenshots/statistics-1280.png`
+- `docs/kan50-statistics-hover/screenshots/statistics-1440.png`
+- `docs/kan50-statistics-hover/screenshots/statistics-360.png`
+- `docs/kan50-statistics-hover/screenshots/statistics-390.png`
+- `docs/kan50-statistics-hover/screenshots/statistics-768.png`
+- `docs/kan50/ASSETS.md`
+- `docs/kan50/browser-results.json`
+- `docs/kan50/checks/frontend-tests.txt`
+- `docs/kan50/checks/lint.txt`
+- `docs/kan50/checks/typecheck.txt`
+- `docs/kan50/screenshots/actual-local-api-unavailable-1440.png`
+- `docs/kan50/screenshots/actual-local-api-unavailable-360.png`
+- `docs/kan50/screenshots/actual-local-api-unavailable-390.png`
+- `docs/kan50/screenshots/actual-local-api-unavailable-768.png`
+- `docs/kan50/screenshots/empty-1440-full.png`
+- `docs/kan50/screenshots/error-1440-full.png`
+- `docs/kan50/screenshots/fixture-1440-about.png`
+- `docs/kan50/screenshots/fixture-1440-classes.png`
+- `docs/kan50/screenshots/fixture-1440-contact.png`
+- `docs/kan50/screenshots/fixture-1440-enrollment.png`
+- `docs/kan50/screenshots/fixture-1440-faq.png`
+- `docs/kan50/screenshots/fixture-1440-full.png`
+- `docs/kan50/screenshots/fixture-1440-hero.png`
+- `docs/kan50/screenshots/fixture-1440-programs.png`
+- `docs/kan50/screenshots/fixture-1440-teachers.png`
+- `docs/kan50/screenshots/fixture-360-full.png`
+- `docs/kan50/screenshots/fixture-390-full.png`
+- `docs/kan50/screenshots/fixture-390-workspace.png`
+- `docs/kan50/screenshots/fixture-768-full.png`
+- `docs/kan50/screenshots/loading-1440-full.png`

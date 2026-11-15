@@ -35,6 +35,9 @@ export interface LandingCourseItemDto {
   studentsCount: number;
   likesCount: number;
   imageUrl: string;
+  gradeId?: number | null;
+  gradeName?: string | null;
+  upcomingSessions?: LandingSessionDto[];
 }
 
 export interface LandingTrainerItemDto {
@@ -46,6 +49,16 @@ export interface LandingTrainerItemDto {
   phone: string;
   avatarUrl: string;
   roleTitle: string;
+  subjects?: LandingSubjectItemDto[];
+}
+
+export interface LandingSessionDto { date: string; startTime: string; endTime: string }
+export interface LandingClassesPageDto {
+  items: LandingCourseItemDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  hasMore: boolean;
 }
 
 export interface LandingOverviewDto {
