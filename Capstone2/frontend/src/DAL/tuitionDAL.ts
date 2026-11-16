@@ -55,6 +55,29 @@ export const tuitionDAL = {
   getById(id: number): Promise<TuitionInvoiceDto | null> {
     return this.getTuitionById(id);
   },
+
+  /**
+   * Tải tệp báo cáo Excel (.xlsx) từ Backend và kích hoạt download trên trình duyệt
+   */
+  async downloadTuitionExcelReport(params: {
+    classId?: number | string;
+    status?: string;
+    searchTerm?: string;
+    role?: string;
+  }): Promise<void> {
+    const blob = await tuitionApi.exportTuitionExcel(params);
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const fileName = `Bao_Cao_Hoc_Phi_EduTrack_${dateStr}.xlsx`;
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 export default tuitionDAL;

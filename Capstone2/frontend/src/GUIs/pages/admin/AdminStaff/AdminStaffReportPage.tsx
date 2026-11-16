@@ -33,6 +33,7 @@ export default function AdminStaffReportPage() {
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [exportFormat, setExportFormat] = useState<"Excel" | "PDF">("Excel");
   const [exportSuccessMsg, setExportSuccessMsg] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   // Filter & Search logic
   const filteredTuitions = useMemo(() => {
@@ -85,10 +86,29 @@ export default function AdminStaffReportPage() {
     setShowExportModal(true);
   };
 
-  const handleConfirmExport = () => {
-    setShowExportModal(false);
-    setExportSuccessMsg(`Report in ${exportFormat} format generated and downloaded successfully!`);
-    setTimeout(() => setExportSuccessMsg(null), 4000);
+  const handleConfirmExport = async () => {
+    if (exportFormat === "Excel") {
+      try {
+        setIsExporting(true);
+        await tuitionDAL.downloadTuitionExcelReport({
+          classId: selectedClass,
+          status: selectedStatus,
+          searchTerm,
+          role: "Admin Staff",
+        });
+        setShowExportModal(false);
+        setExportSuccessMsg("Báo cáo Excel đã được xuất và tải xuống thành công!");
+        setTimeout(() => setExportSuccessMsg(null), 4500);
+      } catch (err: any) {
+        alert(err?.message || "Lỗi khi xuất tệp báo cáo Excel.");
+      } finally {
+        setIsExporting(false);
+      }
+    } else {
+      setShowExportModal(false);
+      setExportSuccessMsg(`Report in ${exportFormat} format generated and downloaded successfully!`);
+      setTimeout(() => setExportSuccessMsg(null), 4000);
+    }
   };
 
   return (
@@ -419,11 +439,21 @@ export default function AdminStaffReportPage() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary px-4"
+                  className="btn btn-primary px-4 d-inline-flex align-items-center gap-2"
+                  disabled={isExporting}
                   onClick={handleConfirmExport}
                 >
-                  <i className="bi bi-file-earmark-arrow-down me-1" />
-                  Confirm Download
+                  {isExporting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                      <span>Generating Excel...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-file-earmark-arrow-down" />
+                      <span>Confirm Download</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

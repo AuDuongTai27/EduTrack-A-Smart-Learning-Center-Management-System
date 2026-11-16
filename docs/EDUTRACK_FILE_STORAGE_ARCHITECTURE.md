@@ -84,6 +84,7 @@ Capstone2/backend/wwwroot/
 | `GET` | `/uploads/submissions/{fileName}` | Teacher, TA, Student | Tải / xem trực tiếp bài làm học sinh đã nộp |
 | `GET` | `/api/learning/student/classes/{classId}/materials/{materialId}/download` | Student, Parent | Tải tệp tài liệu học tập đơn lẻ của lớp |
 | `GET` | `/api/learning/student/classes/{classId}/materials/download-all` | Student, Parent | **Tải hàng loạt (Bulk Download):** Hệ thống tự động đóng gói toàn bộ tài liệu của lớp vào 1 tệp `.zip` kèm danh mục mục lục `00_README_Danh_Muc_Tai_Lieu.txt` |
+| `GET` | `/api/reports/tuition/export` | Admin Staff, Center Manager | **Xuất Báo Cáo Excel (.xlsx):** Sử dụng thư viện **ClosedXML** để kết xuất báo cáo học phí, đối soát công nợ, phân tích tài chính theo lớp học, trạng thái nộp tiền và từ khóa tìm kiếm |
 
 ---
 
