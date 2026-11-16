@@ -354,6 +354,7 @@ export function mapApiFeedbackToViewModel(
       | 'rejected',
     statusLabel,
     canEdit,
+    priority: dto.priority || 'medium',
     reviewedBy: dto.reviewerName || (dto.reviewedBy ? 'Admin Staff' : undefined),
     reviewedAt: formatDateTimeVi(dto.reviewedAt) || undefined,
     reviewNotes: dto.reviewNotes || undefined,
