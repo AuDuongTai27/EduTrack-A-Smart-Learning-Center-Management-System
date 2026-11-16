@@ -16,7 +16,6 @@ export default function TeacherClassesPage() {
   // Search, Filter, Sort & Pagination states
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10; // Cố định mặc định 10 lớp mỗi trang
 
@@ -69,16 +68,15 @@ export default function TeacherClassesPage() {
     }
 
     // Sắp xếp tự nhiên theo tên lớp (ví dụ: Class 8 < Class 9, Lớp 10 < Lớp 11)
-    result.sort((a, b) => {
-      const comp = a.className.localeCompare(b.className, "vi", {
+    result.sort((a, b) =>
+      a.className.localeCompare(b.className, "vi", {
         numeric: true,
         sensitivity: "base",
-      });
-      return sortOrder === "asc" ? comp : -comp;
-    });
+      })
+    );
 
     return result;
-  }, [classes, statusFilter, searchTerm, sortOrder]);
+  }, [classes, statusFilter, searchTerm]);
 
   const paginatedClasses = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
@@ -123,13 +121,7 @@ export default function TeacherClassesPage() {
         />
 
         {/* Table */}
-        <ClassListTable
-          classes={paginatedClasses}
-          sortOrder={sortOrder}
-          onToggleSort={() =>
-            setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
-          }
-        />
+        <ClassListTable classes={paginatedClasses} />
 
         {/* Footer Pagination */}
         <ClassListPagination
