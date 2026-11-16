@@ -3,7 +3,7 @@ import type { MaterialItem } from '../classDetailData';
 
 export interface ClassMaterialRowProps {
   material: MaterialItem;
-  onDownload: (fileName: string) => void;
+  onDownload: (fileName: string, fileUrl?: string) => void;
 }
 
 export function ClassMaterialRow({
@@ -44,7 +44,7 @@ export function ClassMaterialRow({
       <button
         type="button"
         className="btn-download-mat"
-        onClick={() => onDownload(mat.fileName)}
+        onClick={() => onDownload(mat.fileName, mat.fileUrl)}
       >
         <i className="bi bi-download"></i>
         <span>Download</span>
