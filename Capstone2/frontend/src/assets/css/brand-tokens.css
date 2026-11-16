@@ -1,0 +1,16 @@
+/* KAN-56: canonical palette. Existing role variables alias these tokens. */
+:root {
+  --et-primary: #078444;
+  --et-primary-hover: #067647;
+  --et-primary-active: #05643c;
+  --et-mint: #eaf8f1;
+  --et-surface: #f7faf8;
+  --et-card: #ffffff;
+  --et-heading: #142238;
+  --et-border: #dcebe3;
+  --et-muted: #5b6879;
+  --et-focus: rgba(7, 132, 68, .24);
+  --et-shadow: 0 3px 14px rgba(20, 34, 56, .05);
+  --et-radius: 12px;
+  --et-brand-banner: radial-gradient(ellipse at 95% 0%, rgba(255,255,255,.15), transparent 55%), linear-gradient(120deg, #05643c, #078444);
+}

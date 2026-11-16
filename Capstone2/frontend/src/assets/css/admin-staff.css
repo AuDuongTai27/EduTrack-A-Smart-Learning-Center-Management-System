@@ -16,7 +16,7 @@
      ========================================================= */
 
   .dashboard-view-link {
-    color: #5d3fd3;
+    color: var(--et-primary);
 
     font-size: 12px;
     font-weight: 600;
@@ -25,7 +25,7 @@
   }
 
   .dashboard-view-link:hover {
-    color: #4930b5;
+    color: var(--et-primary-hover);
   }
 
   /* Today's Schedule */
@@ -74,7 +74,7 @@
     width: 3px;
     height: 42px;
 
-    background: #5d3fd3;
+    background: var(--et-primary);
 
     border-radius: 10px;
   }
@@ -127,7 +127,7 @@
 
   .schedule-upcoming {
     color: #6d28d9;
-    background: #ede9fe;
+    background: var(--et-mint);
   }
 
   /* Latest Notifications */
@@ -162,7 +162,7 @@
 
     flex-shrink: 0;
 
-    color: #5d3fd3;
+    color: var(--et-primary);
     background: #f0edff;
 
     border-radius: 8px;
@@ -237,10 +237,10 @@
   }
 
   .monitoring-tabs .nav-link.active {
-    color: #5d3fd3;
+    color: var(--et-primary);
     background: transparent;
 
-    border-bottom-color: #5d3fd3;
+    border-bottom-color: var(--et-primary);
   }
 
   .monitoring-tab-header,

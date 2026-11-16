@@ -1,3 +1,4 @@
+import { BrandIcon } from "../Common/BrandIcon";
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from './LandingUI';
@@ -88,6 +89,7 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
         }
       }}
     >
+      <div className="et-workspace-brand"><BrandIcon size={40} /><span>EduTrack</span></div>
       <div className="et-dialog-heading">
         <div>
           <h2 id="workspace-title">Sign In to EduTrack</h2>

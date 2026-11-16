@@ -1,3 +1,4 @@
+import { BrandIcon } from "../../components/Common/BrandIcon";
 import React from "react";
 import { Link } from "react-router-dom";
 import { StudentNavMenu } from "./StudentNavMenu";
@@ -9,7 +10,7 @@ export function StudentSidebar() {
       <div className="sidebar-header">
         <Link to="/student/dashboard" className="brand-link">
           <div className="brand-logo-icon">
-            <i className="bi bi-mortarboard-fill fs-5"></i>
+            <BrandIcon size={34} />
           </div>
           <div>
             <div className="brand-title">EduTrack</div>

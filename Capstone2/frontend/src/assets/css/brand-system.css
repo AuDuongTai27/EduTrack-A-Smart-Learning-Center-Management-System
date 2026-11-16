@@ -1,0 +1,108 @@
+/* KAN-56 / KAN-74: presentation only; no menu, visibility or interaction overrides. */
+.et-brand-icon {
+  display: block;
+  flex: 0 0 auto;
+  object-fit: contain;
+  max-width: 100%;
+}
+:is(.admin-scope, .teacher-scope, .student-scope) {
+  --bs-primary: var(--et-primary);
+  --bs-primary-rgb: 7, 132, 68;
+  --bs-link-color: var(--et-primary);
+  --bs-link-hover-color: var(--et-primary-hover);
+  --bs-border-color: var(--et-border);
+  --bs-heading-color: var(--et-heading);
+  --accent: var(--et-primary);
+  --accent-soft: var(--et-mint);
+  --page-bg: var(--et-surface);
+  --text-dark: var(--et-heading);
+  --sidebar-border: var(--et-border);
+  --topbar-border: var(--et-border);
+  --et-primary-soft: var(--et-mint);
+  --et-primary-gradient: var(--et-brand-banner);
+  --et-blue-gradient: var(--et-brand-banner);
+  --et-dark: var(--et-heading);
+  --et-bg: var(--et-surface);
+  --et-border-light: var(--et-border);
+  color: var(--et-heading);
+  background-color: var(--et-surface);
+}
+:is(.admin-scope, .teacher-scope, .student-scope) :is(.brand-mark, .brand-logo-icon) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0;
+}
+:is(.admin-scope, .teacher-scope, .student-scope) :is(.brand-text, .brand-title) { color: var(--et-heading); }
+:is(.admin-scope, .teacher-scope, .student-scope) :is(h1, h2, h3, h4, h5, h6) { color: var(--et-heading); }
+:is(.admin-scope, .teacher-scope) .search-box:focus-within { box-shadow: 0 0 0 3px var(--et-focus); }
+:is(.admin-scope, .teacher-scope) :is(.user-action-btn, .table-action-btn):hover { background: var(--et-mint); border-color: var(--et-border); }
+.teacher-scope .badge-primary { color: var(--et-primary); background: var(--et-mint); border-color: var(--et-border); }
+:is(.admin-scope, .teacher-scope) :is(.topbar, .sidebar-header),
+.student-scope :is(.mobile-topbar, .sidebar-header) { border-color: var(--et-border); }
+:is(.admin-scope, .teacher-scope, .student-scope) .sidebar .nav-link:hover {
+  color: var(--et-primary-hover);
+  background-color: var(--et-surface);
+}
+:is(.admin-scope, .teacher-scope, .student-scope) .sidebar .nav-link.active {
+  color: var(--et-primary);
+  background: var(--et-mint);
+  border-color: var(--et-border);
+}
+:is(.admin-scope, .teacher-scope) .sidebar .nav-link.active i { color: var(--et-primary); background: var(--et-mint); }
+:is(.admin-scope, .teacher-scope) :is(.center-avatar, .academic-year-btn:hover, .icon-btn:hover) {
+  color: var(--et-primary);
+  background: var(--et-mint);
+  border-color: var(--et-border);
+}
+/* Decoration stays inside welcome banners, away from data surfaces. */
+:is(.admin-scope, .teacher-scope) :is(.dashboard-welcome, .card.bg-03),
+.student-scope .welcome-banner {
+  color: white !important;
+  background: var(--et-brand-banner) !important;
+  box-shadow: var(--et-shadow) !important;
+}
+:is(.admin-scope, .teacher-scope, .student-scope) :is(.kpi-card, .dashboard-card, .et-card, .card:not(.bg-03):not(.dashboard-welcome)) {
+  border-color: var(--et-border);
+  border-radius: var(--et-radius);
+  box-shadow: var(--et-shadow);
+}
+:is(.admin-scope, .teacher-scope) :is(.kpi-card, .dashboard-card) { background-color: var(--et-card); }
+:is(.admin-scope, .teacher-scope, .student-scope) :is(.dashboard-view-all, .dashboard-view-link, .view-all-link) { color: var(--et-primary); }
+/* Explicit states also cover legacy Bootstrap sheets with fixed button colors. */
+:is(.admin-scope, .teacher-scope, .student-scope) .btn-primary {
+  --bs-btn-bg: var(--et-primary);
+  --bs-btn-border-color: var(--et-primary);
+  --bs-btn-hover-bg: var(--et-primary-hover);
+  --bs-btn-hover-border-color: var(--et-primary-hover);
+  --bs-btn-active-bg: var(--et-primary-active);
+  --bs-btn-active-border-color: var(--et-primary-active);
+  --bs-btn-focus-shadow-rgb: 7, 132, 68;
+  color: white;
+  background-color: var(--et-primary);
+  border-color: var(--et-primary);
+}
+:is(.admin-scope, .teacher-scope, .student-scope) .btn-primary:hover { color: white; background-color: var(--et-primary-hover); border-color: var(--et-primary-hover); }
+:is(.admin-scope, .teacher-scope, .student-scope) .btn-primary:active { color: white; background-color: var(--et-primary-active); border-color: var(--et-primary-active); }
+:is(.admin-scope, .teacher-scope, .student-scope) .btn-outline-primary { color: var(--et-primary); border-color: var(--et-primary); background-color: white; }
+:is(.admin-scope, .teacher-scope, .student-scope) .btn-outline-primary:is(:hover, :active) { color: white; background-color: var(--et-primary-hover); border-color: var(--et-primary-hover); }
+:is(.admin-scope, .teacher-scope, .student-scope) :is(.btn-primary, .btn-outline-primary):is(:disabled, .disabled),
+.et-workspace-dialog .et-primary:disabled { color: #65716c; background: #e9eeeb; border-color: #d5ded9; opacity: 1; box-shadow: none; }
+:is(.admin-scope, .teacher-scope, .student-scope) :is(.form-control, .form-select):focus {
+  border-color: var(--et-primary);
+  box-shadow: 0 0 0 .2rem var(--et-focus);
+}
+:is(.admin-scope, .teacher-scope, .student-scope) .form-check-input:checked { background-color: var(--et-primary); border-color: var(--et-primary); }
+:is(.admin-scope, .teacher-scope, .student-scope) .page-item.active .page-link { background-color: var(--et-primary); border-color: var(--et-primary); color: white; }
+:is(.admin-scope, .teacher-scope, .student-scope) .page-link { color: var(--et-primary); }
+:is(.admin-scope, .teacher-scope, .student-scope) :is(.modal-content, .dropdown-menu) { border-color: var(--et-border); border-radius: var(--et-radius); box-shadow: 0 12px 36px rgba(20,34,56,.12); background-color: var(--et-card); }
+:is(.admin-scope, .teacher-scope, .student-scope) .table { --bs-table-border-color: var(--et-border); --bs-table-hover-bg: var(--et-surface); }
+:is(.admin-scope, .teacher-scope, .student-scope) :is(button, a, input, select, textarea):focus-visible,
+.et-workspace-dialog :is(button, input):focus-visible {
+  outline: 2px solid var(--et-primary-hover) !important;
+  outline-offset: 3px;
+}
+.et-landing .et-brand > .et-brand-icon { width: 38px; height: 38px; background: transparent; padding: 0; border-radius: 0; }
+.et-workspace-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; color: var(--et-heading); font-size: 20px; font-weight: 750; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.admin-scope, .teacher-scope, .student-scope) :is(.btn, .nav-link) { transition: none; }
+}

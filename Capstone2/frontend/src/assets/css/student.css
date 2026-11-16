@@ -56,19 +56,15 @@
 
   /* Core Theme Palettes */
 
-  --et-primary: #2563EB;
-
-  --et-primary-hover: #1D4ED8;
-
-  --et-primary-soft: #EFF6FF;
+  --et-primary-soft: var(--et-mint);
 
   --et-teal: #0EA5A6;
 
-  --et-primary-gradient: linear-gradient(135deg, #2563EB 0%, #0EA5E9 100%);
+  --et-primary-gradient: var(--et-brand-banner);
 
   --et-teal-gradient: linear-gradient(135deg, #0EA5A6 0%, #2563EB 100%);
 
-  --et-blue-gradient: linear-gradient(130deg, #1E40AF 0%, #2563EB 38%, #0284C7 70%, #0891B2 100%);
+  --et-blue-gradient: var(--et-brand-banner);
 
 
 
@@ -81,8 +77,6 @@
   --et-muted: #64748B;
 
   --et-subtle: #94A3B8;
-
-  --et-border: rgba(0, 0, 0, 0.06);
 
   --et-border-light: #E2E8F0;
 
