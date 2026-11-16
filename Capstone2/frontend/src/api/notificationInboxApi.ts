@@ -22,10 +22,9 @@ export const notificationInboxApi = {
     return await notificationRequest(`management/notifications/recipients?query=${encodeURIComponent(query)}&limit=20`, 'GET', signal) as NotificationRecipientOption[];
   },
   async snapshot(signal?: AbortSignal) { return validateSnapshot(await notificationRequest('notifications/inbox/snapshot', 'GET', signal)); },
-  async mutate(operation: 'read' | 'read-all' | 'delete' | 'restore', id?: number, signal?: AbortSignal): Promise<InboxSnapshot> {
-    const path = operation === 'read-all' ? 'read-all' : operation === 'delete' ? `${id}/inbox` : `${id}/${operation}`;
-    return validateSnapshot(await notificationRequest(`notifications/${path}${operation === 'read' ? '?snapshot=true' : ''}`,
-      operation === 'delete' ? 'DELETE' : operation === 'restore' ? 'POST' : 'PATCH', signal));
+  async mutate(operation: 'read' | 'read-all', id?: number, signal?: AbortSignal): Promise<InboxSnapshot> {
+    const path = operation === 'read-all' ? 'read-all' : `${id}/read`;
+    return validateSnapshot(await notificationRequest(`notifications/${path}${operation === 'read' ? '?snapshot=true' : ''}`, 'PATCH', signal));
   },
   async sent(signal?: AbortSignal) { return validateRows(await notificationRequest('management/notifications/sent', 'GET', signal)); },
 };

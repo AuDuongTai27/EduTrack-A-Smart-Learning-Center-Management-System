@@ -22,10 +22,10 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
   const { data, loading, error, store, busy, manager } = inbox;
   const [params, setParams] = useSearchParams(); const rawId = params.get('notificationId');
   const selectedId = rawId && /^\d+$/.test(rawId) && Number.isSafeInteger(Number(rawId)) ? Number(rawId) : null;
-  const [tab, setTab] = useState<'inbox' | 'sent' | 'trash'>('inbox');
+  const [tab, setTab] = useState<'inbox' | 'sent'>('inbox');
   const [sent, setSent] = useState<NotificationDto[]>([]); const [sentLoading, setSentLoading] = useState(false);
   const [sentError, setSentError] = useState<string | null>(null); const [actionError, setActionError] = useState<string | null>(null);
-  const [undo, setUndo] = useState<number | null>(null); const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [compose, setCompose] = useState(false); const [search, setSearch] = useState('');
   const [type, setType] = useState('all'); const [status, setStatus] = useState('all'); const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1); const attempted = useRef('');
@@ -36,7 +36,7 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
       .finally(() => { if (!controller.signal.aborted) setSentLoading(false); });
     return () => controller.abort();
   }, [tab, data]);
-  const rows = tab === 'sent' ? sent : tab === 'trash' ? data?.trash ?? EMPTY : data?.inbox ?? EMPTY;
+  const rows = tab === 'sent' ? sent : data?.inbox ?? EMPTY;
   const selected = rows.find(n => n.notificationId === selectedId);
   useEffect(() => {
     const attemptKey = `${tab}:${rawId}`;
@@ -49,12 +49,10 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
     && (type === 'all' || n.type === type) && (tab === 'sent' || status === 'all' || n.isRead === (status === 'read')))
     .sort((a, b) => sort === 'title' ? a.title.localeCompare(b.title, 'vi') : (sort === 'oldest' ? -1 : 1) * newest(a, b)), [rows, search, type, status, sort, tab]);
   const safePage = Math.min(page, Math.max(1, Math.ceil(filtered.length / 5)));
-  async function act(operation: 'read' | 'read-all' | 'delete' | 'restore', id?: number) {
+  async function act(operation: 'read' | 'read-all', id?: number) {
     setActionError(null); setSuccess(null);
     try {
       await store.mutate(operation, id);
-      if (operation === 'delete') { setUndo(id!); setParams({}); setSuccess('Moved to Trash.'); }
-      else if (operation === 'restore') { setUndo(null); setSuccess('Restored to Inbox.'); }
     } catch (e) { setActionError(message(e)); }
   }
   function switchTab(next: typeof tab) { if (next === tab) return; if (next === 'sent') { setSent([]); setSentError(null); setSentLoading(true); } setTab(next); setParams({}); setPage(1); setActionError(null); attempted.current = ''; }
@@ -64,11 +62,10 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
     {error && <p role="alert" className="alert alert-warning">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Retry</button></p>}
     {actionError && <p role="alert" className="alert alert-danger">{actionError}</p>}
     {success && <p role="status" className="alert alert-success">{success}</p>}
-    {undo && <button type="button" className="btn btn-link mb-3" disabled={busy} onClick={() => void act('restore', undo)}>Undo</button>}
     <div className="ntf-tabs" role="tablist" aria-label="Mailbox">
-      {(['inbox', ...(manager ? ['sent', 'trash'] : [])] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} type="button"
+      {(['inbox', ...(manager ? ['sent'] : [])] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} type="button"
         className={`btn ${tab === t ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => switchTab(t as typeof tab)}>
-        {t === 'inbox' ? `Inbox (${data?.unreadCount ?? '—'} unread)` : t === 'sent' ? 'Sent' : 'Trash'}
+        {t === 'inbox' ? `Inbox (${data?.unreadCount ?? '—'} unread)` : 'Sent'}
       </button>)}
     </div>
     <div className="ntf-toolbar">
@@ -94,11 +91,8 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
           {tab === 'sent' && <p>Scope: {notificationScopeLabel(selected.targetScope ?? '')} {selected.targetRole ? `· ${notificationRoleLabel(selected.targetRole)}` : selected.className ? `· ${selected.className}` : ''} · {selected.recipientCount ?? 0} recipients</p>}
           <span className="ntf-type-label">{notificationTypeLabel(selected.type)}</span><div className="ntf-body">{selected.content}</div>
           {selected.readAt && tab !== 'sent' && <small className="d-block mt-3">Read: {notificationTime(selected.readAt)}</small>}
-          {selected.deletedAt && <small className="d-block">Deleted: {notificationTime(selected.deletedAt)}</small>}
           <div className="ntf-actions">
             {tab === 'inbox' && !selected.isRead && <button type="button" className="btn btn-outline-primary" disabled={busy} onClick={() => void act('read', selected.notificationId)}>Mark as Read</button>}
-            {manager && tab === 'inbox' && <button type="button" className="btn btn-outline-danger" disabled={busy || !selected.isRead} onClick={() => void act('delete', selected.notificationId)}>Move to Trash</button>}
-            {manager && tab === 'trash' && <button type="button" className="btn btn-outline-primary" disabled={busy} onClick={() => void act('restore', selected.notificationId)}>Restore</button>}
           </div></> : <p role={rawId ? 'alert' : 'status'}>{rawId ? 'Notification not found in this mailbox or you do not have permission to view it.' : 'Select a notification to view its content.'}</p>}
       </section>
     </div>}
