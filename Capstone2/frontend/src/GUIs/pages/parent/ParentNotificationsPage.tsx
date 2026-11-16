@@ -330,8 +330,8 @@ export function ParentNotificationsPage() {
             </div>
           </div>
 
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            {unreadCount > 0 && (
+          {unreadCount > 0 && (
+            <div className="d-flex flex-wrap align-items-center gap-2">
               <button
                 type="button"
                 className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
@@ -339,16 +339,8 @@ export function ParentNotificationsPage() {
               >
                 <i className="bi bi-check2-all me-1" /> Mark All as Read
               </button>
-            )}
-            <button
-              type="button"
-              className="btn btn-outline-secondary btn-sm rounded-pill px-3"
-              onClick={() => void loadNotifications()}
-              disabled={loading}
-            >
-              <i className="bi bi-arrow-clockwise me-1" /> Refresh
-            </button>
-          </div>
+            </div>
+          )}
         </div>
 
         {successMsg && (

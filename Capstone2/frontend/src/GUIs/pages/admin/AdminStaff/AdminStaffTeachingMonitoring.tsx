@@ -132,11 +132,6 @@ export default function AdminStaffTeachingMonitoring() {
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Teaching Monitoring" },
         ]}
-        action={
-          <button type="button" className="btn btn-outline-primary" disabled={loading} onClick={() => void refresh()}>
-            <i className="bi bi-arrow-clockwise me-1" /> Refresh
-          </button>
-        }
       />
 
       {loading && (

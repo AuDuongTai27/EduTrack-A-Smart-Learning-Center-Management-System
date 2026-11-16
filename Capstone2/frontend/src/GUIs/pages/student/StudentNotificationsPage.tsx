@@ -280,14 +280,6 @@ export function StudentNotificationsPage() {
             )}
             <button
               type="button"
-              className="btn btn-outline-secondary btn-sm rounded-pill px-3"
-              onClick={() => void loadNotifications()}
-              disabled={loading}
-            >
-              <i className="bi bi-arrow-clockwise me-1" /> Refresh
-            </button>
-            <button
-              type="button"
               className="btn btn-light border btn-sm rounded-pill px-3"
               onClick={() => setPrefsOpen(true)}
             >

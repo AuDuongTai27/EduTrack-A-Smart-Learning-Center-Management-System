@@ -76,7 +76,6 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
       <select className="form-select w-auto" aria-label="Notification type" value={type} onChange={e => { setType(e.target.value); setPage(1); }}><option value="all">All Types</option>{Object.entries(notificationTypes).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
       {tab !== 'sent' && <select className="form-select w-auto" aria-label="Read status" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="all">All Statuses</option><option value="unread">Unread</option><option value="read">Read</option></select>}
       <select className="form-select w-auto" aria-label="Sort" value={sort} onChange={e => setSort(e.target.value)}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="title">Title A–Z</option></select>
-      <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={store.refresh}>Refresh</button>
       {tab === 'inbox' && <button type="button" className="btn btn-outline-primary" disabled={busy || !data?.unreadCount} onClick={() => void act('read-all')}>Mark All as Read</button>}
     </div>
     {(loading && !data) || sentLoading ? <p role="status">Loading notifications...</p> : <div className="ntf-layout">
