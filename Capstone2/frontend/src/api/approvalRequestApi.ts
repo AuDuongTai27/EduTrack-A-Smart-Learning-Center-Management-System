@@ -23,6 +23,17 @@ export interface ReviewApprovalRequestPayload {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
+function parseErrorMessage(error: any, fallbackStatus: number): string {
+  if (!error) return `HTTP ${fallbackStatus}`;
+  if (typeof error.message === "string" && error.message.trim()) return error.message;
+  if (error.errors && typeof error.errors === "object") {
+    const list = Object.values(error.errors).flat().filter(Boolean);
+    if (list.length > 0) return list.join("; ");
+  }
+  if (typeof error.title === "string" && error.title.trim()) return error.title;
+  return `HTTP ${fallbackStatus}`;
+}
+
 export const approvalRequestApi = {
   /**
    * GET /api/approvalrequests
@@ -37,7 +48,8 @@ export const approvalRequestApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+      const error = await res.json().catch(() => null);
+      throw new Error(parseErrorMessage(error, res.status));
     }
 
     return await res.json();
@@ -56,7 +68,8 @@ export const approvalRequestApi = {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+      const error = await res.json().catch(() => null);
+      throw new Error(parseErrorMessage(error, res.status));
     }
 
     return await res.json();
@@ -74,7 +87,7 @@ export const approvalRequestApi = {
 
     if (!res.ok) {
       const error = await res.json().catch(() => null);
-      throw new Error(error?.message || `HTTP ${res.status}`);
+      throw new Error(parseErrorMessage(error, res.status));
     }
 
     return res.json();
@@ -95,7 +108,7 @@ export const approvalRequestApi = {
 
     if (!res.ok) {
       const error = await res.json().catch(() => null);
-      throw new Error(error?.message || `HTTP ${res.status}`);
+      throw new Error(parseErrorMessage(error, res.status));
     }
 
     return res.json();
@@ -116,7 +129,7 @@ export const approvalRequestApi = {
 
     if (!res.ok) {
       const error = await res.json().catch(() => null);
-      throw new Error(error?.message || `HTTP ${res.status}`);
+      throw new Error(parseErrorMessage(error, res.status));
     }
 
     return res.json();

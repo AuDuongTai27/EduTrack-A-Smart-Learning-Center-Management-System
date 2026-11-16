@@ -5,19 +5,18 @@ namespace EduTrack.API.Models.DTOs.Management
 {
     public class CreateApprovalRequestDto
     {
-        [Range(1, int.MaxValue)]
         public int RequestedBy { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Loại yêu cầu không được để trống")]
         [StringLength(50)]
         public string RequestType { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(255, MinimumLength = 3)]
+        [Required(ErrorMessage = "Tiêu đề yêu cầu không được để trống")]
+        [StringLength(255, MinimumLength = 1)]
         public string Title { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(2000, MinimumLength = 5)]
+        [Required(ErrorMessage = "Lý do yêu cầu không được để trống")]
+        [StringLength(2000, MinimumLength = 1)]
         public string Reason { get; set; } = string.Empty;
 
         [StringLength(2000)]
