@@ -1,5 +1,5 @@
 import React from "react";
-import { PaginationNavGroup } from "../../CommonPaginationUtils";
+import { PaginationNavGroup } from "../../../Common/CommonPaginationUtils";
 
 export interface RequestPaginationProps {
   totalItems?: number;
