@@ -145,7 +145,6 @@ export function ParentNotificationsPage() {
   const [activeCategory, setActiveCategory] =
     useState<ParentFilterCategory>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedSort, setSelectedSort] = useState<string>("newest");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const entriesPerPage = 5;
 
@@ -261,15 +260,8 @@ export function ParentNotificationsPage() {
       return matchesCat && matchesQuery;
     });
 
-    return [...list].sort((a, b) => {
-      if (selectedSort === "oldest") return a.id - b.id;
-      if (selectedSort === "title-asc")
-        return a.title.localeCompare(b.title, "vi");
-      if (selectedSort === "title-desc")
-        return b.title.localeCompare(a.title, "vi");
-      return b.id - a.id;
-    });
-  }, [notifications, readIds, activeCategory, searchTerm, selectedSort]);
+    return [...list].sort((a, b) => b.id - a.id);
+  }, [notifications, readIds, activeCategory, searchTerm]);
 
   const paginatedNotifications = useMemo(() => {
     const start = (currentPage - 1) * entriesPerPage;
@@ -411,7 +403,7 @@ export function ParentNotificationsPage() {
             </div>
 
             <div className="row g-3">
-              <div className="col-lg-8">
+              <div className="col-12">
                 <div className="input-group">
                   <span className="input-group-text bg-light border-end-0 text-muted">
                     <i className="bi bi-search" />
@@ -426,18 +418,6 @@ export function ParentNotificationsPage() {
                     }}
                   />
                 </div>
-              </div>
-              <div className="col-lg-4">
-                <select
-                  className="form-select bg-light"
-                  value={selectedSort}
-                  onChange={(e) => setSelectedSort(e.target.value)}
-                >
-                  <option value="newest">Sort: Newest First</option>
-                  <option value="oldest">Sort: Oldest First</option>
-                  <option value="title-asc">Title: A – Z</option>
-                  <option value="title-desc">Title: Z – A</option>
-                </select>
               </div>
             </div>
           </div>
