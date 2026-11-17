@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using EduTrack.API.Services.Management.Interfaces;
 using EduTrack.API.Services.Management.Implementation;
+using EduTrack.API.Services.Reports;
+using EduTrack.API.Services.Reports.Implementation;
 
 namespace EduTrack.API.Helpers.DependencyInjection
 {
@@ -20,7 +22,7 @@ namespace EduTrack.API.Helpers.DependencyInjection
             services.AddScoped<IManagementTuitionService, ManagementTuitionService>();
             services.AddScoped<IManagementApprovalRequestService, ManagementApprovalRequestService>();
             services.AddScoped<IManagementNotificationService, ManagementNotificationService>();
-
+            services.AddScoped<IReportExportService, ReportExportService>();
 
             return services;
         }

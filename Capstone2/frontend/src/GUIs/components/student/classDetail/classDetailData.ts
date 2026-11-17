@@ -24,6 +24,7 @@ export interface MaterialItem {
   uploadDate: string;
   uploadedBy: string;
   sizeMb: number;
+  fileUrl?: string;
 }
 
 export interface AssignmentItem {

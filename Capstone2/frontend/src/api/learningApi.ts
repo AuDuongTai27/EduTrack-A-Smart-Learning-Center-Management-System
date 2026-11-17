@@ -240,6 +240,33 @@ export const learningApi = {
   },
 
   /**
+   * Tải tệp bài nộp của học sinh lên máy chủ (POST /api/learning/submissions/upload)
+   */
+  async uploadSubmissionFile(file: File): Promise<{
+    success: boolean;
+    message: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    uploadedAt: string;
+  }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE_URL}/learning/submissions/upload`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+      },
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message || `HTTP ${res.status} while uploading submission file`);
+    }
+    return await res.json();
+  },
+
+  /**
    * Xóa / Rút lại bài nộp của học sinh
    */
   async deleteSubmission(studentId: number, assignmentId: number): Promise<boolean> {

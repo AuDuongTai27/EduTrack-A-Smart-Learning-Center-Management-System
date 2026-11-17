@@ -11,6 +11,7 @@ export interface FeedbackApprovalRequest {
   status: 'pending' | 'approved' | 'rejected';
   statusLabel: string;
   canEdit: boolean;
+  priority?: string;
   reviewedBy?: string;
   reviewedAt?: string;
   reviewNotes?: string;

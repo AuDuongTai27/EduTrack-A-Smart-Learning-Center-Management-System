@@ -164,7 +164,7 @@ public sealed class NotificationInboxService(EduTrackDbContext db, TimeProvider?
             .Include(r => r.Notification).ThenInclude(n => n.Class)
             .OrderByDescending(r => r.Notification.CreatedAt).ThenByDescending(r => r.NotificationId).ToListAsync();
         var inbox = rows.Where(r => r.DeletedAt == null).Select(Map).ToArray();
-        var trash = IsManager(identity) ? rows.Where(r => r.DeletedAt != null).Select(Map).ToArray() : [];
+        var trash = Array.Empty<NotificationDto>();
         return new(identity, Now, inbox, trash, inbox.Count(n => !n.IsRead));
     }
     public async Task<NotificationDto> ItemAsync(int userId, int id)
@@ -175,7 +175,7 @@ public sealed class NotificationInboxService(EduTrackDbContext db, TimeProvider?
     }
     public async Task<NotificationInboxSnapshot> MutateAsync(int userId, string operation, int? id = null)
     {
-        var identity = await IdentifyAsync(userId, operation is "delete" or "restore");
+        var identity = await IdentifyAsync(userId);
         var query = db.NotificationRecipients.Where(r => r.UserId == identity.UserId);
         if (id.HasValue) query = query.Where(r => r.NotificationId == id.Value);
         var now = Now;
@@ -186,20 +186,7 @@ public sealed class NotificationInboxService(EduTrackDbContext db, TimeProvider?
             await query.Where(r => r.DeletedAt == null && !r.IsRead)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsRead, true).SetProperty(r => r.ReadAt, now));
         }
-        else
-        {
-            var row = await query.AsNoTracking().SingleOrDefaultAsync();
-            if (row == null) throw new NotificationAccessException(404, "Không tìm thấy thông báo.");
-            if (operation == "delete")
-            {
-                if (!row.IsRead) throw new NotificationAccessException(409, "Chỉ có thể xóa thông báo đã đọc.");
-                await query.Where(r => r.IsRead && r.DeletedAt == null)
-                    .ExecuteUpdateAsync(s => s.SetProperty(r => r.DeletedAt, now));
-            }
-            else if (operation == "restore")
-                await query.Where(r => r.DeletedAt != null).ExecuteUpdateAsync(s => s.SetProperty(r => r.DeletedAt, (DateTime?)null));
-            else throw new ArgumentException("Unknown notification operation.");
-        }
+        else throw new ArgumentException("Unknown notification operation.");
         return await SnapshotAsync(userId);
     }
     private static DateTime Utc(DateTime date) => DateTime.SpecifyKind(date, DateTimeKind.Utc);

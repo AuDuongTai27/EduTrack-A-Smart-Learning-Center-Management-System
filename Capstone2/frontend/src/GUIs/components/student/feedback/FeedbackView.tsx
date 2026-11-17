@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { StudentPageHeader } from '../common/StudentPageHeader';
 import { LearnerPageLoader } from '../common/LearnerPageLoader';
 import type { FeedbackApprovalRequest } from './feedbackData';
-import { FeedbackFormCard } from './components/FeedbackFormCard';
-import { FeedbackItemCard } from './components/FeedbackItemCard';
+import { FeedbackListHeader } from './FeedbackListHeader';
+import { FeedbackTable } from './FeedbackTable';
+import { NewFeedbackModal } from './NewFeedbackModal';
+import { EditFeedbackModal } from './EditFeedbackModal';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../../DAL/parentDAL';
 
 export type { FeedbackApprovalRequest };
 
-interface FeedbackViewProps {
+export interface FeedbackViewProps {
   userRole: 'parent' | 'student';
   userName: string;
   userPhone?: string;
@@ -32,20 +34,21 @@ export function FeedbackView({
 
   const [requests, setRequests] = useState<FeedbackApprovalRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [title, setTitle] = useState<string>(
-    isLinkStudentRequest ? 'Request to link student profile' : ''
-  );
-  const [description, setDescription] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [initialCreateTitle, setInitialCreateTitle] = useState<string>('');
   const [editingItem, setEditingItem] = useState<FeedbackApprovalRequest | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLinkStudentRequest && !editingItem && !title.trim()) {
-      setTitle('Request to link student profile');
+    if (isLinkStudentRequest) {
+      setInitialCreateTitle('Request to link student profile');
+      setIsCreateModalOpen(true);
     }
-  }, [isLinkStudentRequest, editingItem]);
+  }, [isLinkStudentRequest]);
 
   useEffect(() => {
     let isMounted = true;
@@ -61,9 +64,6 @@ export function FeedbackView({
         );
         if (!isMounted) return;
         setRequests(list);
-        if (list.length > 0 && selectedId === null) {
-          setSelectedId(list[0].id);
-        }
       } catch (err) {
         console.warn('Lỗi khi tải lịch sử phản hồi:', err);
       } finally {
@@ -80,117 +80,121 @@ export function FeedbackView({
     };
   }, [resolvedUserId, resolvedStudentId, userName, userRole]);
 
-  const handleStartEdit = (item: FeedbackApprovalRequest) => {
-    if (!item.canEdit) return;
-    setEditingItem(item);
-    setTitle(item.title);
-    setDescription(item.description);
-    setSelectedId(item.id);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingItem(null);
-    setTitle('');
-    setDescription('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !description.trim() || isSubmitting) return;
-
+  // Create feedback handler
+  const handleCreateSubmit = async (data: {
+    title: string;
+    description: string;
+    priority: string;
+  }) => {
     setIsSubmitting(true);
     try {
-      if (editingItem) {
-        const updated = await learningDAL.updateLearnerFeedback(
-          editingItem.id,
-          {
-            userId: resolvedUserId,
-            title: title.trim(),
-            description: description.trim(),
-          },
-          userRole,
-          userName
-        );
+      const created = await learningDAL.createLearnerFeedback(
+        {
+          userId: resolvedUserId,
+          studentId: resolvedStudentId,
+          title: data.title.trim(),
+          description: data.description.trim(),
+          priority: data.priority,
+        },
+        userRole,
+        userName
+      );
 
-        setRequests((prev) =>
-          prev.map((item) => (item.id === editingItem.id ? updated : item))
-        );
-        setSelectedId(updated.id);
-        setEditingItem(null);
-        setTitle('');
-        setDescription('');
-
-        setToastMessage(
-          `Successfully updated feedback #${updated.requestCode || editingItem.id}!`
-        );
-      } else {
-        const created = await learningDAL.createLearnerFeedback(
-          {
-            userId: resolvedUserId,
-            studentId: resolvedStudentId,
-            title: title.trim(),
-            description: description.trim(),
-            priority: 'medium',
-          },
-          userRole,
-          userName
-        );
-
-        setRequests((prev) => [created, ...prev]);
-        setSelectedId(created.id);
-        setTitle('');
-        setDescription('');
-
-        setToastMessage(
-          'Feedback submitted successfully to Admin Staff (Status: Pending Review — you can still edit before Admin Staff reviews it).'
-        );
-      }
+      setRequests((prev) => [created, ...prev]);
+      setToastMessage(
+        `Feedback #${created.requestCode || created.id} submitted successfully to Admin Staff (Pending Review).`
+      );
     } catch (err) {
-      console.warn('Backend connection error when saving feedback, updating UI locally:', err);
-      if (editingItem) {
-        setRequests((prev) =>
-          prev.map((item) =>
-            item.id === editingItem.id
-              ? { ...item, title: title.trim(), description: description.trim() }
-              : item
-          )
-        );
-        setEditingItem(null);
-        setTitle('');
-        setDescription('');
-        setToastMessage('Feedback updated successfully!');
-      } else {
-        const fallbackReq: FeedbackApprovalRequest = {
-          id: Date.now(),
-          requestCode: `FB${String(requests.length + 1).padStart(4, '0')}`,
-          requestType: 'feedback',
-          title: title.trim(),
-          description: description.trim(),
-          senderName: userName,
-          senderRole: userRole,
-          createdAt: new Date().toLocaleString('en-US', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          status: 'pending',
-          statusLabel: 'Pending Review',
-          canEdit: true,
-        };
+      console.warn('Backend connection error when saving feedback, creating fallback item:', err);
+      const fallbackReq: FeedbackApprovalRequest = {
+        id: Date.now(),
+        requestCode: `FB${String(requests.length + 1).padStart(4, '0')}`,
+        requestType: 'feedback',
+        title: data.title.trim(),
+        description: data.description.trim(),
+        priority: data.priority,
+        senderName: userName,
+        senderRole: userRole,
+        createdAt: new Date().toLocaleString('en-US', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        status: 'pending',
+        statusLabel: 'Pending Review',
+        canEdit: true,
+      };
 
-        setRequests((prev) => [fallbackReq, ...prev]);
-        setSelectedId(fallbackReq.id);
-        setTitle('');
-        setDescription('');
-        setToastMessage('Feedback submitted successfully to Admin Staff!');
-      }
+      setRequests((prev) => [fallbackReq, ...prev]);
+      setToastMessage('Feedback submitted successfully to Admin Staff!');
     } finally {
       setIsSubmitting(false);
       setTimeout(() => setToastMessage(null), 4500);
     }
   };
+
+  // Update feedback handler
+  const handleUpdateSubmit = async (
+    id: number,
+    data: { title: string; description: string; priority: string }
+  ) => {
+    setIsSubmitting(true);
+    try {
+      const updated = await learningDAL.updateLearnerFeedback(
+        id,
+        {
+          userId: resolvedUserId,
+          title: data.title.trim(),
+          description: data.description.trim(),
+        },
+        userRole,
+        userName
+      );
+
+      setRequests((prev) =>
+        prev.map((item) => (item.id === id ? { ...updated, priority: data.priority } : item))
+      );
+      setToastMessage(`Feedback #${updated.requestCode || id} updated successfully!`);
+    } catch (err) {
+      console.warn('Backend connection error when updating feedback, applying local update:', err);
+      setRequests((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                title: data.title.trim(),
+                description: data.description.trim(),
+                priority: data.priority,
+              }
+            : item
+        )
+      );
+      setToastMessage('Feedback updated successfully!');
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setToastMessage(null), 4500);
+    }
+  };
+
+  // Filter requests by status
+  const filteredRequests = useMemo(() => {
+    if (filterStatus === 'all') return requests;
+    return requests.filter((r) => {
+      const s = (r.status || 'pending').toLowerCase();
+      return s === filterStatus;
+    });
+  }, [requests, filterStatus]);
+
+  // Sort requests by createdAt
+  const sortedRequests = useMemo(() => {
+    return [...filteredRequests].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime() || 0;
+      const dateB = new Date(b.createdAt).getTime() || 0;
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  }, [filteredRequests, sortOrder]);
 
   if (loading) {
     return (
@@ -201,13 +205,15 @@ export function FeedbackView({
     );
   }
 
+  const roleLabel = userRole === 'parent' ? 'Parent' : 'Student';
+
   return (
     <main className="main-content">
       <div className="content-container">
         {/* Toast Alert */}
         {toastMessage && (
-          <div className="alert alert-success border-0 rounded-4 shadow-sm d-flex align-items-center gap-3 mb-4 p-3.5">
-            <i className="bi bi-check-circle-fill fs-4 text-success flex-shrink-0"></i>
+          <div className="alert alert-success border-0 rounded-3 shadow-sm d-flex align-items-center gap-3 mb-4 p-3">
+            <i className="bi bi-check-circle-fill fs-4 text-success flex-shrink-0" />
             <div className="flex-grow-1">
               <strong>Success!</strong> {toastMessage}
             </div>
@@ -215,7 +221,8 @@ export function FeedbackView({
               type="button"
               className="btn-close"
               onClick={() => setToastMessage(null)}
-            ></button>
+              aria-label="Close"
+            />
           </div>
         )}
 
@@ -229,59 +236,58 @@ export function FeedbackView({
           ]}
           actions={
             <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-              <i className="bi bi-person-circle me-1"></i>
-              {userName} ({userRole === 'parent' ? 'Parent' : 'Student'})
+              <i className="bi bi-person-circle me-1" />
+              {userName} ({roleLabel})
             </span>
           }
         />
 
-        {/* 2 Columns: Form & History */}
-        <div className="row g-4">
-          <div className="col-lg-6">
-            <FeedbackFormCard
-              title={title}
-              description={description}
-              isSubmitting={isSubmitting}
-              editingCode={editingItem ? (editingItem.requestCode || String(editingItem.id)) : null}
-              onTitleChange={setTitle}
-              onDescriptionChange={setDescription}
-              onCancelEdit={handleCancelEdit}
-              onSubmit={handleSubmit}
-            />
-          </div>
+        {/* Main List Card - Matching Teacher/TA format */}
+        <div className="card class-list-card border-0 mb-4 shadow-sm bg-white rounded-3">
+          <FeedbackListHeader
+            filterStatus={filterStatus}
+            onFilterStatusChange={(s) => setFilterStatus(s)}
+            sortOrder={sortOrder}
+            onSortOrderChange={(o) => setSortOrder(o)}
+            onOpenCreateModal={() => {
+              setInitialCreateTitle('');
+              setIsCreateModalOpen(true);
+            }}
+            userRoleName={roleLabel}
+          />
 
-          <div className="col-lg-6">
-            <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-              <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <h2 className="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                  <i className="bi bi-clock-history text-primary"></i>
-                  Feedback History ({requests.length})
-                </h2>
-                <span className="badge bg-light text-muted border">Default: Feedback sent to Admin Staff</span>
-              </div>
-
-              <div className="d-flex flex-column gap-2.5" style={{ maxHeight: '550px', overflowY: 'auto' }}>
-                {requests.length === 0 ? (
-                  <div className="text-center text-muted py-5">
-                    <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
-                    <p className="mb-0 fw-semibold">No feedback yet</p>
-                    <small>Your feedback or support requests will appear here.</small>
-                  </div>
-                ) : (
-                  requests.map((item) => (
-                    <FeedbackItemCard
-                      key={item.id}
-                      item={item}
-                      isSelected={selectedId === item.id}
-                      onToggle={() => setSelectedId(selectedId === item.id ? null : item.id)}
-                      onEdit={handleStartEdit}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
+          <FeedbackTable
+            requests={sortedRequests}
+            onRequestUpdated={(updated) =>
+              setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+            }
+            onStartEdit={(item) => setEditingItem(item)}
+            userRoleName={roleLabel}
+          />
         </div>
+
+        {/* Modal: Create New Feedback */}
+        <NewFeedbackModal
+          isOpen={isCreateModalOpen}
+          onClose={() => {
+            setIsCreateModalOpen(false);
+            setInitialCreateTitle('');
+          }}
+          onSubmit={handleCreateSubmit}
+          isSubmitting={isSubmitting}
+          userRoleName={roleLabel}
+          initialTitle={initialCreateTitle}
+        />
+
+        {/* Modal: Edit Feedback */}
+        <EditFeedbackModal
+          isOpen={editingItem !== null}
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSubmit={handleUpdateSubmit}
+          isSubmitting={isSubmitting}
+          userRoleName={roleLabel}
+        />
       </div>
     </main>
   );

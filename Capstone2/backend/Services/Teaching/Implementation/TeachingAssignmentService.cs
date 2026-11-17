@@ -122,7 +122,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 ClassName = a.Class?.ClassName ?? $"Class #{a.ClassId}",
                 Title = a.Title,
                 Description = a.Description,
-                FileUrl = a.FileUrl,
+                FileUrl = NormalizeFileUrl(a.FileUrl, "teaching"),
                 DueDate = a.DueDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                 DueDateFormatted = a.DueDate.ToString("dd/MM/yyyy HH:mm"),
                 MaxScore = a.MaxScore,
@@ -200,6 +200,17 @@ namespace EduTrack.API.Services.Teaching.Implementation
             return true;
         }
 
+        private static string NormalizeFileUrl(string? url, string folder)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+            if (url.StartsWith("https://storage.edutrack.edu.vn/"))
+            {
+                var fileName = url.Split('/').LastOrDefault() ?? "document.pdf";
+                return $"/uploads/{folder}/{fileName}";
+            }
+            return url;
+        }
+
         public async Task<List<TeachingSubmissionItemDto>> GetAssignmentSubmissionsAsync(int assignmentId)
         {
             var assignment = await _context.Assignments
@@ -248,7 +259,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         StudentName = student.FullName,
                         StudentCode = student.UserCode,
                         StudentAvatarUrl = student.AvatarUrl,
-                        FileUrl = sub.FileUrl,
+                        FileUrl = NormalizeFileUrl(sub.FileUrl, "submissions"),
                         SubmittedAt = sub.SubmittedAt?.ToString("yyyy-MM-ddTHH:mm:ss") ?? string.Empty,
                         SubmittedAtFormatted = sub.SubmittedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—",
                         Score = sub.Score,
@@ -363,7 +374,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 ClassName = cls?.ClassName ?? $"Class #{a.ClassId}",
                 Title = a.Title,
                 Description = a.Description,
-                FileUrl = a.FileUrl,
+                FileUrl = NormalizeFileUrl(a.FileUrl, "teaching"),
                 DueDate = a.DueDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                 DueDateFormatted = a.DueDate.ToString("dd/MM/yyyy HH:mm"),
                 MaxScore = a.MaxScore,
