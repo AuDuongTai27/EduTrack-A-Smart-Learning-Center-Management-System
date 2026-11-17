@@ -1,1 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 75" fill="none"><path d="M20 67c50-23 86 9 150-8" stroke="#EAF8F1" stroke-width="12" stroke-linecap="round"/><g stroke="#078444" stroke-opacity=".45" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M42 30q24-8 43 6 19-14 43-6v31q-24-6-43 6-19-12-43-6V30Zm43 6v31m-34-27 23 4m-23 4 23 4m22-8 23-4m-23 12 23-4M108 8h33a9 9 0 0 1 9 9v7a9 9 0 0 1-9 9h-9l-9 8v-8h-15a9 9 0 0 1-9-9v-7a9 9 0 0 1 9-9Z"/><circle cx="112" cy="20" r="1"/><circle cx="125" cy="20" r="1"/><circle cx="138" cy="20" r="1"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 75" fill="none">
+  <defs>
+    <radialGradient id="paper" cx=".32" cy=".18" r="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#EAF8F1"/></radialGradient>
+    <radialGradient id="mint" cx=".25" cy=".15" r="1"><stop stop-color="#EAF8F1"/><stop offset="1" stop-color="#078444" stop-opacity=".28"/></radialGradient>
+    <radialGradient id="shadow"><stop stop-color="#078444" stop-opacity=".15"/><stop offset="1" stop-color="#EAF8F1" stop-opacity="0"/></radialGradient>
+  </defs>
+  <ellipse cx="94" cy="70" rx="63" ry="5" fill="url(#shadow)"/>
+  <g transform="translate(41 1) scale(.3)" stroke="#078444" stroke-opacity=".5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 48Q32 22 61 22H191Q220 22 220 51V114Q220 142 188 142H92L48 169 58 139Q32 131 32 106Z" fill="url(#paper)"/>
+<path d="M198 112Q198 87 226 87H294Q324 87 324 117V160Q324 184 300 189L311 211 277 192H228Q198 192 198 163Z" fill="url(#mint)"/>
+<path d="M68 54q-12 2-12 15h12v12H53q-9-22 12-33m36 6q-12 2-12 15h12v12H86q-9-22 12-33" fill="url(#mint)" stroke-width="3"/>
+<path d="M117 65h68M60 97h124M60 114h79m82 8h78m-78 20h78m-78 20h50" opacity=".65"/>
+<g transform="rotate(-7 233 32)"><rect x="213" y="7" width="31" height="39" rx="8" fill="url(#paper)"/><path d="m219 35 9-18 9 18m-14-7h10" stroke-width="3"/></g>
+<g transform="rotate(8 273 43)"><rect x="254" y="21" width="31" height="39" rx="8" fill="url(#paper)"/><path d="M262 30h6q11 1 1 10 13 9 0 11h-7Zm0 10h7" stroke-width="3"/></g>
+<g transform="rotate(20 309 62)"><rect x="291" y="42" width="31" height="39" rx="8" fill="url(#paper)"/><path d="M314 53q-16-7-16 9t16 9" stroke-width="3"/></g>
+<path d="m95 180 41 31 16 19-23-7-42-31q-8-10 8-12Z" fill="url(#mint)"/><path d="m127 205-8 11m17-5-7 12m23 7 7-4q25-15 42-4t38-3"/></g>
+</svg>

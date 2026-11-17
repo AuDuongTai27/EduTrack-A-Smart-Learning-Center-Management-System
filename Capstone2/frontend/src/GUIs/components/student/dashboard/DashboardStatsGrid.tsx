@@ -30,14 +30,14 @@ export function DashboardStatsGrid({
         <div key={stat.id} className="stat-card">
           <div
             className="stat-icon-wrapper"
-            style={{ backgroundColor: stat.bgColor, color: stat.color }}
+            style={{ backgroundColor: stat.id === 'classes' ? 'var(--et-mint)' : stat.bgColor, color: stat.id === 'classes' ? 'var(--et-primary)' : stat.color }}
           >
             <i className={`bi ${stat.icon}`}></i>
           </div>
           <div className="stat-info">
             <p className="stat-label">{stat.label}</p>
             <div className="stat-value-group">
-              <span className="stat-number" style={{ color: stat.color }}>
+              <span className="stat-number" style={{ color: stat.id === 'classes' ? 'var(--et-primary)' : stat.color }}>
                 {stat.value}
               </span>
               {stat.badge && (

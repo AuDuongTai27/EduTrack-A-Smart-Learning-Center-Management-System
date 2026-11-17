@@ -23,8 +23,8 @@ export function LearnerPageLoader({
         style={{
           width: '68px',
           height: '68px',
-          background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
-          boxShadow: '0 6px 20px rgba(37, 99, 235, 0.12)',
+          background: 'var(--et-mint)',
+          boxShadow: '0 6px 20px rgba(7, 132, 68, 0.12)',
         }}
       >
         <div

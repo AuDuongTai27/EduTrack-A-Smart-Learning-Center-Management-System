@@ -15,11 +15,11 @@
   margin-top: auto;
   /* Bleed through the existing 12px nav padding; leave menu spacing untouched. */
   margin-inline: -12px;
-  background:
-    url('../illustrations/academy-school.svg') center bottom / contain no-repeat,
-    linear-gradient(to bottom, transparent, var(--et-mint) 40%, var(--et-mint)) center bottom / 100% 100% no-repeat;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 78%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 78%, transparent);
+  /* Supplied PNG is opaque. A proportional bleed and a soft mask on all four
+     edges blend its mint paper into the sidebar without a rectangular seam. */
+  background: url('../illustrations/academy-school-mint.png') center 58% / 112% auto no-repeat;
+  -webkit-mask-image: radial-gradient(ellipse 70% 66% at 50% 52%, #000 48%, transparent 85%);
+  mask-image: radial-gradient(ellipse 70% 66% at 50% 52%, #000 48%, transparent 85%);
   pointer-events: none;
 }
 /* Keep the footer's existing border thickness/geometry, without a visible seam. */

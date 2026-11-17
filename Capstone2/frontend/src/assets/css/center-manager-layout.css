@@ -17,8 +17,8 @@
   --text-light: #f7f5ff;
   --text-dark: #1f2430;
 
-  --accent: #5d3fd3;
-  --accent-soft: #ede9fe;
+  --accent: var(--et-primary);
+  --accent-soft: var(--et-mint);
   --icon-bg: #f1f5f9;
   font-family:
     Inter,
@@ -195,7 +195,7 @@
     border-radius: 4px;
 
     color: var(--accent);
-    background: #ede9fe;
+    background: var(--et-mint);
   }
 
   .center-info {
@@ -458,7 +458,7 @@
   }
 
   .academic-year-btn i {
-    color: #5d3fd3;
+    color: var(--et-primary);
   }
 
   .icon-btn {
@@ -495,7 +495,7 @@
     justify-content: center;
 
     color: #ffffff;
-    background: linear-gradient(135deg, #5d3fd3, #8b5cf6);
+    background: var(--et-brand-banner);
 
     border-radius: 4px;
 
@@ -711,8 +711,8 @@
 
     border-radius: 50%;
 
-    color: #5d3fd3;
-    background: #eeeaff;
+    color: var(--et-primary);
+    background: var(--et-mint);
 
     font-size: 11px;
     font-weight: 700;
@@ -849,8 +849,8 @@
   }
 
   .user-action-btn:hover {
-    color: #5d3fd3;
-    background: #f1efff;
+    color: var(--et-primary);
+    background: var(--et-mint);
   }
 
   .dropdown-menu {
@@ -881,9 +881,9 @@
   }
 
   .table-action-btn:hover {
-    color: #5d3fd3;
-    background: #f1efff;
-    border-color: #dcd5ff;
+    color: var(--et-primary);
+    background: var(--et-mint);
+    border-color: var(--et-border);
   }
 
   /* Footer */
@@ -989,7 +989,7 @@
   }
 
   .dashboard-view-all {
-    color: #0d6efd;
+    color: var(--et-primary);
 
     font-size: 14px;
     font-weight: 500;
@@ -1100,7 +1100,7 @@
    ========================= */
 
   .dashboard-view-link {
-    color: #5d3fd3;
+    color: var(--et-primary);
 
     font-size: 12px;
     font-weight: 600;
@@ -1109,7 +1109,7 @@
   }
 
   .dashboard-view-link:hover {
-    color: #4930b5;
+    color: var(--et-primary-hover);
   }
 
   /* Today's Schedule */
@@ -1158,7 +1158,7 @@
     width: 3px;
     height: 42px;
 
-    background: #5d3fd3;
+    background: var(--et-primary);
 
     border-radius: 10px;
   }
@@ -1246,8 +1246,8 @@
 
     flex-shrink: 0;
 
-    color: #5d3fd3;
-    background: #f0edff;
+    color: var(--et-primary);
+    background: var(--et-mint);
 
     border-radius: 8px;
 
@@ -1294,17 +1294,12 @@
 
   .dashboard-welcome {
     color: #ffffff !important;
-    background: linear-gradient(
-      135deg,
-      #5d3fd3 0%,
-      #7c5cfc 60%,
-      #4d8cff 100%
-    ) !important;
+    background: var(--et-brand-banner) !important;
 
     border: 0 !important;
     border-radius: 12px !important;
 
-    box-shadow: 0 4px 16px rgba(93, 63, 211, 0.18) !important;
+    box-shadow: var(--et-shadow) !important;
     overflow: hidden;
   }
 
@@ -1619,9 +1614,9 @@
   }
 
   .notification-item.active {
-    background: #f6f4ff;
+    background: var(--et-mint);
 
-    border-left: 3px solid #5d3fd3;
+    border-left: 3px solid var(--et-primary);
   }
 
   .notification-item-top {
@@ -1862,10 +1857,10 @@
   }
 
   .settings-tabs .nav-link.active {
-    color: #5d3fd3;
+    color: var(--et-primary);
     background: transparent;
 
-    border-bottom-color: #5d3fd3;
+    border-bottom-color: var(--et-primary);
   }
 
   .settings-section {
@@ -1957,10 +1952,10 @@
   }
 
   .monitoring-tabs .nav-link.active {
-    color: #5d3fd3;
+    color: var(--et-primary);
     background: transparent;
 
-    border-bottom-color: #5d3fd3;
+    border-bottom-color: var(--et-primary);
   }
 
   .monitoring-tab-header,

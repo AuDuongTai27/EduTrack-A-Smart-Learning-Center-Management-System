@@ -46,8 +46,8 @@
   --text-light: #f7f5ff;
   --text-dark: #1f2430;
 
-  --accent: #5d3fd3;
-  --accent-soft: #ede9fe;
+  --accent: var(--et-primary);
+  --accent-soft: var(--et-mint);
   --icon-bg: #f1f5f9;
   font-family:
     Inter,
@@ -224,7 +224,7 @@
     border-radius: 4px;
 
     color: var(--accent);
-    background: #ede9fe;
+    background: var(--et-mint);
   }
 
   .center-info {
@@ -524,7 +524,7 @@
     justify-content: center;
 
     color: #ffffff;
-    background: linear-gradient(135deg, #5d3fd3, #8b5cf6);
+    background: var(--et-brand-banner);
 
     border-radius: 4px;
 
@@ -748,8 +748,8 @@
 
     border-radius: 50%;
 
-    color: #5d3fd3;
-    background: #eeeaff;
+    color: var(--et-primary);
+    background: var(--et-mint);
 
     font-size: 11px;
     font-weight: 700;
@@ -833,7 +833,7 @@
 
   .user-action-btn:hover {
     color: var(--et-primary);
-    background: #f1efff;
+    background: var(--et-mint);
   }
 
   .dropdown-menu {
@@ -865,8 +865,8 @@
 
   .table-action-btn:hover {
     color: var(--et-primary);
-    background: #f1efff;
-    border-color: #dcd5ff;
+    background: var(--et-mint);
+    border-color: var(--et-border);
   }
 
   /* Footer */
@@ -993,7 +993,7 @@
   }
 
   .dashboard-view-all {
-    color: #0d6efd;
+    color: var(--et-primary);
 
     font-size: 14px;
     font-weight: 500;
@@ -1011,17 +1011,12 @@
 
   .dashboard-welcome {
     color: #ffffff !important;
-    background: linear-gradient(
-      135deg,
-      var(--et-primary) 0%,
-      #7c5cfc 60%,
-      #4d8cff 100%
-    ) !important;
+    background: var(--et-brand-banner) !important;
 
     border: 0 !important;
     border-radius: 12px !important;
 
-    box-shadow: 0 4px 16px rgba(93, 63, 211, 0.18) !important;
+    box-shadow: var(--et-shadow) !important;
     overflow: hidden;
   }
 

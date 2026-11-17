@@ -6,10 +6,11 @@ import biology from '../../../assets/illustrations/subjects/biology.svg';
 import english from '../../../assets/illustrations/subjects/english.svg';
 import literature from '../../../assets/illustrations/subjects/literature.svg';
 import informatics from '../../../assets/illustrations/subjects/informatics.svg';
+import naturalScience from '../../../assets/illustrations/subjects/natural-science.svg';
 import defaultSubject from '../../../assets/illustrations/subjects/default-subject.svg';
 import '../../../assets/css/subject-illustrations.css';
 
-const assets: Record<SubjectIllustrationKey,string> = {mathematics,physics,chemistry,biology,english,literature,informatics,'default-subject':defaultSubject};
+const assets: Record<SubjectIllustrationKey,string> = {mathematics,physics,chemistry,biology,english,literature,informatics,'natural-science':naturalScience,'default-subject':defaultSubject};
 export function SubjectIllustration({name,code}: {name?: string | null; code?: string | null}) {
   const key = getSubjectIllustrationKey(name,code);
   return <img className="et-subject-illustration" data-subject-illustration={key} src={assets[key]} width={190} height={75} alt="" aria-hidden="true" draggable={false}/>;

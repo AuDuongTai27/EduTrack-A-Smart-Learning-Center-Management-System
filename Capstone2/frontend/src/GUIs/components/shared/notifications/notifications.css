@@ -42,7 +42,7 @@
   align-items:flex-start
 }
 .ntf-item:hover,.ntf-item:focus-visible {
-  background:#f0f5ff
+  background:var(--et-mint)
 }
 .ntf-item>div {
   min-width:0;
@@ -69,14 +69,14 @@
   overflow:hidden
 }
 .ntf-unread {
-  background:#f6f8ff;
-  border-left:3px solid #5274df
+  background:var(--et-mint);
+  border-left:3px solid var(--et-primary)
 }
 .ntf-dot {
   width:7px;
   height:7px;
   border-radius:50%;
-  background:#5274df;
+  background:var(--et-primary);
   flex-shrink:0;
   margin-top:8px
 }
@@ -85,7 +85,7 @@
   top:-3px;
   right:-5px;
   padding:1px 5px;
-  background:#3458c6;
+  background:var(--et-primary);
   color:white;
   border-radius:12px;
   font-size:10px
@@ -187,7 +187,7 @@
   overflow-wrap:anywhere
 }
 .ntf-page .ntf-list-button[aria-pressed=true] {
-  background:#eef3ff
+  background:var(--et-mint)
 }
 .ntf-page label {
   display:grid;
@@ -205,7 +205,7 @@
   margin-top:16px
 }
 .ntf-page button:focus-visible,.ntf-scope button:focus-visible,.ntf-scope a:focus-visible {
-  outline:3px solid #5d7ee2;
+  outline:3px solid var(--et-primary-hover);
   outline-offset:2px
 }
 @media(max-width:767px) {
@@ -251,8 +251,8 @@
 .ntf-scope.ntf-teaching-dashboard { height:auto; min-height:0 }
 .ntf-teaching-dashboard .ntf-empty { padding:12px 8px; min-height:130px }
 .ntf-teaching-dashboard .ntf-teaching-item { width:100%; color:inherit; text-decoration:none; transition:background-color .15s }
-.ntf-teaching-dashboard .ntf-teaching-item:hover { background:#f0f5ff }
-.ntf-teaching-dashboard .ntf-teaching-item:focus-visible { background:#f0f5ff; outline:3px solid #5d7ee2; outline-offset:2px }
+.ntf-teaching-dashboard .ntf-teaching-item:hover { background:var(--et-mint) }
+.ntf-teaching-dashboard .ntf-teaching-item:focus-visible { background:var(--et-mint); outline:3px solid var(--et-primary-hover); outline-offset:2px }
 .ntf-teaching-dashboard .ntf-sender-avatar { width:38px; height:38px; object-fit:cover }
 .ntf-teaching-dashboard .notice-content { min-width:0; overflow-wrap:anywhere }
 .ntf-teaching-dashboard .ntf-new-badge { flex-shrink:0; white-space:nowrap }
@@ -269,9 +269,9 @@
 .ntf-page .ntf-layout { align-items:start }
 .ntf-page .ntf-layout>.card { min-width:0; border:1px solid #e1e5ed; border-radius:8px; overflow:hidden }
 .ntf-page .ntf-detail { min-height:300px }
-.ntf-page .ntf-list-button:hover { background:#f3f6fc }
-.ntf-page .ntf-list-button.ntf-unread { background:#f6f8ff; border-left:3px solid #5274df }
-.ntf-page .ntf-list-button[aria-pressed=true] { background:#eaf0fe; box-shadow:inset 3px 0 #3458c6 }
+.ntf-page .ntf-list-button:hover { background:var(--et-surface) }
+.ntf-page .ntf-list-button.ntf-unread { background:var(--et-mint); border-left:3px solid var(--et-primary) }
+.ntf-page .ntf-list-button[aria-pressed=true] { background:var(--et-mint); box-shadow:inset 3px 0 var(--et-primary) }
 .ntf-page .ntf-list-button strong { display:block; font-size:.95rem }
 .ntf-page .ntf-list-button small { color:#59677e }
 .ntf-scope .ntf-type-label { display:block; width:fit-content; color:#3e5796; background:#eef2fb; padding:2px 8px; border-radius:4px; font-size:.75rem; margin-bottom:8px }
@@ -298,11 +298,11 @@
 .ntf-compose [role=listbox]:empty { border:0 }
 .ntf-compose .ntf-recipient-option { cursor:pointer; padding:10px 12px; border-bottom:1px solid #edf0f5; overflow-wrap:anywhere }
 .ntf-compose .ntf-recipient-option:last-child { border-bottom:0 }
-.ntf-compose .ntf-recipient-option:hover,.ntf-compose .ntf-recipient-option[aria-selected=true] { background:#eef3ff }
+.ntf-compose .ntf-recipient-option:hover,.ntf-compose .ntf-recipient-option[aria-selected=true] { background:var(--et-mint) }
 .ntf-compose .ntf-recipient-option strong,.ntf-compose .ntf-recipient-option small { display:block }
 .ntf-compose .ntf-recipient-option small,.ntf-compose .ntf-search-status { font-size:.8rem; color:#59677e }
 .ntf-compose .ntf-clear-recipient { justify-self:start }
-.ntf-compose :is(input,textarea,select,button):focus-visible { outline:3px solid #5d7ee2; outline-offset:2px }
+.ntf-compose :is(input,textarea,select,button):focus-visible { outline:3px solid var(--et-primary-hover); outline-offset:2px }
 .ntf-compose [aria-invalid=true] { border-color:#b42336 }
 @media(max-width:900px) { .ntf-page .ntf-layout { grid-template-columns:minmax(0,1fr) } }
 @media(max-width:575px) {

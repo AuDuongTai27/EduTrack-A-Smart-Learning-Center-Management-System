@@ -25,7 +25,7 @@ export default function StudentProgressHeroCard({
                 width: "64px",
                 height: "64px",
                 fontSize: "22px",
-                background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
+                background: "var(--et-brand-banner)",
               }}
             >
               {student.avatarInitials}

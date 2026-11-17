@@ -24,9 +24,23 @@ test('artwork selection is independent of class title, year and class/seed ident
     assert.equal(key('Toán'),'mathematics',fixture.title);
   }
 });
-test('all eight SVGs share dimensions, transparent vector strokes and no embedded text or remote images',()=>{
+test('all nine SVGs share dimensions, transparent vector strokes and no embedded text or remote images',()=>{
   const dir='src/assets/illustrations/subjects';
   const files=fs.readdirSync(dir).filter(f=>f.endsWith('.svg'));
-  assert.equal(files.length,8);
+  assert.equal(files.length,9);
   for(const file of files){const svg=fs.readFileSync(dir+'/'+file,'utf8');assert.match(svg,/viewBox="0 0 190 75"/);assert.doesNotMatch(svg,/<(?:text|image|script|foreignObject|linearGradient)\b/);assert.match(svg,/#078444/);}
+});
+
+test('Natural Science aliases, Vietnamese accents and whitespace select its independent illustration',()=>{
+  for(const name of ['Natural Science','Natural Sciences','KHTN','Khoa học tự nhiên','  KHOA   HỌC TỰ NHIÊN  ','khoa học tự nhiên'.normalize('NFD')]){
+    assert.equal(key(name),'natural-science',name);
+  }
+  assert.equal(key('Unknown','KHTN'),'natural-science');
+  assert.equal(key('Natural Sciences','UNKNOWN'),'natural-science');
+});
+
+test('Math aliases never select the default book; unknown official subjects do not infer artwork from a class title',()=>{
+  for(const name of ['Math','Maths','Mathematics','Toán','Toán học','  mAtH  ','TOÁN HỌC'.normalize('NFD')])assert.equal(key(name),'mathematics',name);
+  assert.equal(key('Unknown official subject'),'default-subject');
+  assert.equal(key('Class 9 - Advanced Mathematics'),'default-subject');
 });

@@ -182,7 +182,7 @@ export function ParentProfilePage() {
                   style={{
                     width: '64px',
                     height: '64px',
-                    background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+                    background: 'var(--et-brand-banner)',
                   }}
                 >
                   VN
@@ -303,7 +303,7 @@ export function ParentProfilePage() {
                           style={{
                             width: '42px',
                             height: '42px',
-                            background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+                            background: 'var(--et-brand-banner)',
                             fontSize: '14px',
                           }}
                         >

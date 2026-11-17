@@ -604,7 +604,7 @@ export default function AssignmentsSection({
                 <div className="d-flex align-items-center gap-2">
                   <div
                     className="rounded-3 d-flex align-items-center justify-content-center"
-                    style={{ width: "36px", height: "36px", backgroundColor: "#EFF6FF", color: "#2563EB" }}
+                    style={{ width: "36px", height: "36px", backgroundColor: "var(--et-mint)", color: "var(--et-primary)" }}
                   >
                     <i className="bi bi-cloud-arrow-up-fill fs-5" />
                   </div>

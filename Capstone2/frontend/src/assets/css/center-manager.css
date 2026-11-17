@@ -251,10 +251,10 @@
   }
 
   .settings-tabs .nav-link.active {
-    color: #5d3fd3;
+    color: var(--et-primary);
     background: transparent;
 
-    border-bottom-color: #5d3fd3;
+    border-bottom-color: var(--et-primary);
   }
 
   .settings-section {

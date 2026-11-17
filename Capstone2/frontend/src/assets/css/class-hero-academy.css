@@ -1,0 +1,135 @@
+/* Student / Parent class details only. Card and dashboard geometry is untouched. */
+.student-scope .et-class-hero {
+  isolation: isolate;
+  border-radius: 20px;
+  background: var(--et-brand-banner);
+  box-shadow: 0 8px 24px rgba(5, 100, 60, .14);
+}
+.student-scope .et-class-hero::before {
+  z-index: -2;
+  opacity: .65;
+  mask-image: linear-gradient(110deg, #000, transparent 50%, #000);
+}
+.student-scope .et-class-hero::after {
+  z-index: -2;
+  background:
+    url('../illustrations/academy-banner-waves.svg') center bottom / 100% 150px no-repeat,
+    radial-gradient(ellipse at 100% 8%, rgba(234, 248, 241, .12), transparent 54%);
+  opacity: .75;
+}
+.et-class-hero-decoration {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.et-class-hero-art {
+  position: absolute;
+  top: 6px;
+  right: 24px;
+  width: 180px;
+  height: 94px;
+  background: url('../illustrations/academy-books-cap.svg') center / contain no-repeat;
+  pointer-events: none;
+}
+.et-class-hero-watermark {
+  position: absolute;
+  top: 22px;
+  right: 236px;
+  width: 160px;
+  height: 80px;
+  opacity: .13;
+  filter: brightness(0) invert(1);
+  pointer-events: none;
+}
+.student-scope .et-class-hero-watermark .et-subject-illustration {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: static;
+}
+.student-scope .et-class-hero-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: calc(100% - 210px);
+  overflow-wrap: anywhere;
+}
+.student-scope .et-class-hero-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end !important;
+  gap: 24px !important;
+}
+.et-class-hero-copy { min-width: 0; }
+.student-scope .et-class-hero-copy :is(h1, p) {
+  overflow-wrap: anywhere;
+}
+.student-scope .et-class-hero-copy > p { color: rgba(255, 255, 255, .9) !important; }
+.student-scope .et-class-hero .hero-subject-pill {
+  color: var(--et-primary-active);
+  background: var(--et-card);
+  border-color: rgba(255, 255, 255, .65);
+}
+.student-scope .et-class-hero-summary {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  padding: 14px 8px;
+  border: 1px solid rgba(255, 255, 255, .42);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(234, 248, 241, .12), rgba(255, 255, 255, .04)), rgba(5, 100, 60, .78);
+  box-shadow: 0 5px 16px rgba(5, 100, 60, .16), inset 0 1px rgba(255, 255, 255, .15);
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+.student-scope .et-class-hero-summary-item {
+  min-width: 88px;
+  padding: 0 14px;
+  text-align: center;
+}
+.student-scope .et-class-hero-summary-item ~ .et-class-hero-summary-item {
+  border-left: 1px solid rgba(255, 255, 255, .28);
+}
+.student-scope .et-class-hero-summary .hero-stat-chip {
+  background: transparent;
+  box-shadow: none;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  backdrop-filter: none;
+}
+.student-scope .et-class-hero-summary .hero-stat-chip:first-child { border-left: 0; }
+.et-class-hero-summary-icon {
+  display: block;
+  color: rgba(255, 255, 255, .88);
+  font-size: 15px;
+  line-height: 1;
+  margin-bottom: 7px;
+  pointer-events: none;
+}
+.student-scope .et-class-hero-summary :is(.hero-stat-label, .text-white-50) {
+  color: rgba(255, 255, 255, .95) !important;
+}
+.student-scope .et-class-hero-summary-divider { display: none; }
+@media (max-width: 1199.98px) {
+  .student-scope .et-class-hero-row { gap: 18px !important; }
+  .student-scope .et-class-hero-summary-item { min-width: 78px; padding-inline: 10px; }
+  .et-class-hero-art { right: 20px; width: 160px; height: 90px; }
+  .et-class-hero-watermark { right: 190px; width: 130px; }
+  .student-scope .et-class-hero-breadcrumbs { max-width: calc(100% - 175px); }
+}
+@media (max-width: 767.98px) {
+  .student-scope .et-class-hero-row { grid-template-columns: minmax(0, 1fr); gap: 18px !important; }
+  .student-scope .et-class-hero-summary { justify-self: start; max-width: 100%; }
+  .student-scope .et-class-hero-summary-item { min-width: 0; padding-inline: 13px; }
+  .student-scope .et-class-hero-breadcrumbs { max-width: 100%; }
+  .et-class-hero-art, .et-class-hero-watermark { display: none; }
+}
+@media (max-width: 399.98px) {
+  .student-scope .et-class-hero { padding: 24px 20px; }
+  .student-scope .et-class-hero-summary-item { padding-inline: 9px; }
+}
