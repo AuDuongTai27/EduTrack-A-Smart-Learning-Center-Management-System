@@ -21,17 +21,18 @@ export function FeedbackPagination({
   const endItem = Math.min(currentPage * rowsPerPage, totalItems);
 
   return (
-    <div className="table-pagination-footer d-flex align-items-center justify-content-between p-3 border-top flex-wrap gap-2">
-      <span className="small text-muted">
-        Showing {startItem} to {endItem} of {totalItems} feedback requests
+    <div className="table-pagination-footer d-flex align-items-center justify-content-between px-4 py-2.5 border-top bg-light bg-opacity-30 flex-wrap gap-2">
+      <span className="small text-muted" style={{ fontSize: '13px' }}>
+        Showing <strong>{startItem}</strong> to <strong>{endItem}</strong> of <strong>{totalItems}</strong> feedback requests
       </span>
 
-      <div className="d-flex align-items-center gap-1">
+      <div className="d-flex align-items-center gap-1.5">
         <button
           type="button"
-          className="btn btn-sm btn-outline-secondary px-2.5 py-1"
+          className="btn btn-sm btn-outline-secondary px-2.5 py-1 rounded-2"
           disabled={currentPage <= 1}
           onClick={() => onPageChange?.(currentPage - 1)}
+          style={{ fontSize: '12.5px' }}
         >
           <i className="bi bi-chevron-left me-1" /> Prev
         </button>
@@ -58,10 +59,10 @@ export function FeedbackPagination({
               <button
                 key={p}
                 type="button"
-                className={`btn btn-sm ${
+                className={`btn btn-sm rounded-2 ${
                   p === currentPage ? 'btn-primary' : 'btn-outline-light text-dark border'
                 }`}
-                style={{ minWidth: 32 }}
+                style={{ minWidth: 32, height: 32, padding: '0 6px', fontSize: '12.5px' }}
                 onClick={() => onPageChange?.(p)}
               >
                 {p}
@@ -72,9 +73,10 @@ export function FeedbackPagination({
 
         <button
           type="button"
-          className="btn btn-sm btn-outline-secondary px-2.5 py-1"
+          className="btn btn-sm btn-outline-secondary px-2.5 py-1 rounded-2"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange?.(currentPage + 1)}
+          style={{ fontSize: '12.5px' }}
         >
           Next <i className="bi bi-chevron-right ms-1" />
         </button>
