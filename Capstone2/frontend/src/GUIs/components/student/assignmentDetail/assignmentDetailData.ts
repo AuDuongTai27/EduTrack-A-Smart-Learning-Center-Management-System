@@ -9,6 +9,7 @@ export interface AssignmentDetailItem {
   classId: number;
   score?: string;
   description?: string | null;
+  fileUrl?: string | null;
 }
 
 export interface AttachedFileItem {

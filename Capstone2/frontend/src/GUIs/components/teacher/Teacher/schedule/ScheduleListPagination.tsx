@@ -1,4 +1,4 @@
-import {PaginationNavGroup} from '../../CommonPaginationUtils';
+import {PaginationNavGroup} from '../../../Common/CommonPaginationUtils';
 export interface ScheduleListPaginationProps {
   totalItems?: number; currentPage?: number; rowsPerPage?: number; onPageChange?: (page: number) => void; itemLabel?: string;
 }

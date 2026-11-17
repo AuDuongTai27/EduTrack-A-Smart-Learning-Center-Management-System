@@ -322,7 +322,7 @@ export function ScheduleWorkspace({
             <p>{model.sessions.length ? 'No sessions match the filters.' : 'No sessions scheduled for the selected week.'}</p></div>}
           {model.view === 'calendar' ? <ScheduleCalendar sessions={displayedSessions} monday={model.monday} now={model.now} onOpen={model.open}
             partner={role === 'teacher' ? 'ta' : 'teacher'} /> :
-            <ScheduleList sessions={displayedSessions} now={model.now} role={role} sort={model.sort} onSort={model.handleSort}
+            <ScheduleList sessions={displayedSessions} now={model.now} role={role}
               page={model.page} pageSize={model.pageSize} onPage={model.setPage} onOpen={model.open} />}
         </>}
       </div>

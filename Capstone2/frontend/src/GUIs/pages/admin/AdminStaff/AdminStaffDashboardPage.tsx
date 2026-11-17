@@ -18,7 +18,6 @@ import {
   type DashboardSection,
 } from "../../../../BLL/services/adminStaffDashboardService";
 import {useSelectedUser} from '../../../hooks/useSelectedUser';
-import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";
 
 function formatDate(value: string | null | undefined) {
@@ -35,11 +34,9 @@ function formatDateTime(value: string | null | undefined) {
 
 export default function AdminStaffDashboardPage() {
   const { user, permission, loading: selectionLoading } = useSelectedUser();
-  const { refresh: refreshCenterSettings } = useCenterSettings();
   const staffUserId = getStaffUserId(user, permission);
   const [data, setData] = useState<AdminStaffDashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [now, setNow] = useState(() => new Date());
   const today = centerDateKey(now);
   // Hide the previous account's data immediately when identity changes.
@@ -80,7 +77,7 @@ export default function AdminStaffDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [staffUserId, selectionLoading, today, refreshKey]);
+  }, [staffUserId, selectionLoading, today]);
 
   const totalOutstanding = dashboard?.tuition.data?.outstanding;
   const todayStr = now.toLocaleDateString("en-US", {
@@ -100,16 +97,6 @@ export default function AdminStaffDashboardPage() {
           { label: "Admin Staff", path: "/admin-staff" },
           { label: "Dashboard" },
         ]}
-        action={
-          <button type="button" className="btn btn-outline-primary" disabled={loading || selectionLoading}
-            onClick={() => {
-              void refreshCenterSettings();
-              setNow(new Date());
-              setRefreshKey((value) => value + 1);
-            }}>
-            <i className="bi bi-arrow-clockwise me-1" /> Refresh
-          </button>
-        }
       />
 
       {(loading || selectionLoading) && (

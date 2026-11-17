@@ -1,22 +1,12 @@
 import type {ScheduleRole, ScheduleSession} from '../../../../../BLL/models/ScheduleSession';
 import {displayScheduleDate, scheduleStatus} from '../../../../../BLL/services/scheduleViewService';
 
-export type SortField = 'className' | 'dayOfWeek' | 'time' | 'studentCount';
-export type SortOrder = 'asc' | 'desc';
 export interface ScheduleTableProps {
-  sessions: ScheduleSession[]; now: Date; role?: ScheduleRole; sortField?: SortField; sortOrder?: SortOrder;
-  onSort?: (field: SortField) => void; onOpen: (session: ScheduleSession) => void;
+  sessions: ScheduleSession[]; now: Date; role?: ScheduleRole; onOpen: (session: ScheduleSession) => void;
 }
 // Only the row contract and actions change to actual ClassSessions.
-export default function ScheduleTable({sessions, now, role = 'student', sortField, sortOrder, onSort, onOpen}: ScheduleTableProps) {
+export default function ScheduleTable({sessions, now, role = 'student', onOpen}: ScheduleTableProps) {
   const isTa = role === 'teaching-assistant';
-  const renderSortIcon = (field: SortField) => <button type="button" className="schedule-sort-button ms-1"
-    data-sort={field} disabled={field === 'studentCount'} aria-label={'Sort ' + field}
-    title={field === 'studentCount' ? 'Class size data not available in API' : 'Sort'}
-    onClick={() => onSort?.(field)}>
-    <i className={sortField === field ? 'bi ' + (sortOrder === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down') + ' text-primary table-sort-icon' : 'bi bi-arrow-down-up text-muted table-sort-icon'} />
-  </button>;
-  const ariaSort = (field: SortField) => sortField === field ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none';
 
   const getScheduleStatusLabel = (key: string, defaultLabel: string) => {
     switch (key) {
@@ -31,11 +21,11 @@ export default function ScheduleTable({sessions, now, role = 'student', sortFiel
   return <div className="table-responsive-container et-schedule-table-scroll" tabIndex={0} aria-label="Session list">
     <table className="table custom-table align-middle mb-0 et-schedule-table" id="scheduleTable">
       <thead><tr>
-        <th scope="col" aria-sort={ariaSort('className')}>Class {renderSortIcon('className')}</th>
+        <th scope="col">Class</th>
         <th scope="col">Subject</th><th scope="col">Room</th>
-        <th scope="col" aria-sort={ariaSort('dayOfWeek')}>Day / Date {renderSortIcon('dayOfWeek')}</th>
-        <th scope="col" aria-sort={ariaSort('time')}>Time {renderSortIcon('time')}</th>
-        <th scope="col">Class Size {renderSortIcon('studentCount')}</th>
+        <th scope="col">Day / Date</th>
+        <th scope="col">Time</th>
+        <th scope="col">Class Size</th>
         <th scope="col">{isTa ? 'Primary Teacher' : 'Teaching Assistant (TA)'}</th><th scope="col">Status</th><th scope="col">Actions</th>
       </tr></thead>
       <tbody>{sessions.length ? sessions.map(session => {

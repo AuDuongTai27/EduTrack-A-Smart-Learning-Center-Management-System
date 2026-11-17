@@ -50,14 +50,6 @@ public sealed class NotificationInboxController(
     [HttpGet("inbox/{id:int}")]
     public async Task<IActionResult> Item(int id, [FromQuery] int userId) => Ok(await inbox.ItemAsync(ResolveCallerUserId(userId), id));
 
-    [HttpGet("trash")]
-    public async Task<IActionResult> Trash([FromQuery] int userId)
-    {
-        var uid = ResolveCallerUserId(userId);
-        await inbox.IdentifyAsync(uid, true);
-        return Ok((await inbox.SnapshotAsync(uid)).Trash);
-    }
-
     [HttpPatch("{id:int}/read")]
     public async Task<IActionResult> Read(int id, [FromQuery] int userId, [FromQuery] bool snapshot = false)
     {
@@ -69,12 +61,6 @@ public sealed class NotificationInboxController(
 
     [HttpPatch("read-all")]
     public async Task<IActionResult> ReadAll([FromQuery] int userId) => Ok(await inbox.MutateAsync(ResolveCallerUserId(userId), "read-all"));
-
-    [HttpDelete("{id:int}/inbox")]
-    public async Task<IActionResult> Delete(int id, [FromQuery] int userId) => Ok(await inbox.MutateAsync(ResolveCallerUserId(userId), "delete", id));
-
-    [HttpPost("{id:int}/restore")]
-    public async Task<IActionResult> Restore(int id, [FromQuery] int userId) => Ok(await inbox.MutateAsync(ResolveCallerUserId(userId), "restore", id));
 
     // =====================================================================
     // MANAGEMENT NOTIFICATIONS (/api/management/notifications)

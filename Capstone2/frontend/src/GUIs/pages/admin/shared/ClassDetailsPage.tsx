@@ -28,8 +28,7 @@ export default function ClassDetailsPage({role}: {role: ManagementRole}) {
       <PageHeader title="Class Details" breadcrumbItems={[
         {label: role === "center-manager" ? "Center Manager" : "Admin Staff", path: `/${role}`},
         {label: "Classes", path: `/${role}/classes`}, {label: item?.className || "Class Details"},
-      ]} action={<div className="d-flex flex-wrap gap-2"><Link className="btn btn-outline-secondary" to={`/${role}/classes`}>Back to List</Link>
-        <button type="button" className="btn btn-outline-primary" disabled={sections.overview.loading} onClick={refresh}><i className="bi bi-arrow-clockwise me-1" />Refresh</button></div>} />
+      ]} action={<Link className="btn btn-outline-secondary" to={`/${role}/classes`}>Back to List</Link>} />
       {sections.overview.loading ? <div className="card border-0 shadow-sm p-4 text-muted" role="status"><span className="spinner-border spinner-border-sm me-2" />Loading class details...</div>
         : sections.overview.error ? <div className="alert alert-danger" role="alert">{sections.overview.error} <button type="button" className="btn btn-sm btn-outline-danger" onClick={refresh}>Retry</button></div>
           : item && <>

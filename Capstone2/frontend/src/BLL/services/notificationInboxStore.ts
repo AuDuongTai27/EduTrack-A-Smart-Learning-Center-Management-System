@@ -48,7 +48,7 @@ export class NotificationInboxStore {
     try { const data = await this.api.snapshot(controller.signal); if (generation === this.generation) this.accept(data); }
     catch (error) { if (!controller.signal.aborted && generation === this.generation) this.fail(error); }
   };
-  mutate = async (operation: 'read' | 'read-all' | 'delete' | 'restore', id?: number) => {
+  mutate = async (operation: 'read' | 'read-all', id?: number) => {
     if (this.state.busy) throw new Error('Processing notifications.');
     this.controller?.abort(); const controller = this.controller = new AbortController(); const generation = ++this.generation;
     this.publish({ busy: true });

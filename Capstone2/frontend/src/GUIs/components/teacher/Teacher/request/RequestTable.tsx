@@ -10,7 +10,7 @@ export interface RequestTableProps {
 
 export default function RequestTable({ requests = [], onRequestUpdated }: RequestTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRequest, setSelectedRequest] = useState<ApprovalRequestDto | null>(null);
   const [editingRequest, setEditingRequest] = useState<ApprovalRequestDto | null>(null);
@@ -107,26 +107,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
   return (
     <>
       {/* Toolbar */}
-      <div className="table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom">
-        <div className="table-entries-select d-flex align-items-center gap-2">
-          <span className="small text-muted">Show</span>
-          <select
-            className="form-select form-select-sm"
-            id="entriesSelect"
-            value={rowsPerPage}
-            onChange={(e) => {
-              setRowsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            style={{ width: "auto" }}
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <span className="small text-muted">requests / page</span>
-        </div>
+      <div className="table-toolbar d-flex align-items-center justify-content-end flex-wrap gap-2 px-3 py-2 border-bottom">
         <div>
           <div className="input-group input-group-sm" style={{ width: 260 }}>
             <span className="input-group-text bg-white border-end-0">
