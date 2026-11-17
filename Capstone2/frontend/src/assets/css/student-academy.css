@@ -1,0 +1,138 @@
+/* Phase 1: opt-in on Student Dashboard / Classes only. No global or role-shell rules. */
+.student-scope .et-student-academy {
+  --academy-radius: 20px;
+  --academy-shadow: 0 5px 18px rgba(20, 34, 56, .065), 0 2px 3px rgba(20, 34, 56, .025);
+  position: relative;
+  isolation: isolate;
+  background: radial-gradient(ellipse at 100% 0, rgba(197, 235, 213, .34), transparent 48%), var(--et-surface);
+}
+.student-scope .et-student-academy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url('../illustrations/academy-page-waves.svg') right bottom / 100% auto no-repeat;
+  pointer-events: none;
+}
+.student-scope .et-student-academy > .content-container { position: relative; z-index: 1; }
+.student-scope .et-student-classes::after { opacity: .45; }
+.student-scope .et-student-academy .student-page-header-main { max-width: 100%; }
+.student-scope .et-student-academy .section-title { font-size: 20px; letter-spacing: -.025em; }
+.student-scope .et-student-academy .section-count-badge { padding: 5px 11px; }
+
+/* Reserve the right side for the illustration; text never sits underneath it. */
+.student-scope .et-student-academy .welcome-banner {
+  min-height: 184px;
+  padding: 32px clamp(260px, 27vw, 370px) 36px 32px;
+  gap: 20px;
+  border: 1px solid rgba(7, 132, 68, .16);
+  border-radius: var(--academy-radius);
+  background: radial-gradient(ellipse at 91% 14%, rgba(164, 228, 187, .3), transparent 45%), linear-gradient(115deg, var(--et-primary-active), var(--et-primary) 65%, #149958) !important;
+  box-shadow: 0 6px 20px rgba(5, 100, 60, .14) !important;
+}
+.student-scope .et-student-academy .welcome-banner::before {
+  inset: auto 0 0;
+  height: 46%;
+  background: url('../illustrations/academy-banner-waves.svg') bottom / 100% 100% no-repeat;
+  pointer-events: none;
+}
+.student-scope .et-student-academy .welcome-banner::after {
+  inset: 0 12px 0 auto;
+  width: clamp(250px, 27vw, 360px);
+  background: url('../illustrations/academy-books-cap.svg') right bottom / contain no-repeat;
+  pointer-events: none;
+}
+.student-scope .et-student-academy .banner-watermark { display: none; }
+.student-scope .et-student-academy .banner-content { min-width: 0; overflow-wrap: anywhere; }
+.student-scope .et-student-academy .banner-title { color: var(--et-card); font-size: clamp(21px, 1.9vw, 27px); line-height: 1.35; }
+.student-scope .et-student-academy .banner-date { color: #eaf8f1; margin-top: 10px; line-height: 1.5; }
+.student-scope .et-student-academy .banner-avatar { width: 64px; height: 64px; background: rgba(255, 255, 255, .09); border-color: rgba(197, 235, 213, .65); box-shadow: 0 0 0 5px rgba(255, 255, 255, .035); }
+
+/* White KPI surfaces. Accent stays in the unused edge, away from labels. */
+.student-scope .et-student-academy .stat-card {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  overflow: hidden;
+  padding: 24px 74px 24px 24px;
+  border: 1px solid var(--et-border);
+  border-radius: var(--academy-radius);
+  background: var(--et-card);
+  box-shadow: var(--academy-shadow);
+}
+.student-scope .et-student-academy .stat-card::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 72px;
+  height: 110px;
+  border-radius: 80% 10% 0 0;
+  transform: rotate(25deg);
+  background: linear-gradient(145deg, var(--et-mint), #c5ebd5);
+  pointer-events: none;
+  z-index: -1;
+}
+.student-scope .et-student-academy .stat-card:nth-child(2)::after { background: linear-gradient(145deg, #fffbeb, #fef3c7); }
+.student-scope .et-student-academy .stat-icon-wrapper { width: 54px; height: 54px; border-radius: 16px; }
+.student-scope .et-student-academy .stat-info { min-width: 0; }
+.student-scope .et-student-academy .stat-label { font-size: 13px; font-weight: 600; line-height: 1.5; }
+.student-scope .et-student-academy .stat-value-group { flex-wrap: wrap; row-gap: 6px; }
+.student-scope .et-student-academy .stat-number { font-size: 40px; letter-spacing: -.04em; }
+
+/* The single real class stays one card. Never stretch it across the whole page. */
+.student-scope .et-student-academy .classes-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 1fr)); gap: 22px; }
+.student-scope .et-student-academy .class-card { min-width: 0; border-color: var(--et-border); border-radius: var(--academy-radius); box-shadow: var(--academy-shadow); }
+.student-scope .et-student-academy .card-accent-bar { height: 3px; background: linear-gradient(90deg, var(--et-primary), #c5ebd5); }
+.student-scope .et-student-academy .class-card-body { position: relative; padding: 22px 24px 74px; }
+.student-scope .et-student-academy .class-card-body::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 175px;
+  height: 66px;
+  background: url('../illustrations/academy-study-lineart.svg') right bottom / contain no-repeat;
+  pointer-events: none;
+}
+.student-scope .et-student-academy .class-card-header { margin: -22px -24px 18px; padding: 15px 24px; background: linear-gradient(100deg, var(--et-mint), #f7faf8); }
+.student-scope .et-student-academy .class-name { font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
+.student-scope .et-student-academy .subject-badge { max-width: calc(100% - 40px); white-space: normal; overflow-wrap: anywhere; color: var(--et-primary-hover); background: #d9f3e5; }
+.student-scope .et-student-academy .subject-icon-box { color: var(--et-primary-hover); background: var(--et-card); }
+.student-scope .et-student-academy .teacher-avatar-mini { color: var(--et-primary-hover); background: var(--et-mint); }
+.student-scope .et-student-academy .teacher-name,
+.student-scope .et-student-academy .meta-row > span { min-width: 0; overflow-wrap: anywhere; }
+.student-scope .et-student-academy .teacher-name { font-size: 13px; line-height: 1.6; }
+.student-scope .et-student-academy .meta-row { font-size: 13px; line-height: 1.6; }
+.student-scope .et-student-academy .teacher-avatar-mini,
+.student-scope .et-student-academy .meta-row > i { flex-shrink: 0; }
+.student-scope .et-student-academy .teacher-row,
+.student-scope .et-student-academy .meta-row { align-items: flex-start; }
+.student-scope .et-student-academy .meta-row.room { color: var(--et-muted); }
+.student-scope .et-student-academy .class-card-footer { padding: 15px 24px; color: var(--et-primary-hover); background: var(--et-card); font-size: 13px; font-weight: 700; }
+.student-scope .et-student-academy .class-card:hover { transform: translateY(-3px); border-color: #a4d9bc; box-shadow: 0 10px 26px rgba(20, 34, 56, .1); }
+.student-scope .et-student-academy .class-card:hover .class-card-footer { background: var(--et-mint); }
+.student-scope .et-student-academy .class-card:focus-visible { outline: 3px solid var(--et-primary-hover) !important; outline-offset: 3px; }
+
+@media (max-width: 991.98px) {
+  .student-scope .et-student-academy .classes-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+  .student-scope .et-student-academy .welcome-banner { padding-right: 220px; }
+  .student-scope .et-student-academy .welcome-banner::after { width: 220px; right: 0; }
+}
+@media (max-width: 767.98px) {
+  .student-scope .et-student-academy .welcome-banner { min-height: 156px; padding: 24px 20px 30px; gap: 14px; }
+  .student-scope .et-student-academy .welcome-banner::after { display: none; }
+  .student-scope .et-student-academy .welcome-banner::before { height: 25%; opacity: .65; }
+  .student-scope .et-student-academy .banner-avatar { width: 48px; height: 48px; font-size: 18px; }
+  .student-scope .et-student-academy .banner-title { font-size: 20px; }
+  .student-scope .et-student-academy .stat-card { padding: 20px 68px 20px 20px; gap: 14px; }
+  .student-scope .et-student-academy .stat-number { font-size: 36px; }
+  .student-scope .et-student-academy .class-card-body { padding-inline: 20px; }
+  .student-scope .et-student-academy .class-card-header { margin-inline: -20px; padding-inline: 20px; }
+  .student-scope .et-student-academy .class-card-footer { padding-inline: 20px; }
+  .student-scope .et-student-academy .class-card-body::after { width: 145px; opacity: .8; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-scope .et-student-academy .class-card { transition: none; }
+  .student-scope .et-student-academy .class-card:hover { transform: none; }
+}

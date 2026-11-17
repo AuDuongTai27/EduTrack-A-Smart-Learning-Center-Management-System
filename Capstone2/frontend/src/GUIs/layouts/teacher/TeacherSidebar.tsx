@@ -1,3 +1,4 @@
+import { BrandIcon } from "../../components/Common/BrandIcon";
 import { Link, NavLink } from "react-router-dom";
 
 export default function TeacherSidebar() {
@@ -9,7 +10,7 @@ export default function TeacherSidebar() {
       <div className="sidebar-header">
         <Link className="brand" to="/teacher/dashboard">
           <span className="brand-mark">
-            <i className="bi bi-mortarboard-fill" />
+            <BrandIcon />
           </span>
           <span className="brand-text">EduTrack</span>
         </Link>

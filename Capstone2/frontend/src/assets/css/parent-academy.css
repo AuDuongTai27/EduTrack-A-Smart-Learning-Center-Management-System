@@ -1,0 +1,110 @@
+/* Phase 2: Parent dashboard and its existing unlinked screen only. */
+.student-scope .et-parent-dashboard {
+  --parent-card-shadow: 0 5px 18px rgba(20,34,56,.065), 0 2px 3px rgba(20,34,56,.025);
+  position: relative;
+  isolation: isolate;
+  background: radial-gradient(ellipse at 100% 0, rgba(197,235,213,.34), transparent 48%), var(--et-surface);
+}
+.student-scope .et-parent-dashboard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url('../illustrations/academy-page-waves.svg') right bottom / 100% auto no-repeat;
+  pointer-events: none;
+}
+.student-scope .et-parent-dashboard > .content-container { position: relative; z-index: 1; }
+/* Follow the content's bottom, not the scroll viewport. Fade both SVG edges. */
+.student-scope .et-parent-dashboard:not(.et-parent-unlinked)::after { content: none; }
+.student-scope .et-parent-dashboard:not(.et-parent-unlinked) > .content-container::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  aspect-ratio: 1440 / 900;
+  max-height: 100%;
+  z-index: -1;
+  background: url('../illustrations/academy-page-waves.svg') right bottom / 100% 100% no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 70%, transparent);
+  pointer-events: none;
+}
+.student-scope .et-parent-dashboard .page-title { font-size: 26px; line-height: 1.3; }
+.student-scope .et-parent-dashboard .page-subtitle { line-height: 1.6; }
+.student-scope .et-parent-dashboard .bg-primary-subtle { background-color: var(--et-mint) !important; border-color: var(--et-border) !important; color: var(--et-primary-hover) !important; }
+.student-scope .et-parent-dashboard .et-parent-welcome {
+  color: var(--et-card);
+  background: radial-gradient(ellipse at 92% 0, rgba(164,228,187,.25), transparent 50%), linear-gradient(115deg,var(--et-primary-active),var(--et-primary) 70%,#149958);
+  border-radius: 20px !important;
+  box-shadow: 0 6px 20px rgba(5,100,60,.13) !important;
+  overflow: hidden;
+}
+.student-scope .et-parent-welcome::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 28%;
+  background: url('../illustrations/academy-banner-waves.svg') bottom / 100% 100% no-repeat;
+  pointer-events: none;
+}
+.student-scope .et-parent-welcome > .row { position: relative; z-index: 1; }
+.student-scope .et-parent-dashboard .et-parent-welcome :is(h1,h2) { color: var(--et-card); overflow-wrap: anywhere; }
+.student-scope .et-parent-welcome p { line-height: 1.7; }
+.student-scope .et-parent-welcome .et-parent-family-column { align-self: stretch; align-items: flex-end; }
+.student-scope .et-parent-welcome .et-parent-family-art {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 230px;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: translateY(1.5rem);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+.student-scope .et-parent-welcome .et-parent-onboarding-art { width: 100%; height: 240px; background: url('../illustrations/academy-books-cap.svg') center / contain no-repeat; pointer-events: none; }
+.student-scope .et-parent-dashboard :is(.et-parent-kpis .card, .class-card) { border: 1px solid var(--et-border) !important; border-radius: 20px !important; box-shadow: var(--parent-card-shadow) !important; background-color: var(--et-card); }
+.student-scope .et-parent-kpis .card { position: relative; isolation: isolate; overflow: hidden; padding-bottom: 28px !important; }
+.student-scope .et-parent-kpis .card::after { content: ''; position: absolute; bottom: -18px; right: -15px; width: 60px; height: 52px; border-radius: 90% 0 0; background: var(--et-mint); pointer-events: none; z-index: -1; }
+.student-scope .et-parent-kpis > :last-child .card::after { background: #fffbeb; }
+.student-scope .et-parent-dashboard .classes-grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,360px),1fr)); gap: 22px; }
+.student-scope .et-parent-dashboard .class-card { min-width: 0; }
+.student-scope .et-parent-dashboard .card-accent-bar { height: 3px; background: linear-gradient(90deg,var(--et-primary),#c5ebd5); }
+.student-scope .et-parent-dashboard .class-card-body { padding: 22px 24px 20px; }
+.student-scope .et-parent-dashboard .class-card-header { margin: -22px -24px 18px; padding: 15px 24px; background: linear-gradient(100deg,var(--et-mint),var(--et-surface)); }
+.student-scope .et-parent-dashboard .class-name { font-size: 17px; line-height: 1.5; margin-bottom: 14px; overflow-wrap: anywhere; }
+.student-scope .et-parent-dashboard .subject-badge { color: var(--et-primary-hover); background: #d9f3e5; max-width: calc(100% - 40px); white-space: normal; overflow-wrap: anywhere; }
+.student-scope .et-parent-dashboard .subject-icon-box { color: var(--et-primary-hover); background: var(--et-card); }
+.student-scope .et-parent-dashboard .teacher-avatar-mini { color: var(--et-primary-hover); background: var(--et-mint); flex-shrink: 0; }
+.student-scope .et-parent-dashboard :is(.teacher-name,.meta-row) { font-size: 13px; line-height: 1.6; }
+.student-scope .et-parent-dashboard .teacher-name,
+.student-scope .et-parent-dashboard .meta-row > span { min-width: 0; overflow-wrap: anywhere; }
+.student-scope .et-parent-dashboard .meta-row.room { color: var(--et-muted); }
+.student-scope .et-parent-dashboard .meta-row > i { flex-shrink: 0; }
+.student-scope .et-parent-dashboard .class-card-footer { padding: 15px 24px; color: var(--et-primary-hover); background: var(--et-card); font-weight: 700; }
+.student-scope .et-parent-dashboard .class-card:hover { transform: translateY(-3px); border-color: #a4d9bc !important; box-shadow: 0 10px 26px rgba(20,34,56,.1) !important; }
+.student-scope .et-parent-dashboard .class-card:focus-visible { outline: 3px solid var(--et-primary-hover) !important; outline-offset: 3px; }
+.student-scope .et-parent-unlinked > .content-container > .card { border: 1px solid var(--et-border) !important; border-radius: 20px !important; box-shadow: var(--parent-card-shadow) !important; }
+/* Child selector remains the existing component, with the same buttons and handlers. */
+.et-parent-portal .sidebar-child-switcher button[aria-expanded] { border-color: var(--et-border) !important; }
+.et-parent-portal .sidebar-child-switcher button[aria-expanded="true"] { border-color: var(--et-primary) !important; }
+.et-parent-portal .sidebar-child-switcher button > .rounded-circle,
+.et-parent-portal .mobile-topbar .student-avatar,
+.et-parent-portal .sidebar-footer .student-avatar { background: var(--et-primary) !important; }
+@media (max-width: 991.98px) {
+  .student-scope .et-parent-dashboard .classes-grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,320px),1fr)); }
+}
+@media (max-width: 767.98px) {
+  .student-scope .et-parent-dashboard .page-title { font-size: 23px; }
+  .student-scope .et-parent-welcome :is(.btn,a) { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  .student-scope .et-parent-dashboard .section-title-wrap { flex-wrap: wrap; min-width: 0; }
+  .student-scope .et-parent-dashboard .class-card-body { padding-inline: 20px; }
+  .student-scope .et-parent-dashboard .class-card-header { margin-inline: -20px; padding-inline: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-scope .et-parent-dashboard .class-card { transition: none; }
+  .student-scope .et-parent-dashboard .class-card:hover { transform: none; }
+}

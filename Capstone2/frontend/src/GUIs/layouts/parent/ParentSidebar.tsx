@@ -1,21 +1,19 @@
+import { BrandIcon } from "../../components/Common/BrandIcon";
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ParentNavMenu } from './ParentNavMenu';
+import '../../../assets/css/student-sidebar-academy.css';
 
 export function ParentSidebar() {
   return (
-    <aside className="sidebar">
+    <aside className="sidebar parent-sidebar-academy">
       {/* Brand / Logo */}
       <div className="sidebar-header">
         <Link to="/parent/dashboard" className="brand-link">
           <div
             className="brand-logo-icon"
-            style={{
-              background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-            }}
           >
-            <i className="bi bi-people-fill fs-5"></i>
+            <BrandIcon size={34} />
           </div>
           <div>
             <div className="brand-title">EduTrack</div>

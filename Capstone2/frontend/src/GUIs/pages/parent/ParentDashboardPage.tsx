@@ -2,6 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
+import { SubjectIllustration } from '../../components/Common/SubjectIllustration';
+import '../../../assets/css/parent-academy.css';
+import parentHero from '../../../assets/illustrations/edutrack-parent-hero-transparent.png';
 
 export function ParentDashboardPage() {
   const { selectedChild, loading } = useParent();
@@ -18,7 +21,7 @@ export function ParentDashboardPage() {
   const classes = selectedChild.classes || [];
 
   return (
-    <main className="main-content">
+    <main className="main-content et-parent-dashboard">
       <div className="content-container">
         {/* 1. Page Header */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -38,10 +41,7 @@ export function ParentDashboardPage() {
 
         {/* 2. Welcome Banner Thân thiện cho Phụ Huynh */}
         <div
-          className="card border-0 shadow-sm rounded-4 p-4 text-white mb-4 position-relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%)',
-          }}
+          className="card border-0 shadow-sm rounded-4 p-4 text-white mb-4 position-relative overflow-hidden et-parent-welcome"
         >
           <div className="row align-items-center">
             <div className="col-lg-8">
@@ -75,19 +75,14 @@ export function ParentDashboardPage() {
                 )}
               </div>
             </div>
-            <div className="col-lg-4 d-none d-lg-flex justify-content-center">
-              <div
-                className="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-15 text-white"
-                style={{ width: '120px', height: '120px' }}
-              >
-                <i className="bi bi-award fs-1"></i>
-              </div>
+            <div className="col-lg-4 d-none d-lg-flex justify-content-center et-parent-family-column">
+              <img className="et-parent-family-art" src={parentHero} width={1300} height={741} alt="" aria-hidden="true" draggable={false} />
             </div>
           </div>
         </div>
 
         {/* 3. Thẻ Thống Kê Nhanh (Stats Row) */}
-        <div className="row g-3 mb-4">
+        <div className="row g-3 mb-4 et-parent-kpis">
           <div className="col-sm-6 col-lg-3">
             <div className="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
               <div className="d-flex align-items-center justify-content-between mb-2">
@@ -226,6 +221,7 @@ export function ParentDashboardPage() {
                   <i className="bi bi-geo-alt"></i>
                   <span>{cls.room}</span>
                 </div>
+                <div className="et-parent-subject-art" aria-hidden="true"><SubjectIllustration name={cls.subject?.trim() || cls.badge}/></div>
 
                 {/* Tóm tắt buổi học & chuyên cần con */}
                 <div className="mt-2 pt-2 border-top">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import '../../../assets/css/parent-academy.css';
 
 /**
  * ParentEmptyState: Giao diện hiển thị khi Phụ huynh chưa có tài khoản liên kết nào.
@@ -9,15 +10,12 @@ import { Link } from 'react-router-dom';
  */
 export function ParentEmptyState() {
   return (
-    <main className="main-content">
+    <main className="main-content et-parent-dashboard et-parent-unlinked">
       <div className="content-container py-4">
         {/* Banner Welcome / Empty State Header */}
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
           <div
-            className="p-4 p-md-5 text-white position-relative"
-            style={{
-              background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
-            }}
+            className="p-4 p-md-5 text-white position-relative et-parent-welcome"
           >
             <div className="row align-items-center">
               <div className="col-lg-8">
@@ -45,12 +43,7 @@ export function ParentEmptyState() {
               </div>
 
               <div className="col-lg-4 d-none d-lg-flex justify-content-center">
-                <div
-                  className="rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-10 text-white border border-white border-opacity-25"
-                  style={{ width: '150px', height: '150px' }}
-                >
-                  <i className="bi bi-person-lines-fill fs-1" style={{ fontSize: '3.5rem' }}></i>
-                </div>
+                <div className="et-parent-onboarding-art" aria-hidden="true" />
               </div>
             </div>
           </div>

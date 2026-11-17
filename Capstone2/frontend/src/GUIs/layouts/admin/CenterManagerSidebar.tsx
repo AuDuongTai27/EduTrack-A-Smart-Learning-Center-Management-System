@@ -1,3 +1,4 @@
+import { BrandIcon } from "../../components/Common/BrandIcon";
 import { NavLink } from "react-router-dom";
 import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
 
@@ -8,7 +9,7 @@ export default function CenterManagerSidebar() {
       <div className="sidebar-header">
         <NavLink className="brand" to="/center-manager">
           <span className="brand-mark">
-            <i className="bi bi-mortarboard-fill" />
+            <BrandIcon />
           </span>
           <span className="brand-text">EduTrack</span>
         </NavLink>

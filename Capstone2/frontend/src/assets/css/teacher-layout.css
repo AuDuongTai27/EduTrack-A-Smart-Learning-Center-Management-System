@@ -312,18 +312,18 @@
 }
 
 .sidebar .nav-link:hover {
-  color: #5d3fd3;
-  background: #f5f3ff;
+  color: var(--et-primary);
+  background: var(--et-mint);
 }
 
 .sidebar .nav-link:hover i {
-  color: #5d3fd3;
-  background: #ede9fe;
+  color: var(--et-primary);
+  background: var(--et-mint);
 }
 
 .sidebar .nav-link.active {
-  color: #5d3fd3;
-  background: #ede9fe;
+  color: var(--et-primary);
+  background: var(--et-mint);
   font-weight: 600;
 }
 
@@ -403,7 +403,7 @@
 
 .search-box:focus-within {
   background: #ffffff;
-  border-color: #5d3fd3;
+  border-color: var(--et-primary);
   box-shadow: 0 0 0 3px rgba(93, 63, 211, 0.1);
 }
 
@@ -454,7 +454,7 @@
 }
 
 .academic-year-btn i {
-  color: #5d3fd3;
+  color: var(--et-primary);
 }
 
 .icon-btn {
@@ -514,9 +514,9 @@
 
 .academic-year-btn:hover,
 .icon-btn:hover {
-  color: #5d3fd3;
-  background: #f5f3ff;
-  border-color: #ddd6fe;
+  color: var(--et-primary);
+  background: var(--et-mint);
+  border-color: var(--et-border);
 }
 
 /* =========================
@@ -526,7 +526,7 @@
 .dashboard-welcome,
 .card.bg-03 {
   color: #ffffff !important;
-  background: linear-gradient(135deg, #5d3fd3 0%, #7c5cfc 60%, #4d8cff 100%) !important;
+  background: linear-gradient(135deg, var(--et-primary) 0%, #7c5cfc 60%, #4d8cff 100%) !important;
 
   border: 0 !important;
   border-radius: 12px !important;

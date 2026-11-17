@@ -1,0 +1,33 @@
+/* Student / Parent desktop sidebars. Reuse existing free space; never reserve image height. */
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav > :is(.sidebar-nav-title, .sidebar-nav-list) {
+  flex: 0 0 auto;
+}
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav::after {
+  content: '';
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: 200px;
+  margin-top: auto;
+  /* Bleed through the existing 12px nav padding; leave menu spacing untouched. */
+  margin-inline: -12px;
+  background:
+    url('../illustrations/academy-school.svg') center bottom / contain no-repeat,
+    linear-gradient(to bottom, transparent, var(--et-mint) 40%, var(--et-mint)) center bottom / 100% 100% no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 78%, transparent);
+  pointer-events: none;
+}
+/* Keep the footer's existing border thickness/geometry, without a visible seam. */
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) > .sidebar-footer {
+  border-top-color: transparent;
+  background-color: var(--et-card);
+}
+/* Prioritize scrolling navigation and the account chip on short screens. */
+@media (max-height: 740px), (max-width: 991.98px) {
+  .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav::after { display: none; }
+}

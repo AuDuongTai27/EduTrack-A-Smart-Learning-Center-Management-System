@@ -1,3 +1,4 @@
+import { BrandIcon } from "../../components/Common/BrandIcon";
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ParentSidebar } from './ParentSidebar';
@@ -22,7 +23,7 @@ function ParentLayoutContent() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
-    <div className="student-scope">
+    <div className="student-scope et-parent-portal">
       <div className="app-container">
         {/* DESKTOP SIDEBAR (Chứa Brand, Child Selector và Navigation) */}
         <ParentSidebar />
@@ -51,9 +52,8 @@ function ParentLayoutContent() {
             >
               <div
                 className="brand-logo-icon"
-                style={{ background: 'linear-gradient(135deg, #1e40af, #3b82f6)' }}
               >
-                <i className="bi bi-people-fill fs-5"></i>
+                <BrandIcon size={34} />
               </div>
               <div>
                 <div className="brand-title">EduTrack</div>
@@ -92,10 +92,9 @@ function ParentLayoutContent() {
                   width: '28px',
                   height: '28px',
                   borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
                 }}
               >
-                <i className="bi bi-people-fill fs-6"></i>
+                <BrandIcon size={28} />
               </div>
               <span className="brand-title fs-6">EduTrack</span>
             </div>

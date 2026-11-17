@@ -1,3 +1,4 @@
+import { BrandIcon } from "../../components/Common/BrandIcon";
 import React, { useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { StudentSidebar } from "./StudentSidebar";
@@ -38,7 +39,7 @@ export function StudentLayout() {
               onClick={closeMobileMenu}
             >
               <div className="brand-logo-icon">
-                <i className="bi bi-mortarboard-fill fs-5"></i>
+                <BrandIcon size={34} />
               </div>
               <div>
                 <div className="brand-title">EduTrack</div>
@@ -75,7 +76,7 @@ export function StudentLayout() {
                 className="brand-logo-icon"
                 style={{ width: "28px", height: "28px", borderRadius: "8px" }}
               >
-                <i className="bi bi-mortarboard-fill fs-6"></i>
+                <BrandIcon size={28} />
               </div>
               <span className="brand-title fs-6">EduTrack</span>
             </div>

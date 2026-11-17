@@ -1,3 +1,4 @@
+import { BrandIcon } from "../Common/BrandIcon";
 import type { ReactNode } from 'react';
 export function Icon({ name, className = '' }: { name: string; className?: string }) {
   const paths: Record<string, ReactNode> = {
@@ -26,7 +27,7 @@ export function Icon({ name, className = '' }: { name: string; className?: strin
   return <svg className={`et-icon ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name] ?? paths.book}</svg>;
 }
 export function Brand() {
-  return <a className="et-brand" href="#hero" aria-label="EduTrack home"><Icon name="cap"/><span>Edu<span>Track</span></span></a>;
+  return <a className="et-brand" href="#hero" aria-label="EduTrack home"><BrandIcon size={38}/><span>Edu<span>Track</span></span></a>;
 }
 export function SectionHeading({ title, children }: { title: string; children?: ReactNode }) {
   return <div className="et-heading"><h2>{title}</h2>{children && <p>{children}</p>}</div>;

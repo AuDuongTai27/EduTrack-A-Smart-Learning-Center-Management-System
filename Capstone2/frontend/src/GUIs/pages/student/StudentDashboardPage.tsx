@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../../../assets/css/student-academy.css';
 import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { DashboardWelcomeBanner } from '../../components/student/dashboard/DashboardWelcomeBanner';
@@ -56,7 +57,7 @@ export function StudentDashboardPage() {
   }
 
   return (
-    <main className="main-content">
+    <main className="main-content et-student-academy et-student-dashboard">
       <div className="content-container">
         {/* 1. Page Header */}
         <StudentPageHeader
