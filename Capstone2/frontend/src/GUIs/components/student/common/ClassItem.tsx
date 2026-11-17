@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import type { EnrolledClassItem } from '../classes/classesData';
+import { SubjectIllustration } from '../../Common/SubjectIllustration';
 
 export interface ClassItemProps {
   classItem: EnrolledClassItem;
@@ -17,7 +18,7 @@ export function ClassItem({ classItem: cls }: ClassItemProps) {
       className={`class-card ${cls.subjectThemeClass}`}
     >
       <div className="card-accent-bar"></div>
-      <div className="class-card-body">
+      <div className="class-card-body et-subject-card-body">
         <div className="class-card-header">
           <span className="subject-badge">{cls.badge}</span>
           <div className="subject-icon-box">
@@ -41,6 +42,7 @@ export function ClassItem({ classItem: cls }: ClassItemProps) {
           <i className="bi bi-geo-alt"></i>
           <span>{cls.room || 'No room assigned'}</span>
         </div>
+        <SubjectIllustration name={cls.badge}/>
       </div>
       <div className="class-card-footer">
         <span>View Details</span>

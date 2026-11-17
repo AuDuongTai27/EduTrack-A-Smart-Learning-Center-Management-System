@@ -2,10 +2,11 @@ import { BrandIcon } from "../../components/Common/BrandIcon";
 import React from "react";
 import { Link } from "react-router-dom";
 import { StudentNavMenu } from "./StudentNavMenu";
+import "../../../assets/css/student-sidebar-academy.css";
 
 export function StudentSidebar() {
   return (
-    <aside className="sidebar">
+    <aside className="sidebar student-sidebar-academy">
       {/* Brand / Logo */}
       <div className="sidebar-header">
         <Link to="/student/dashboard" className="brand-link">

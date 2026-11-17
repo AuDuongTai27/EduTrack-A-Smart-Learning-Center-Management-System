@@ -1,0 +1,15 @@
+/* Opt-in only on Student Dashboard/Classes and Parent Dashboard. */
+.et-subject-illustration { display: none; pointer-events: none; object-fit: contain; }
+.student-scope :is(.et-student-academy, .et-parent-dashboard) .et-subject-illustration {
+  display: block;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 175px;
+  height: 66px;
+}
+.student-scope .et-student-academy .class-card-body.et-subject-card-body::after { content: none; }
+.student-scope .et-parent-dashboard .et-parent-subject-art { height: 66px; position: relative; pointer-events: none; }
+@media (max-width: 767.98px) {
+  .student-scope :is(.et-student-academy, .et-parent-dashboard) .et-subject-illustration { width: 145px; height: 58px; }
+}

@@ -23,7 +23,7 @@ function ParentLayoutContent() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
-    <div className="student-scope">
+    <div className="student-scope et-parent-portal">
       <div className="app-container">
         {/* DESKTOP SIDEBAR (Chứa Brand, Child Selector và Navigation) */}
         <ParentSidebar />

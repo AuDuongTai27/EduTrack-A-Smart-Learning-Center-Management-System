@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../../../assets/css/student-academy.css';
 import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ClassesGridSection } from '../../components/student/classes/ClassesGridSection';
@@ -45,7 +46,7 @@ export function StudentClassesPage() {
   }
 
   return (
-    <main className="main-content">
+    <main className="main-content et-student-academy et-student-classes">
       <div className="content-container">
         {/* Page Header */}
         <StudentPageHeader
