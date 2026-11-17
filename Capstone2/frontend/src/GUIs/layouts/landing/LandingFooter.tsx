@@ -45,7 +45,6 @@ export function LandingFooter() {
       </div>
       <div className="et-container et-copyright">
         © {new Date().getFullYear()} EduTrack. All rights reserved.
-        <a href="#hero">Back to top ↑</a>
       </div>
     </footer>
   );
