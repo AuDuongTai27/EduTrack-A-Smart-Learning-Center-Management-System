@@ -5,34 +5,17 @@ import type { TeachingClassItemDto } from "../../../../../BLL/models/teaching/Te
 
 export interface ClassListTableProps {
   classes?: (ClassDto | TeachingClassItemDto)[];
-  sortOrder?: "asc" | "desc";
-  onToggleSort?: () => void;
 }
 
 export function ClassListTable({
   classes = [],
-  sortOrder = "asc",
-  onToggleSort,
 }: ClassListTableProps) {
   return (
     <div className="table-responsive-container">
       <table className="table custom-table align-middle mb-0" id="classesTable">
         <thead>
           <tr>
-            <th>
-              <button
-                type="button"
-                className="btn btn-link p-0 text-decoration-none text-dark fw-bold d-inline-flex align-items-center gap-1 border-0 shadow-none"
-                onClick={onToggleSort}
-                title={`Sorting by class: ${sortOrder === "asc" ? "Ascending (Class 8 < Class 9)" : "Descending"}. Click to toggle.`}
-              >
-                <span>Class Code &amp; Name</span>
-                <i className="bi bi-arrow-down-up small text-primary fw-bold" />
-                <small className="text-primary fw-semibold" style={{ fontSize: "11px" }}>
-                  ({sortOrder === "asc" ? "Ascending" : "Descending"})
-                </small>
-              </button>
-            </th>
+            <th>Class Code &amp; Name</th>
             <th>Subject</th>
             <th>Room</th>
             <th>Teaching Assistant (TA)</th>

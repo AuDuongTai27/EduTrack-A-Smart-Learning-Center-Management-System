@@ -317,18 +317,6 @@ function ManagementPanel({
                     <strong>{selectedClass.endDate || 'No end date'}</strong>
                   </small>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-primary"
-                  disabled={busy}
-                  onClick={() => {
-                    invalidate();
-                    refreshTemplates();
-                  }}
-                >
-                  <i className="bi bi-arrow-clockwise me-1" />
-                  Refresh
-                </button>
               </div>
 
               {/* TABS NAVIGATION */}

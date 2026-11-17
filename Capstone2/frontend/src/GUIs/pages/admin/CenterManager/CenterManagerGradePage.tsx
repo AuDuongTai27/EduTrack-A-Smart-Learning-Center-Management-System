@@ -45,8 +45,7 @@ export default function CenterManagerGradePage() {
   };
   return <>
     <PageHeader title="Grade Management" breadcrumbItems={[{label: "Center Manager", path: "/center-manager"}, {label: "Grades"}]}
-      action={<div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-outline-secondary" disabled={loading} onClick={refresh}><i className="bi bi-arrow-clockwise me-1" />Refresh</button>
-        <button type="button" className="btn btn-primary d-flex align-items-center shadow-sm" onClick={() => {setSuccess(null); setEditor("new");}}><i className="bi bi-plus-square me-2" />Add Grade</button></div>} />
+      action={<button type="button" className="btn btn-primary d-flex align-items-center shadow-sm" onClick={() => {setSuccess(null); setEditor("new");}}><i className="bi bi-plus-square me-2" />Add Grade</button>} />
     {success && <div className="alert alert-success alert-dismissible" role="status">{success}<button type="button" className="btn-close" aria-label="Close notification" onClick={() => setSuccess(null)} /></div>}
     {error && <div className="alert alert-danger" role="alert">{error} <button type="button" className="btn btn-sm btn-outline-danger" onClick={refresh}>Retry</button></div>}
     <div className="card user-list-card border-0 shadow-sm">

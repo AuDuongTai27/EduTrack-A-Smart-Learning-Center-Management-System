@@ -1,5 +1,6 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { schedulePageNumber } from "../../../BLL/services/scheduleViewService";
+import "./common-pagination.css";
 
 export interface PaginationProps {
   totalItems?: number;

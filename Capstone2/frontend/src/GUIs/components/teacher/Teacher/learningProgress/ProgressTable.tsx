@@ -29,8 +29,6 @@ export default function ProgressTable({
 }: ProgressTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortField, setSortField] = useState<"name" | "attendance">("name");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const rowsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [evaluatingStudent, setEvaluatingStudent] = useState<TeachingStudentProgressItemDto | null>(null);
@@ -125,40 +123,21 @@ export default function ProgressTable({
       );
     }
 
-    // Sắp xếp
-    if (sortField === "attendance") {
-      // Sắp xếp theo Chuyên cần & Điểm danh (tỷ lệ % chuyên cần)
-      result.sort((a, b) => {
-        const diff = a.attendancePercentage - b.attendancePercentage;
-        if (diff !== 0) {
-          return sortOrder === "asc" ? diff : -diff;
-        }
-        // Nếu cùng % thì so sánh theo số buổi có mặt
-        const presentDiff = a.presentDays - b.presentDays;
-        return sortOrder === "asc" ? presentDiff : -presentDiff;
-      });
-    } else {
-      // Sắp xếp theo TÊN (từ cuối cùng trong họ và tên) theo thứ tự A-Z hoặc Z-A
-      result.sort((a, b) => {
-        const partsA = a.fullName.trim().split(/\s+/);
-        const partsB = b.fullName.trim().split(/\s+/);
-        const firstNameA = partsA[partsA.length - 1]; // "An" trong "Lê Văn An"
-        const firstNameB = partsB[partsB.length - 1]; // "Cường" trong "Đặng Minh Cường"
+    // Sắp xếp theo TÊN (từ cuối cùng trong họ và tên) theo thứ tự A-Z
+    result.sort((a, b) => {
+      const partsA = a.fullName.trim().split(/\s+/);
+      const partsB = b.fullName.trim().split(/\s+/);
+      const firstNameA = partsA[partsA.length - 1];
+      const firstNameB = partsB[partsB.length - 1];
 
-        // So sánh theo Tên trước
-        const compFirstName = firstNameA.localeCompare(firstNameB, "vi", { sensitivity: "base" });
-        if (compFirstName !== 0) {
-          return sortOrder === "asc" ? compFirstName : -compFirstName;
-        }
+      const compFirstName = firstNameA.localeCompare(firstNameB, "vi", { sensitivity: "base" });
+      if (compFirstName !== 0) return compFirstName;
 
-        // Nếu trùng tên thì so sánh toàn bộ Họ & Tên
-        const compFullName = a.fullName.trim().localeCompare(b.fullName.trim(), "vi", { sensitivity: "base" });
-        return sortOrder === "asc" ? compFullName : -compFullName;
-      });
-    }
+      return a.fullName.trim().localeCompare(b.fullName.trim(), "vi", { sensitivity: "base" });
+    });
 
     return result;
-  }, [displayItems, statusFilter, searchTerm, sortField, sortOrder]);
+  }, [displayItems, statusFilter, searchTerm]);
 
   // Phân trang
   const paginatedItems = useMemo(() => {
@@ -257,69 +236,9 @@ export default function ProgressTable({
           <thead className="table-light">
             <tr>
               <th>Avatar</th>
-              <th>
-                <button
-                  type="button"
-                  className="btn btn-link p-0 text-decoration-none text-dark fw-bold d-inline-flex align-items-center gap-1 border-0 shadow-none"
-                  onClick={() => {
-                    if (sortField === "name") {
-                      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-                    } else {
-                      setSortField("name");
-                      setSortOrder("asc");
-                    }
-                  }}
-                  title={
-                    sortField === "name"
-                      ? `Sorted by name: ${sortOrder === "asc" ? "A-Z" : "Z-A"}. Click to toggle.`
-                      : "Click to sort by student name"
-                  }
-                >
-                  <span>Student</span>
-                  <i
-                    className={`bi bi-arrow-down-up small ${
-                      sortField === "name" ? "text-primary fw-bold" : "text-muted opacity-50"
-                    }`}
-                  />
-                  {sortField === "name" && (
-                    <small className="text-primary fw-semibold" style={{ fontSize: "11px" }}>
-                      ({sortOrder === "asc" ? "A-Z" : "Z-A"})
-                    </small>
-                  )}
-                </button>
-              </th>
+              <th>Student</th>
               <th>Student ID</th>
-              <th>
-                <button
-                  type="button"
-                  className="btn btn-link p-0 text-decoration-none text-dark fw-bold d-inline-flex align-items-center gap-1 border-0 shadow-none"
-                  onClick={() => {
-                    if (sortField === "attendance") {
-                      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-                    } else {
-                      setSortField("attendance");
-                      setSortOrder("desc"); // Mặc định từ cao xuống thấp khi mới chọn
-                    }
-                  }}
-                  title={
-                    sortField === "attendance"
-                      ? `Sorted by attendance: ${sortOrder === "desc" ? "Descending" : "Ascending"}. Click to toggle.`
-                      : "Click to sort by Attendance"
-                  }
-                >
-                  <span>Attendance</span>
-                  <i
-                    className={`bi bi-arrow-down-up small ${
-                      sortField === "attendance" ? "text-primary fw-bold" : "text-muted opacity-50"
-                    }`}
-                  />
-                  {sortField === "attendance" && (
-                    <small className="text-primary fw-semibold" style={{ fontSize: "11px" }}>
-                      ({sortOrder === "asc" ? "Ascending" : "Descending"})
-                    </small>
-                  )}
-                </button>
-              </th>
+              <th>Attendance</th>
               <th>Latest Assignment</th>
               <th>Status</th>
               <th className="text-end">Actions</th>

@@ -67,10 +67,7 @@ export default function ClassManagementPage({role}: {role: ManagementRole}) {
   return (
     <>
       <PageHeader title="Class Management" breadcrumbItems={[{label: roleName, path: `/${role}`}, {label: "Classes"}]}
-        action={<div className="d-flex flex-wrap gap-2">
-          <button type="button" className="btn btn-outline-secondary" disabled={classes.loading} onClick={refresh}><i className="bi bi-arrow-clockwise me-1" />Refresh</button>
-          <button type="button" className="btn btn-primary d-flex align-items-center shadow-sm" onClick={() => {setSuccess(null); setEditor("new");}}><i className="bi bi-plus-square me-2" />Add Class</button>
-        </div>} />
+        action={<button type="button" className="btn btn-primary d-flex align-items-center shadow-sm" onClick={() => {setSuccess(null); setEditor("new");}}><i className="bi bi-plus-square me-2" />Add Class</button>} />
       {success && <div className="alert alert-success alert-dismissible" role="status">{success}<button type="button" className="btn-close" aria-label="Close notification" onClick={() => setSuccess(null)} /></div>}
       {classes.error && <div className="alert alert-danger" role="alert">{classes.error} <button type="button" className="btn btn-sm btn-outline-danger" onClick={refresh}>Retry</button></div>}
       {subjects.error && <div className="alert alert-warning" role="alert">Subject list: {subjects.error} Loaded classes are still displayed.</div>}
