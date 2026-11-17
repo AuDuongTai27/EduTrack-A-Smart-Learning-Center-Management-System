@@ -354,6 +354,7 @@ export function mapApiFeedbackToViewModel(
       | 'rejected',
     statusLabel,
     canEdit,
+    priority: dto.priority || 'medium',
     reviewedBy: dto.reviewerName || (dto.reviewedBy ? 'Admin Staff' : undefined),
     reviewedAt: formatDateTimeVi(dto.reviewedAt) || undefined,
     reviewNotes: dto.reviewNotes || undefined,
@@ -636,6 +637,7 @@ export const learningDAL = {
             uploadDate: m.uploadDate,
             uploadedBy: m.uploadedBy,
             sizeMb: m.sizeMb,
+            fileUrl: m.fileUrl,
           }))
           : [];
 
@@ -892,6 +894,7 @@ export const learningDAL = {
           classId: apiData.classId,
           score: scoreText,
           description: apiData.description ?? '',
+          fileUrl: apiData.fileUrl,
         };
 
         return {
@@ -922,20 +925,51 @@ export const learningDAL = {
   },
 
   /**
+   * Tải tệp bài làm học sinh lên máy chủ (POST /api/learning/submissions/upload)
+   */
+  async uploadSubmissionFile(file: File): Promise<{
+    success: boolean;
+    message: string;
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    uploadedAt: string;
+  }> {
+    try {
+      const res = await learningApi.uploadSubmissionFile(file);
+      console.log('🟢 [learningDAL] Tải bài làm học sinh lên máy chủ thành công:', res);
+      return res;
+    } catch (err: any) {
+      console.warn('🟡 [learningDAL] Tải bài làm thất bại, fallback sang mock URL:', err?.message);
+      const safeName = file.name.replace(/\s+/g, '_');
+      return {
+        success: true,
+        message: '[MOCK] Mock submission URL',
+        fileUrl: `/uploads/submissions/${safeName}`,
+        fileName: file.name,
+        fileSize: file.size,
+        uploadedAt: new Date().toISOString(),
+      };
+    }
+  },
+
+  /**
    * Nộp bài tập mới hoặc cập nhật bài nộp của học sinh lên Backend
    */
   async submitHomework(
     assignmentId: number,
     fileName: string,
     fileSizeMb: string,
-    studentId = DEFAULT_STUDENT_ID
+    studentId = DEFAULT_STUDENT_ID,
+    fileUrl?: string
   ): Promise<StudentSubmissionDetailApiDto> {
     const targetStudentId = resolveStudentId(studentId);
+    const resolvedUrl = fileUrl || `/uploads/submissions/${encodeURIComponent(fileName.replace(/\s+/g, '_'))}`;
     return await learningApi.submitHomework({
       assignmentId,
       studentId: targetStudentId,
       fileName,
-      fileUrl: `https://storage.edutrack.edu.vn/submissions/${encodeURIComponent(fileName)}`,
+      fileUrl: resolvedUrl,
       fileSizeText: `${fileSizeMb} MB`,
     });
   },

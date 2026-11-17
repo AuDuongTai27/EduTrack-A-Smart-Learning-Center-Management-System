@@ -311,7 +311,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                         Description = u.Description ?? "Tài liệu bài giảng và chuyên đề trọng tâm",
                         UploadDate = cls.StartDate.AddDays(idx * 4).ToString("dd/MM/yyyy"),
                         UploadedBy = teacherName,
-                        SizeMb = Math.Round(1.2m + (idx * 0.7m), 1)
+                        SizeMb = Math.Round(1.2m + (idx * 0.7m), 1),
+                        FileUrl = $"/api/learning/student/classes/{cls.ClassId}/materials/{u.ContentUnitId}/download"
                     };
                 })
                 .ToList();
@@ -433,7 +434,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 ClassName = assignment.Class?.ClassName ?? "Lớp học",
                 Title = assignment.Title,
                 Description = assignment.Description,
-                FileUrl = assignment.FileUrl,
+                FileUrl = NormalizeFileUrl(assignment.FileUrl, "teaching"),
                 DueDate = assignment.DueDate.ToString("dd/MM/yyyy"),
                 MaxScore = assignment.MaxScore,
                 IsAiGradingEnabled = assignment.IsAiGradingEnabled,
@@ -459,7 +460,7 @@ namespace EduTrack.API.Services.Learning.Implementation
 
             string fileUrl = !string.IsNullOrWhiteSpace(request.FileUrl)
                 ? request.FileUrl.Trim()
-                : $"https://storage.edutrack.edu.vn/submissions/{cleanFileName}";
+                : $"/uploads/submissions/{cleanFileName}";
 
             var existingSubmission = await _context.Submissions
                 .Include(s => s.AiEvaluations)
@@ -1648,9 +1649,20 @@ namespace EduTrack.API.Services.Learning.Implementation
             };
         }
 
+        private static string NormalizeFileUrl(string? url, string folder)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+            if (url.StartsWith("https://storage.edutrack.edu.vn/"))
+            {
+                var fileName = url.Split('/').LastOrDefault() ?? "document.pdf";
+                return $"/uploads/{folder}/{fileName}";
+            }
+            return url;
+        }
+
         private static StudentSubmissionDetailDto MapSubmissionToDto(Submission sub, string? aiSummaryFallback)
         {
-            string fileUrl = sub.FileUrl ?? string.Empty;
+            string fileUrl = NormalizeFileUrl(sub.FileUrl, "submissions");
             string fileName = "Bai_nop_hoc_sinh.pdf";
             if (!string.IsNullOrWhiteSpace(fileUrl))
             {

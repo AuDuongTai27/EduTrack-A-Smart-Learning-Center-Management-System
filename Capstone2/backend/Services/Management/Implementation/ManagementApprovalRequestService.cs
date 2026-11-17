@@ -43,7 +43,7 @@ namespace EduTrack.API.Services.Management.Implementation
 
         public async Task<ApprovalRequestDto> CreateAsync(CreateApprovalRequestDto dto)
         {
-            await EnsureRoleAsync(dto.RequestedBy, "admin_staff", "gửi yêu cầu");
+            await EnsureAnyRoleAsync(dto.RequestedBy, new[] { "admin_staff", "center_manager" }, "gửi yêu cầu");
 
             var type = NormalizeType(dto.RequestType);
             if (!AllowedTypes.Contains(type))
@@ -120,7 +120,7 @@ namespace EduTrack.API.Services.Management.Implementation
 
         public async Task<ApprovalRequestDto?> UpdateAsync(int id, UpdateApprovalRequestDto dto)
         {
-            await EnsureRoleAsync(dto.RequestedBy, "admin_staff", "chỉnh sửa yêu cầu");
+            await EnsureAnyRoleAsync(dto.RequestedBy, new[] { "admin_staff", "center_manager" }, "chỉnh sửa yêu cầu");
 
             var existing = await _requestRepository.GetByIdAsync(id);
             if (existing == null) return null;

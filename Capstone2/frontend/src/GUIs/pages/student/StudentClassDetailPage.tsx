@@ -62,7 +62,10 @@ export function StudentClassDetailPage() {
     }
   }, [cls?.name]);
 
-  const handleDownload = (fileName: string) => {
+  const handleDownload = (fileName: string, fileUrl?: string) => {
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    }
     setToastMessage(`Downloading material: ${fileName}`);
     setTimeout(() => {
       setToastMessage(null);
@@ -117,6 +120,7 @@ export function StudentClassDetailPage() {
         <ClassMaterialsSection
           materials={materials}
           onDownload={handleDownload}
+          classId={classId}
         />
 
         {/* 4. Assignments Section */}

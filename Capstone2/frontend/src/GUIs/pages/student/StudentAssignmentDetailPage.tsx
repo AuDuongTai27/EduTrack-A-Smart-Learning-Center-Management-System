@@ -71,20 +71,40 @@ export function StudentAssignmentDetailPage() {
     }, 3500);
   };
 
-  const handleDownload = (fileName: string) => {
-    showToast(`Downloading material: ${fileName}`);
+  const handleDownload = (fileName: string, url?: string) => {
+    const downloadUrl = url || asg?.fileUrl;
+    if (downloadUrl) {
+      window.open(downloadUrl, '_blank');
+      showToast(`Downloading material: ${fileName}`);
+    } else {
+      showToast(`Downloading material: ${fileName}`);
+    }
   };
 
   const handleSubmit = async (file: File | null) => {
     const name = file ? file.name : 'Bai_lam_LeVanAn.pdf';
     const sizeMb = file ? (file.size / (1024 * 1024)).toFixed(1) : '2.4';
+    let uploadedFileUrl: string | undefined = undefined;
 
     try {
+      if (file) {
+        showToast('Uploading file to server...');
+        try {
+          const uploadRes = await learningDAL.uploadSubmissionFile(file);
+          if (uploadRes?.fileUrl) {
+            uploadedFileUrl = uploadRes.fileUrl;
+          }
+        } catch (uploadErr) {
+          console.warn('Upload file thất bại, tiếp tục với file mock URL:', uploadErr);
+        }
+      }
+
       const savedSub = await learningDAL.submitHomework(
         asgId,
         name,
         sizeMb,
-        DEFAULT_STUDENT_ID
+        DEFAULT_STUDENT_ID,
+        uploadedFileUrl
       );
 
       setSubmittedFileName(savedSub.fileName || name);
@@ -173,7 +193,11 @@ export function StudentAssignmentDetailPage() {
         <AssignmentInstructions description={asg.description} />
 
         {/* 6. Attached Files Section */}
-        <AssignmentAttachedFiles onDownload={handleDownload} />
+        <AssignmentAttachedFiles
+          onDownload={handleDownload}
+          fileUrl={asg.fileUrl}
+          fileName={asg.title}
+        />
 
         {/* 7. Submission Section */}
         <AssignmentSubmissionSection

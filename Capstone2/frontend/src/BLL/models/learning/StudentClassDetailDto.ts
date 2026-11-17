@@ -7,6 +7,7 @@ export interface ClassMaterialItemApiDto {
   uploadDate: string;
   uploadedBy: string;
   sizeMb: number;
+  fileUrl?: string;
 }
 
 export interface ClassAssignmentItemApiDto {

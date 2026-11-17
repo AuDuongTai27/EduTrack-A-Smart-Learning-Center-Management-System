@@ -8,6 +8,7 @@ import TableActionButton from "../../../components/Common/TableActionButton";
 import feedbackDAL from "../../../../DAL/feedbackDAL";
 import userApi from "../../../../api/userApi";
 import tuitionApi from "../../../../api/tuitionApi";
+import { getAuthUser } from "../../../../api/authApi";
 import { getSelectedUserId } from "../../../../BLL/services/userSelection";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { TuitionInvoiceDto } from "../../../../BLL/models/TuitionDto";
@@ -336,7 +337,10 @@ export default function AdminStaffApprovalRequestPage() {
     e.preventDefault();
     if (creating) return;
 
-    if (!newRequestForm.title.trim() || !newRequestForm.reason.trim()) {
+    const trimmedTitle = newRequestForm.title.trim();
+    const trimmedReason = newRequestForm.reason.trim();
+
+    if (!trimmedTitle || !trimmedReason) {
       alert("Please enter the request title and reason.");
       return;
     }
@@ -359,12 +363,18 @@ export default function AdminStaffApprovalRequestPage() {
 
     setCreating(true);
     try {
+      const currentAuthUser = getAuthUser();
+      const currentUid =
+        currentAuthUser && currentAuthUser.userId > 0
+          ? currentAuthUser.userId
+          : getSelectedUserId("admin_staff");
+
       const payload = {
-        requestedBy: getSelectedUserId("admin_staff"),
+        requestedBy: currentUid,
         requestType: newRequestForm.requestType,
-        title: newRequestForm.title.trim(),
-        reason: newRequestForm.reason.trim(),
-        description: newRequestForm.reason.trim(),
+        title: trimmedTitle,
+        reason: trimmedReason,
+        description: trimmedReason,
         priority: newRequestForm.priority,
         studentId: newRequestForm.studentId
           ? Number(newRequestForm.studentId)
@@ -764,6 +774,12 @@ export default function AdminStaffApprovalRequestPage() {
                         </option>
                         <option value="student_information_change">
                           Student Information Change
+                        </option>
+                        <option value="class_transfer">
+                          Class Transfer
+                        </option>
+                        <option value="academic_support">
+                          Academic Support
                         </option>
                         <option value="other">
                           Other
