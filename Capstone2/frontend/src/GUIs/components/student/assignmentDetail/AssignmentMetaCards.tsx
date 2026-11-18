@@ -14,7 +14,7 @@ export function AssignmentMetaCards({
     <div className="asg-meta-cards-row">
       {/* Due Date Card */}
       <div className="asg-meta-card">
-        <div className="asg-meta-icon-box" style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}>
+        <div className="asg-meta-icon-box" style={{ backgroundColor: 'var(--et-mint)', color: 'var(--et-primary)' }}>
           <i className="bi bi-calendar-event"></i>
         </div>
         <div>

@@ -516,7 +516,7 @@ export default function AssignmentsSection({
                 <div className="d-flex align-items-center gap-2.5">
                   <div
                     className="rounded-3 d-flex align-items-center justify-content-center"
-                    style={{ width: "38px", height: "38px", backgroundColor: "#FFF1F2", color: "#E11D48", border: "1px solid #FECDD3" }}
+                    style={{ width: "36px", height: "36px", backgroundColor: "var(--et-mint)", color: "var(--et-primary)" }}
                   >
                     <i className="bi bi-file-earmark-plus-fill fs-5" />
                   </div>

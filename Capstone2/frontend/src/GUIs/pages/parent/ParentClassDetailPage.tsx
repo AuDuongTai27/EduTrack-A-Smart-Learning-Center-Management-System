@@ -5,6 +5,7 @@ import { LearnerPageLoader } from '../../components/student/common/LearnerPageLo
 import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import type { ClassSessionAttendanceItemApiDto } from '../../../api/learningApi';
+import { ClassHeroDecoration } from '../../components/Common/ClassHeroDecoration';
 import { ClassEvaluationsSection } from '../../components/student/classDetail/ClassEvaluationsSection';
 import type { ProgressFeedback } from '../../components/student/progress/progressData';
 
@@ -133,9 +134,9 @@ export function ParentClassDetailPage() {
       <div className={`content-container class-detail-container ${cls.subjectClass}`}>
         {/* 1. Hero Banner Thân Thiện Dành Cho Phụ Huynh (Xanh lá cây thương hiệu EduTrack) */}
         <div
-          className="class-hero-banner mb-4"
+          className="class-hero-banner mb-4 et-class-hero"
           style={{
-            background: 'linear-gradient(135deg, #065F46 0%, #078444 60%, #10B981 100%)',
+            background: 'var(--et-brand-banner)',
             borderRadius: '20px',
             padding: '28px',
             color: '#fff',
@@ -144,6 +145,7 @@ export function ParentClassDetailPage() {
             boxShadow: '0 10px 25px -5px rgba(5, 100, 60, 0.25)',
           }}
         >
+          <ClassHeroDecoration subject={cls.subject} />
           <div className="position-relative" style={{ zIndex: 2 }}>
             {/* Back Button */}
             <Link
@@ -161,7 +163,7 @@ export function ParentClassDetailPage() {
             </Link>
 
             {/* Breadcrumbs */}
-            <div className="d-flex align-items-center gap-2 small text-white-50 mb-2">
+            <div className="d-flex align-items-center gap-2 small text-white-50 mb-2 et-class-hero-breadcrumbs">
               <Link to="/parent/dashboard" className="text-white text-decoration-none opacity-75">
                 Dashboard
               </Link>
@@ -174,8 +176,8 @@ export function ParentClassDetailPage() {
             </div>
 
             {/* Hero Main Info */}
-            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2">
-              <div>
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2 et-class-hero-row">
+              <div className="et-class-hero-copy">
                 <span className="badge bg-white text-success fw-bold px-3 py-1.5 rounded-pill mb-2 shadow-xs">
                   {cls.subject}
                 </span>
@@ -191,27 +193,25 @@ export function ParentClassDetailPage() {
 
               {/* Quick Attendance Stat Badge */}
               <div
-                className="d-flex align-items-center gap-3 p-3 rounded-4 shadow-sm"
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.18)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  backdropFilter: 'blur(8px)',
-                }}
+                className="et-class-hero-summary"
               >
-                <div className="text-center">
+                <div className="text-center et-class-hero-summary-item">
+                  <i className="bi bi-calendar-check et-class-hero-summary-icon" aria-hidden="true" />
                   <div className="h4 fw-bold mb-0 text-white">
                     {actualAttended}/{totalLessons}
                   </div>
                   <div className="small text-white-50">Sessions Attended</div>
                 </div>
                 <div
+                  className="et-class-hero-summary-divider"
                   style={{
                     width: '1px',
                     height: '36px',
                     backgroundColor: 'rgba(255, 255, 255, 0.3)',
                   }}
                 ></div>
-                <div className="text-center">
+                <div className="text-center et-class-hero-summary-item">
+                  <i className="bi bi-person-check et-class-hero-summary-icon" aria-hidden="true" />
                   <div
                     className={`h4 fw-bold mb-0 ${attendanceRate >= 90
                       ? 'text-white'

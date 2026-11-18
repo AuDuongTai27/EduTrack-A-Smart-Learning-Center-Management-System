@@ -52,7 +52,7 @@ export default function StudentEvaluationSection({
                   <div className="d-flex align-items-center gap-2">
                     <div
                       className="rounded-circle d-flex align-items-center justify-content-center text-primary"
-                      style={{ width: "36px", height: "36px", backgroundColor: "#EFF6FF" }}
+                      style={{ width: "36px", height: "36px", backgroundColor: "var(--et-mint)" }}
                     >
                       <i className="bi bi-person-fill fs-6" />
                     </div>

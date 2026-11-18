@@ -15,8 +15,8 @@
   --text-light: #f7f5ff;
   --text-dark: #1f2430;
 
-  --accent: #5d3fd3;
-  --accent-soft: #ede9fe;
+  --accent: var(--et-primary);
+  --accent-soft: var(--et-mint);
   --icon-bg: #f1f5f9;
 
   font-family:
@@ -191,7 +191,7 @@
   border-radius: 4px;
 
   color: var(--accent);
-  background: #ede9fe;
+  background: var(--et-mint);
 }
 
 .center-info {
@@ -491,7 +491,7 @@
   justify-content: center;
 
   color: #ffffff;
-  background: linear-gradient(135deg, #5d3fd3, #8b5cf6);
+  background: var(--et-brand-banner);
 
   border-radius: 4px;
 
@@ -526,12 +526,12 @@
 .dashboard-welcome,
 .card.bg-03 {
   color: #ffffff !important;
-  background: linear-gradient(135deg, var(--et-primary) 0%, #7c5cfc 60%, #4d8cff 100%) !important;
+  background: var(--et-brand-banner) !important;
 
   border: 0 !important;
   border-radius: 12px !important;
 
-  box-shadow: 0 4px 16px rgba(93, 63, 211, 0.18) !important;
+  box-shadow: var(--et-shadow) !important;
   overflow: hidden;
 }
 
@@ -718,7 +718,7 @@
 }
 
 .dashboard-view-all {
-  color: #0d6efd;
+  color: var(--et-primary);
 
   font-size: 14px;
   font-weight: 500;
@@ -1183,9 +1183,9 @@ body.sidebar-collapsed & .sidebar .nav-link i {
 }
 
 .badge-primary {
-  background-color: rgba(93, 63, 211, 0.12);
-  color: #5d3fd3;
-  border: 1px solid rgba(93, 63, 211, 0.2);
+  background-color: rgba(7, 132, 68, 0.12);
+  color: var(--et-primary);
+  border: 1px solid rgba(7, 132, 68, 0.2);
 }
 
 @media (max-width: 1199.98px) {
@@ -1318,8 +1318,8 @@ body.sidebar-collapsed & .sidebar .nav-link i {
 }
 
 .table-search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--et-primary);
+  box-shadow: 0 0 0 3px var(--et-focus);
 }
 
 .table-responsive-container {
@@ -1364,7 +1364,7 @@ body.sidebar-collapsed & .sidebar .nav-link i {
 }
 
 .class-id-link {
-  color: #2563eb;
+  color: var(--et-primary);
   font-weight: 500;
   text-decoration: none;
   transition: color 0.15s;
@@ -1448,7 +1448,7 @@ body.sidebar-collapsed & .sidebar .nav-link i {
 .pagination-num-btn {
   width: 32px;
   height: 32px;
-  background-color: #2563eb;
+  background-color: var(--et-primary);
   color: #ffffff;
   border-radius: 6px;
   display: inline-flex;
@@ -1509,8 +1509,8 @@ body.sidebar-collapsed & .sidebar .nav-link i {
 }
 
 .pagination-jump-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: var(--et-primary);
+  box-shadow: 0 0 0 2px rgba(7, 132, 68, 0.15);
 }
 
 .pagination-jump-input::-webkit-outer-spin-button,
@@ -1620,7 +1620,7 @@ details.class-list-card[open] .details-chevron {
 }
 
 .session-doc-link:hover {
-  color: #2563eb;
+  color: var(--et-primary);
   text-decoration: underline;
 }
 

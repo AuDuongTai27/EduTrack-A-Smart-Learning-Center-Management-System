@@ -91,15 +91,15 @@ export function ProgressStatsGrid({
         </div>
 
         {/* Card 4: Total sessions attended to date */}
-        <div className="progress-stat-card" style={{ borderColor: '#BFDBFE' }}>
+        <div className="progress-stat-card" style={{ borderColor: 'var(--et-border)' }}>
           <div
             className="progress-stat-icon-box"
-            style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}
+            style={{ backgroundColor: 'var(--et-mint)', color: 'var(--et-primary)' }}
           >
             <i className="bi bi-calendar2-check-fill"></i>
           </div>
           <div>
-            <div className="progress-stat-num" style={{ color: '#1D4ED8' }}>
+            <div className="progress-stat-num" style={{ color: 'var(--et-primary-hover)' }}>
               {currentTotalSessions}
             </div>
             <div className="progress-stat-title">Past Sessions to Date</div>

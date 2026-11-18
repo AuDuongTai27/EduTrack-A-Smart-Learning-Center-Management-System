@@ -1,0 +1,15 @@
+/* KAN-53: opt-in for the four management/teaching roles only. */
+:is(.admin-scope, .teacher-scope) .topbar.et-simplified-topbar {
+  gap: 12px;
+}
+:is(.admin-scope, .teacher-scope) .et-simplified-topbar .topbar-actions {
+  margin-left: auto;
+  gap: 12px;
+}
+/* Legacy small-screen rules hide icon buttons by their position. Keep the bell visible. */
+:is(.admin-scope, .teacher-scope) .et-simplified-topbar .topbar-actions .notification-btn {
+  display: inline-flex;
+}
+@media (max-width: 575px) {
+  :is(.admin-scope, .teacher-scope) .et-simplified-topbar .topbar-actions { gap: 8px; }
+}

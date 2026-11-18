@@ -8,9 +8,7 @@
 & {
   --et-hour-height: 60px;
   --et-time-col-width: 64px;
-  --et-primary: #2563EB;
-  --et-primary-hover: #1D4ED8;
-  --et-primary-soft: #EFF6FF;
+  --et-primary-soft: var(--et-mint);
   --et-teal: #0EA5A6;
   --et-dark: #0F172A;
   --et-slate: #334155;
@@ -132,7 +130,7 @@
 }
 
 .day-header-col.is-today {
-  background: #EFF6FF;
+  background: var(--et-mint);
 }
 
 .day-name-label {
@@ -165,7 +163,7 @@
 .day-header-col.is-today .day-num-bubble {
   background: var(--et-primary, #2563EB);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 2px 8px var(--et-focus);
 }
 
 /* Timetable Scroll Area */
@@ -217,7 +215,7 @@
 }
 
 .grid-day-col.is-today {
-  background-color: rgba(239, 246, 255, 0.35);
+  background-color: var(--et-surface);
 }
 
 .grid-hour-line {
@@ -439,7 +437,7 @@
 .pagination-num-btn {
   width: 32px;
   height: 32px;
-  background-color: #2563eb;
+  background-color: var(--et-primary);
   color: #ffffff;
   border-radius: 6px;
   display: inline-flex;
@@ -500,8 +498,8 @@
 }
 
 .pagination-jump-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: var(--et-primary);
+  box-shadow: 0 0 0 2px rgba(7, 132, 68, 0.15);
 }
 
 .pagination-jump-input::-webkit-outer-spin-button,

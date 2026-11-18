@@ -16,7 +16,7 @@
 .pagination-num-btn {
   width: 32px;
   height: 32px;
-  background-color: #2563eb;
+  background-color: var(--et-primary);
   color: #ffffff;
   border-radius: 6px;
   display: inline-flex;
@@ -67,8 +67,8 @@
 }
 
 .pagination-jump-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: var(--et-primary);
+  box-shadow: 0 0 0 2px rgba(7, 132, 68, 0.15);
 }
 
 .pagination-jump-input::-webkit-outer-spin-button,

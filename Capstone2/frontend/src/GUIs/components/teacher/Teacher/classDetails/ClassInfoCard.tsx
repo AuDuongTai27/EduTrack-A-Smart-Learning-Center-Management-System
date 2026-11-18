@@ -20,7 +20,7 @@ export default function ClassInfoCard({
             <div className="d-flex align-items-center gap-3">
               <div
                 className="avatar-box rounded-3 d-flex align-items-center justify-content-center"
-                style={{ width: 48, height: 48, backgroundColor: "#ede8ff", color: "#5d3fd3" }}
+                style={{ width: 48, height: 48, backgroundColor: "var(--et-mint)", color: "var(--et-primary)" }}
               >
                 <i className="bi bi-mortarboard-fill fs-4" />
               </div>
@@ -36,7 +36,7 @@ export default function ClassInfoCard({
             <div className="d-flex align-items-center gap-3">
               <div
                 className="avatar-box rounded-3 d-flex align-items-center justify-content-center"
-                style={{ width: 48, height: 48, backgroundColor: "#e0f2fe", color: "#0284c7" }}
+                style={{ width: 48, height: 48, backgroundColor: "var(--et-mint)", color: "var(--et-primary)" }}
               >
                 <i className="bi bi-journal-bookmark-fill fs-4" />
               </div>

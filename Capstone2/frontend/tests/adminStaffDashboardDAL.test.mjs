@@ -121,3 +121,40 @@ test("backend offline produces section errors instead of successful zeroes or ex
     assert.match(section.error, /Network offline/);
   }
 });
+
+test("one approval response supplies outgoing and incoming counts without duplicate fetches", async () => {
+  const calls = serve({ ...common(),
+    "/users/42": { userId: 42, status: "active", roles: ["admin_staff"] },
+    "/approvalrequests": [
+      { requestId: 1, requestedBy: 42, requesterRole: "admin_staff", status: "pending", createdAt: "2026-11-18" },
+      { requestId: 2, requestedBy: 70, requesterRole: "teacher", status: "pending", reviewedBy: 99, createdAt: "2026-11-18" },
+      { requestId: 3, requestedBy: 71, requesterRole: "parent", status: "pending", reviewedBy: null, createdAt: "2026-11-18" },
+      { requestId: 4, requestedBy: 71, requesterRole: "student", status: "approved", createdAt: "2026-11-18" },
+    ],
+  });
+  const result = await dashboardDAL.getDashboard(42, "2026-11-18");
+  assert.equal(calls.filter(path => path === "/approvalrequests").length, 1);
+  assert.deepEqual(result.requests.data.map(row => row.requestId), [1]);
+  assert.equal(result.incomingPending.data, 2);
+});
+
+test("unknown incoming role fails only its count while outgoing list remains available", async () => {
+  serve({ ...common(), "/users/42": { userId: 42, status: "active", roles: ["admin_staff"] },
+    "/approvalrequests": [{ requestId: 1, requestedBy: 70, status: "pending", createdAt: "2026-11-18" }],
+  });
+  const result = await dashboardDAL.getDashboard(42, "2026-11-18");
+  assert.equal(result.incomingPending.data, null);
+  assert.match(result.incomingPending.error, /requester role/);
+  assert.deepEqual(result.requests.data, []);
+});
+
+test("approval API failure leaves both request sections unavailable with errors", async () => {
+  serve({ ...common(), "/users/42": { userId: 42, status: "active", roles: ["admin_staff"] },
+    "/approvalrequests": new Response("Unavailable", { status: 503 }),
+  });
+  const result = await dashboardDAL.getDashboard(42, "2026-11-18");
+  for (const section of [result.requests, result.incomingPending]) {
+    assert.equal(section.data, null);
+    assert.match(section.error, /503/);
+  }
+});

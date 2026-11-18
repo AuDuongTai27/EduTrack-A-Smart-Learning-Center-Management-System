@@ -29,7 +29,7 @@
 .schedule-official .session-card-state { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .schedule-official .session-card-room { max-width:40%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
 .schedule-official .session-card-teacher > span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.schedule-official .et-schedule-session:focus-visible { outline:3px solid #2563eb; outline-offset:1px; }
+.schedule-official .et-schedule-session:focus-visible { outline:3px solid var(--et-primary); outline-offset:1px; }
 .schedule-official .table-responsive-container { overflow:auto; }
 :where(.schedule-official) .custom-table { width:100%; min-width:1120px; font-size:13px; }
 :where(.schedule-official) .custom-table th, :where(.schedule-official) .custom-table td { padding:14px 16px; white-space:nowrap; border-bottom:1px solid #e2e8f0; }

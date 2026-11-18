@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 75" fill="none">
+  <defs>
+    <radialGradient id="paper" cx=".32" cy=".18" r="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#EAF8F1"/></radialGradient>
+    <radialGradient id="mint" cx=".25" cy=".15" r="1"><stop stop-color="#EAF8F1"/><stop offset="1" stop-color="#078444" stop-opacity=".28"/></radialGradient>
+    <radialGradient id="shadow"><stop stop-color="#078444" stop-opacity=".15"/><stop offset="1" stop-color="#EAF8F1" stop-opacity="0"/></radialGradient>
+  </defs>
+  <ellipse cx="94" cy="70" rx="63" ry="5" fill="url(#shadow)"/>
+  <g transform="translate(41 1) scale(.3)" stroke="#078444" stroke-opacity=".5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="104" cy="90" r="66" fill="url(#paper)"/>
+<path d="M55 49 77 40l20 4 8 17-18 7-4 20-14 8-17-11-7 12m-1 9 24-3 20 12 18 1 9 18-18 25-7-21-13-9-6-17m52-68 16 8-5 17-12 9-4-12-17-7m19 30 23-9 16 11 4 23-18 4-13-10-16 4-7-13m5 25 17 3 5 15-11 10-2 13" fill="url(#mint)" stroke="none"/>
+<path d="M104 10Q20 23 20 91T104 168M104 156v37M103 169v23M67 215Q70 190 104 190T142 215Z" fill="url(#mint)"/><circle cx="104" cy="15" r="7" fill="url(#paper)"/><circle cx="104" cy="165" r="7" fill="url(#paper)"/>
+<path d="M239 88C306 87 325 167 283 198L271 178C299 149 287 118 252 113Z" fill="url(#mint)"/>
+<path d="M225 26 258 42 232 98 199 82Z" fill="url(#paper)"/>
+<path d="m220 21 12-14q2-3 6-1l31 15q4 2 2 6l-8 15q-2 4-6 2l-35-17q-3-2-2-6Z" fill="url(#mint)"/>
+<path d="m199 71 42 20q6 3 3 9l-7 14q-3 6-9 3l-43-21q-5-3-3-8l7-14q3-6 10-3Z" fill="url(#paper)"/>
+<path d="m190 101-9 17 11 6 9-17m8 3-6 19 12 4 7-19" fill="url(#mint)"/>
+<circle cx="254" cy="91" r="20" fill="url(#paper)"/><circle cx="254" cy="91" r="10" fill="url(#mint)"/>
+<path d="M190 143H263Q268 143 268 148V158H185V148Q185 143 190 143Z" fill="url(#paper)"/>
+<path d="M219 158H246V185H219Z" fill="url(#mint)"/>
+<path d="M203 185H278Q290 185 294 202H186Q189 185 203 185Z" fill="url(#paper)"/>
+<path d="M183 202H299Q310 202 310 214V221H172V214Q172 202 183 202Z" fill="url(#mint)"/>
+<path d="M184 221v5h21v-5m72 0v5h21v-5" fill="url(#mint)"/>
+<path d="m233 35-14 30M191 150h63" stroke="#FFFFFF" stroke-opacity=".8" stroke-width="4"/>
+<path d="m35 216 4-39 19-21 17 20 2 40m-38-39 18 12 18-13m-18-20v60" fill="url(#mint)"/>
+<path d="m71 215 9-31 14-5 10 19-9 21Z" fill="url(#paper)"/><path d="m80 184 8 15 16-1m-16 1 7 20"/>
+<path d="M9 225Q4 215 13 204L24 190 43 186 57 200 66 217Q69 227 57 229Z" fill="url(#mint)"/><path d="m13 204 17 5 13-23m-13 23 27-9" stroke="#FFFFFF" stroke-opacity=".5" stroke-width="3"/></g>
+</svg>

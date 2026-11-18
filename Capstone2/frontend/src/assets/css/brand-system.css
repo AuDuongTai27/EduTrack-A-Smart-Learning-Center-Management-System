@@ -8,6 +8,9 @@
 :is(.admin-scope, .teacher-scope, .student-scope) {
   --bs-primary: var(--et-primary);
   --bs-primary-rgb: 7, 132, 68;
+  --bs-primary-text-emphasis: var(--et-primary-active);
+  --bs-primary-bg-subtle: var(--et-mint);
+  --bs-primary-border-subtle: var(--et-border);
   --bs-link-color: var(--et-primary);
   --bs-link-hover-color: var(--et-primary-hover);
   --bs-border-color: var(--et-border);
@@ -94,6 +97,29 @@
 :is(.admin-scope, .teacher-scope, .student-scope) .form-check-input:checked { background-color: var(--et-primary); border-color: var(--et-primary); }
 :is(.admin-scope, .teacher-scope, .student-scope) .page-item.active .page-link { background-color: var(--et-primary); border-color: var(--et-primary); color: white; }
 :is(.admin-scope, .teacher-scope, .student-scope) .page-link { color: var(--et-primary); }
+/* Bootstrap component defaults are declared on the component itself, so the
+   scoped palette alone cannot replace their compiled blue interaction states. */
+:is(.admin-scope, .teacher-scope, .student-scope) .btn-outline-primary {
+  --bs-btn-color: var(--et-primary);
+  --bs-btn-border-color: var(--et-primary);
+  --bs-btn-hover-bg: var(--et-primary-hover);
+  --bs-btn-hover-border-color: var(--et-primary-hover);
+  --bs-btn-active-bg: var(--et-primary-active);
+  --bs-btn-active-border-color: var(--et-primary-active);
+  --bs-btn-focus-shadow-rgb: 7, 132, 68;
+}
+:is(.admin-scope, .teacher-scope, .student-scope) .nav-pills {
+  --bs-nav-pills-link-active-bg: var(--et-primary);
+}
+:is(.admin-scope, .teacher-scope, .student-scope) .accordion {
+  --bs-accordion-active-color: var(--et-primary-active);
+  --bs-accordion-active-bg: var(--et-mint);
+  --bs-accordion-btn-focus-box-shadow: 0 0 0 .25rem var(--et-focus);
+}
+:is(.admin-scope, .teacher-scope, .student-scope) .page-link:focus {
+  color: var(--et-primary-hover);
+  box-shadow: 0 0 0 .25rem var(--et-focus);
+}
 :is(.admin-scope, .teacher-scope, .student-scope) :is(.modal-content, .dropdown-menu) { border-color: var(--et-border); border-radius: var(--et-radius); box-shadow: 0 12px 36px rgba(20,34,56,.12); background-color: var(--et-card); }
 :is(.admin-scope, .teacher-scope, .student-scope) .table { --bs-table-border-color: var(--et-border); --bs-table-hover-bg: var(--et-surface); }
 :is(.admin-scope, .teacher-scope, .student-scope) :is(button, a, input, select, textarea):focus-visible,

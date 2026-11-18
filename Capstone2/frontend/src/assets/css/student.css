@@ -58,11 +58,11 @@
 
   --et-primary-soft: var(--et-mint);
 
-  --et-teal: #0EA5A6;
+  --et-teal: var(--et-primary);
 
   --et-primary-gradient: var(--et-brand-banner);
 
-  --et-teal-gradient: linear-gradient(135deg, #0EA5A6 0%, #2563EB 100%);
+  --et-teal-gradient: var(--et-brand-banner);
 
   --et-blue-gradient: var(--et-brand-banner);
 
@@ -2415,11 +2415,11 @@
 
 .btn-download-mat:hover {
 
-  background-color: #EFF6FF;
+  background-color: var(--et-mint);
 
-  color: #2563EB;
+  color: var(--et-primary);
 
-  border-color: #BFDBFE;
+  border-color: var(--et-border);
 
 }
 
@@ -4446,9 +4446,9 @@
 
   border-radius: 16px;
 
-  background-color: #2563EB;
+  background-color: var(--et-primary);
 
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 14px rgba(7, 132, 68, 0.25);
 
   color: #fff;
 
@@ -5616,7 +5616,7 @@
 
   width: 100%;
 
-  background: linear-gradient(90deg, #0EA5A6 0%, #2563EB 100%);
+  background: var(--et-brand-banner);
 
 }
 
@@ -5996,9 +5996,9 @@
 
   transform: translateY(-1px);
 
-  box-shadow: 0 6px 24px rgba(14, 165, 166, 0.45), 0 2px 8px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 6px 24px var(--et-focus), 0 2px 8px var(--et-focus);
 
-  background: linear-gradient(135deg, #0d9294 0%, #1d55d6 100%);
+  background: var(--et-brand-banner);
 
 }
 
@@ -6850,7 +6850,7 @@
 
   position: relative;
 
-  background: linear-gradient(118deg, #0EA5A6 0%, #1D6FE0 55%, #2563EB 100%);
+  background: var(--et-brand-banner);
 
   overflow: hidden;
 
@@ -7120,7 +7120,7 @@
 
   border-radius: 8px;
 
-  background: linear-gradient(135deg, rgba(14, 165, 166, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(14, 165, 166, 0.1) 0%, rgba(7, 132, 68, 0.1) 100%);
 
   color: var(--et-primary);
 
@@ -7186,7 +7186,7 @@
 
   margin-top: 2px;
 
-  background: linear-gradient(135deg, rgba(14, 165, 166, 0.08) 0%, rgba(37, 99, 235, 0.08) 100%);
+  background: linear-gradient(135deg, rgba(14, 165, 166, 0.08) 0%, rgba(7, 132, 68, 0.08) 100%);
 
   color: var(--et-primary);
 
@@ -8252,9 +8252,9 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background-color: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  color: #2563EB;
+  background-color: var(--et-mint);
+  border: 1px solid var(--et-border);
+  color: var(--et-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8320,12 +8320,12 @@
 }
 
 .progress-filter-btn:hover {
-  color: var(--et-primary, #2563EB);
+  color: var(--et-primary, var(--et-primary));
 }
 
 .progress-filter-btn.active {
   background-color: #ffffff;
-  color: var(--et-primary, #2563EB);
+  color: var(--et-primary, var(--et-primary));
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
@@ -8342,8 +8342,8 @@
 }
 
 .progress-filter-btn.active .progress-filter-count {
-  background-color: #EFF6FF;
-  color: #2563EB;
+  background-color: var(--et-mint);
+  color: var(--et-primary);
 }
 
 /* Sub-header filter buttons inside class accordion */

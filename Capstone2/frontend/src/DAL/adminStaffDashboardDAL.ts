@@ -3,6 +3,7 @@ import tuitionDAL from "./tuitionDAL";
 import feedbackDAL from "./feedbackDAL";
 import {
   countActiveStudents,
+  countPendingIncomingRequests,
   getMyRequests,
   getTodaySessions,
   loadDashboardSection,
@@ -40,6 +41,7 @@ interface DashboardSections {
   schedule: DashboardSection<ReturnType<typeof getTodaySessions>>;
   staff: DashboardSection<Awaited<ReturnType<typeof getCurrentStaff>>>;
   requests: DashboardSection<ReturnType<typeof getMyRequests>>;
+  incomingPending: DashboardSection<number>;
 }
 
 export interface AdminStaffDashboardData extends DashboardSections {
@@ -52,7 +54,7 @@ export const adminStaffDashboardDAL = {
     const empty = () => ({ data: null, error: null });
     const data: AdminStaffDashboardData = {
       userId, today, students: empty(), tuition: empty(), schedule: empty(),
-      staff: empty(), requests: empty(),
+      staff: empty(), requests: empty(), incomingPending: empty(),
     };
     const sections: DashboardSections = data;
     // Publish each section as it resolves so a slow Payments request cannot hide student data.
@@ -61,6 +63,12 @@ export const adminStaffDashboardDAL = {
       onUpdate?.({ ...data });
     };
     const currentStaff = getCurrentStaff(userId);
+    // One authenticated response supplies both outgoing and incoming dashboard data.
+    const allRequests = currentStaff.then(async () => {
+      const result = await feedbackDAL.getAllRequests();
+      if (!Array.isArray(result.data)) throw new Error('Approval Requests API returned invalid data.');
+      return result.data;
+    });
     await Promise.all([
       loadDashboardSection(userDAL.getAllUsers().then((result) => countActiveStudents(result.data))).then(update("students")),
       loadDashboardSection(Promise.all([tuitionDAL.getAllInvoices(), tuitionDAL.getAllPayments()])
@@ -70,10 +78,8 @@ export const adminStaffDashboardDAL = {
         getList<TeacherClassAssignmentDto>("teacherclasses"),
       ]).then(([sessions, assignments]) => getTodaySessions(sessions, assignments, today))).then(update("schedule")),
       loadDashboardSection(currentStaff).then(update("staff")),
-      loadDashboardSection(currentStaff.then(async (user) => {
-        const result = await feedbackDAL.getAllRequests();
-        return getMyRequests(result.data, user.userId);
-      })).then(update("requests")),
+      loadDashboardSection(allRequests.then(requests => getMyRequests(requests, userId!))).then(update("requests")),
+      loadDashboardSection(allRequests.then(countPendingIncomingRequests)).then(update("incomingPending")),
     ]);
     return data;
   },

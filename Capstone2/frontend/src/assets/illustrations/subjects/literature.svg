@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 75" fill="none"><path d="M20 67c50-23 86 9 150-8" stroke="#EAF8F1" stroke-width="12" stroke-linecap="round"/><g stroke="#078444" stroke-opacity=".45" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M39 32q26-7 45 7 19-14 45-7v29q-26-6-45 7-19-13-45-7V32Zm45 7v29m-35-26 24 4m-24 4 24 4m22-8 24-4m-24 12 24-4M117 36c4-19 10-29 33-29-1 22-12 29-33 29Zm-9 13 30-30m-18 16 13 1m-6-8-1-9"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 75" fill="none">
+  <defs>
+    <radialGradient id="paper" cx=".32" cy=".18" r="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#EAF8F1"/></radialGradient>
+    <radialGradient id="mint" cx=".25" cy=".15" r="1"><stop stop-color="#EAF8F1"/><stop offset="1" stop-color="#078444" stop-opacity=".28"/></radialGradient>
+    <radialGradient id="shadow"><stop stop-color="#078444" stop-opacity=".15"/><stop offset="1" stop-color="#EAF8F1" stop-opacity="0"/></radialGradient>
+  </defs>
+  <ellipse cx="94" cy="70" rx="63" ry="5" fill="url(#shadow)"/>
+  <g transform="translate(41 1) scale(.3)" stroke="#078444" stroke-opacity=".5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M106 15H216Q247 15 247 57L229 170Q226 189 239 199H153Q137 199 128 218H94Q80 213 85 190L106 81Z" fill="url(#paper)"/>
+<path d="M106 15Q78 15 77 45T106 81H118Q132 32 106 15Z" fill="url(#mint)"/><path d="M95 43H120Q131 80 106 81" fill="url(#paper)"/>
+<path d="M101 195H158Q172 195 172 209Q170 224 156 224H104Q123 222 118 207Q115 195 101 195Z" fill="url(#mint)"/>
+<path d="M139 55h80M134 78h80m-85 23h80m-84 23h80m-84 23h77m-73 23h67" opacity=".65"/>
+<path d="M43 173H125Q108 187 125 204H42Q22 203 26 187Q28 173 43 173Z" fill="url(#mint)"/>
+<path d="M34 205H133Q117 218 133 232H34Q13 232 15 219Q15 205 34 205Z" fill="url(#paper)"/>
+<path d="M48 181h64m-74 31h81M84 181v24l9-6 9 6v-24" fill="url(#mint)" stroke-width="3"/>
+<path d="M260 175Q242 128 268 89L279 104Q281 67 330 39Q338 89 310 109L322 107Q316 134 294 148L305 147Q287 169 260 175Z" fill="url(#mint)"/>
+<path d="M252 199Q261 132 315 59"/>
+<path d="M241 181H270V195Q289 195 296 213L301 229Q303 235 296 235H220Q214 235 216 229L221 213Q228 195 241 195Z" fill="url(#paper)"/>
+<path d="M224 216Q243 209 261 215T292 214L296 231H221Z" fill="url(#mint)" stroke="none"/><rect x="237" y="179" width="37" height="11" rx="5" fill="url(#paper)"/></g>
+</svg>

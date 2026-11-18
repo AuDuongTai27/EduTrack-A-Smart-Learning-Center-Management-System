@@ -1,3 +1,4 @@
+import '../../../assets/css/simplified-topbar.css';
 import { NotificationBellDropdown } from '../../components/shared/notifications/NotificationQuickViews';
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -46,7 +47,7 @@ export function TeachingAssistantTopBar() {
     '';
 
   return (
-    <header className="topbar">
+    <header className="topbar et-simplified-topbar">
       <div className="topbar-left">
         <button
           className="mobile-menu-btn"
@@ -58,13 +59,6 @@ export function TeachingAssistantTopBar() {
         </button>
       </div>
       <div className="topbar-actions">
-        <button className="academic-year-btn" type="button">
-          <i className="bi bi-calendar3" />
-          <span>Academic Year: 2026 - 2027</span>
-        </button>
-        <button className="icon-btn" type="button" title="Theme">
-          <i className="bi bi-moon-stars" />
-        </button>
         <NotificationBellDropdown />
 
         {/* User Info & Avatar with Dropdown */}
