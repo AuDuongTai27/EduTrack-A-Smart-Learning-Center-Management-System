@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
-import { SubjectIllustration } from '../../components/Common/SubjectIllustration';
+import { ParentClassItem } from '../../components/parent/ParentClassItem';
 import '../../../assets/css/parent-academy.css';
 import parentHero from '../../../assets/illustrations/edutrack-parent-hero-transparent.png';
 
@@ -189,65 +189,7 @@ export function ParentDashboardPage() {
 
         <div className="classes-grid mb-4">
           {classes.map((cls) => (
-            <Link
-              key={cls.id}
-              to={`/parent/classes/${cls.id}`}
-              className={`class-card ${cls.subjectClass}`}
-            >
-              <div className="card-accent-bar"></div>
-              <div className="class-card-body">
-                <div className="class-card-header">
-                  <span className="subject-badge">{cls.badge}</span>
-                  <div className="subject-icon-box">
-                    <i className="bi bi-book"></i>
-                  </div>
-                </div>
-                <h3 className="class-name">{cls.name}</h3>
-                <div className="card-spacer"></div>
-
-                <div className="teacher-row">
-                  <div className="teacher-avatar-mini">{cls.teacherInitials}</div>
-                  <span className="teacher-name">
-                    <span className="teacher-label">Teacher:</span> {cls.teacher}
-                  </span>
-                </div>
-
-                <div className="meta-row">
-                  <i className="bi bi-calendar-event"></i>
-                  <span>{cls.schedule}</span>
-                </div>
-
-                <div className="meta-row room">
-                  <i className="bi bi-geo-alt"></i>
-                  <span>{cls.room}</span>
-                </div>
-                <div className="et-parent-subject-art" aria-hidden="true"><SubjectIllustration name={cls.subject?.trim() || cls.badge}/></div>
-
-                {/* Tóm tắt buổi học & chuyên cần con */}
-                <div className="mt-2 pt-2 border-top">
-                  <div className="d-flex justify-content-between small text-muted mb-1">
-                    <span>Attended: <strong>{cls.attendedLessons}/{cls.totalLessons} sessions</strong></span>
-                    <span className="text-success fw-bold">
-                      {cls.totalLessons > 0 ? Math.round((cls.attendedLessons / cls.totalLessons) * 100) : 0}%
-                    </span>
-                  </div>
-                  <div className="progress" style={{ height: '6px' }}>
-                    <div
-                      className="progress-bar bg-success"
-                      role="progressbar"
-                      style={{
-                        width: `${cls.totalLessons > 0 ? Math.round((cls.attendedLessons / cls.totalLessons) * 100) : 0}%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="class-card-footer">
-                <span>View class info &amp; attendance</span>
-                <i className="bi bi-chevron-right"></i>
-              </div>
-            </Link>
+            <ParentClassItem key={cls.id} classItem={cls} />
           ))}
         </div>
       </div>

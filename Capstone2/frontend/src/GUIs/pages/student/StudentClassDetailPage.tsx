@@ -9,8 +9,9 @@ import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ClassHeroBanner } from '../../components/student/classDetail/ClassHeroBanner';
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
-import { ClassMaterialsSection } from '../../components/student/classDetail/ClassMaterialsSection';
-import { ClassAssignmentsSection } from '../../components/student/classDetail/ClassAssignmentsSection';
+import { ClassEvaluationsSection } from '../../components/student/classDetail/ClassEvaluationsSection';
+import { ClassCourseworkSection } from '../../components/student/classDetail/ClassCourseworkSection';
+import type { ProgressFeedback } from '../../components/student/progress/progressData';
 
 export function StudentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export function StudentClassDetailPage() {
   const [cls, setCls] = useState<ClassDetailItem | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
+  const [feedbacks, setFeedbacks] = useState<ProgressFeedback[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function StudentClassDetailPage() {
           setCls(detailData.cls);
           setMaterials(detailData.materials);
           setAssignments(detailData.assignments);
+          setFeedbacks(detailData.feedbacks || []);
         }
       } catch (err) {
         console.warn('Lỗi khi tải chi tiết lớp học:', err);
@@ -116,15 +119,16 @@ export function StudentClassDetailPage() {
         {/* 2. Class Info Card */}
         <ClassInfoCard cls={cls} />
 
-        {/* 3. Materials Section */}
-        <ClassMaterialsSection
+        {/* 3. Teacher Evaluations & Feedback Section */}
+        <ClassEvaluationsSection feedbacks={feedbacks} classNameTitle={cls.name} />
+
+        {/* 4. Unified Coursework & Materials Section (Sorted newest first with filter) */}
+        <ClassCourseworkSection
           materials={materials}
+          assignments={assignments}
           onDownload={handleDownload}
           classId={classId}
         />
-
-        {/* 4. Assignments Section */}
-        <ClassAssignmentsSection assignments={assignments} />
       </div>
     </main>
   );

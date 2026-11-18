@@ -85,8 +85,8 @@ export default function TeachingAssistantStudentProgressDetailPage() {
       <div className="p-5 text-center">
         <i className="bi bi-exclamation-triangle fs-1 text-warning d-block mb-2" />
         <h5>Student information not found</h5>
-        <Link to="/teaching-assistant/learning-progress" className="btn btn-outline-primary btn-sm mt-2">
-          Back to List
+        <Link to={`/teaching-assistant/classes/${classId}`} className="btn btn-outline-primary btn-sm mt-2">
+          Back to Class
         </Link>
       </div>
     );
@@ -121,17 +121,17 @@ export default function TeachingAssistantStudentProgressDetailPage() {
         title={`Progress Details - ${detail.fullName}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Learning Progress", path: "/teaching-assistant/learning-progress" },
-          { label: detail.className },
+          { label: "My Classes", path: "/teaching-assistant/classes" },
+          { label: detail.className, path: `/teaching-assistant/classes/${classId}` },
           { label: detail.fullName },
         ]}
         action={
           <div className="d-flex align-items-center gap-2">
             <Link
-              to="/teaching-assistant/learning-progress"
+              to={`/teaching-assistant/classes/${classId}`}
               className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
             >
-              <i className="bi bi-arrow-left" /> Back to List
+              <i className="bi bi-arrow-left" /> Back to Class
             </Link>
           </div>
         }

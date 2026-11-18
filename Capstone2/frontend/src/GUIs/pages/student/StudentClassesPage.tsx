@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import '../../../assets/css/student-academy.css';
 import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
@@ -36,6 +36,9 @@ export function StudentClassesPage() {
     };
   }, []);
 
+  const activeClasses = useMemo(() => classes.filter((c) => !c.isCompleted), [classes]);
+  const pastClasses = useMemo(() => classes.filter((c) => c.isCompleted), [classes]);
+
   if (loading) {
     return (
       <LearnerPageLoader
@@ -59,7 +62,11 @@ export function StudentClassesPage() {
         />
 
         {/* Section Header & Classes Grid */}
-        <ClassesGridSection classes={classes} loading={loading} />
+        <ClassesGridSection
+          classes={activeClasses}
+          pastClasses={pastClasses}
+          loading={loading}
+        />
       </div>
     </main>
   );

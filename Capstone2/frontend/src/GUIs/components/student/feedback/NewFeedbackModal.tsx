@@ -77,11 +77,12 @@ export function NewFeedbackModal({
         style={{ zIndex: 1055 }}
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content shadow border-0 rounded-3">
-            <div className="modal-header border-bottom py-3 px-4">
+          <div className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+            <div className="modal-header border-bottom py-3 px-4 bg-white">
               <h5
                 className="modal-title fw-bold text-dark d-flex align-items-center gap-2"
                 id="newFeedbackModalTitle"
+                style={{ fontSize: '17px' }}
               >
                 <i className="bi bi-file-earmark-plus text-primary fs-5" />
                 <span>Create New Feedback ({userRoleName})</span>
@@ -98,47 +99,51 @@ export function NewFeedbackModal({
             <form onSubmit={handleSubmit}>
               <div className="modal-body p-4">
                 {/* Information hint */}
-                <div className="alert alert-info py-2 px-3 small mb-3 border-0 rounded-2 bg-info-subtle text-info-emphasis">
-                  <i className="bi bi-info-circle-fill me-1" />
-                  Your feedback and inquiries will be sent directly to Admin Staff for review.
+                <div className="alert alert-info py-2.5 px-3 small mb-3 border-0 rounded-2 bg-info-subtle text-info-emphasis d-flex align-items-center gap-2">
+                  <i className="bi bi-info-circle-fill flex-shrink-0" />
+                  <div>
+                    Your feedback and inquiries will be sent directly to Learning Center Staff for review and assistance.
+                  </div>
                 </div>
 
                 {errorMsg && (
-                  <div className="alert alert-danger py-2 px-3 small mb-3" role="alert">
-                    <i className="bi bi-exclamation-triangle-fill me-1" />
-                    {errorMsg}
+                  <div className="alert alert-danger py-2.5 px-3 small mb-3 border-0 rounded-2 d-flex align-items-center gap-2" role="alert">
+                    <i className="bi bi-exclamation-triangle-fill flex-shrink-0" />
+                    <div>{errorMsg}</div>
                   </div>
                 )}
 
                 {/* Feedback Title */}
                 <div className="mb-3">
-                  <label htmlFor="feedbackTitleInput" className="form-label small fw-bold text-dark mb-1">
+                  <label htmlFor="feedbackTitleInput" className="form-label small fw-semibold text-dark mb-1.5">
                     Feedback Title <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     id="feedbackTitleInput"
-                    className="form-control"
+                    className="form-control rounded-2"
                     placeholder="e.g. Inquiry regarding class schedule, learning materials, facilities..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
                     disabled={isSubmitting}
                     maxLength={150}
+                    style={{ fontSize: '13.5px' }}
                   />
                 </div>
 
                 {/* Priority */}
                 <div className="mb-3">
-                  <label htmlFor="feedbackPrioritySelect" className="form-label small fw-bold text-dark mb-1">
+                  <label htmlFor="feedbackPrioritySelect" className="form-label small fw-semibold text-dark mb-1.5">
                     Priority Level
                   </label>
                   <select
                     id="feedbackPrioritySelect"
-                    className="form-select"
+                    className="form-select rounded-2"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
                     disabled={isSubmitting}
+                    style={{ fontSize: '13.5px' }}
                   >
                     <option value="low">Low (General inquiry, suggestion)</option>
                     <option value="medium">Medium (Standard feedback)</option>
@@ -147,39 +152,42 @@ export function NewFeedbackModal({
                 </div>
 
                 {/* Description */}
-                <div className="mb-2">
-                  <label htmlFor="feedbackDescInput" className="form-label small fw-bold text-dark mb-1">
+                <div className="mb-1">
+                  <label htmlFor="feedbackDescInput" className="form-label small fw-semibold text-dark mb-1.5">
                     Content & Details <span className="text-danger">*</span>
                   </label>
                   <textarea
                     id="feedbackDescInput"
-                    className="form-control"
+                    className="form-control rounded-2"
                     rows={4}
-                    placeholder="Please provide full details so Admin Staff can assist you promptly..."
+                    placeholder="Please provide full details so Staff can assist you promptly..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     required
                     disabled={isSubmitting}
+                    style={{ fontSize: '13.5px', lineHeight: 1.5 }}
                   />
-                  <div className="form-text small text-muted">
+                  <div className="form-text small text-muted mt-1" style={{ fontSize: '12px' }}>
                     Be specific about your questions, dates, subjects, or classrooms.
                   </div>
                 </div>
               </div>
 
-              <div className="modal-footer border-top py-2 px-4 bg-light rounded-bottom-3">
+              <div className="modal-footer border-top py-2.5 px-4 bg-light">
                 <button
                   type="button"
-                  className="btn btn-secondary btn-sm"
+                  className="btn btn-secondary btn-sm rounded-2 px-3 py-1.5"
                   onClick={handleClose}
                   disabled={isSubmitting}
+                  style={{ fontSize: '13px' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1"
+                  className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 rounded-2 px-3 py-1.5 fw-medium shadow-sm"
                   disabled={!isFormValid || isSubmitting}
+                  style={{ fontSize: '13px' }}
                 >
                   {isSubmitting ? (
                     <>
@@ -188,8 +196,8 @@ export function NewFeedbackModal({
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-send me-1" />
-                      Send Feedback
+                      <i className="bi bi-send-fill" />
+                      <span>Send Feedback</span>
                     </>
                   )}
                 </button>

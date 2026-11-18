@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { StudentPageHeader } from '../common/StudentPageHeader';
 import { LearnerPageLoader } from '../common/LearnerPageLoader';
 import type { FeedbackApprovalRequest } from './feedbackData';
-import { FeedbackListHeader } from './FeedbackListHeader';
 import { FeedbackTable } from './FeedbackTable';
 import { NewFeedbackModal } from './NewFeedbackModal';
 import { EditFeedbackModal } from './EditFeedbackModal';
@@ -212,14 +211,14 @@ export function FeedbackView({
       <div className="content-container">
         {/* Toast Alert */}
         {toastMessage && (
-          <div className="alert alert-success border-0 rounded-3 shadow-sm d-flex align-items-center gap-3 mb-4 p-3">
-            <i className="bi bi-check-circle-fill fs-4 text-success flex-shrink-0" />
-            <div className="flex-grow-1">
+          <div className="alert alert-success border-0 rounded-3 shadow-sm d-flex align-items-center gap-3 mb-3.5 p-3">
+            <i className="bi bi-check-circle-fill fs-5 text-success flex-shrink-0" />
+            <div className="flex-grow-1 small">
               <strong>Success!</strong> {toastMessage}
             </div>
             <button
               type="button"
-              className="btn-close"
+              className="btn-close btn-close-sm"
               onClick={() => setToastMessage(null)}
               aria-label="Close"
             />
@@ -229,22 +228,28 @@ export function FeedbackView({
         {/* Page Header */}
         <StudentPageHeader
           title="Feedback & Support"
-          subtitle="Submit feedback, inquiries, or support requests directly to Admin Staff"
+          subtitle="Submit inquiries, feedback, or support requests directly to the Learning Center staff"
           breadcrumbs={[
             { label: 'Home', href: userRole === 'parent' ? '/parent/dashboard' : '/student/dashboard' },
             { label: 'Feedback & Support' },
           ]}
           actions={
-            <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-              <i className="bi bi-person-circle me-1" />
-              {userName} ({roleLabel})
+            <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-medium d-inline-flex align-items-center gap-1.5 shadow-xs">
+              <i className="bi bi-person-circle" />
+              <span>{userName} ({roleLabel})</span>
             </span>
           }
         />
 
-        {/* Main List Card - Matching Teacher/TA format */}
-        <div className="card class-list-card border-0 mb-4 shadow-sm bg-white rounded-3">
-          <FeedbackListHeader
+        {/* Main List Card - Clean unified table card layout */}
+        <div className="card border-0 mb-4 shadow-sm bg-white rounded-3 overflow-hidden">
+          <FeedbackTable
+            requests={sortedRequests}
+            onRequestUpdated={(updated) =>
+              setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+            }
+            onStartEdit={(item) => setEditingItem(item)}
+            userRoleName={roleLabel}
             filterStatus={filterStatus}
             onFilterStatusChange={(s) => setFilterStatus(s)}
             sortOrder={sortOrder}
@@ -253,16 +258,6 @@ export function FeedbackView({
               setInitialCreateTitle('');
               setIsCreateModalOpen(true);
             }}
-            userRoleName={roleLabel}
-          />
-
-          <FeedbackTable
-            requests={sortedRequests}
-            onRequestUpdated={(updated) =>
-              setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-            }
-            onStartEdit={(item) => setEditingItem(item)}
-            userRoleName={roleLabel}
           />
         </div>
 

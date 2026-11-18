@@ -114,18 +114,6 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
           </li>
           <li className="sidebar-nav-item">
             <NavLink
-              to="/student/progress"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-graph-up-arrow"></i></span>
-              <span className="nav-label">Progress</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
               to="/student/tuition"
               onClick={onLinkClick}
               className={({ isActive }) =>

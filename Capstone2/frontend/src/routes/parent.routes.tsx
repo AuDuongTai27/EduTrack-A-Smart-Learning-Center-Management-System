@@ -25,7 +25,7 @@ export const parentRoutes: RouteObject = {
     { path: "dashboard", element: <ParentDashboardPage /> },
     { path: "classes", element: <ParentClassesPage /> },
     { path: "schedule", element: <ParentSchedulePage /> },
-    { path: "progress", element: <ParentProgressPage /> },
+    { path: "progress", element: <Navigate to="/parent/classes" replace /> },
     { path: "tuition", element: <ParentTuitionPage /> },
     { path: "notifications", element: <ParentNotificationsPage /> },
     { path: "profile", element: <ParentProfilePage /> },

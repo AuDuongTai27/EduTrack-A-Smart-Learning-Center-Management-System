@@ -50,10 +50,6 @@ export default function TeacherSidebar() {
             <i className="bi bi-mortarboard" />
             <span>My Classes</span>
           </NavLink>
-          <NavLink className={getNavClass} to="/teacher/learning-progress">
-            <i className="bi bi-journal-bookmark-fill" />
-            <span>Learning Progress</span>
-          </NavLink>
         </div>
         <div className="nav-section">
           <div className="nav-heading">COMMUNICATION</div>
