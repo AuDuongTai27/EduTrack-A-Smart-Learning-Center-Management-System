@@ -40,10 +40,7 @@ export default function ParticipantsSection({
           <i className="bi bi-people-fill text-primary fs-5" />
           <h4 className="class-list-title mb-0">Class Participants ({participants.length + 2})</h4>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <span className="text-muted small">Toggle Section</span>
-          <i className="bi bi-chevron-down details-chevron text-muted" />
-        </div>
+        <i className="bi bi-chevron-down details-chevron text-muted" />
       </summary>
       <div className="table-responsive-container">
         <table className="table custom-table align-middle mb-0">

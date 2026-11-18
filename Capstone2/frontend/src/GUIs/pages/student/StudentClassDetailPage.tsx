@@ -9,8 +9,7 @@ import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ClassHeroBanner } from '../../components/student/classDetail/ClassHeroBanner';
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
-import { ClassMaterialsSection } from '../../components/student/classDetail/ClassMaterialsSection';
-import { ClassAssignmentsSection } from '../../components/student/classDetail/ClassAssignmentsSection';
+import { ClassCourseworkSection } from '../../components/student/classDetail/ClassCourseworkSection';
 
 export function StudentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
@@ -116,15 +115,13 @@ export function StudentClassDetailPage() {
         {/* 2. Class Info Card */}
         <ClassInfoCard cls={cls} />
 
-        {/* 3. Materials Section */}
-        <ClassMaterialsSection
+        {/* 3. Unified Coursework & Materials Section (Sorted newest first with filter) */}
+        <ClassCourseworkSection
           materials={materials}
+          assignments={assignments}
           onDownload={handleDownload}
           classId={classId}
         />
-
-        {/* 4. Assignments Section */}
-        <ClassAssignmentsSection assignments={assignments} />
       </div>
     </main>
   );

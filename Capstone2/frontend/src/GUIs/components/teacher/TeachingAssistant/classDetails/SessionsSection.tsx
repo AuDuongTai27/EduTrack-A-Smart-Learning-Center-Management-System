@@ -41,10 +41,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
             Class Sessions Schedule ({sessions.length > 0 ? sessions.length : 3})
           </h4>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <span className="text-muted small">Toggle Section</span>
-          <i className="bi bi-chevron-down details-chevron text-muted" />
-        </div>
+        <i className="bi bi-chevron-down details-chevron text-muted" />
       </summary>
 
       {loading ? (
