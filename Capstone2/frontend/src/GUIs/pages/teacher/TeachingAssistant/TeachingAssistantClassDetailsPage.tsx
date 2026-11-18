@@ -101,9 +101,11 @@ export default function TeachingAssistantClassDetailsPage() {
           />
           {/* Participant List */}
           <ParticipantsSection
+            classId={targetClassId}
             participants={students}
             teacherName="ThS. Hoàng Quốc Việt"
             taName="Âu Dương Tài"
+            baseRolePath="/teaching-assistant"
           />
           {/* Sessions List */}
           <SessionsSection classId={targetClassId} />

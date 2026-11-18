@@ -3,15 +3,19 @@ import type { UserDto } from "../../../../../BLL/models/UserDto";
 import type { TeachingClassStudentItemDto } from "../../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export interface ParticipantsSectionProps {
+  classId?: string | number;
   participants?: (TeachingClassStudentItemDto | UserDto | any)[];
   teacherName?: string;
   taName?: string;
+  baseRolePath?: string;
 }
 
 export default function ParticipantsSection({
+  classId = "1",
   participants = [],
   teacherName = "MSc. Hoàng Quốc Việt",
   taName = "Âu Dương Tài",
+  baseRolePath = "/teaching-assistant",
 }: ParticipantsSectionProps) {
   const getInitials = (name: string) => {
     if (!name) return "ST";
@@ -141,9 +145,9 @@ export default function ParticipantsSection({
                     </td>
                     <td className="text-end">
                       <Link
-                        to="/teaching-assistant/learning-progress"
+                        to={`${baseRolePath}/classes/${classId}/student/${student.studentId || student.userId || student.id || idx + 1}`}
                         className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                        title="View learning progress"
+                        title="View student learning progress and evaluations"
                       >
                         <i className="bi bi-graph-up" /> Progress
                       </Link>
