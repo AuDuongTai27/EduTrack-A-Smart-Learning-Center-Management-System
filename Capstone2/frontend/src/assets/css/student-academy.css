@@ -80,24 +80,41 @@
 .student-scope .et-student-academy .stat-value-group { flex-wrap: wrap; row-gap: 6px; }
 .student-scope .et-student-academy .stat-number { font-size: 40px; letter-spacing: -.04em; }
 
-/* The single real class stays one card. Never stretch it across the whole page. */
-.student-scope .et-student-academy .classes-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 1fr)); gap: 22px; }
+/* The single real class stays one card. 4 cards per row on desktop. */
+.student-scope .et-student-academy .classes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+@media (max-width: 1200px) {
+  .student-scope .et-student-academy .classes-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .student-scope .et-student-academy .classes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 576px) {
+  .student-scope .et-student-academy .classes-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .student-scope .et-student-academy .class-card { min-width: 0; border-color: var(--et-border); border-radius: var(--academy-radius); box-shadow: var(--academy-shadow); }
 .student-scope .et-student-academy .card-accent-bar { height: 3px; background: linear-gradient(90deg, var(--et-primary), #c5ebd5); }
-.student-scope .et-student-academy .class-card-body { position: relative; padding: 22px 24px 74px; }
-.student-scope .et-student-academy .class-card-body::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 175px;
-  height: 66px;
-  background: url('../illustrations/academy-study-lineart.svg') right bottom / contain no-repeat;
-  pointer-events: none;
-}
-.student-scope .et-student-academy .class-card-header { margin: -22px -24px 18px; padding: 15px 24px; background: linear-gradient(100deg, var(--et-mint), #f7faf8); }
+.student-scope .et-student-academy .class-card-body { position: relative; padding: 18px 20px 16px; }
+.student-scope .et-student-academy .class-card-body::after { display: none; }
+.student-scope .et-student-academy .class-card-header { margin: -18px -20px 14px; padding: 12px 20px; background: linear-gradient(100deg, var(--et-mint), #f7faf8); }
 .student-scope .et-student-academy .class-name { font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
-.student-scope .et-student-academy .subject-badge { max-width: calc(100% - 40px); white-space: normal; overflow-wrap: anywhere; color: var(--et-primary-hover); background: #d9f3e5; }
+.student-scope .et-student-academy .subject-badge {
+  white-space: nowrap !important;
+  color: var(--et-primary-hover);
+  background: #d9f3e5;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
 .student-scope .et-student-academy .subject-icon-box { color: var(--et-primary-hover); background: var(--et-card); }
 .student-scope .et-student-academy .teacher-avatar-mini { color: var(--et-primary-hover); background: var(--et-mint); }
 .student-scope .et-student-academy .teacher-name,
@@ -115,7 +132,6 @@
 .student-scope .et-student-academy .class-card:focus-visible { outline: 3px solid var(--et-primary-hover) !important; outline-offset: 3px; }
 
 @media (max-width: 991.98px) {
-  .student-scope .et-student-academy .classes-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
   .student-scope .et-student-academy .welcome-banner { padding-right: 220px; }
   .student-scope .et-student-academy .welcome-banner::after { width: 220px; right: 0; }
 }

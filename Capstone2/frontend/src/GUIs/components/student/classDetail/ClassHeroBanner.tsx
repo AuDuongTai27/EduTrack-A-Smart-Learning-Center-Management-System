@@ -36,23 +36,11 @@ export function ClassHeroBanner({
       <div className="hero-main-row et-class-hero-row">
         <div className="et-class-hero-copy">
           <span className="hero-subject-pill" id="heroSubject">{cls.subject}</span>
-          <h1 className="hero-class-title" id="heroTitle">{cls.name} – {cls.subject}</h1>
-          <p className="hero-class-meta" id="heroMeta">
-            <span>Teacher: <strong>{cls.teacher}</strong></span>
-            <span className="opacity-50">·</span>
-            <span>{cls.room.startsWith('Room') || cls.room.startsWith('Lab') ? cls.room : `Room ${cls.room}`}</span>
-            <span className="opacity-50">·</span>
-            <span>{cls.schedule}</span>
-          </p>
+          <h1 className="hero-class-title" id="heroTitle">{cls.name}</h1>
         </div>
 
         {/* Quick Stats Chips */}
         <div className="hero-stats-group et-class-hero-summary">
-          <div className="hero-stat-chip et-class-hero-summary-item">
-            <i className="bi bi-people et-class-hero-summary-icon" aria-hidden="true" />
-            <div className="hero-stat-number" id="statStudents">{cls.studentCount}</div>
-            <div className="hero-stat-label">Students</div>
-          </div>
           <div className="hero-stat-chip et-class-hero-summary-item">
             <i className="bi bi-journal-text et-class-hero-summary-icon" aria-hidden="true" />
             <div className="hero-stat-number" id="statMaterials">{materialsCount}</div>

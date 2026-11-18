@@ -101,6 +101,7 @@ export default function TeacherClassDetailsPage() {
                     />
                     {/* Participant List */}
                     <ParticipantsSection
+                        classId={targetClassId}
                         participants={students}
                         teacherName="ThS. Hoàng Quốc Việt"
                         taName="Âu Dương Tài"

@@ -326,7 +326,7 @@ export default function ProgressTable({
                       <div className="d-inline-flex align-items-center gap-1.5">
                         {/* Nút Chi tiết mở trang riêng */}
                         <Link
-                          to={`/teacher/learning-progress/class/${classId}/student/${stu.studentId}`}
+                          to={`/teacher/classes/${classId}/student/${stu.studentId}`}
                           className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                           title="View full progress, assignments & individual evaluation of student"
                         >

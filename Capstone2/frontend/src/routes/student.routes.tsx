@@ -26,7 +26,7 @@ export const studentRoutes: RouteObject = {
     { path: "dashboard", element: <StudentDashboardPage /> },
     { path: "classes", element: <StudentClassesPage /> },
     { path: "schedule", element: <StudentSchedulePage /> },
-    { path: "progress", element: <StudentProgressPage /> },
+    { path: "progress", element: <Navigate to="/student/classes" replace /> },
     { path: "tuition", element: <StudentTuitionPage /> },
     { path: "notifications", element: <StudentNotificationsPage /> },
     { path: "profile", element: <StudentProfilePage /> },

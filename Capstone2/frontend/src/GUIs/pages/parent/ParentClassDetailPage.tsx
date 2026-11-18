@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
@@ -6,6 +6,8 @@ import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import type { ClassSessionAttendanceItemApiDto } from '../../../api/learningApi';
 import { ClassHeroDecoration } from '../../components/Common/ClassHeroDecoration';
+import { ClassEvaluationsSection } from '../../components/student/classDetail/ClassEvaluationsSection';
+import type { ProgressFeedback } from '../../components/student/progress/progressData';
 
 export function ParentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
@@ -15,6 +17,7 @@ export function ParentClassDetailPage() {
 
   const [cls, setCls] = useState<ChildClassItem | undefined>(undefined);
   const [sessions, setSessions] = useState<ClassSessionAttendanceItemApiDto[]>([]);
+  const [feedbacks, setFeedbacks] = useState<ProgressFeedback[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -41,6 +44,7 @@ export function ParentClassDetailPage() {
             notes: detailVm.latestTeacherNote,
           });
           setSessions(detailVm.sessions || []);
+          setFeedbacks(detailVm.feedbacks || []);
           return;
         }
 
@@ -66,9 +70,28 @@ export function ParentClassDetailPage() {
 
   useEffect(() => {
     if (cls) {
-      document.title = `${cls.name} – Class Details (Parent) – EduTrack`;
+      document.title = `${cls.name} – Child's Class Details – EduTrack`;
     }
   }, [cls]);
+
+  // Feedbacks học tập từ Backend (fallback ghi chú giáo viên nếu chưa có nhận xét)
+  const displayFeedbacks: ProgressFeedback[] = useMemo(() => {
+    if (feedbacks.length > 0) return feedbacks;
+    if (cls?.notes) {
+      return [
+        {
+          assignmentTitle: `Periodic Evaluation - ${cls.name}`,
+          quote: cls.notes,
+          teacherName: cls.teacher || 'Lead Teacher',
+          statusType: 'dat',
+          statusIcon: 'bi-check2-all',
+          statusLabel: 'Praise',
+          category: 'evaluation',
+        },
+      ];
+    }
+    return [];
+  }, [feedbacks, cls?.notes, cls?.name, cls?.teacher]);
 
   if (parentLoading || loading) {
     return (
@@ -92,12 +115,14 @@ export function ParentClassDetailPage() {
     );
   }
 
-  // Tính số buổi con đã tham gia và tỉ lệ chuyên cần thực tế
+  // Thống kê buổi học & lọc chuyên cần (vắng / trễ)
   const conductedSessions = sessions.filter((s) => s.status !== 'scheduled');
-  const attendedCount = sessions.filter(
-    (s) => s.status === 'present' || s.status === 'late'
-  ).length;
+  const presentSessions = sessions.filter((s) => s.status === 'present');
+  const absentSessions = sessions.filter((s) => s.status === 'absent');
+  const lateSessions = sessions.filter((s) => s.status === 'late');
+  const exceptionSessions = sessions.filter((s) => s.status === 'absent' || s.status === 'late');
 
+  const attendedCount = presentSessions.length + lateSessions.length;
   const actualAttended = sessions.length > 0 ? attendedCount : (cls.attendedLessons || 0);
   const totalLessons = cls.totalLessons || sessions.length || 0;
   const attendanceRate = conductedSessions.length > 0
@@ -107,7 +132,7 @@ export function ParentClassDetailPage() {
   return (
     <main className="main-content">
       <div className={`content-container class-detail-container ${cls.subjectClass}`}>
-        {/* 1. Hero Banner Thân Thiện Dành Cho Phụ Huynh */}
+        {/* 1. Hero Banner Thân Thiện Dành Cho Phụ Huynh (Xanh lá cây thương hiệu EduTrack) */}
         <div
           className="class-hero-banner mb-4 et-class-hero"
           style={{
@@ -117,6 +142,7 @@ export function ParentClassDetailPage() {
             color: '#fff',
             position: 'relative',
             overflow: 'hidden',
+            boxShadow: '0 10px 25px -5px rgba(5, 100, 60, 0.25)',
           }}
         >
           <ClassHeroDecoration subject={cls.subject} />
@@ -152,7 +178,7 @@ export function ParentClassDetailPage() {
             {/* Hero Main Info */}
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2 et-class-hero-row">
               <div className="et-class-hero-copy">
-                <span className="badge bg-white text-primary fw-bold px-3 py-1.5 rounded-pill mb-2 shadow-xs">
+                <span className="badge bg-white text-success fw-bold px-3 py-1.5 rounded-pill mb-2 shadow-xs">
                   {cls.subject}
                 </span>
                 <h1 className="h3 fw-bold mb-2 text-white">{cls.name}</h1>
@@ -160,10 +186,12 @@ export function ParentClassDetailPage() {
                   <span>Student: <strong className="text-white">{selectedChild.name}</strong> ({selectedChild.grade})</span>
                   <span className="mx-2">·</span>
                   <span>Teacher: <strong className="text-white">{cls.teacher}</strong></span>
+                  <span className="mx-2">·</span>
+                  <span>Schedule: <strong className="text-white">{cls.schedule}</strong></span>
                 </p>
               </div>
 
-              {/* Quick Progress Badge */}
+              {/* Quick Attendance Stat Badge */}
               <div
                 className="et-class-hero-summary"
               >
@@ -172,7 +200,7 @@ export function ParentClassDetailPage() {
                   <div className="h4 fw-bold mb-0 text-white">
                     {actualAttended}/{totalLessons}
                   </div>
-                  <div className="small text-white-50">Session Progress</div>
+                  <div className="small text-white-50">Sessions Attended</div>
                 </div>
                 <div
                   className="et-class-hero-summary-divider"
@@ -185,165 +213,123 @@ export function ParentClassDetailPage() {
                 <div className="text-center et-class-hero-summary-item">
                   <i className="bi bi-person-check et-class-hero-summary-icon" aria-hidden="true" />
                   <div
-                    className={`h4 fw-bold mb-0 ${
-                      attendanceRate >= 90
-                        ? 'text-white'
-                        : attendanceRate >= 70
+                    className={`h4 fw-bold mb-0 ${attendanceRate >= 90
+                      ? 'text-white'
+                      : attendanceRate >= 70
                         ? 'text-warning'
                         : 'text-danger'
-                    }`}
+                      }`}
                   >
                     {attendanceRate}%
                   </div>
-                  <div className="small text-white-50">Attendance</div>
+                  <div className="small text-white-50">Attendance Rate</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 2. Thẻ Thông Tin Cơ Bản Của Lớp (Không chứa tài liệu & nộp bài) */}
-        <div className="row g-4 mb-4">
-          <div className="col-lg-6">
-            <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-              <h3 className="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                <i className="bi bi-info-circle-fill text-primary"></i>
-                Basic Class Information
-              </h3>
+        {/* SECTION 1: ATTENDANCE & ABSENCE TRACKING (Chỉ hiển thị nghỉ/trễ, mặc định đóng) */}
+        <details className="card class-list-card border-0 mb-4">
+          <summary className="class-list-header d-flex align-items-center justify-content-between py-3 px-4 flex-wrap gap-2 cursor-pointer">
+            <div className="d-flex align-items-center gap-2">
+              <i className="bi bi-calendar-check-fill text-primary fs-5" />
+              <h4 className="class-list-title mb-0">
+                Attendance &amp; Absence Tracking
+              </h4>
+              {exceptionSessions.length > 0 ? (
+                <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5 small">
+                  {exceptionSessions.length} {exceptionSessions.length === 1 ? 'incident' : 'incidents'}
+                </span>
+              ) : (
+                <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 small">
+                  Full Attendance
+                </span>
+              )}
+            </div>
 
-              <div className="d-flex flex-column gap-3">
-                <div className="d-flex align-items-start gap-3 p-2.5 rounded-3 bg-light">
-                  <div className="p-2 rounded-3 bg-white text-primary shadow-xs">
-                    <i className="bi bi-calendar-week fs-5"></i>
-                  </div>
-                  <div>
-                    <div className="small text-muted">Weekly Schedule</div>
-                    <div className="fw-semibold text-dark">{cls.schedule}</div>
-                  </div>
+            <i className="bi bi-chevron-down details-chevron text-muted" />
+          </summary>
+
+          <div className="p-4">
+            {/* Quick Summary Strip */}
+            <div className="row g-2 mb-3">
+              <div className="col-sm-3 col-6">
+                <div className="p-2.5 rounded-3 bg-light border text-center">
+                  <div className="small text-muted">Total Conducted</div>
+                  <div className="fw-bold text-dark fs-5">{conductedSessions.length}</div>
                 </div>
-
-                <div className="d-flex align-items-start gap-3 p-2.5 rounded-3 bg-light">
-                  <div className="p-2 rounded-3 bg-white text-primary shadow-xs">
-                    <i className="bi bi-geo-alt fs-5"></i>
-                  </div>
-                  <div>
-                    <div className="small text-muted">Room</div>
-                    <div className="fw-semibold text-dark">{cls.room || 'Center Classroom'}</div>
-                  </div>
+              </div>
+              <div className="col-sm-3 col-6">
+                <div className="p-2.5 rounded-3 bg-success-subtle border border-success-subtle text-center">
+                  <div className="small text-success fw-medium">Present</div>
+                  <div className="fw-bold text-success fs-5">{presentSessions.length}</div>
                 </div>
-
-                <div className="d-flex align-items-start gap-3 p-2.5 rounded-3 bg-light">
-                  <div className="p-2 rounded-3 bg-white text-primary shadow-xs">
-                    <i className="bi bi-person-workspace fs-5"></i>
-                  </div>
-                  <div>
-                    <div className="small text-muted">Teacher</div>
-                    <div className="fw-semibold text-dark">{cls.teacher}</div>
-                  </div>
+              </div>
+              <div className="col-sm-3 col-6">
+                <div className="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle text-center">
+                  <div className="small text-danger fw-medium">Absent</div>
+                  <div className="fw-bold text-danger fs-5">{absentSessions.length}</div>
+                </div>
+              </div>
+              <div className="col-sm-3 col-6">
+                <div className="p-2.5 rounded-3 bg-warning-subtle border border-warning-subtle text-center">
+                  <div className="small text-warning-emphasis fw-medium">Late</div>
+                  <div className="fw-bold text-warning-emphasis fs-5">{lateSessions.length}</div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="col-lg-6">
-            <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-              <h3 className="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                <i className="bi bi-chat-heart-fill text-danger"></i>
-                Teacher Evaluation &amp; Feedback
-              </h3>
-
-              <div className="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary-subtle mb-3">
-                <div className="d-flex align-items-center gap-2 mb-2">
-                  <div className="badge bg-primary text-white rounded-pill px-2.5 py-1">
-                    Latest Evaluation
-                  </div>
-                  <small className="text-muted">Current Semester</small>
-                </div>
-                <p className="fw-medium text-dark mb-0 fst-italic">
-                  "{cls.notes || 'Full attendance, actively participates in class.'}"
+            {/* Chi tiết chỉ các buổi vắng hoặc trễ */}
+            {exceptionSessions.length === 0 ? (
+              <div className="p-4 rounded-4 bg-success bg-opacity-10 border border-success-subtle text-center">
+                <i className="bi bi-patch-check-fill text-success fs-1 mb-2 d-block"></i>
+                <h5 className="fw-bold text-success mb-1">Full Attendance Achieved</h5>
+                <p className="text-secondary small mb-0">
+                  {selectedChild.name} attended all {conductedSessions.length} conducted sessions on time. No absent or late sessions recorded.
                 </p>
               </div>
-
-              <div className="d-flex align-items-center justify-content-between small text-muted border-top pt-3 mt-auto">
-                <span>Academic Support: <strong>Academic Affairs &amp; Course Teaching Assistants</strong></span>
-                <span className="badge bg-success-subtle text-success">Active Support</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Bảng Theo Dõi Chuyên Cần & Buổi Học Của Con */}
-        <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-          <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-            <div>
-              <h3 className="h6 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                <i className="bi bi-check2-square text-success fs-5"></i>
-                Attendance Log &amp; Session Content
-              </h3>
-              <p className="small text-muted mb-0">
-                Track your child's attendance for each session to stay informed
-              </p>
-            </div>
-            <span className="badge bg-light text-secondary border px-3 py-1.5 rounded-pill">
-              Automatically updated after each session
-            </span>
-          </div>
-
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light">
-                <tr className="small text-secondary">
-                  <th style={{ width: '80px' }}>Session</th>
-                  <th style={{ width: '160px' }}>Time</th>
-                  <th>Topic</th>
-                  <th style={{ width: '130px' }}>Attendance</th>
-                  <th>Class Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sessions.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center text-muted py-4">
-                      No session log has been recorded for this class yet.
-                    </td>
-                  </tr>
-                ) : (
-                  sessions.map((ses) => (
-                    <tr key={ses.sessionNo}>
-                      <td className="fw-bold text-primary">#{ses.sessionNo}</td>
-                      <td className="small text-muted">{ses.date}</td>
-                      <td className="fw-medium text-dark">{ses.topic}</td>
-                      <td>
-                        {ses.status === 'present' ? (
-                          <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                            <i className="bi bi-check-circle-fill me-1"></i> {ses.statusLabel === 'Có mặt' ? 'Present' : (ses.statusLabel || 'Present')}
-                          </span>
-                        ) : ses.status === 'scheduled' ? (
-                          <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1">
-                            <i className="bi bi-clock-history me-1"></i> {ses.statusLabel === 'Đã xếp lịch' ? 'Scheduled' : (ses.statusLabel || 'Scheduled')}
-                          </span>
-                        ) : (
-                          <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
-                            <i className="bi bi-exclamation-circle-fill me-1"></i> {ses.statusLabel === 'Vắng mặt' ? 'Absent' : ses.statusLabel === 'Đi muộn' ? 'Late' : (ses.statusLabel || 'Absent')}
-                          </span>
-                        )}
-                      </td>
-                      <td className="small text-muted">{ses.notes}</td>
+            ) : (
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0">
+                  <thead className="table-light">
+                    <tr className="small text-secondary">
+                      <th style={{ width: '90px' }}>Session</th>
+                      <th style={{ width: '160px' }}>Date</th>
+                      <th style={{ width: '150px' }}>Status</th>
+                      <th>Topic</th>
+                      <th>Teacher Notes / Reason</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {exceptionSessions.map((ses) => (
+                      <tr key={ses.sessionNo}>
+                        <td className="fw-bold text-primary">#{ses.sessionNo}</td>
+                        <td className="small text-muted">{ses.date}</td>
+                        <td>
+                          {ses.status === 'absent' ? (
+                            <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                              <i className="bi bi-x-circle-fill me-1"></i> Absent
+                            </span>
+                          ) : (
+                            <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
+                              <i className="bi bi-clock-history me-1"></i> Late
+                            </span>
+                          )}
+                        </td>
+                        <td className="fw-medium text-dark">{ses.topic}</td>
+                        <td className="small text-muted">{ses.notes || 'No note recorded'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        </div>
+        </details>
 
-        {/* Lưu ý thân thiện dành riêng cho Phụ huynh */}
-        <div className="alert alert-light border rounded-4 d-flex align-items-center gap-3 p-3">
-          <i className="bi bi-shield-check fs-4 text-primary"></i>
-          <div className="small text-secondary">
-            <strong>Parent Note:</strong> This class details page provides an overview of your child's schedule, attendance, and progress. Lecture materials and practice assignments are retained in the student's account so they can independently complete and submit assignments.
-          </div>
-        </div>
+        {/* SECTION 2: TEACHER EVALUATIONS & FEEDBACK (Y chang của Student, mặc định đóng) */}
+        <ClassEvaluationsSection feedbacks={displayFeedbacks} classNameTitle={cls.name} />
       </div>
     </main>
   );

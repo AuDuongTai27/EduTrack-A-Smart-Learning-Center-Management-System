@@ -3,15 +3,19 @@ import type { UserDto } from "../../../../../BLL/models/UserDto";
 import type { TeachingClassStudentItemDto } from "../../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export interface ParticipantsSectionProps {
+  classId?: string | number;
   participants?: (TeachingClassStudentItemDto | UserDto | any)[];
   teacherName?: string;
   taName?: string;
+  baseRolePath?: string;
 }
 
 export default function ParticipantsSection({
+  classId = "1",
   participants = [],
   teacherName = "MSc. Hoang Quoc Viet",
   taName = "Au Duong Tai",
+  baseRolePath = "/teacher",
 }: ParticipantsSectionProps) {
   const getInitials = (name: string) => {
     if (!name) return "ST";
@@ -34,16 +38,13 @@ export default function ParticipantsSection({
   };
 
   return (
-    <details className="card class-list-card border-0 mb-4" open>
+    <details className="card class-list-card border-0 mb-4">
       <summary className="class-list-header d-flex align-items-center justify-content-between cursor-pointer py-3 px-4">
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-people-fill text-primary fs-5" />
           <h4 className="class-list-title mb-0">Class Participants ({participants.length + 2})</h4>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <span className="text-muted small">Toggle Section</span>
-          <i className="bi bi-chevron-down details-chevron text-muted" />
-        </div>
+        <i className="bi bi-chevron-down details-chevron text-muted" />
       </summary>
       <div className="table-responsive-container">
         <table className="table custom-table align-middle mb-0">
@@ -144,9 +145,9 @@ export default function ParticipantsSection({
                     </td>
                     <td className="text-end">
                       <Link
-                        to="/teacher/learning-progress"
+                        to={`${baseRolePath}/classes/${classId}/student/${student.studentId || student.userId || student.id || idx + 1}`}
                         className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                        title="View learning progress"
+                        title="View student learning progress and evaluations"
                       >
                         <i className="bi bi-graph-up" /> Progress
                       </Link>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { FeedbackApprovalRequest } from './feedbackData';
 import FeedbackPagination from './FeedbackPagination';
 
@@ -7,31 +7,76 @@ export interface FeedbackTableProps {
   onRequestUpdated?: (updated: FeedbackApprovalRequest) => void;
   onStartEdit?: (item: FeedbackApprovalRequest) => void;
   userRoleName?: string;
+  filterStatus?: 'all' | 'pending' | 'approved' | 'rejected';
+  onFilterStatusChange?: (status: 'all' | 'pending' | 'approved' | 'rejected') => void;
+  sortOrder?: 'desc' | 'asc';
+  onSortOrderChange?: (order: 'desc' | 'asc') => void;
+  onOpenCreateModal?: () => void;
 }
 
 export function FeedbackTable({
   requests = [],
   onStartEdit,
   userRoleName = 'Student',
+  filterStatus = 'all',
+  onFilterStatusChange,
+  sortOrder = 'desc',
+  onSortOrderChange,
+  onOpenCreateModal,
 }: FeedbackTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRequest, setSelectedRequest] = useState<FeedbackApprovalRequest | null>(null);
+
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setFilterOpen(false);
+      }
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setSortOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const getFilterLabel = () => {
+    switch (filterStatus) {
+      case 'pending':
+        return 'Pending';
+      case 'approved':
+        return 'Resolved';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'All Statuses';
+    }
+  };
 
   const getStatusBadge = (req: FeedbackApprovalRequest) => {
     const s = (req.status || 'pending').toLowerCase();
     if (s === 'approved') {
       return (
-        <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 fw-semibold">
-          <i className="bi bi-check-circle-fill me-1" /> Resolved
+        <span className="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill fw-semibold d-inline-flex align-items-center gap-1">
+          <i className="bi bi-check-circle-fill" /> Resolved
         </span>
       );
     }
     if (s === 'rejected') {
       return (
-        <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-2 fw-semibold">
-          <i className="bi bi-x-circle-fill me-1" /> Rejected
+        <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-semibold d-inline-flex align-items-center gap-1">
+          <i className="bi bi-x-circle-fill" /> Rejected
         </span>
       );
     }
@@ -40,16 +85,16 @@ export function FeedbackTable({
     const isUnreviewed = req.canEdit || (!req.reviewedBy && s === 'pending');
     if (isUnreviewed) {
       return (
-        <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-2 fw-semibold">
-          <i className="bi bi-clock-history me-1" /> Pending Review
+        <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 rounded-pill fw-semibold d-inline-flex align-items-center gap-1">
+          <i className="bi bi-clock-history" /> Pending Review
         </span>
       );
     }
 
-    // Admin/Staff claimed -> "Pending"
+    // Admin/Staff claimed -> "Pending (Processing)"
     return (
-      <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-2 fw-semibold">
-        <i className="bi bi-hourglass-split me-1" /> Pending
+      <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 rounded-pill fw-semibold d-inline-flex align-items-center gap-1">
+        <i className="bi bi-hourglass-split" /> Processing
       </span>
     );
   };
@@ -57,12 +102,24 @@ export function FeedbackTable({
   const getPriorityBadge = (priority?: string) => {
     const p = (priority || 'medium').toLowerCase();
     if (p === 'high') {
-      return <span className="badge bg-danger-subtle text-danger border border-danger-subtle">High</span>;
+      return (
+        <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-medium">
+          High
+        </span>
+      );
     }
     if (p === 'low') {
-      return <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Low</span>;
+      return (
+        <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 rounded-pill fw-medium">
+          Low
+        </span>
+      );
     }
-    return <span className="badge bg-primary-subtle text-primary border border-primary-subtle">Medium</span>;
+    return (
+      <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill fw-medium">
+        Medium
+      </span>
+    );
   };
 
   // Filter by search keyword
@@ -87,65 +144,174 @@ export function FeedbackTable({
 
   return (
     <>
-      {/* Table Toolbar */}
-      <div className="table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 border-bottom bg-light bg-opacity-50">
-        <div className="table-entries-select d-flex align-items-center gap-2">
-          <span className="small text-muted">Show</span>
-          <select
-            className="form-select form-select-sm"
-            id="feedbackEntriesSelect"
-            value={rowsPerPage}
-            onChange={(e) => {
-              setRowsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            style={{ width: 'auto' }}
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <span className="small text-muted">feedback / page</span>
-        </div>
-
+      {/* Unified Table Toolbar: Search on the left, Filter & Actions on the right */}
+      <div className="table-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2.5 px-4 py-3 border-bottom bg-white">
+        {/* Search Input */}
         <div>
-          <div className="input-group input-group-sm" style={{ width: 270 }}>
-            <span className="input-group-text bg-white border-end-0">
-              <i className="bi bi-search text-muted" />
+          <div className="input-group input-group-sm" style={{ width: 290 }}>
+            <span className="input-group-text bg-white border-end-0 text-muted rounded-start-2">
+              <i className="bi bi-search" style={{ fontSize: '12px' }} />
             </span>
             <input
               type="search"
-              className="form-control form-control-sm border-start-0 ps-0"
+              className="form-control form-control-sm border-start-0 ps-1 rounded-end-2"
               id="feedbackSearchInput"
-              placeholder="Search by code, title, content..."
+              placeholder="Search by code, title, details..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
+              style={{ fontSize: '13px' }}
             />
           </div>
+        </div>
+
+        {/* Filter, Sort and Create Action */}
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          {/* Status Filter Dropdown */}
+          <div className="dropdown position-relative" ref={filterRef}>
+            <button
+              type="button"
+              className={`btn btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-2 ${
+                filterStatus !== 'all' ? 'btn-primary' : 'btn-outline-secondary'
+              }`}
+              id="feedbackFilterDropdownBtn"
+              onClick={() => {
+                setFilterOpen(!filterOpen);
+                setSortOpen(false);
+              }}
+            >
+              <i className="bi bi-funnel" />
+              <span style={{ fontSize: '13px' }}>{getFilterLabel()}</span>
+              <i className="bi bi-chevron-down ms-0.5" style={{ fontSize: '11px' }} />
+            </button>
+
+            {filterOpen && (
+              <div
+                className="dropdown-menu dropdown-menu-end show p-2 shadow-sm border rounded-3 mt-1"
+                style={{ minWidth: 190, zIndex: 1050, position: 'absolute', right: 0 }}
+              >
+                <div className="px-2 py-1 text-muted small fw-semibold">Filter by Status:</div>
+                <div className="d-flex flex-column gap-1">
+                  {[
+                    { key: 'all', label: 'All Requests' },
+                    { key: 'pending', label: 'Pending' },
+                    { key: 'approved', label: 'Resolved' },
+                    { key: 'rejected', label: 'Rejected' },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`btn btn-sm text-start rounded-2 px-2.5 py-1.5 ${
+                        filterStatus === item.key ? 'btn-primary' : 'btn-light text-dark'
+                      }`}
+                      style={{ fontSize: '13px' }}
+                      onClick={() => {
+                        onFilterStatusChange?.(item.key as any);
+                        setFilterOpen(false);
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="dropdown position-relative" ref={sortRef}>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-2"
+              id="feedbackSortDropdownBtn"
+              onClick={() => {
+                setSortOpen(!sortOpen);
+                setFilterOpen(false);
+              }}
+            >
+              <i className="bi bi-arrow-down-up" />
+              <span style={{ fontSize: '13px' }}>{sortOrder === 'desc' ? 'Newest' : 'Oldest'}</span>
+              <i className="bi bi-chevron-down ms-0.5" style={{ fontSize: '11px' }} />
+            </button>
+
+            {sortOpen && (
+              <div
+                className="dropdown-menu dropdown-menu-end show p-1 shadow-sm border rounded-3 mt-1"
+                style={{ minWidth: 160, zIndex: 1050, position: 'absolute', right: 0 }}
+              >
+                <button
+                  type="button"
+                  className={`dropdown-item rounded-2 py-1.5 px-2.5 d-flex align-items-center gap-2 ${
+                    sortOrder === 'desc' ? 'active' : ''
+                  }`}
+                  style={{ fontSize: '13px' }}
+                  onClick={() => {
+                    onSortOrderChange?.('desc');
+                    setSortOpen(false);
+                  }}
+                >
+                  <i className="bi bi-arrow-down" /> Newest first
+                </button>
+                <button
+                  type="button"
+                  className={`dropdown-item rounded-2 py-1.5 px-2.5 d-flex align-items-center gap-2 ${
+                    sortOrder === 'asc' ? 'active' : ''
+                  }`}
+                  style={{ fontSize: '13px' }}
+                  onClick={() => {
+                    onSortOrderChange?.('asc');
+                    setSortOpen(false);
+                  }}
+                >
+                  <i className="bi bi-arrow-up" /> Oldest first
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Create New Feedback Button */}
+          {onOpenCreateModal && (
+            <button
+              type="button"
+              className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-2 fw-medium shadow-sm"
+              onClick={onOpenCreateModal}
+              style={{ fontSize: '13px' }}
+            >
+              <i className="bi bi-plus-circle" />
+              <span>New Feedback</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Table */}
-      <div className="table-responsive-container">
-        <table className="table custom-table table-hover align-middle mb-0" id="feedbackTable">
-          <thead className="table-light">
+      <div className="table-responsive">
+        <table className="table align-middle mb-0 table-hover" id="feedbackTable">
+          <thead className="table-light border-bottom">
             <tr>
-              <th className="th-checkbox text-center" style={{ width: 44 }}>
-                <div className="form-check m-0 d-inline-block">
-                  <input className="form-check-input" type="checkbox" id="selectAllFeedback" />
-                </div>
+              <th className="py-3 px-3.5 text-secondary fw-semibold" style={{ width: 125, fontSize: '12px', letterSpacing: '0.03em' }}>
+                REQUEST CODE
               </th>
-              <th style={{ width: 110 }}>Request Code</th>
-              <th style={{ width: 110 }}>Type</th>
-              <th>Title & Details</th>
-              <th style={{ width: 95 }}>Priority</th>
-              <th style={{ width: 140 }}>Submitted Date</th>
-              <th style={{ width: 130 }}>Status</th>
-              <th className="text-end" style={{ width: 160 }}>Actions</th>
+              <th className="py-3 px-3 text-secondary fw-semibold" style={{ width: 95, fontSize: '12px', letterSpacing: '0.03em' }}>
+                TYPE
+              </th>
+              <th className="py-3 px-3 text-secondary fw-semibold" style={{ fontSize: '12px', letterSpacing: '0.03em' }}>
+                TITLE & DETAILS
+              </th>
+              <th className="py-3 px-3 text-center text-secondary fw-semibold" style={{ width: 105, fontSize: '12px', letterSpacing: '0.03em' }}>
+                PRIORITY
+              </th>
+              <th className="py-3 px-3 text-secondary fw-semibold" style={{ width: 145, fontSize: '12px', letterSpacing: '0.03em' }}>
+                SUBMITTED DATE
+              </th>
+              <th className="py-3 px-3 text-secondary fw-semibold" style={{ width: 155, fontSize: '12px', letterSpacing: '0.03em' }}>
+                STATUS
+              </th>
+              <th className="py-3 px-3.5 text-end text-secondary fw-semibold" style={{ width: 150, fontSize: '12px', letterSpacing: '0.03em' }}>
+                ACTIONS
+              </th>
             </tr>
           </thead>
           <tbody id="feedbackTableBody">
@@ -157,62 +323,74 @@ export function FeedbackTable({
 
                 return (
                   <tr key={req.id}>
-                    <td className="text-center">
-                      <div className="form-check m-0 d-inline-block">
-                        <input className="form-check-input row-checkbox" type="checkbox" />
-                      </div>
-                    </td>
-                    <td>
+                    <td className="py-3 px-3.5">
                       <button
                         type="button"
-                        className="btn btn-link p-0 fw-bold text-primary text-decoration-none"
+                        className="btn btn-link p-0 fw-bold text-primary text-decoration-none font-monospace"
                         onClick={() => setSelectedRequest(req)}
+                        title="View details"
+                        style={{ fontSize: '13px' }}
                       >
                         {req.requestCode || `#${req.id}`}
                       </button>
                     </td>
-                    <td>
-                      <span className="badge bg-light text-dark border">
+                    <td className="py-3 px-3">
+                      <span className="badge bg-light text-secondary border rounded-pill px-2.5 py-1 fw-normal" style={{ fontSize: '12px' }}>
                         Feedback
                       </span>
                     </td>
-                    <td>
-                      <span className="text-dark fw-semibold d-block">
-                        {req.title}
-                      </span>
-                      {req.className && (
-                        <small className="text-muted d-block">{req.className}</small>
-                      )}
-                      <small className="text-muted text-truncate d-block" style={{ maxWidth: 360 }}>
+                    <td className="py-3 px-3">
+                      <div className="d-flex align-items-center gap-1.5 flex-wrap">
+                        <span className="text-dark fw-semibold" style={{ fontSize: '14px' }}>
+                          {req.title}
+                        </span>
+                        {req.className && (
+                          <span className="badge bg-primary-subtle text-primary border-0 rounded-1 px-1.5 py-0.5" style={{ fontSize: '11px' }}>
+                            {req.className}
+                          </span>
+                        )}
+                      </div>
+                      <small
+                        className="text-muted text-truncate d-block mt-0.5"
+                        style={{ maxWidth: 440, fontSize: '12.5px' }}
+                      >
                         {req.description}
                       </small>
                     </td>
-                    <td>{getPriorityBadge(req.priority)}</td>
-                    <td className="text-muted small">{req.createdAt || 'Just now'}</td>
-                    <td>{getStatusBadge(req)}</td>
-                    <td className="text-end">
-                      <div className="d-inline-flex align-items-center gap-1 justify-content-end">
+                    <td className="py-3 px-3 text-center">{getPriorityBadge(req.priority)}</td>
+                    <td className="py-3 px-3 text-muted small" style={{ fontSize: '12.5px' }}>
+                      <span className="d-inline-flex align-items-center gap-1.5">
+                        <i className="bi bi-calendar3 opacity-50" style={{ fontSize: '11px' }} />
+                        {req.createdAt || 'Just now'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3">{getStatusBadge(req)}</td>
+                    <td className="py-3 px-3.5 text-end">
+                      <div className="d-inline-flex align-items-center gap-1.5 justify-content-end">
                         {isEditable ? (
                           <button
                             type="button"
-                            className="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1"
+                            className="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1 rounded-2 px-2.5 py-1"
                             onClick={() => onStartEdit?.(req)}
                             title="Edit feedback (Pending Review)"
+                            style={{ fontSize: '12.5px' }}
                           >
-                            <i className="bi bi-pencil-square" /> Edit
+                            <i className="bi bi-pencil" /> Edit
                           </button>
                         ) : (
                           <span
-                            className="badge bg-light text-muted border py-1.5 px-2"
-                            title="The request has been claimed by Admin Staff for review and is locked from editing"
+                            className="badge bg-light text-muted border py-1 px-2 rounded-2"
+                            title="The request has been claimed by Staff and is locked from editing"
+                            style={{ fontSize: '11.5px' }}
                           >
                             <i className="bi bi-lock-fill me-1" /> Locked
                           </span>
                         )}
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-2 px-2.5 py-1"
                           onClick={() => setSelectedRequest(req)}
+                          style={{ fontSize: '12.5px' }}
                         >
                           <i className="bi bi-eye" /> Details
                         </button>
@@ -223,10 +401,16 @@ export function FeedbackTable({
               })
             ) : (
               <tr>
-                <td colSpan={8} className="text-center py-5 text-muted">
-                  <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary opacity-75" />
-                  <p className="mb-0 fw-semibold">No matching feedback found</p>
-                  <small>Try adjusting your search keywords or filter status.</small>
+                <td colSpan={7} className="text-center py-5 text-muted">
+                  <div className="py-3">
+                    <i className="bi bi-chat-square-dots fs-1 d-block mb-2 text-secondary opacity-50" />
+                    <h6 className="fw-semibold text-dark mb-1">No feedback requests found</h6>
+                    <small className="text-muted">
+                      {searchTerm
+                        ? 'Try adjusting your search keywords or clear the filter.'
+                        : 'You haven’t submitted any feedback yet. Click "New Feedback" to get started.'}
+                    </small>
+                  </div>
                 </td>
               </tr>
             )}
@@ -259,29 +443,31 @@ export function FeedbackTable({
             style={{ zIndex: 1055 }}
           >
             <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content border-0 shadow rounded-3">
-                <div className="modal-header border-bottom py-3 px-4">
+              <div className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+                <div className="modal-header border-bottom py-3 px-4 bg-white">
                   <h5
                     className="modal-title d-flex align-items-center gap-2 fw-bold text-dark"
                     id="feedbackDetailModalTitle"
+                    style={{ fontSize: '17px' }}
                   >
-                    <i className="bi bi-file-earmark-text text-primary" />
+                    <i className="bi bi-journal-text text-primary fs-5" />
                     <span>Feedback Details: {selectedRequest.requestCode || `#${selectedRequest.id}`}</span>
                   </h5>
                   <button
                     type="button"
                     className="btn-close"
                     onClick={() => setSelectedRequest(null)}
+                    aria-label="Close"
                   />
                 </div>
 
                 <div className="modal-body p-4">
                   {/* Title & Badges */}
-                  <div className="mb-3">
+                  <div className="mb-3.5">
                     <h6 className="fw-bold mb-2 text-dark fs-5">{selectedRequest.title}</h6>
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                       {getStatusBadge(selectedRequest)}
-                      <span className="badge bg-light text-dark border">Feedback</span>
+                      <span className="badge bg-light text-secondary border rounded-pill px-2.5 py-1 fw-normal">Feedback</span>
                       {getPriorityBadge(selectedRequest.priority)}
                     </div>
                   </div>
@@ -290,68 +476,77 @@ export function FeedbackTable({
                   {(selectedRequest.canEdit ||
                     (!selectedRequest.reviewedBy &&
                       (selectedRequest.status || 'pending').toLowerCase() === 'pending')) ? (
-                    <div className="alert alert-info py-2 px-3 small mb-3 border-0 rounded-2 bg-info-subtle text-info-emphasis">
-                      <i className="bi bi-info-circle me-1" /> The request is currently{' '}
-                      <strong>Pending Review</strong>. You can still edit this feedback before Admin Staff claims it.
+                    <div className="alert alert-info py-2.5 px-3 small mb-3.5 border-0 rounded-2 bg-info-subtle text-info-emphasis d-flex align-items-center gap-2">
+                      <i className="bi bi-info-circle-fill flex-shrink-0" />
+                      <div>
+                        The request is currently <strong>Pending Review</strong>. You can still edit this feedback before Staff claims it.
+                      </div>
                     </div>
                   ) : (selectedRequest.status || 'pending').toLowerCase() === 'pending' &&
                     selectedRequest.reviewedBy ? (
-                    <div className="alert alert-warning py-2 px-3 small mb-3 border-0 rounded-2 bg-warning-subtle text-warning-emphasis">
-                      <i className="bi bi-hourglass-split me-1" /> The request has been received by{' '}
-                      <strong>{selectedRequest.reviewedBy || 'Admin Staff'}</strong> and is currently being processed
-                      (editing locked).
+                    <div className="alert alert-warning py-2.5 px-3 small mb-3.5 border-0 rounded-2 bg-warning-subtle text-warning-emphasis d-flex align-items-center gap-2">
+                      <i className="bi bi-hourglass-split flex-shrink-0" />
+                      <div>
+                        The request has been claimed by <strong>{selectedRequest.reviewedBy || 'Staff'}</strong> and is currently being processed (editing locked).
+                      </div>
                     </div>
                   ) : (selectedRequest.status || 'pending').toLowerCase() === 'approved' ? (
-                    <div className="alert alert-success py-2 px-3 small mb-3 border-0 rounded-2 bg-success-subtle text-success-emphasis">
-                      <i className="bi bi-check-circle me-1" /> This feedback has been{' '}
-                      <strong>Resolved</strong> by Admin Staff.
+                    <div className="alert alert-success py-2.5 px-3 small mb-3.5 border-0 rounded-2 bg-success-subtle text-success-emphasis d-flex align-items-center gap-2">
+                      <i className="bi bi-check-circle-fill flex-shrink-0" />
+                      <div>
+                        This feedback has been <strong>Resolved</strong> by Center Staff.
+                      </div>
                     </div>
                   ) : (selectedRequest.status || 'pending').toLowerCase() === 'rejected' ? (
-                    <div className="alert alert-danger py-2 px-3 small mb-3 border-0 rounded-2 bg-danger-subtle text-danger-emphasis">
-                      <i className="bi bi-x-circle me-1" /> This feedback has been{' '}
-                      <strong>Rejected</strong> by Admin Staff.
+                    <div className="alert alert-danger py-2.5 px-3 small mb-3.5 border-0 rounded-2 bg-danger-subtle text-danger-emphasis d-flex align-items-center gap-2">
+                      <i className="bi bi-x-circle-fill flex-shrink-0" />
+                      <div>
+                        This feedback has been <strong>Rejected</strong> by Center Staff.
+                      </div>
                     </div>
                   ) : null}
 
-                  {/* Detailed Content */}
-                  <div className="p-3 bg-light rounded-3 mb-3 border">
-                    <label className="form-label small fw-bold text-muted mb-1">Detailed Content:</label>
-                    <p className="mb-0 text-dark small" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                      {selectedRequest.description || 'No detailed content.'}
-                    </p>
-                  </div>
-
                   {/* Metadata Row */}
-                  <div className="row g-2 mb-3">
-                    <div className="col-6">
-                      <small className="text-muted d-block">Requester:</small>
+                  <div className="row g-3 mb-3.5 p-3 bg-light bg-opacity-50 rounded-3 border">
+                    <div className="col-sm-6">
+                      <small className="text-muted d-block" style={{ fontSize: '12px' }}>Requester</small>
                       <strong className="text-dark small">
                         {selectedRequest.senderName || userRoleName} ({selectedRequest.senderRole || userRoleName})
                       </strong>
                     </div>
-                    <div className="col-6">
-                      <small className="text-muted d-block">Submitted Date:</small>
+                    <div className="col-sm-6">
+                      <small className="text-muted d-block" style={{ fontSize: '12px' }}>Submitted Date</small>
                       <span className="text-dark small">
                         {selectedRequest.createdAt || 'N/A'}
                       </span>
                     </div>
                   </div>
 
-                  {/* Review Notes from Admin Staff */}
+                  {/* Detailed Content */}
+                  <div className="p-3 bg-light rounded-3 mb-3.5 border">
+                    <label className="form-label small fw-bold text-muted mb-1.5 text-uppercase" style={{ fontSize: '11.5px', letterSpacing: '0.03em' }}>
+                      Detailed Content
+                    </label>
+                    <p className="mb-0 text-dark small" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: '13.5px' }}>
+                      {selectedRequest.description || 'No detailed content.'}
+                    </p>
+                  </div>
+
+                  {/* Review Notes from Staff */}
                   {selectedRequest.reviewedBy && (
-                    <div className="p-3 bg-light bg-opacity-75 rounded-3 border">
-                      <div className="d-flex align-items-center justify-content-between mb-1">
-                        <span className="small fw-bold text-success d-flex align-items-center gap-1">
-                          <i className="bi bi-person-check" />
+                    <div className="p-3 bg-success-subtle bg-opacity-25 rounded-3 border border-success-subtle border-start border-start-4 border-start-success">
+                      <div className="d-flex align-items-center justify-content-between mb-1.5">
+                        <span className="small fw-bold text-success d-flex align-items-center gap-1.5">
+                          <i className="bi bi-person-check-fill" />
                           Reviewed by: {selectedRequest.reviewedBy}
                         </span>
                         {selectedRequest.reviewedAt && (
-                          <small className="text-muted">{selectedRequest.reviewedAt}</small>
+                          <small className="text-muted" style={{ fontSize: '12px' }}>{selectedRequest.reviewedAt}</small>
                         )}
                       </div>
                       {selectedRequest.reviewNotes ? (
-                        <p className="small mb-0 text-secondary fst-italic mt-1">
-                          Staff Response: "{selectedRequest.reviewNotes}"
+                        <p className="small mb-0 text-dark mt-1" style={{ fontSize: '13px', lineHeight: 1.5 }}>
+                          <strong>Staff Response:</strong> "{selectedRequest.reviewNotes}"
                         </p>
                       ) : (
                         <small className="text-muted fst-italic">No additional response notes.</small>
@@ -360,13 +555,13 @@ export function FeedbackTable({
                   )}
                 </div>
 
-                <div className="modal-footer border-top py-2 px-4 bg-light rounded-bottom-3">
+                <div className="modal-footer border-top py-2.5 px-4 bg-light">
                   {(selectedRequest.canEdit ||
                     (!selectedRequest.reviewedBy &&
                       (selectedRequest.status || 'pending').toLowerCase() === 'pending')) && (
                     <button
                       type="button"
-                      className="btn btn-warning btn-sm me-auto d-inline-flex align-items-center gap-1 text-dark fw-semibold"
+                      className="btn btn-warning btn-sm me-auto d-inline-flex align-items-center gap-1.5 text-dark fw-semibold rounded-2 px-3 py-1.5"
                       onClick={() => {
                         const req = selectedRequest;
                         setSelectedRequest(null);
@@ -378,7 +573,7 @@ export function FeedbackTable({
                   )}
                   <button
                     type="button"
-                    className="btn btn-secondary btn-sm"
+                    className="btn btn-secondary btn-sm rounded-2 px-3 py-1.5"
                     onClick={() => setSelectedRequest(null)}
                   >
                     Close
