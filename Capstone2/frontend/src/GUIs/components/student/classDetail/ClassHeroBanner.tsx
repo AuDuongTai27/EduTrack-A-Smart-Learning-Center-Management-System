@@ -14,7 +14,13 @@ export function ClassHeroBanner({
   assignmentsCount,
 }: ClassHeroBannerProps) {
   return (
-    <div className="class-hero-banner" id="heroBanner" style={{ background: cls.grad }}>
+    <div
+      className="class-hero-banner"
+      id="heroBanner"
+      style={{
+        background: 'linear-gradient(135deg, #065F46 0%, #078444 60%, #10B981 100%)',
+      }}
+    >
       {/* Back Button */}
       <Link to="/student/classes" className="btn-back-hero">
         <i className="bi bi-arrow-left"></i>
@@ -34,22 +40,11 @@ export function ClassHeroBanner({
       <div className="hero-main-row">
         <div>
           <span className="hero-subject-pill" id="heroSubject">{cls.subject}</span>
-          <h1 className="hero-class-title" id="heroTitle">{cls.name} – {cls.subject}</h1>
-          <p className="hero-class-meta" id="heroMeta">
-            <span>Teacher: <strong>{cls.teacher}</strong></span>
-            <span className="opacity-50">·</span>
-            <span>{cls.room.startsWith('Room') || cls.room.startsWith('Lab') ? cls.room : `Room ${cls.room}`}</span>
-            <span className="opacity-50">·</span>
-            <span>{cls.schedule}</span>
-          </p>
+          <h1 className="hero-class-title" id="heroTitle">{cls.name}</h1>
         </div>
 
         {/* Quick Stats Chips */}
         <div className="hero-stats-group">
-          <div className="hero-stat-chip">
-            <div className="hero-stat-number" id="statStudents">{cls.studentCount}</div>
-            <div className="hero-stat-label">Students</div>
-          </div>
           <div className="hero-stat-chip">
             <div className="hero-stat-number" id="statMaterials">{materialsCount}</div>
             <div className="hero-stat-label">Materials</div>

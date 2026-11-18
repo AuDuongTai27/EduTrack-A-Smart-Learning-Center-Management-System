@@ -198,7 +198,7 @@ export default function AssignmentsSection({
 
   return (
     <>
-      <details className="card class-list-card border-0 mb-4" open>
+      <details className="card class-list-card border-0 mb-4">
         {/* 1. Master Section Header (Clicking summary toggles section) */}
         <summary className="class-list-header d-flex align-items-center justify-content-between py-3 px-4 flex-wrap gap-2 cursor-pointer">
           <div className="d-flex align-items-center gap-2">

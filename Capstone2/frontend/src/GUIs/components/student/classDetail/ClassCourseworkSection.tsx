@@ -107,38 +107,26 @@ export function ClassCourseworkSection({
   };
 
   return (
-    <section className="coursework-unified-section mb-4">
+    <details className="card class-list-card border-0 mb-4">
       {/* Master Section Header */}
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
-        <div className="p-4 border-bottom bg-white d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-3">
-            <div
-              className="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
-              style={{ width: 44, height: 44 }}
-            >
-              <i className="bi bi-collection-play-fill fs-5" />
-            </div>
-            <div>
-              <div className="d-flex align-items-center gap-2 flex-wrap">
-                <h3 className="h5 mb-0 fw-bold text-dark" style={{ letterSpacing: '-0.01em' }}>
-                  Coursework &amp; Learning Materials
-                </h3>
-                <span className="badge bg-light text-secondary border rounded-pill px-2.5 py-1 fw-medium" style={{ fontSize: '12px' }}>
-                  {unifiedList.length} items total
-                </span>
-              </div>
-              <small className="text-muted" style={{ fontSize: '13px' }}>
-                All assignments, lecture notes, and learning resources sorted by newest first
-              </small>
-            </div>
-          </div>
+      <summary className="class-list-header d-flex align-items-center justify-content-between py-3 px-4 flex-wrap gap-2 cursor-pointer">
+        <div className="d-flex align-items-center gap-2">
+          <i className="bi bi-collection-play-fill text-primary fs-5" />
+          <h4 className="class-list-title mb-0">
+            Coursework &amp; Learning Materials ({unifiedList.length})
+          </h4>
+        </div>
 
-          {/* Quick Actions (e.g. Download All ZIP) */}
+        {/* Quick Actions (e.g. Download All ZIP) + Toggle Chevron */}
+        <div className="d-flex align-items-center gap-3 flex-wrap">
           {materials.length > 0 && (
             <button
               type="button"
               className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-2 fw-medium shadow-xs"
-              onClick={handleDownloadAllZip}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownloadAllZip();
+              }}
               title="Download all lecture materials for this class as a .zip file"
               style={{ fontSize: '13px' }}
             >
@@ -146,9 +134,12 @@ export function ClassCourseworkSection({
               <span>Download All Materials (.zip)</span>
             </button>
           )}
-        </div>
 
-        {/* Toolbar: Filter Pills (All / Assignments / Materials) & Search Input */}
+          <i className="bi bi-chevron-down details-chevron text-muted" />
+        </div>
+      </summary>
+
+      {/* Toolbar: Filter Pills (All / Assignments / Materials) & Search Input */}
         <div className="px-4 py-2.5 border-bottom bg-light bg-opacity-40 d-flex align-items-center justify-content-between flex-wrap gap-2.5">
           {/* Filter Pills */}
           <div className="d-flex align-items-center gap-1.5 flex-wrap">
@@ -377,8 +368,7 @@ export function ClassCourseworkSection({
             </div>
           )}
         </div>
-      </div>
-    </section>
+    </details>
   );
 }
 

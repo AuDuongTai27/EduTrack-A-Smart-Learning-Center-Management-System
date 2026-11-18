@@ -9,6 +9,7 @@ import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { ClassHeroBanner } from '../../components/student/classDetail/ClassHeroBanner';
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
+import { ClassEvaluationsSection } from '../../components/student/classDetail/ClassEvaluationsSection';
 import { ClassCourseworkSection } from '../../components/student/classDetail/ClassCourseworkSection';
 
 export function StudentClassDetailPage() {
@@ -115,7 +116,10 @@ export function StudentClassDetailPage() {
         {/* 2. Class Info Card */}
         <ClassInfoCard cls={cls} />
 
-        {/* 3. Unified Coursework & Materials Section (Sorted newest first with filter) */}
+        {/* 3. Teacher Evaluations & Feedback Section */}
+        <ClassEvaluationsSection classNameTitle={cls.name} />
+
+        {/* 4. Unified Coursework & Materials Section (Sorted newest first with filter) */}
         <ClassCourseworkSection
           materials={materials}
           assignments={assignments}

@@ -38,7 +38,7 @@ export default function ParticipantsSection({
   };
 
   return (
-    <details className="card class-list-card border-0 mb-4" open>
+    <details className="card class-list-card border-0 mb-4">
       <summary className="class-list-header d-flex align-items-center justify-content-between cursor-pointer py-3 px-4">
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-people-fill text-primary fs-5" />

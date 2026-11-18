@@ -6,15 +6,17 @@ interface ClassInfoCardProps {
 }
 
 export function ClassInfoCard({ cls }: ClassInfoCardProps) {
+  const brandGreenGrad = 'linear-gradient(135deg, #065F46 0%, #078444 60%, #10B981 100%)';
+
   return (
     <div className="class-info-card">
-      <div className="class-info-topbar" style={{ background: cls.grad }}></div>
+      <div className="class-info-topbar" style={{ background: brandGreenGrad }}></div>
       <div className="class-info-body">
 
         {/* Teacher Profile Header */}
         <div className="teacher-profile-header">
           <div className="teacher-profile-info">
-            <div className="teacher-avatar-large" id="teacherAvatar" style={{ background: cls.grad }}>
+            <div className="teacher-avatar-large" id="teacherAvatar" style={{ background: brandGreenGrad }}>
               {cls.teacherInitials}
             </div>
             <div>

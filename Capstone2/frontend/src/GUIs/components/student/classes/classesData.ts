@@ -7,6 +7,10 @@ export interface EnrolledClassItem {
   teacherInitials: string;
   scheduleText: string;
   room: string;
+  attendanceRate?: number;
+  attendedSessions?: number;
+  totalSessions?: number;
+  isCompleted?: boolean;
 }
 
 export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
@@ -19,6 +23,10 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     teacherInitials: 'NM',
     scheduleText: 'Mon, Wed, Fri (17:30 - 19:00)',
     room: 'Room A101',
+    attendanceRate: 95,
+    attendedSessions: 19,
+    totalSessions: 20,
+    isCompleted: false,
   },
   {
     classId: 2,
@@ -29,6 +37,10 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     teacherInitials: 'TH',
     scheduleText: 'Tue, Thu (18:00 - 19:30)',
     room: 'Room B202',
+    attendanceRate: 90,
+    attendedSessions: 18,
+    totalSessions: 20,
+    isCompleted: false,
   },
   {
     classId: 3,
@@ -39,6 +51,10 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     teacherInitials: 'LN',
     scheduleText: 'Sat, Sun (08:00 - 09:30)',
     room: 'Room C301',
+    attendanceRate: 85,
+    attendedSessions: 17,
+    totalSessions: 20,
+    isCompleted: false,
   },
   {
     classId: 4,
@@ -49,6 +65,10 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     teacherInitials: 'PT',
     scheduleText: 'Mon, Fri (19:30 - 21:00)',
     room: 'Lab Room 1',
+    attendanceRate: 100,
+    attendedSessions: 20,
+    totalSessions: 20,
+    isCompleted: false,
   },
   {
     classId: 5,
@@ -59,6 +79,10 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     teacherInitials: 'VM',
     scheduleText: 'Thu, Sun (17:00 - 18:30)',
     room: 'Room A105',
+    attendanceRate: 80,
+    attendedSessions: 16,
+    totalSessions: 20,
+    isCompleted: false,
   },
   {
     classId: 6,
@@ -69,6 +93,10 @@ export const MOCK_ENROLLED_CLASSES: EnrolledClassItem[] = [
     teacherInitials: 'DA',
     scheduleText: 'Wed, Sat (14:00 - 15:30)',
     room: 'Room B104',
+    attendanceRate: 95,
+    attendedSessions: 19,
+    totalSessions: 20,
+    isCompleted: false,
   },
 ];
 

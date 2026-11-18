@@ -219,46 +219,49 @@ function mapSubjectBannerTheme(subjectCode?: string, subjectName?: string): {
   accent: string;
   grad: string;
 } {
+  const brandGreenGrad = 'linear-gradient(135deg, #065F46 0%, #078444 60%, #10B981 100%)';
+  const brandGreenAccent = '#078444';
+
   const combined = `${subjectCode || ''} ${subjectName || ''}`.toUpperCase();
   if (combined.includes('PHYS') || combined.includes('VAT') || combined.includes('LY') || combined.includes('LÝ')) {
     return {
       subjectClass: 'subject-vat-ly',
-      accent: '#7C3AED',
-      grad: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 60%, #8B5CF6 100%)',
+      accent: brandGreenAccent,
+      grad: brandGreenGrad,
     };
   }
   if (combined.includes('CHEM') || combined.includes('HOA') || combined.includes('HÓA')) {
     return {
       subjectClass: 'subject-hoa-hoc',
-      accent: '#DC2626',
-      grad: 'linear-gradient(135deg, #991B1B 0%, #DC2626 60%, #EF4444 100%)',
+      accent: brandGreenAccent,
+      grad: brandGreenGrad,
     };
   }
   if (combined.includes('ENG') || combined.includes('ANH') || combined.includes('IELTS')) {
     return {
       subjectClass: 'subject-tieng-anh',
-      accent: '#059669',
-      grad: 'linear-gradient(135deg, #065F46 0%, #059669 60%, #10B981 100%)',
+      accent: brandGreenAccent,
+      grad: brandGreenGrad,
     };
   }
   if (combined.includes('LIT') || combined.includes('VAN') || combined.includes('VĂN')) {
     return {
       subjectClass: 'subject-ngu-van',
-      accent: '#D97706',
-      grad: 'linear-gradient(135deg, #92400E 0%, #D97706 60%, #F59E0B 100%)',
+      accent: brandGreenAccent,
+      grad: brandGreenGrad,
     };
   }
   if (combined.includes('BIO') || combined.includes('SINH')) {
     return {
       subjectClass: 'subject-sinh-hoc',
-      accent: '#0891B2',
-      grad: 'linear-gradient(135deg, #164E63 0%, #0891B2 60%, #06B6D4 100%)',
+      accent: brandGreenAccent,
+      grad: brandGreenGrad,
     };
   }
   return {
     subjectClass: 'subject-toan',
-    accent: '#2563EB',
-    grad: 'linear-gradient(135deg, #1E40AF 0%, #2563EB 60%, #3B82F6 100%)',
+    accent: brandGreenAccent,
+    grad: brandGreenGrad,
   };
 }
 
@@ -282,6 +285,10 @@ function mapProgressTheme(subjectCode?: string, subjectName?: string, index = 0)
 
 function mapApiClassToEnrolledItem(dto: StudentEnrolledClassApiDto): EnrolledClassItem {
   const { subjectThemeClass, badge } = mapSubjectTheme(dto.subjectCode, dto.subjectName);
+  const total = dto.totalLessons || 0;
+  const attended = dto.attendedLessons || 0;
+  const attendanceRate = total > 0 ? Math.round((attended * 100) / total) : 100;
+
   return {
     classId: dto.classId,
     className: dto.className,
@@ -291,6 +298,10 @@ function mapApiClassToEnrolledItem(dto: StudentEnrolledClassApiDto): EnrolledCla
     teacherInitials: dto.teacherInitials || 'TC',
     scheduleText: dto.scheduleText || 'Updating schedule',
     room: dto.room || 'Main Classroom',
+    attendanceRate,
+    attendedSessions: attended,
+    totalSessions: total,
+    isCompleted: dto.status === 'completed',
   };
 }
 
