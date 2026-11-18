@@ -88,6 +88,20 @@ export function getMyRequests(requests: ApprovalRequestDto[], userId: number) {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.requestId - a.requestId);
 }
 
+/** Incoming scope from Received Feedback, without that page's legacy ID fallback. */
+export function countPendingIncomingRequests(requests: ApprovalRequestDto[]): number {
+  const incoming = new Set(['student', 'parent', 'teacher', 'ta', 'teaching_assistant', 'teachingassistant']);
+  const outgoing = new Set(['admin_staff', 'adminstaff', 'center_manager', 'centermanager']);
+  let count = 0;
+  for (const request of requests) {
+    if (normalize(request.status) !== 'pending') continue;
+    const role = normalize(request.requesterRole);
+    if (incoming.has(role)) count++;
+    else if (!outgoing.has(role)) throw new Error('Incoming request total is unavailable: the API returned a missing or unsupported requester role.');
+  }
+  return count;
+}
+
 export const REQUEST_TYPE_LABELS: Record<string, string> = {
   tuition_adjustment: "Tuition Adjustment",
   refund_request: "Refund Request",

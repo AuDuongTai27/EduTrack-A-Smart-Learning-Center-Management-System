@@ -1,3 +1,34 @@
+/* KAN-89: rules apply only to the Center Manager dashboard. */
+.admin-scope .cm-dashboard .cm-dashboard-kpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cm-dashboard-panels { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; align-items: start; }
+.cm-dashboard-panels > *, .cm-dashboard-kpis > * { min-width: 0; }
+.cm-pending-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--et-border); }
+.cm-pending-heading h5 { margin: 0; font-size: 16px; font-weight: 700; }
+.cm-pending-heading a { flex-shrink: 0; font-size: 13px; }
+.cm-pending-list { list-style: none; padding: 0 20px; margin: 0; }
+.cm-pending-list li { display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; }
+.cm-pending-list li + li { border-top: 1px solid var(--et-border); }
+.cm-request-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.cm-request-title { font-size: 14px; }
+.cm-request-badges { display: flex; align-items: flex-end; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.admin-scope .cm-dashboard .kpi-currency-value { white-space: normal; overflow-wrap: anywhere; }
+@media (min-width: 1700px) {
+  .admin-scope .cm-dashboard .cm-dashboard-kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@media (max-width: 991.98px) {
+  .cm-dashboard-panels { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .admin-scope .cm-dashboard .cm-dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 479px) {
+  .admin-scope .cm-dashboard .cm-dashboard-kpis { grid-template-columns: minmax(0, 1fr); }
+  .cm-pending-list li { flex-wrap: wrap; }
+  .cm-request-badges { flex-direction: row; align-items: center; }
+}
+
 /* =========================================================
    EDUTRACK - CENTER MANAGER CSS
 

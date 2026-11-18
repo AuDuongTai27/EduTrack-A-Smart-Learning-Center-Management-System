@@ -1,10 +1,11 @@
+import '../../../../assets/css/management-dashboard-kpis.css';
 import { DashboardNotificationsCard } from '../../../components/shared/notifications/NotificationQuickViews';
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
-import KpiCard from "../../../components/Common/KpiCard";
+import KpiCard from "../../../components/admin/ManagementDashboardKpi";
 import { adminStaffDashboardDAL, type AdminStaffDashboardData } from "../../../../DAL/adminStaffDashboardDAL";
 import {
   CENTER_TIME_ZONE,
@@ -89,7 +90,7 @@ export default function AdminStaffDashboardPage() {
   });
 
   return (
-    <>
+    <div className="staff-dashboard">
       {/* Breadcrumb and Quick Access */}
       <PageHeader
         title="Admin Staff Dashboard"
@@ -106,70 +107,14 @@ export default function AdminStaffDashboardPage() {
         </div>
       )}
       {dashboard && [dashboard.students, dashboard.tuition, dashboard.schedule, dashboard.staff,
-        dashboard.requests].some((section) => section.error) && (
+        dashboard.requests, dashboard.incomingPending].some((section) => section.error) && (
         <div className="alert alert-warning py-2 px-3 mb-3" role="alert">
           Some data could not be loaded. Please check each section and try refreshing.
+          {dashboard.students.error && <div>Students: {dashboard.students.error}</div>}
+          {dashboard.tuition.error && <div>Tuition: {dashboard.tuition.error}</div>}
+          {dashboard.incomingPending.error && <div>Pending Feedback &amp; Requests: {dashboard.incomingPending.error}</div>}
         </div>
       )}
-
-      {/* Dashboard Summary KPIs */}
-      <div className="row g-3 mb-4">
-        {/* New Students */}
-        <div className="col-xl-3 col-md-6">
-          <Link to="/admin-staff/students" className="text-decoration-none d-block">
-            <KpiCard
-              type="student"
-              status="new"
-              title="Total Active Students"
-              value={dashboard?.students.data ?? "—"}
-              footerValue={sectionText(dashboard?.students, "Student profiles with Active status")}
-              footerLabel="View list"
-            />
-          </Link>
-        </div>
-
-        {/* Unpaid Students */}
-        <div className="col-xl-3 col-md-6">
-          <Link to="/admin-staff/tuition" className="text-decoration-none d-block">
-            <KpiCard
-              type="student"
-              status="unpaid"
-              title="Tuition Invoices Due"
-              value={dashboard?.tuition.data?.unpaidCount ?? "—"}
-              footerValue={sectionText(dashboard?.tuition, "Unpaid invoices • All periods")}
-              footerLabel="View tuition"
-            />
-          </Link>
-        </div>
-
-        {/* Outstanding Tuition */}
-        <div className="col-xl-3 col-md-6">
-          <Link to="/admin-staff/tuition" className="text-decoration-none d-block">
-            <KpiCard
-              type="tuition"
-              status="outstanding"
-              title="Outstanding Tuition"
-              currency="VND"
-              value={totalOutstanding ?? null}
-              footerValue={sectionText(dashboard?.tuition, "Total outstanding debt • All invoice periods")}
-              footerLabel="Details"
-            />
-          </Link>
-        </div>
-
-        {/* My Approval Requests */}
-        <div className="col-xl-3 col-md-6">
-          <Link to="/admin-staff/approval-requests" className="text-decoration-none d-block">
-            <KpiCard
-              type="request"
-              title="Requests Sent to Center Manager"
-              value={dashboard?.requests.data == null ? "—" : requests.length}
-              footerValue={sectionText(dashboard?.requests, `${pendingRequests.length} requests pending decision`)}
-              footerLabel="View progress"
-            />
-          </Link>
-        </div>
-      </div>
 
       {/* Welcome */}
       <div className="card dashboard-welcome mb-4 border-0">
@@ -190,6 +135,14 @@ export default function AdminStaffDashboardPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Display-only Dashboard KPIs */}
+      <div className="staff-dashboard-kpis mb-4">
+        <KpiCard kind="student" title="Active Students" value={dashboard?.students.data ?? '—'} />
+        <KpiCard kind="outstanding" title="Outstanding Tuition" currency="VND" value={totalOutstanding ?? null} />
+        <KpiCard kind="approval" title="Pending Approval Requests" value={dashboard?.requests.data == null ? '—' : pendingRequests.length} />
+        <KpiCard kind="feedback" title="Pending Feedback &amp; Requests" value={dashboard?.incomingPending.data ?? '—'} />
       </div>
 
       {/* Today's Schedule and Latest Notifications */}
@@ -477,6 +430,6 @@ export default function AdminStaffDashboardPage() {
           </div>
         );
       })()}
-    </>
+    </div>
   );
 }

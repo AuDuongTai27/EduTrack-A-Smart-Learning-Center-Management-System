@@ -1,0 +1,56 @@
+/* KAN-89/KAN-90: display-only KPIs on these two dashboard pages. */
+.admin-scope :is(.cm-dashboard, .staff-dashboard) .dashboard-kpi {
+  min-height: 148px;
+  height: 100%;
+  border-radius: var(--et-radius);
+  box-shadow: var(--et-shadow);
+  cursor: default;
+  transition: none;
+  transform: none;
+}
+.admin-scope :is(.cm-dashboard, .staff-dashboard) .dashboard-kpi .card-body {
+  position: relative;
+  padding: 20px;
+}
+.admin-scope :is(.cm-dashboard, .staff-dashboard) .dashboard-kpi .card-body > .d-flex {
+  display: block !important;
+}
+.admin-scope :is(.cm-dashboard, .staff-dashboard) .dashboard-kpi p {
+  min-height: 40px;
+  padding-right: 42px;
+  margin-bottom: 12px !important;
+  font-size: 13px;
+  line-height: 20px;
+}
+.admin-scope :is(.cm-dashboard, .staff-dashboard) .dashboard-kpi h3 {
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.admin-scope :is(.cm-dashboard, .staff-dashboard) .dashboard-kpi .kpi-currency-value {
+  font-size: 20px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.admin-scope :is(.cm-dashboard, .staff-dashboard) .dashboard-kpi .kpi-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.admin-scope .staff-dashboard-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 1199px) {
+  .admin-scope .staff-dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 479px) {
+  .admin-scope .staff-dashboard-kpis { grid-template-columns: minmax(0, 1fr); }
+}
