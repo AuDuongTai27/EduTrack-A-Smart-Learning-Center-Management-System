@@ -44,6 +44,7 @@ export interface ChildClassItem {
   attendedLessons: number;
   totalLessons: number;
   notes: string;
+  isCompleted?: boolean;
 }
 
 export interface ChildStudent {

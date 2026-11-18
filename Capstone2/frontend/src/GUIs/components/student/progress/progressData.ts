@@ -36,6 +36,7 @@ export function isAssignmentFeedback(fb: ProgressFeedback): boolean {
 
 export interface ProgressClassItem {
   id: string;
+  classId?: number;
   className: string;
   subjectName: string;
   colorTheme: string;

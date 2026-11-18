@@ -108,3 +108,10 @@
   .student-scope .et-parent-dashboard .class-card { transition: none; }
   .student-scope .et-parent-dashboard .class-card:hover { transform: none; }
 }
+
+@media (min-width: 1200px) {
+  .student-scope .et-parent-dashboard .classes-grid,
+  .student-scope .classes-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}

@@ -50,6 +50,7 @@ import {
 import {
   CURRENT_PROGRESS_CLASSES,
   type ProgressClassItem,
+  type ProgressFeedback,
 } from '../GUIs/components/student/progress/progressData';
 import type {
   TuitionBill,
@@ -105,6 +106,7 @@ export interface StudentClassDetailViewModel {
   attendedLessons: number;
   totalLessons: number;
   latestTeacherNote: string;
+  feedbacks?: ProgressFeedback[];
   source: 'api' | 'mock';
 }
 
@@ -662,6 +664,31 @@ export const learningDAL = {
           }))
           : [];
 
+        const feedbacks: ProgressFeedback[] = [];
+        try {
+          const progVm = await learningDAL.getStudentProgress(targetStudentId);
+          const matchedClass = [...progVm.currentClasses, ...progVm.pastClasses].find(
+            (c) => c.classId === classId || c.id === String(classId)
+          );
+          if (matchedClass && Array.isArray(matchedClass.feedbacks)) {
+            feedbacks.push(...matchedClass.feedbacks);
+          }
+        } catch (fbErr) {
+          console.warn('[learningDAL] Không tải được feedbacks từ tiến độ:', fbErr);
+        }
+
+        if (apiData.latestTeacherNote && !feedbacks.some((f) => f.quote === apiData.latestTeacherNote)) {
+          feedbacks.unshift({
+            assignmentTitle: `[Periodic Evaluation] ${apiData.className}`,
+            quote: apiData.latestTeacherNote,
+            teacherName: apiData.teacherName || 'Lead Teacher',
+            statusType: 'dat',
+            statusIcon: 'bi-check2-all',
+            statusLabel: 'Praise',
+            category: 'evaluation',
+          });
+        }
+
         return {
           cls,
           materials,
@@ -670,6 +697,7 @@ export const learningDAL = {
           attendedLessons: apiData.attendedLessons ?? 0,
           totalLessons: apiData.totalLessons ?? 0,
           latestTeacherNote: apiData.latestTeacherNote || 'Chưa có nhận xét từ giáo viên.',
+          feedbacks,
           source: 'api',
         };
       }
@@ -750,6 +778,7 @@ export const learningDAL = {
             const progTheme = mapProgressTheme(cls.subjectCode, cls.subjectName, idx);
             return {
               id: cls.id,
+              classId: cls.classId,
               className: cls.className,
               subjectName: cls.subjectName,
               colorTheme: progTheme.colorTheme,

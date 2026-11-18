@@ -11,6 +11,7 @@ import { ClassHeroBanner } from '../../components/student/classDetail/ClassHeroB
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
 import { ClassEvaluationsSection } from '../../components/student/classDetail/ClassEvaluationsSection';
 import { ClassCourseworkSection } from '../../components/student/classDetail/ClassCourseworkSection';
+import type { ProgressFeedback } from '../../components/student/progress/progressData';
 
 export function StudentClassDetailPage() {
   const { id: paramId } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export function StudentClassDetailPage() {
   const [cls, setCls] = useState<ClassDetailItem | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
+  const [feedbacks, setFeedbacks] = useState<ProgressFeedback[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function StudentClassDetailPage() {
           setCls(detailData.cls);
           setMaterials(detailData.materials);
           setAssignments(detailData.assignments);
+          setFeedbacks(detailData.feedbacks || []);
         }
       } catch (err) {
         console.warn('Lỗi khi tải chi tiết lớp học:', err);
@@ -117,7 +120,7 @@ export function StudentClassDetailPage() {
         <ClassInfoCard cls={cls} />
 
         {/* 3. Teacher Evaluations & Feedback Section */}
-        <ClassEvaluationsSection classNameTitle={cls.name} />
+        <ClassEvaluationsSection feedbacks={feedbacks} classNameTitle={cls.name} />
 
         {/* 4. Unified Coursework & Materials Section (Sorted newest first with filter) */}
         <ClassCourseworkSection

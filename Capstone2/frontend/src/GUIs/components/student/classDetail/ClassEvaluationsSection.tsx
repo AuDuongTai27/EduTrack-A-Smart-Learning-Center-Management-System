@@ -8,44 +8,8 @@ export interface ClassEvaluationsSectionProps {
 }
 
 export function ClassEvaluationsSection({
-  feedbacks = [
-    {
-      assignmentTitle: 'Midterm Comprehensive Review: Solid Knowledge Base',
-      quote: 'The student demonstrates a serious learning attitude, masters key formulas, and actively participates in classroom discussions.',
-      teacherName: 'ThS. Hoàng Quốc Việt',
-      statusType: 'dat',
-      statusIcon: 'bi-check2-all',
-      statusLabel: 'Praise',
-      category: 'evaluation',
-    },
-    {
-      assignmentTitle: 'Chapter 3 Assignment: Quadratic Equations & Vieta Theorem',
-      quote: 'Great performance on solving standard quadratics. Be more careful when checking discriminant constraints.',
-      teacherName: 'ThS. Hoàng Quốc Việt',
-      statusType: 'dat',
-      statusIcon: 'bi-check2-all',
-      statusLabel: 'Passed',
-      category: 'assignment',
-    },
-    {
-      assignmentTitle: '15-Minute Quiz: Inequality Systems',
-      quote: 'Good grasp of theoretical definitions, but still hesitant when applying to multi-variable constraints.',
-      teacherName: 'Âu Dương Tài',
-      statusType: 'canluuy',
-      statusIcon: 'bi-exclamation-triangle-fill',
-      statusLabel: 'Needs Attention',
-      category: 'assignment',
-    },
-    {
-      assignmentTitle: 'Weekly Homework 04: Advanced Word Problems',
-      quote: 'Well-structured presentation and concise algebraic explanations.',
-      teacherName: 'ThS. Hoàng Quốc Việt',
-      statusType: 'dat',
-      statusIcon: 'bi-check2-all',
-      statusLabel: 'Good Progress',
-      category: 'assignment',
-    },
-  ],
+  feedbacks = [],
+  classNameTitle,
 }: ClassEvaluationsSectionProps) {
   const [filterType, setFilterType] = useState<ProgressFeedbackFilter>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
