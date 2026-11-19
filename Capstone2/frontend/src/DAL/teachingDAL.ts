@@ -1217,4 +1217,41 @@ export function isSessionStarted(session?: {
   }
 }
 
+/**
+ * Kiểm tra xem buổi học đã quá 2 giờ sau giờ kết thúc hay chưa (không cho điểm danh nữa)
+ */
+export function isAttendanceExpired(session?: {
+  sessionDate?: string;
+  endTime?: string;
+  hasStarted?: boolean;
+  canTakeAttendance?: boolean;
+}): boolean {
+  if (!session) return false;
+  if (session.hasStarted === true && session.canTakeAttendance === false) {
+    return true;
+  }
+  if (!session.sessionDate || !session.endTime) {
+    return false;
+  }
+
+  try {
+    let dateStr = session.sessionDate.trim();
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        dateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    const [h, m] = session.endTime.trim().split(':').map(Number);
+    const endDateTime = new Date(`${dateStr}T${String(h || 0).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}:00`);
+    if (isNaN(endDateTime.getTime())) {
+      return false;
+    }
+    const deadline = new Date(endDateTime.getTime() + 2 * 60 * 60 * 1000);
+    return new Date() > deadline;
+  } catch {
+    return false;
+  }
+}
+
 export default teachingDAL;

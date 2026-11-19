@@ -60,7 +60,10 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 bool isRec = sessionAtts.Count > 0;
                 bool isCompleted = s.Status == "completed" || isRec;
                 var sessionStartDateTime = s.SessionDate.Date.Add(s.StartTime);
+                var sessionEndDateTime = s.SessionDate.Date.Add(s.EndTime);
+                var attendanceDeadline = sessionEndDateTime.AddHours(2);
                 bool hasStarted = isCompleted || s.Status == "in_progress" || vietnamNow >= sessionStartDateTime;
+                bool canTakeAttendance = hasStarted && vietnamNow <= attendanceDeadline;
 
                 result.Add(new TeachingSessionItemDto
                 {
@@ -80,7 +83,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     ExcusedCount = excused,
                     TotalRecorded = sessionAtts.Count,
                     HasStarted = hasStarted,
-                    CanTakeAttendance = hasStarted
+                    CanTakeAttendance = canTakeAttendance
                 });
                 index++;
             }
@@ -206,11 +209,16 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             var vietnamNow = DateTime.UtcNow.AddHours(7);
             var sessionStartDateTime = session.SessionDate.Date.Add(session.StartTime);
+            var attendanceDeadline = session.SessionDate.Date.Add(session.EndTime).AddHours(2);
             bool hasStarted = session.Status == "completed" || session.Status == "in_progress" || vietnamNow >= sessionStartDateTime;
 
             if (!hasStarted)
             {
                 throw new InvalidOperationException("Chỉ có buổi học đã bắt đầu mới có thể điểm danh.");
+            }
+            if (vietnamNow > attendanceDeadline)
+            {
+                throw new InvalidOperationException("Đã quá 2 giờ sau khi buổi học kết thúc, không thể điểm danh nữa.");
             }
 
             var existingRecords = await _context.Attendances
@@ -261,6 +269,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
         public async Task<TeachingStudentAttendanceItemDto?> UpdateSingleAttendanceAsync(int attendanceId, UpdateSingleAttendanceRequestDto request)
         {
             var record = await _context.Attendances
+                .Include(a => a.Session)
                 .Include(a => a.Student)
                 .Include(a => a.Recorder)
                 .FirstOrDefaultAsync(a => a.AttendanceId == attendanceId);
@@ -268,6 +277,16 @@ namespace EduTrack.API.Services.Teaching.Implementation
             if (record == null)
             {
                 return null;
+            }
+
+            if (record.Session != null)
+            {
+                var vietnamNow = DateTime.UtcNow.AddHours(7);
+                var attendanceDeadline = record.Session.SessionDate.Date.Add(record.Session.EndTime).AddHours(2);
+                if (vietnamNow > attendanceDeadline)
+                {
+                    throw new InvalidOperationException("Đã quá 2 giờ sau khi buổi học kết thúc, không thể cập nhật điểm danh nữa.");
+                }
             }
 
             string normStatus = (request.Status ?? "present").Trim().ToLowerInvariant();

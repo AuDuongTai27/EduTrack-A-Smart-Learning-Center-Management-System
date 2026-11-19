@@ -11,6 +11,7 @@ import {
   teachingDAL,
   DEFAULT_TEACHER_ID,
   isSessionStarted,
+  isAttendanceExpired,
   type TeachingClassAttendanceSheetDto,
   type TeachingStudentAttendanceItemDto,
   type TeachingAttendanceStatsDto,
@@ -127,7 +128,10 @@ export default function TeacherAttendancePage() {
   const isStartedSession = sheet?.currentSession?.hasStarted !== undefined
     ? sheet?.currentSession?.hasStarted
     : (isCompletedSession || isSessionStarted(sheet?.currentSession || undefined));
-  const canTakeAttendance = isStartedSession;
+  const isExpiredSession = isAttendanceExpired(sheet?.currentSession || undefined);
+  const canTakeAttendance = sheet?.currentSession?.canTakeAttendance !== undefined
+    ? sheet.currentSession.canTakeAttendance
+    : (isStartedSession && !isExpiredSession);
 
   // Lưu điểm danh vào cơ sở dữ liệu
   const handleSaveAttendance = async () => {
@@ -139,7 +143,9 @@ export default function TeacherAttendancePage() {
 
     if (!canTakeAttendance) {
       setToast({
-        message: "This session has not started yet. Attendance can only be taken for sessions that have started.",
+        message: isStartedSession
+          ? "Attendance window closed. Attendance cannot be taken more than 2 hours after the session ends."
+          : "This session has not started yet. Attendance can only be taken for sessions that have started.",
         type: "danger",
       });
       return;
@@ -228,7 +234,7 @@ export default function TeacherAttendancePage() {
       )}
 
       {/* Warning if session has not started */}
-      {sheet?.currentSession && !canTakeAttendance && (
+      {sheet?.currentSession && !isStartedSession && (
         <div className="alert alert-warning border-warning d-flex align-items-center gap-2 shadow-sm mb-4" role="alert">
           <i className="bi bi-clock-history fs-5 text-warning flex-shrink-0" />
           <div className="flex-grow-1">
@@ -279,6 +285,7 @@ export default function TeacherAttendancePage() {
               isSaving={isSaving}
               onSave={handleSaveAttendance}
               canSave={canTakeAttendance}
+              isExpired={isStartedSession && !canTakeAttendance}
               backUrl={`/teacher/classes/${targetClassId}`}
             />
           </>
