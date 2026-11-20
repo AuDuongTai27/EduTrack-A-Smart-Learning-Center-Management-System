@@ -48,25 +48,13 @@ export default function TeacherDashboardPage() {
   const roleTitle = profile?.roleTitle || "Subject Teacher";
 
   const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || [])
-    .filter((cls) => {
-      // Bỏ qua lớp đã hoàn thành hoặc đã quá giờ kết thúc
-      if (cls.status?.toLowerCase() === "completed") return false;
-      if (cls.endTime) {
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const [endH, endM] = cls.endTime.split(":").map(Number);
-        const endMinutes = (endH || 0) * 60 + (endM || 0);
-        if (currentMinutes >= endMinutes) return false;
-      }
-      return true;
-    })
     .map((cls) => {
-      // Xác định trạng thái Ongoing nếu thời gian hiện tại nằm trong khoảng startTime - endTime
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
       let computedStatus = cls.status || "Upcoming";
-      if (cls.startTime && cls.endTime) {
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const normalized = computedStatus.toLowerCase();
 
+      if (cls.startTime && cls.endTime) {
         const [startH, startM] = cls.startTime.split(":").map(Number);
         const [endH, endM] = cls.endTime.split(":").map(Number);
         const startMinutes = (startH || 0) * 60 + (startM || 0);
@@ -74,11 +62,17 @@ export default function TeacherDashboardPage() {
 
         if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
           computedStatus = "Ongoing";
+        } else if (currentMinutes >= endMinutes || normalized === "completed") {
+          computedStatus = "Completed";
         } else {
           computedStatus = "Upcoming";
         }
-      } else if (computedStatus.toLowerCase() === "in progress") {
+      } else if (normalized === "completed") {
+        computedStatus = "Completed";
+      } else if (normalized === "in progress" || normalized === "ongoing") {
         computedStatus = "Ongoing";
+      } else {
+        computedStatus = "Upcoming";
       }
 
       return {
@@ -93,13 +87,6 @@ export default function TeacherDashboardPage() {
         startTime: cls.startTime,
         endTime: cls.endTime,
       };
-    })
-    .sort((a, b) => {
-      const aOngoing = a.status === "Ongoing";
-      const bOngoing = b.status === "Ongoing";
-      if (aOngoing && !bOngoing) return -1;
-      if (!aOngoing && bOngoing) return 1;
-      return (a.startTime || "").localeCompare(b.startTime || "");
     });
 
   return (

@@ -869,6 +869,28 @@ body.sidebar-collapsed & .sidebar .nav-link i {
   min-width: 28px;
 }
 
+.today-classes-scroll {
+  max-height: 580px;
+  overflow-y: auto;
+  position: relative;
+  padding-right: 4px;
+}
+
+.today-class-card {
+  flex-shrink: 0;
+}
+
+.today-class-card--completed {
+  opacity: 0.72;
+  filter: grayscale(0.45);
+}
+
+.today-class-card--ongoing {
+  background-color: #ffffff;
+  border: 2.5px solid var(--et-primary, #078444) !important;
+  box-shadow: 0 4px 14px rgba(7, 132, 68, 0.12) !important;
+}
+
 /* =========================
    Responsive
    ========================= */

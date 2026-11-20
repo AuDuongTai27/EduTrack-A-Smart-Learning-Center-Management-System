@@ -177,20 +177,20 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             if (todaySessions.Count > 0)
             {
-                // Chỉ lấy các ca học chưa kết thúc trong ngày (status != "completed" và chưa quá giờ kết thúc)
                 todayClassesList = todaySessions
-                    .Where(s => s.Status != "completed" && currentTimeOfDay < s.EndTime)
                     .Select(s =>
                     {
                         string computedStatus = (currentTimeOfDay >= s.StartTime && currentTimeOfDay < s.EndTime)
                             ? "Ongoing"
-                            : "Upcoming";
+                            : (currentTimeOfDay >= s.EndTime || s.Status == "completed")
+                                ? "Completed"
+                                : "Upcoming";
 
                         return new TodayClassSessionItemDto
                         {
                             SessionId = s.SessionId,
                             ClassId = s.ClassId,
-                            ClassName = s.Class?.ClassName ?? $"Lớp #{s.ClassId}",
+                            ClassName = s.Class?.ClassName ?? $"Class #{s.ClassId}",
                             SubjectName = s.Class?.Subject?.SubjectName,
                             Room = s.Room ?? s.Class?.Room ?? "P.101",
                             TimePeriod = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}",
@@ -201,13 +201,13 @@ namespace EduTrack.API.Services.Teaching.Implementation
                             AttendanceTaken = s.Attendances.Any()
                         };
                     })
-                    .OrderBy(s => s.Status == "Ongoing" ? 0 : 1)
+                    .OrderBy(s => s.Status == "Completed" ? 0 : s.Status == "Ongoing" ? 1 : 2)
                     .ThenBy(s => s.StartTime)
                     .ToList();
             }
             else
             {
-                // Chỉ xét fallback nếu lớp CHƯA TỪNG được sinh sessions trong ClassSessions
+                // Fallback only when the class has no generated rows in ClassSessions yet
                 var classesWithNoSessions = assignedClasses
                     .Where(c => !_context.ClassSessions.Any(cs => cs.ClassId == c.ClassId))
                     .ToList();
@@ -225,12 +225,13 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     classesToday = matchingSchedules.Count;
 
                     todayClassesList = matchingSchedules
-                        .Where(m => currentTimeOfDay < m.Schedule.EndTime)
                         .Select(m =>
                         {
-                            string computedStatus = (currentTimeOfDay >= m.Schedule.StartTime && currentTimeOfDay < m.Schedule.EndTime)
-                                ? "Ongoing"
-                                : "Upcoming";
+                            string computedStatus = (currentTimeOfDay >= m.Schedule.EndTime)
+                                ? "Completed"
+                                : (currentTimeOfDay >= m.Schedule.StartTime && currentTimeOfDay < m.Schedule.EndTime)
+                                    ? "Ongoing"
+                                    : "Upcoming";
 
                             int studentCount = m.Class.StudentClasses.Count(sc => sc.Status != "dropped");
 
@@ -249,7 +250,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                                 AttendanceTaken = false
                             };
                         })
-                        .OrderBy(s => s.Status == "Ongoing" ? 0 : 1)
+                        .OrderBy(s => s.Status == "Completed" ? 0 : s.Status == "Ongoing" ? 1 : 2)
                         .ThenBy(s => s.StartTime)
                         .ToList();
                 }
