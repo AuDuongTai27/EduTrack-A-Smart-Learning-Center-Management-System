@@ -33,7 +33,7 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim()) {
-      setError('Please enter your phone number, email, or user code.');
+      setError('Please enter your email or phone number.');
       return;
     }
     if (!password) {
@@ -106,7 +106,7 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
       </div>
 
       <p style={{ marginTop: '8px', marginBottom: '18px', color: '#557062', fontSize: '13.5px' }}>
-        Enter your registered phone number, email, or account code to access your learning portal.
+        Enter your registered email or phone number to access your learning portal.
       </p>
 
       {error && (
@@ -133,14 +133,14 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
             htmlFor="login-identifier"
             style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px', color: '#132a1e' }}
           >
-            Phone Number, Email, or User Code
+            Email or Phone Number
           </label>
           <input
             id="login-identifier"
             type="text"
             required
             autoComplete="username"
-            placeholder="e.g. 0956789012 or TC001"
+            placeholder="e.g. name@gmail.com or 0912345678"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             disabled={loading}

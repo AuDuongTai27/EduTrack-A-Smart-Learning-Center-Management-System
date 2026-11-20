@@ -16,7 +16,7 @@ using EduTrack.API.Models.Entities;
 namespace EduTrack.API.Controllers.Auth
 {
     /// <summary>
-    /// API Xác thực Đăng nhập (Authentication) bằng Số điện thoại, Email hoặc Mã số tài khoản
+    /// API Xác thực Đăng nhập (Authentication) bằng Số điện thoại hoặc Email
     /// </summary>
     [ApiController]
     [Route("api/auth")]
@@ -33,7 +33,7 @@ namespace EduTrack.API.Controllers.Auth
         }
 
         /// <summary>
-        /// Đăng nhập hệ thống bằng Số điện thoại, Email hoặc Mã tài khoản (UserCode)
+        /// Đăng nhập hệ thống bằng Số điện thoại hoặc Email (Gmail)
         /// POST: /api/auth/login
         /// </summary>
         [HttpPost("login")]
@@ -45,7 +45,7 @@ namespace EduTrack.API.Controllers.Auth
                 return BadRequest(new LoginResponseDto
                 {
                     Success = false,
-                    Message = "Vui lòng nhập Số điện thoại (hoặc Email / Mã số) và Mật khẩu."
+                    Message = "Vui lòng nhập Email hoặc Số điện thoại và Mật khẩu."
                 });
             }
 
@@ -53,7 +53,7 @@ namespace EduTrack.API.Controllers.Auth
             var lowerIdentifier = rawIdentifier.ToLowerInvariant();
             var normalizedPhone = JwtAuthHelper.NormalizePhone(rawIdentifier);
 
-            // Truy vấn ứng viên khớp Email, UserCode hoặc Số điện thoại
+            // Truy vấn ứng viên khớp Email hoặc Số điện thoại (chỉ cho phép Email hoặc Số điện thoại, không đăng nhập bằng UserCode)
             var candidates = await _db.Users
                 .AsNoTracking()
                 .Include(u => u.Grade)
@@ -61,14 +61,12 @@ namespace EduTrack.API.Controllers.Auth
                     .ThenInclude(ur => ur.Role)
                 .Where(u =>
                     (u.Email != null && u.Email.ToLower() == lowerIdentifier) ||
-                    u.UserCode.ToLower() == lowerIdentifier ||
                     (u.Phone != null && u.Phone == rawIdentifier) ||
                     (!string.IsNullOrEmpty(normalizedPhone) && u.Phone != null && u.Phone.Replace(" ", "").Replace("-", "").Replace(".", "") == normalizedPhone))
                 .ToListAsync(ct);
 
             // Nếu người dùng nhập SĐT có định dạng đặc biệt (+84...), lọc chính xác thêm ở bộ nhớ
             User? matchedUser = candidates.FirstOrDefault(u =>
-                string.Equals(u.UserCode, rawIdentifier, StringComparison.OrdinalIgnoreCase) ||
                 (!string.IsNullOrWhiteSpace(u.Email) && string.Equals(u.Email.Trim(), rawIdentifier, StringComparison.OrdinalIgnoreCase)) ||
                 (!string.IsNullOrWhiteSpace(u.Phone) && !string.IsNullOrEmpty(normalizedPhone) && JwtAuthHelper.NormalizePhone(u.Phone) == normalizedPhone));
 
@@ -77,7 +75,7 @@ namespace EduTrack.API.Controllers.Auth
                 return Unauthorized(new LoginResponseDto
                 {
                     Success = false,
-                    Message = "Không tìm thấy tài khoản với Số điện thoại, Email hoặc Mã số này."
+                    Message = "Không tìm thấy tài khoản với Email hoặc Số điện thoại này."
                 });
             }
 
