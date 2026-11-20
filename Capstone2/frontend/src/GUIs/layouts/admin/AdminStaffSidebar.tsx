@@ -1,3 +1,4 @@
+import CenterSchoolIcon from "../../components/admin/CenterManager/CenterSchoolIcon";
 import { BrandIcon } from "../../components/Common/BrandIcon";
 import { Link, NavLink } from "react-router-dom";
 import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
@@ -24,7 +25,7 @@ export default function AdminStaffSidebar() {
       </div>
       <div className="center-box">
         <span className="center-avatar">
-          <i className="bi bi-buildings-fill" />
+          <CenterSchoolIcon />
         </span>
         <div className="center-info">
           <span className="center-name">{centerName || (settingsLoading ? "Loading..." : settingsError ? "Failed to load center name" : "Center name not configured")}</span>

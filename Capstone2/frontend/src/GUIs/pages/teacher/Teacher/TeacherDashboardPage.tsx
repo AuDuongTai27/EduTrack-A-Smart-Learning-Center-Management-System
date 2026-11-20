@@ -41,7 +41,7 @@ export default function TeacherDashboardPage() {
 
   const profile = dashboardData?.profile;
   const kpis = dashboardData?.kpis;
-  const teacherName = profile?.fullName || "ThS. Hoàng Quốc Việt";
+  const teacherName = profile?.fullName || "Teacher";
   const userCode = profile?.userCode ? `#${profile.userCode}` : "#TC001";
   const specialty = profile?.specialty || "Mathematics & Exam Preparation";
   const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
@@ -103,7 +103,7 @@ export default function TeacherDashboardPage() {
     });
 
   return (
-    <>
+    <div className="teaching-dashboard">
       {/* Breadcrumb & Page Title */}
       <PageHeader
         title="Teacher Dashboard"
@@ -135,19 +135,19 @@ export default function TeacherDashboardPage() {
             pendingAttendance={kpis?.pendingAttendance ?? 0}
           />
 
-          <div className="row">
-            <div className="col-xxl-6 col-xl-12">
+          <div className="teaching-dashboard-panels">
+            <div className="teaching-classes-panel">
               {/* Today's class */}
               <TodayClassesSection classes={mappedTodayClasses} />
             </div>
 
-            <div className="col-xxl-6 col-xl-12 align-self-start">
+            <div className="teaching-notifications-panel">
               {/* Notifications */}
               <NotificationsSection />
             </div>
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }

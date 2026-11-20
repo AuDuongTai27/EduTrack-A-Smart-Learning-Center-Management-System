@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom";
 import "../../../assets/css/admin-shared.css";
 import "../../../assets/css/admin-staff.css";
+import "../../../assets/css/center-manager-academy.css";
+import "../../../assets/css/admin-staff-academy.css";
 import AdminTopBar from "./AdminTopBar";
 import { CenterSettingsProvider } from "../../../contexts/CenterSettingsContext";
 import AdminStaffSidebar from "./AdminStaffSidebar";
@@ -8,14 +10,14 @@ import AdminStaffSidebar from "./AdminStaffSidebar";
 export default function StaffLayout() {
   return (
     <CenterSettingsProvider>
-      <div className="admin-scope">
+      <div className="admin-scope staff-academy">
       <div className="app-shell">
         {/* Sidebar */}
         <AdminStaffSidebar />
         {/* Main area */}
         <div className="main-area">
           {/* Header */}
-          <AdminTopBar />
+          <AdminTopBar adminStaff />
           {/* Intentionally blank content area */}
           <main className="page-wrapper">
             <div className="page-content">

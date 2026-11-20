@@ -72,23 +72,23 @@ export function TodayClassesSection({
   }).format(new Date());
 
   return (
-    <div className="card dashboard-card">
+    <div className="card dashboard-card teaching-today-card">
       <div className="card-header dashboard-card-header d-flex align-items-center justify-content-between">
         <div>
-          <h5 className="mb-0 fw-bold">Today's Classes</h5>
+          <h5 className="mb-0 fw-bold"><i className="bi bi-calendar-week academy-panel-icon" aria-hidden="true" />Today's Classes</h5>
           <small className="text-muted">{todayFormatted}</small>
         </div>
         <Link
           to="/teacher/schedule"
-          className="dashboard-view-all text-decoration-none d-inline-flex align-items-center gap-1"
+          className="dashboard-view-all academy-dashboard-link"
         >
-          View Schedule →
+          View Schedule <i className="bi bi-arrow-right" aria-hidden="true" />
         </Link>
       </div>
 
       <div className="card-body dashboard-card-body p-3">
         {displayClasses.length === 0 ? (
-          <p className="text-muted text-center my-3">No classes scheduled for today.</p>
+          <div className="teaching-calendar-empty"><i className="bi bi-calendar2-check" aria-hidden="true" /><p className="text-muted text-center my-3">No classes scheduled for today.</p></div>
         ) : (
           <div className="d-flex flex-column gap-3">
             {displayedClasses.map((cls, idx) => {

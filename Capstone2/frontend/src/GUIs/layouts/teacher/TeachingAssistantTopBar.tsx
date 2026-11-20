@@ -1,5 +1,6 @@
 import '../../../assets/css/simplified-topbar.css';
 import { NotificationBellDropdown } from '../../components/shared/notifications/NotificationQuickViews';
+import CenterManagerTopbarAvatar from '../../components/admin/CenterManager/CenterManagerTopbarAvatar';
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {useSelectedUser} from '../../hooks/useSelectedUser';
@@ -31,20 +32,8 @@ export function TeachingAssistantTopBar() {
     navigate("/");
   };
 
-  const initials = ta?.fullName
-    ? ta.fullName
-        .split(" ")
-        .filter(Boolean)
-        .slice(-2)
-        .map((w) => w[0]?.toUpperCase())
-        .join("")
-    : "TA";
-
   const userCode = ta?.userCode || '--';
   const displayName = ta?.fullName || 'No account selected';
-  const avatarSrc =
-    ta?.avatarUrl ||
-    '';
 
   return (
     <header className="topbar et-simplified-topbar">
@@ -62,33 +51,21 @@ export function TeachingAssistantTopBar() {
         <NotificationBellDropdown />
 
         {/* User Info & Avatar with Dropdown */}
-        <div className="position-relative ms-1" ref={dropdownRef}>
+        <div className="ntf-scope position-relative ms-1" ref={dropdownRef}>
           <button
             type="button"
-            className="btn p-1 d-flex align-items-center gap-2 border-0 bg-transparent text-start shadow-none"
+            className="ntf-account-trigger teaching-account-trigger"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             title={displayName}
             aria-expanded={isDropdownOpen}
-            style={{ width: "190px" }}
           >
             {/* Avatar bên trái */}
             <div className="flex-shrink-0">
-              {avatarSrc ? (<img
-                src={avatarSrc}
-                alt={displayName}
-                className="rounded-circle border"
-                style={{ width: "36px", height: "36px", objectFit: "cover" }}
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (target.src !== "/assets/img/profiles/avatar-27.jpg") {
-                    target.src = "/assets/img/profiles/avatar-27.jpg";
-                  }
-                }}
-              />) : <span className="profile-avatar">{initials}</span>}
+              <CenterManagerTopbarAvatar key={ta?.avatarUrl} name={ta?.fullName} url={ta?.avatarUrl} />
             </div>
 
             {/* Thông tin: Tên bên phải avatar và user code bên dưới tên, độ rộng cố định và text-truncate */}
-            <div className="flex-grow-1 overflow-hidden" style={{ lineHeight: 1.2, minWidth: 0 }}>
+            <div className="ntf-account-label flex-grow-1 overflow-hidden" style={{ lineHeight: 1.2, minWidth: 0 }}>
               <span className="fw-semibold text-dark text-truncate d-block" style={{ fontSize: "13.5px" }} title={displayName}>
                 {displayName}
               </span>

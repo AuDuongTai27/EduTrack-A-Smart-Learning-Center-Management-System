@@ -163,3 +163,88 @@ Logs/scripts/measurements chỉ local trong `tmp/kan89-kan90/`: `baseline/`, `fi
 - Giữ nguyên sidebar toggle issue, 34 failures/1 timeout baseline và legacy Received Feedback đã mô tả. Không chỉnh workflow, backend/database/API contract/auth/routing hoặc visual redesign.
 - Branch/HEAD vẫn `Duy` / `1cca292c481447d721536feeb39221686eb742ef`; toàn bộ thay đổi trước được bảo toàn ngoài các phần Final được yêu cầu thay. Index trống; không stage/commit/push/merge/PR.
 - Dừng chờ nghiệm thu và chuẩn bị commit checkpoint theo quyết định người dùng; chưa bắt đầu Visual Redesign Phase.
+## Admin Staff Visual Redesign
+
+### Preflight và phạm vi
+
+- Branch `Duy`; HEAD `8ae52ff0fe7336e022f02044a9936ff61c7ebc1d`. Đã đọc AGENTS.md, layout/dashboard/styles/assets hiện hành của cả hai role và báo cáo KAN-90 này.
+- Workspace đã có thay đổi Center Manager/KAN-89 chưa commit. Snapshot source và baseline checks lưu local trong `tmp/kan90-visual/`; không reset, checkout commit cũ hoặc ghi đè phần công việc đó.
+- Không có screenshot tham chiếu mới trong attachment; dùng implementation Center Manager hiện hành làm chuẩn. Chụp before/after từ chính working tree bằng API fixtures local, không đưa dữ liệu mẫu vào production.
+- `tmp/` được Git ignore trước khi QA. Giữ screenshots, browser profiles, Vite caches, scripts, logs ngoài docs và ngoài index.
+
+### Thiết kế đã thực hiện
+
+- Tái sử dụng academy CSS hiện có qua `:is(.cm-academy, .staff-academy)`, giữ specificity và phạm vi management. Không sao chép một bộ CSS gần giống sang role khác. Các màu theo vị trí KPI riêng của Manager vẫn chỉ áp dụng Manager.
+- Topbar giữ chiều cao: Elegant Green Waves, white-to-mint gradient, Soft Glass bell/profile, tên và employee code từ identity hiện hành. Admin Staff opt-in component avatar đang dùng cho Manager; ảnh cá nhân hợp lệ được giữ, artwork mặc định/ảnh lỗi dùng initials. Không sửa profile hoặc avatar upload.
+- Sidebar dùng CenterSchoolIcon và academy-school-mint.png có sẵn, giữ nguyên mười menu, thứ tự, routes và quyền của Staff. Illustration chỉ dùng khoảng trống còn lại, không chồng menu. Center name vẫn lấy từ CenterSettingsProvider.
+- Banner desktop 146px, gradient dịu và layered waves; giữ staff name, greeting và current date theo timezone hiện hành. Illustration SVG riêng về clipboard/checklist/schedule, không sao chép laptop của Manager, không thêm quick actions.
+- Giữ đúng bốn KPI và mọi biểu thức dữ liệu. Soft semantic surfaces: green / amber / cyan / amber; watermark decorative, display-only, không footer, supporting text hay navigation. Outstanding Tuition giữ đầy đủ chữ số và VND.
+- Schedule/Notifications dùng grid 60/40 ở desktop đủ rộng và stack khi hẹp; white cards, soft border/shadow, header icons. Notification dùng lại `viewAllInHeader`, bỏ footer View All trong Staff. Schedule empty state có calendar mint; dữ liệu, row limit, sorting, loading/error và Monitoring link không đổi.
+- Requests table giữ tám cột, Details modal và View all requests; header mint, spacing/borders thống nhất, cuộn ngang bên trong bảng. Không ép chiều cao lớn cho table empty state.
+- Mobile giữ status session hiển thị: override riêng Staff cho rule cũ đang ẩn `.schedule-status` dưới 767px. Không thay đổi status calculation.
+
+### Files thay đổi trong vòng visual này
+
+| File (tương đối với Capstone2/frontend/) | Nội dung |
+|---|---|
+| src/GUIs/layouts/admin/AdminStaffLayout.tsx | Opt-in staff-academy và imports styles |
+| src/GUIs/layouts/admin/AdminStaffSidebar.tsx | Dùng lại school icon |
+| src/GUIs/layouts/admin/AdminTopBar.tsx | Prop adminStaff mặc định false |
+| src/GUIs/components/shared/notifications/NotificationQuickViews.tsx | Opt-in avatar presentation cho Staff; handlers không đổi |
+| src/GUIs/pages/admin/AdminStaff/AdminStaffDashboardPage.tsx | Banner, watermark, headers, composition, empty calendar, header View All |
+| src/assets/css/center-manager-academy.css | Mở rộng variant có sẵn thành shared management styles |
+| src/assets/css/admin-staff-academy.css | Composition/responsive và semantic palette riêng của Staff |
+| src/assets/illustrations/staff-welcome.svg | SVG decorative mới, clipboard/checklist/schedule |
+| tests/managementDashboardKpis.test.mjs | Chuyển assertion watermark Staff từ không có sang bốn decorative watermarks |
+
+Tài liệu: chỉ cập nhật `docs/EDUTRACK_KAN90_RESULT.md`. Các file KAN-89 đã sửa trước preflight vẫn được giữ nguyên ngoài hai shared entry points và academy CSS liệt kê ở trên. ManagementDashboardKpi component, Manager layout/sidebar/dashboard, DAL, services, routes, backend, DB, workflows và API contracts không thay đổi so với snapshot preflight.
+
+Assets tái sử dụng: academy-banner-waves.svg, academy-school-mint.png, manager-notifications-empty.svg; CenterSchoolIcon, CenterManagerTopbarAvatar cùng initials/default-avatar helper; ManagementDashboardKpi và DashboardNotificationsCard. Không tạo ảnh bitmap mới.
+
+### Visual và functional QA
+
+- 25 specimens trước / 25 sau: cả hai dashboard ở **1920, 1440, 1280, 1024, 768, 390px**; thêm loading/empty/error/missing-role tại 1280px cho hai role và năm avatar cases cho Staff tại 1440px. Đồng hồ fixture cố định để so sánh ảnh ổn định.
+- Không horizontal overflow toàn trang hoặc KPI clipping ở sáu widths. Bảng giữ đủ tám cột, tự cuộn nội bộ tại 1024/768/390px. Four KPIs trên một hàng khi đủ rộng; responsive 2/1 cột khi hẹp. Không tương tác hoặc thay đổi hover shadow/transform trên KPI.
+- Outstanding fixture hiển thị đủ `122.585.245.802 VND`; outgoing pending = 2, incoming pending = 4, một approval API call mỗi load; row limits schedule/requests vẫn 4. Empty không tạo mock sessions; errors không thành số 0 giả.
+- Bell/profile dropdown mở được, nằm trong viewport, Escape đóng được ở sáu widths. Details modal mở/đóng, Detailed Monitoring navigation hoạt động trong fixture router.
+- Avatar browser: `Trần Thị Nhân Viên` → `NV`; artwork mặc định → `NV`; personal data image được giữ và tải thành công; broken image → `NV`; `Đức` → `Đ`; thiếu tên → `?`.
+- Scroll navigation thử bằng class mở sidebar: item cuối vẫn tiếp cận được; decorations không chặn menu. **Nút mobile toggle/collapse không hoạt động trong preview cả baseline lẫn final**. Không đánh dấu PASS, không sửa interaction ngoài presentation. Chưa xác nhận hành vi toggle trên ứng dụng thực tế.
+- Center Manager: mười specimens (sáu widths populated + bốn states) có **ảnh PNG trùng pixel** và computed visual signatures trùng baseline. Các Manager source components/layout/dashboard không đổi. Các CSS mới chỉ match management opt-in classes; Teacher/TA/Student/Parent/Landing source và default presentation branches không đổi. Chưa chạy browser regression cho bốn role này.
+- Không xác nhận read/unread mutations, auto-hide theo thời gian, logout/auth/permission hoặc backend end-to-end với tài khoản thật; các handlers và logic đó giữ nguyên. Fixtures không thay thế kiểm thử môi trường thật.
+
+Ảnh local:
+
+- [Before desktop 1440](../tmp/kan90-visual/screenshots/before-admin-staff-1440-populated.png) · [After desktop 1440](../tmp/kan90-visual/screenshots/after-admin-staff-1440-populated.png)
+- [After 1920](../tmp/kan90-visual/screenshots/after-admin-staff-1920-populated.png) · [After 1280](../tmp/kan90-visual/screenshots/after-admin-staff-1280-populated.png) · [After 1024](../tmp/kan90-visual/screenshots/after-admin-staff-1024-populated.png)
+- [Tablet 768](../tmp/kan90-visual/screenshots/after-admin-staff-768-populated.png) · [Mobile 390](../tmp/kan90-visual/screenshots/after-admin-staff-390-populated.png)
+- [Empty](../tmp/kan90-visual/screenshots/after-admin-staff-1280-empty.png) · [Loading](../tmp/kan90-visual/screenshots/after-admin-staff-1280-loading.png) · [Error](../tmp/kan90-visual/screenshots/after-admin-staff-1280-error.png)
+
+### Automated validation và giới hạn
+
+| Check | Baseline | Final |
+|---|---|---|
+| Frontend lint (oxlint) | PASS, 212 warnings | PASS, 212 warnings |
+| Typecheck (tsc -b) | PASS | PASS |
+| Production build (tsc -b + vite build) | PASS | PASS |
+| Existing frontend suite, từng file với timeout 20s | 142 PASS / 34 FAIL / 1 timeout | 142 PASS / 34 FAIL / cùng 1 timeout |
+| git diff --check | — | PASS |
+
+- Targeted suites chạy trong full suite: managementDashboardKpis 10/10, adminStaffDashboardDAL 9/9, centerManagerIdentity 6/6; không có failure mới sau khi cập nhật expectation watermark theo yêu cầu visual mới.
+- Existing failures thuộc adminStaffDashboard, classManagement, classManagementApi, classStaff, gradeManagement, notificationCompose, scheduleManagement, scheduleView, studentCenterEnrollment, studentEnrollment, studentManagement và tuitionMetrics. `notificationInbox.test.mjs` tiếp tục timeout 20s như baseline, có assertions lỗi trước timeout. Không sửa các lỗi đó để ép PASS.
+- Build vẫn có warning chunk >500kB; preview config local báo unresolved optional esbuild import, không ảnh hưởng production build. Không cài dependency mới. Browser dùng font/icon QA assets local, không chứng minh tải CDN trong môi trường thật.
+- Logs/results/comparison/safety snapshots nằm trong `tmp/kan90-visual/`. Snapshot xác nhận chỉ sáu source files hiện hữu trong bảng trên thay đổi so với preflight; ngoài ra hai visual files mới và một test update.
+
+### Git và nghiệm thu
+
+- Branch/HEAD giữ nguyên `Duy` / `8ae52ff0fe7336e022f02044a9936ff61c7ebc1d`; index trống. Working tree gồm thay đổi KAN-89 đã có và KAN-90 visual nêu trên.
+- Không stage, commit, push, merge hoặc tạo PR. Không xóa artifacts cũ. Dừng để người dùng nghiệm thu Admin Staff Visual Redesign trước commit checkpoint.
+
+## Unified Dashboard Visual Design — KAN-89 / KAN-90 / KAN-95
+
+- Giữ nguyên Admin Staff visual đã hoàn thiện. Chỉ chuẩn hóa ba header navigation links: Detailed Monitoring, Recent Notifications View All và View all requests. Tất cả dùng đúng một `bi bi-arrow-right`, #078444, 12px/600, gap 5px, accessible hover/focus; không đổi routes/handlers hoặc dữ liệu.
+- Recent Notifications dùng shared header link presentation; không thay notification API/visibility/read rules. Welcome/KPI/Sidebar/Topbar/panels/background và nghiệp vụ Staff không redesign.
+- Regression 1920/1440/1280/1024/768/390px: welcome geometry, KPI metrics/computed styles và shell signatures khớp baseline đầu vòng unified. Staff layout/sidebar, DAL/services và KPI calculation giữ nguyên.
+- [Before Staff](../tmp/kan95-unified/screenshots/before-admin-staff-1440-populated.png) · [After Staff](../tmp/kan95-unified/screenshots/after-admin-staff-1440-populated.png) · [Mobile](../tmp/kan95-unified/screenshots/after-admin-staff-390-populated.png).
+- Lint/typecheck/build/diff check PASS; full suite tăng từ 142 lên 149 PASS, giữ nguyên 34 FAIL và notificationInbox timeout; không có failure mới. 212 lint warnings/chunk warning giữ nguyên. Browser QA dùng API fixtures, chưa xác nhận backend/tài khoản thật; sidebar toggle limitation trong isolated preview giữ nguyên.
+- Chi tiết shared CSS, files, targeted tests, responsive/functional QA và limitations: [báo cáo KAN-95](EDUTRACK_KAN95_RESULT.md). Tất cả artifacts local trong `tmp/kan95-unified/`, không commit.
+- Branch `Duy`, HEAD `8ae52ff0fe7336e022f02044a9936ff61c7ebc1d`, index trống. Bảo toàn thay đổi trước đó; không stage/commit/push/merge/PR. Dừng chờ nghiệm thu bốn role.

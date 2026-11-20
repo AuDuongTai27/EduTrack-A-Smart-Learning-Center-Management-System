@@ -1,0 +1,241 @@
+/* KAN-89/KAN-90 shared academy variant, opt-in through explicit academy layouts only. */
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) {
+  --page-bg: #f7faf8;
+  --text-dark: #142238;
+  --sidebar-border: #dcebe3;
+  --topbar-border: #dcebe3;
+  color: #142238;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar {
+  background: linear-gradient(175deg, #fff 35%, #f2faf6 100%);
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar > * { position: relative; z-index: 1; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-header { background: #ffffffd9; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .center-box {
+  min-height: 56px;
+  background: linear-gradient(115deg, #fff, #f0f9f4);
+  border: 1px solid #d0e6d9;
+  border-radius: 13px;
+  padding: 7px 8px;
+  box-shadow: 0 3px 12px #176e5009;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .center-name { overflow: hidden; text-overflow: ellipsis; color: #142238; font-size: 14px; font-weight: 650; line-height: 19px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .center-info small { margin-top: 4px; font-size: 11px; line-height: 15px; color: #64748b; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .center-avatar { width: 40px; height: 40px; border-radius: 11px; background: #ddf4e7; color: #078444; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-center-school-icon { flex-shrink: 0; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav {
+  height: calc(100vh - 136px);
+  display: flex;
+  flex-direction: column;
+  scrollbar-color: #d7e6dd transparent;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav::-webkit-scrollbar-thumb { background: #d7e6dd; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #adcdbb; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav > .nav-section { flex: 0 0 auto; margin-top: 10px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav > .nav-section:last-child { padding-bottom: 8px !important; }
+/* Use only leftover navigation space. The image can shrink to zero, never overlap links. */
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav::after {
+  content: "";
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: 128px;
+  margin-top: auto;
+  margin-inline: 4px;
+  margin-bottom: 6px;
+  background: url('../illustrations/academy-school-mint.png') center 58% / auto 140% no-repeat;
+  mask-image: radial-gradient(ellipse 72% 65% at 50% 53%, #000 42%, transparent 88%);
+  opacity: .62;
+  pointer-events: none;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .nav-heading { color: #667b70; font-size: 9.5px; line-height: 14px; padding-bottom: 4px; letter-spacing: .08em; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .nav-heading::after { background: #dcebe3; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar .nav-link { min-height: 38px; padding: 5px 9px; margin-bottom: 2px; border-radius: 10px; gap: 12px; font-size: 13px; font-weight: 500; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar .nav-link i { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; border-radius: 8px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar .nav-link.active { background: #e8f4ed; color: #05643c; box-shadow: inset 2px 0 #078444; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .sidebar .nav-link:hover { background: #eaf8f1; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar { position: sticky; background: linear-gradient(105deg, #fff 10%, #f3f9f5 70%, #edf6f0); border-bottom: 1px solid #dcebe3; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../illustrations/academy-banner-waves.svg') center / 100% 100% no-repeat;
+  mask-image: linear-gradient(90deg, transparent, #000 25%, #000 70%, transparent);
+  opacity: .28;
+  pointer-events: none;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar-left, :is(.cm-academy, .staff-academy, .teaching-academy) .topbar-actions { position: relative; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar-left { flex: 1; align-self: stretch; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar .mobile-menu-btn { color: #05643c; align-self: center; }
+/* Soft Glass is scoped to the Manager shell; dropdowns and existing handlers are unchanged. */
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) .topbar.et-simplified-topbar .topbar-actions { gap: 12px; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) .topbar :is(.notification-btn, .ntf-account-trigger) {
+  height: 46px;
+  border: 1px solid #d0e5d9;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .65);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 7px #176e5006;
+  color: #34594b;
+}
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) .topbar .notification-btn { width: 46px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-account-trigger { gap: 10px; padding: 4px 10px 4px 6px; max-width: 280px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-account-trigger :is(img, .ntf-avatar) { width: 36px; height: 36px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-avatar { background: #ddf4e7; color: #078444; font-size: 14px; font-weight: 650; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-account-label { gap: 2px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-account-label strong { color: #142238; font-size: 13px; font-weight: 650; line-height: 17px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-account-label small { color: #64748b; font-size: 11px; line-height: 14px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-account-trigger > svg { flex-shrink: 0; color: #718879; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) .topbar :is(.notification-btn, .ntf-account-trigger):hover { background: rgba(255, 255, 255, .86); border-color: #afd4bf; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) .topbar :is(.notification-btn, .ntf-account-trigger):focus-visible { outline: 2px solid #078444; outline-offset: 2px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .page-wrapper { background: #f7faf8; }
+/* Anchor the wash to the whole padded content area, and fade every decorative edge. */
+:is(.cm-academy, .staff-academy, .teaching-academy) .page-content:has(> :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard)) {
+  position: relative;
+  isolation: isolate;
+  background: radial-gradient(ellipse at 100% 0, #eaf8f18c, transparent 58%), #f7faf8;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .page-content:has(> :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard))::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('../illustrations/academy-banner-waves.svg') center bottom / 100% 300px no-repeat;
+  mask-image: linear-gradient(0deg, transparent, #000 80px, #000 170px, transparent 300px);
+  opacity: .16;
+  pointer-events: none;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100vh - var(--topbar-height) - 48px);
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .page-title { color: #142238; font-size: clamp(21px, 1.65vw, 28px); letter-spacing: -.6px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .breadcrumb { font-size: 13px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .breadcrumb-item a { color: #078444; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .breadcrumb-item a:hover { color: #05643c; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-welcome {
+  background: linear-gradient(115deg, #176e50 0%, #267d5b 45%, #529b78 75%, #99c8ac 100%) !important;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px #07844415 !important;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .dashboard-welcome::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../illustrations/academy-banner-waves.svg') right bottom / 100% 100% no-repeat;
+  opacity: .16;
+  mask-image: linear-gradient(90deg, transparent, #000 75%);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: -1;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .dashboard-welcome > .card-body { position: relative; min-height: 146px; padding: 20px 26px; flex-wrap: nowrap !important; gap: 24px !important; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy { flex: 1; min-width: 0; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy h4 { font-size: 22px; line-height: 1.3; letter-spacing: -.4px; overflow-wrap: anywhere; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 18px; margin-bottom: 12px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy .text-white-50 { color: #fff !important; font-size: 13px; line-height: 1.6; margin: 0; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy .right-content > .mb-2 { margin-bottom: 0 !important; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy .btn { min-height: 36px; padding: 7px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; gap: 0; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy .btn-light { background: #fff; color: #05643c; border-color: #fff; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy .btn-light:hover { background: #eaf8f1; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy .btn-outline-light { background: #ffffff08; color: #fff; border-color: #ffffffb3; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy .btn-outline-light:hover { background: #ffffff24; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-aside { width: 320px; flex-shrink: 0; align-self: stretch; position: relative; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .welcome-date { position: absolute; top: 12px; right: 22px; z-index: 1; font-size: 11px; white-space: normal; border: 1px solid #ffffff60; background: #145d3da6; line-height: 1.4; padding: 4px 10px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-illustration { position: absolute; top: 20px; right: 0; width: 250px; height: 106px; object-fit: contain; pointer-events: none; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .cm-dashboard-kpis { gap: 16px; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-kpi {
+  --cm-kpi-bg: #eff9f3; --cm-kpi-border: #d8eddf; --cm-kpi-ink: #078444;
+  background: linear-gradient(140deg, #fff, var(--cm-kpi-bg));
+  border: 1px solid var(--cm-kpi-border);
+  border-radius: 15px;
+  box-shadow: 0 4px 16px #14223804;
+  min-height: 136px;
+  overflow: hidden;
+}
+.admin-scope.cm-academy .cm-dashboard .dashboard-kpi:nth-child(2),
+.admin-scope.cm-academy .cm-dashboard .dashboard-kpi:nth-child(6) { --cm-kpi-bg: #edf9fc; --cm-kpi-border: #d3eaf0; --cm-kpi-ink: #087c94; }
+.admin-scope.cm-academy .cm-dashboard .dashboard-kpi:nth-child(3) { --cm-kpi-bg: #fff9e9; --cm-kpi-border: #f1e7c7; --cm-kpi-ink: #a27406; }
+.admin-scope.cm-academy .cm-dashboard .dashboard-kpi:nth-child(5) { --cm-kpi-bg: #fdf4f4; --cm-kpi-border: #efdddf; --cm-kpi-ink: #b74b5a; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-kpi .card-body { padding: 16px 18px; display: flex; flex-direction: column; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-kpi .card-body > .d-flex { padding-top: 0; position: relative; height: 100%; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-kpi .kpi-icon { top: 0; right: 0; left: auto; width: 32px; height: 32px; border-radius: 9px; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-kpi p { padding-right: 42px; min-height: 36px; margin-bottom: 6px !important; color: #536477 !important; font-size: 13px; line-height: 18px; position: relative; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-kpi h3 { color: #142238; font-size: 27px; font-weight: 750; letter-spacing: -.5px; position: relative; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-kpi .kpi-currency-value { font-size: 24px; letter-spacing: -.35px; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .kpi-currency-unit { font-size: 12px; font-weight: 600; color: #64748b; letter-spacing: .05em; margin-top: 4px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-kpi-watermark { position: absolute; top: auto; bottom: 2px; right: 10px; width: 32px; height: 32px; color: var(--cm-kpi-ink); opacity: .055; pointer-events: none; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-dashboard-panels { gap: 22px; align-items: stretch; }
+:is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard-panels > .dashboard-card, .staff-dashboard-panels .dashboard-card, .staff-requests-panel) { min-height: 344px; border: 1px solid #dcebe3 !important; border-radius: 14px; box-shadow: 0 4px 16px #14223805 !important; background: linear-gradient(180deg, #fff 55%, #f9fcfa); display: flex; flex-direction: column; align-self: stretch; }
+:is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-pending-heading, .staff-dashboard .dashboard-card-header, .staff-requests-heading), :is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-heading { min-height: 65px; padding: 16px 20px; border-bottom: 1px solid #e4eee8; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 10px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-pending-heading h5, :is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-heading h5 { flex: 1; min-width: 0; color: #142238; font-size: 14px; line-height: 16px; font-weight: 650; display: flex; align-items: center; gap: 10px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-pending-heading h5 i, :is(.cm-academy, .staff-academy, .teaching-academy) .cm-panel-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: #078444; background: #eaf8f1; padding: 8px; border-radius: 9px; font-size: 16px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-panel-icon { padding: 7px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-panel-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-shrink: 0; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-pending-heading a, :is(.cm-academy, .staff-academy, .teaching-academy) .cm-panel-view-all { color: #05643c; font-size: 12px; font-weight: 650; text-decoration: none; white-space: nowrap; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-pending-heading a:hover, :is(.cm-academy, .staff-academy, .teaching-academy) .cm-panel-view-all:hover { text-decoration: underline; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-panel-actions > span { background: #eaf8f1; color: #05643c; padding: 3px 8px; border-radius: 7px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-approval-empty, :is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-empty { flex: 1; min-height: 210px; padding: 22px !important; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; background: transparent; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-approval-empty img { display: block; width: 156px; height: 104px; margin: 0 0 4px; flex-shrink: 0; pointer-events: none; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-approval-empty p, :is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-empty h6 { font-size: 14px; line-height: 1.5; font-weight: 600; color: #142238; margin: 0 !important; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-approval-empty small, :is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-empty p { font-size: 13px; line-height: 1.6; color: #64748b !important; margin: 0; max-width: 400px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-empty-icon { display: none; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-empty::before { content: ""; width: 156px; height: 104px; margin-bottom: 4px; flex-shrink: 0; background: url('../illustrations/manager-notifications-empty.svg') center / contain no-repeat; pointer-events: none; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-pending-list li { padding: 18px 0; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-request-copy { gap: 6px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-request-copy small { font-size: 12px; line-height: 1.5; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .cm-request-title { line-height: 1.5; }
+:is(.cm-academy, .staff-academy, .teaching-academy) :is(a, button):focus-visible { outline: 3px solid #70bf96; outline-offset: 3px; }
+@media (max-width: 991.98px) {
+  :is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard-panels > .dashboard-card, .staff-dashboard-panels .dashboard-card, .staff-requests-panel) { min-height: 316px; }
+}
+@media (min-width: 1500px) {
+  :is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .cm-dashboard-kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  :is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-aside { width: 210px; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-illustration { width: 210px; height: 106px; }
+}
+@media (max-width: 767px) {
+  :is(.admin-scope, .teacher-scope):is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-dashboard, .staff-dashboard, .teaching-dashboard) .dashboard-welcome { background: linear-gradient(115deg, #176e50, #267c59) !important; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .dashboard-welcome::before { opacity: .12; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .topbar .ntf-popover { position: fixed; inset: calc(var(--topbar-height) + 8px) 12px auto; width: auto; max-width: none; max-height: calc(100dvh - var(--topbar-height) - 24px); }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .dashboard-welcome > .card-body { padding: 20px; flex-direction: column; align-items: flex-start !important; gap: 12px !important; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .welcome-date { position: static; align-self: flex-start; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-copy h4 { font-size: 20px; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-aside { display: none; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .cm-welcome-illustration { display: none; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .topbar::before { opacity: .2; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-pending-heading, .staff-dashboard .dashboard-card-header, .staff-requests-heading), :is(.cm-academy, .staff-academy, .teaching-academy) .ntf-dashboard .ntf-heading { padding: 14px; gap: 8px; }
+  :is(.cm-academy, .staff-academy, .teaching-academy) .cm-pending-heading h5 { font-size: 13px; }
+}
+@media (max-height: 880px), (max-width: 991.98px) {
+  :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav::after { display: none; }
+}
+body.sidebar-collapsed :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar { transition: none; }
+}
+/* Header navigation for the four opted-in academy dashboards. */
+:is(.cm-academy, .staff-academy, .teaching-academy) .academy-dashboard-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  color: #078444;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) .academy-dashboard-link > .bi-arrow-right { flex-shrink: 0; font-size: 13px; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .academy-dashboard-link:hover { color: #05643c; text-decoration: underline; }
+:is(.cm-academy, .staff-academy, .teaching-academy) .academy-dashboard-link:focus-visible { outline: 2px solid #078444; outline-offset: 3px; border-radius: 3px; }
+/* Header specificity keeps the standard stable beside role-specific legacy CSS. */
+:is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-pending-heading, .dashboard-card-header, .staff-requests-heading, .ntf-heading) .academy-dashboard-link {
+  color: #078444; font-size: 12px; font-weight: 600; gap: 5px;
+}
+:is(.cm-academy, .staff-academy, .teaching-academy) :is(.cm-pending-heading, .dashboard-card-header, .staff-requests-heading, .ntf-heading) .academy-dashboard-link:hover { color: #05643c; }
