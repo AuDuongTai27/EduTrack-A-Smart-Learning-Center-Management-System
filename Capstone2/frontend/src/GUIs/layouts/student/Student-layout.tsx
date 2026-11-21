@@ -1,3 +1,4 @@
+import { LearnerTopbar } from '../../components/shared/LearnerTopbar';
 import { BrandIcon } from "../../components/Common/BrandIcon";
 import React, { useState } from "react";
 import { Outlet, Link } from "react-router-dom";
@@ -61,32 +62,7 @@ export function StudentLayout() {
 
         {/* MAIN WRAPPER */}
         <div className="main-wrapper">
-          {/* Mobile Topbar */}
-          <header className="mobile-topbar">
-            <button
-              className="btn-hamburger"
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open menu"
-            >
-              <i className="bi bi-list fs-5"></i>
-            </button>
-            <div className="d-flex align-items-center gap-2">
-              <div
-                className="brand-logo-icon"
-                style={{ width: "28px", height: "28px", borderRadius: "8px" }}
-              >
-                <BrandIcon size={28} />
-              </div>
-              <span className="brand-title fs-6">EduTrack</span>
-            </div>
-            <div
-              className="student-avatar"
-              style={{ width: "32px", height: "32px", fontSize: "11px" }}
-            >
-              MA
-            </div>
-          </header>
+          <LearnerTopbar role="student" onOpenMenu={() => setMobileMenuOpen(true)} />
 
           {/* Main Content Area */}
           <Outlet />

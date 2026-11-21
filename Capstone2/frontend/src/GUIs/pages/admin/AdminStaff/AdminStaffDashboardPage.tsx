@@ -2,6 +2,7 @@ import '../../../../assets/css/management-dashboard-kpis.css';
 import { DashboardNotificationsCard } from '../../../components/shared/notifications/NotificationQuickViews';
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import staffWelcome from "../../../../assets/illustrations/staff-welcome.svg";
 import PageHeader from "../../../components/Common/PageHeader";
 import StatusBadge from "../../../components/Common/StatusBadge";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
@@ -120,44 +121,44 @@ export default function AdminStaffDashboardPage() {
       <div className="card dashboard-welcome mb-4 border-0">
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div>
-              <p className="welcome-subtitle mb-1">Hello,</p>
+            <div className="cm-welcome-copy">
               <h3 className="welcome-title mb-2">
-                {currentUser?.fullName ? `${currentUser.fullName} (Admin Staff)` : "Admin Staff"}
+                Welcome back, {currentUser?.fullName || "Admin Staff"}
               </h3>
               <p className="welcome-text mb-0">
                 Have a productive working day managing academic operations at EduTrack!
               </p>
             </div>
-            <div className="welcome-date">
+            <div className="welcome-date rounded-pill">
               <i className="bi bi-calendar3 me-2" />
               {todayStr}
             </div>
+            <div className="cm-welcome-aside"><img className="cm-welcome-illustration" src={staffWelcome} alt="" aria-hidden="true" /></div>
           </div>
         </div>
       </div>
 
       {/* Display-only Dashboard KPIs */}
       <div className="staff-dashboard-kpis mb-4">
-        <KpiCard kind="student" title="Active Students" value={dashboard?.students.data ?? '—'} />
-        <KpiCard kind="outstanding" title="Outstanding Tuition" currency="VND" value={totalOutstanding ?? null} />
-        <KpiCard kind="approval" title="Pending Approval Requests" value={dashboard?.requests.data == null ? '—' : pendingRequests.length} />
-        <KpiCard kind="feedback" title="Pending Feedback &amp; Requests" value={dashboard?.incomingPending.data ?? '—'} />
+        <KpiCard decorativeWatermark kind="student" title="Active Students" value={dashboard?.students.data ?? '—'} />
+        <KpiCard decorativeWatermark kind="outstanding" title="Outstanding Tuition" currency="VND" value={totalOutstanding ?? null} />
+        <KpiCard decorativeWatermark kind="approval" title="Pending Approval Requests" value={dashboard?.requests.data == null ? '—' : pendingRequests.length} />
+        <KpiCard decorativeWatermark kind="feedback" title="Pending Feedback &amp; Requests" value={dashboard?.incomingPending.data ?? '—'} />
       </div>
 
       {/* Today's Schedule and Latest Notifications */}
-      <div className="row g-4 mb-4">
+      <div className="staff-dashboard-panels mb-4">
         {/* Today's Schedule */}
-        <div className="col-xl-7">
+        <div className="staff-schedule-panel">
           <div className="card dashboard-card h-100 border-0">
             <div className="dashboard-card-header d-flex justify-content-between align-items-center">
               <div>
-                <h5 className="mb-0">Today's Schedule &amp; Teaching Sessions</h5>
+                <h5 className="mb-0"><i className="bi bi-calendar-week staff-panel-icon" aria-hidden="true" />Today's Schedule &amp; Teaching Sessions</h5>
                 <small className="text-muted">Sessions today; teachers according to class assignment</small>
               </div>
-              <Link to="/admin-staff/teaching-monitoring" className="dashboard-view-link">
+              <Link to="/admin-staff/teaching-monitoring" className="dashboard-view-link academy-dashboard-link">
                 Detailed Monitoring
-                <i className="bi bi-arrow-right ms-1" />
+                <i className="bi bi-arrow-right" aria-hidden="true" />
               </Link>
             </div>
             <div className="dashboard-card-body p-0">
@@ -187,8 +188,9 @@ export default function AdminStaffDashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <div className={`p-4 text-center ${dashboard?.schedule.error ? "text-danger" : "text-muted"}`}
+                  <div className={`staff-schedule-empty p-4 text-center ${dashboard?.schedule.error ? "text-danger" : "text-muted"}`}
                     role={dashboard?.schedule.error ? "alert" : "status"}>
+                    <i className="bi bi-calendar2-check" aria-hidden="true" />
                     {sectionText(dashboard?.schedule, "No sessions scheduled for today.")}
                   </div>
                 )}
@@ -197,19 +199,19 @@ export default function AdminStaffDashboardPage() {
           </div>
         </div>
 
-        <div className="col-xl-5"><DashboardNotificationsCard /></div>
+        <div className="staff-notifications-panel"><DashboardNotificationsCard viewAllInHeader /></div>
       </div>
 
       {/* Recent Approval Requests */}
-      <div className="card user-list-card border-0 mb-4">
-        <div className="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
+      <div className="card user-list-card staff-requests-panel border-0 mb-4">
+        <div className="staff-requests-heading d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
           <div>
-            <h5 className="mb-1 fw-bold">Recent Requests Sent to Center Manager</h5>
+            <h5 className="mb-1 fw-bold"><i className="bi bi-send staff-panel-icon" aria-hidden="true" />Recent Requests Sent to Center Manager</h5>
             <small className="text-muted">Approval requests submitted by Admin Staff</small>
           </div>
-          <Link to="/admin-staff/approval-requests" className="dashboard-view-link">
+          <Link to="/admin-staff/approval-requests" className="dashboard-view-link academy-dashboard-link">
             View all requests
-            <i className="bi bi-arrow-right ms-1" />
+            <i className="bi bi-arrow-right" aria-hidden="true" />
           </Link>
         </div>
         <div className="table-responsive">

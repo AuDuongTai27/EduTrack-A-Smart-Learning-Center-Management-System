@@ -16,14 +16,16 @@ interface Props {
   title: string;
   value: string | number | null;
   currency?: 'VND';
+  decorativeWatermark?: boolean;
 }
 
 /** Display-only presentation used exclusively by the two management dashboards. */
-export default function ManagementDashboardKpi({ kind, title, value, currency }: Props) {
+export default function ManagementDashboardKpi({ kind, title, value, currency, decorativeWatermark = false }: Props) {
   const icon = icons[kind];
   const amount = currency ? formatVND(typeof value === 'number' ? value : null) : null;
   return <div className={`card dashboard-kpi h-100${currency ? ' dashboard-kpi--currency' : ''}`}>
     <div className="card-body">
+      {decorativeWatermark && <svg className="cm-kpi-watermark" aria-hidden="true" width="76" height="76" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d={icon.path} /></svg>}
       <div className="d-flex">
         <div>
           <p className="text-muted mb-1">{title}</p>

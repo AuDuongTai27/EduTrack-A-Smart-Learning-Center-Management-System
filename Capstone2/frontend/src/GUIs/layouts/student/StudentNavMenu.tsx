@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
+import { NavLink } from "react-router-dom";
 import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
-import { authApi, getAuthUser, subscribeAuth } from "../../../api/authApi";
+import { getAuthUser, subscribeAuth } from "../../../api/authApi";
 
 interface StudentNavMenuProps {
   onLinkClick?: () => void;
@@ -9,25 +9,7 @@ interface StudentNavMenuProps {
 
 export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
-  const footerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
   const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
-
-  const isStudentAuth =
-    authUser &&
-    (authUser.primaryRole === "student" || authUser.roles?.includes("student"));
-
-  const displayName = isStudentAuth ? authUser.fullName : "Lê Văn An";
-  const displayGrade = isStudentAuth
-    ? `Student · ${authUser.gradeName || authUser.userCode}`
-    : "Student · Grade 9";
-  const displayInitials = displayName
-    .split(" ")
-    .filter(Boolean)
-    .slice(-2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("") || "VA";
 
   useEffect(() => {
     let mounted = true;
@@ -46,31 +28,6 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
     };
   }, [authUser?.userId]);
 
-  // Đóng dropup khi click bên ngoài
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (footerRef.current && !footerRef.current.contains(event.target as Node)) {
-        setIsDropupOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const handleGoProfile = () => {
-    setIsDropupOpen(false);
-    onLinkClick?.();
-    navigate("/student/profile");
-  };
-
-  const handleHome = () => {
-    setIsDropupOpen(false);
-    onLinkClick?.();
-    authApi.logout();
-    navigate("/");
-  };
   return (
     <>
       <nav className="sidebar-nav">
@@ -152,57 +109,6 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
         </ul>
       </nav>
 
-      <div className="sidebar-footer mt-auto" ref={footerRef}>
-        {/* Dropup Menu */}
-        {isDropupOpen && (
-          <div className="sidebar-user-dropup">
-            <div className="px-3 py-2 border-bottom mb-1">
-              <div className="fw-bold text-dark text-truncate" style={{ fontSize: "13px" }}>
-                {displayName}
-              </div>
-              <div className="text-muted text-truncate" style={{ fontSize: "11px" }}>
-                {displayGrade}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="sidebar-dropup-item"
-              onClick={handleGoProfile}
-            >
-              <i className="bi bi-person-gear text-primary fs-6" />
-              <span>Edit Profile</span>
-            </button>
-
-            <div className="my-1 border-top" style={{ borderColor: "var(--et-border-subtle)" }} />
-
-            <button
-              type="button"
-              className="sidebar-dropup-item text-danger"
-              onClick={handleHome}
-            >
-              <i className="bi bi-box-arrow-right fs-6" />
-              <span>Logout</span>
-            </button>
-          </div>
-        )}
-
-        {/* Clickable Avatar Chip */}
-        <button
-          type="button"
-          className={`student-chip-btn ${isDropupOpen ? "active" : ""}`}
-          onClick={() => setIsDropupOpen(!isDropupOpen)}
-          title="Student Account"
-          aria-expanded={isDropupOpen}
-        >
-          <div className="student-avatar">{displayInitials}</div>
-          <div className="student-info">
-            <div className="student-name" title={displayName}>{displayName}</div>
-            <div className="student-grade">{displayGrade}</div>
-          </div>
-          <i className="bi bi-three-dots-vertical text-muted ms-auto small" />
-        </button>
-      </div>
     </>
   );
 }

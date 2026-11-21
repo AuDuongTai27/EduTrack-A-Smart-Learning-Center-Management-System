@@ -1,7 +1,11 @@
+import CenterSchoolIcon from "../../components/admin/CenterManager/CenterSchoolIcon";
+import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
 import { BrandIcon } from "../../components/Common/BrandIcon";
 import { Link, NavLink } from "react-router-dom";
 
 export default function TeacherSidebar() {
+  const { centerName, loading, error } = useCenterSettings();
+  const displayCenterName = centerName || (loading ? "Loading..." : error ? "Failed to load center name" : "Center name not configured");
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     `nav-link ${isActive ? "active" : ""}`;
 
@@ -25,10 +29,10 @@ export default function TeacherSidebar() {
       </div>
       <div className="center-box">
         <span className="center-avatar">
-          <i className="bi bi-buildings-fill" />
+          <CenterSchoolIcon />
         </span>
         <div className="center-info">
-          <span className="center-name">EduTrack Center</span>
+          <span className="center-name" title={displayCenterName}>{displayCenterName}</span>
           <small>Learning Center</small>
         </div>
       </div>
@@ -43,11 +47,11 @@ export default function TeacherSidebar() {
         <div className="nav-section">
           <div className="nav-heading">ACADEMIC</div>
           <NavLink className={getNavClass} to="/teacher/schedule">
-            <i className="bi bi-person-gear" />
+            <i className="bi bi-calendar-week" />
             <span>Schedule</span>
           </NavLink>
           <NavLink className={getNavClass} to="/teacher/classes">
-            <i className="bi bi-mortarboard" />
+            <i className="bi bi-collection-fill" />
             <span>My Classes</span>
           </NavLink>
         </div>
@@ -61,7 +65,7 @@ export default function TeacherSidebar() {
         <div className="nav-section">
           <div className="nav-heading">REQUESTS</div>
           <NavLink className={getNavClass} to="/teacher/request">
-            <i className="bi bi-bar-chart-fill" />
+            <i className="bi bi-send" />
             <span>Request</span>
           </NavLink>
         </div>

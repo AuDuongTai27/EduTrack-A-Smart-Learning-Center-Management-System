@@ -20,7 +20,7 @@ export function StudentSidebar() {
         </Link>
       </div>
 
-      {/* Navigation Menu + Student Chip */}
+      {/* Navigation Menu */}
       <StudentNavMenu />
     </aside>
   );

@@ -1,4 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { TopbarNotificationPopover } from './TopbarNotificationPopover';
+import { TopbarNotificationContent } from './TopbarNotificationContent';
+import { announceTopbarPanel, useTopbarDismiss as useDismiss } from '../../../hooks/useTopbarDismiss';
+import { useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNotificationInbox, clearNotificationInbox } from '../../../hooks/useNotificationInbox';
 import { useSelectedUser } from '../../../hooks/useSelectedUser';
@@ -7,6 +10,7 @@ import { notificationTime } from '../../../../BLL/services/notificationInbox';
 import { notificationRoleLabel, notificationTypeLabel } from '../../../../BLL/services/notificationPresentation';
 import './notifications.css';
 import NotificationEmptyState from './NotificationEmptyState';
+import CenterManagerTopbarAvatar from '../../admin/CenterManager/CenterManagerTopbarAvatar';
 
 function TypeIcon({ type }: { type: string }) {
   const path = type === 'schedule' ? 'M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2'
@@ -15,16 +19,7 @@ function TypeIcon({ type }: { type: string }) {
     : 'M3 10v4h4l12 5V5L7 10zM7 14l2 7h4';
   return <svg className="ntf-type-icon" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d={path} /></svg>;
 }
-function useDismiss(open: boolean, close: () => void, root: React.RefObject<HTMLDivElement | null>, trigger: React.RefObject<HTMLButtonElement | null>) {
-  useEffect(() => {
-    if (!open) return;
-    function outside(e: PointerEvent) { if (!root.current?.contains(e.target as Node)) close(); }
-    function keyboard(e: KeyboardEvent) { if (e.key === 'Escape') { close(); trigger.current?.focus(); } }
-    document.addEventListener('pointerdown', outside); document.addEventListener('keydown', keyboard);
-    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', keyboard); };
-  }, [open, close, root, trigger]);
-}
-function QuickList({ close, dashboard = false }: { close?: () => void; dashboard?: boolean }) {
+function QuickList({ close, dashboard = false, showViewAll = true }: { close?: () => void; dashboard?: boolean; showViewAll?: boolean }) {
   const { data, quick, error, loading, store, basePath } = useNotificationInbox();
   return <>
     {error ? <div role="alert" className="p-3 text-danger">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Retry</button></div>
@@ -37,42 +32,38 @@ function QuickList({ close, dashboard = false }: { close?: () => void; dashboard
           </div>{!n.isRead && <span className="ntf-dot" aria-label="Unread" />}
         </Link></li>)}</ul>
       : dashboard && data ? <NotificationEmptyState /> : <p className="p-3 text-muted">You're all caught up with new notifications.</p>}
-    <Link className="ntf-view-all" to={basePath} onClick={close}>View All</Link>
+    {showViewAll && <Link className="ntf-view-all" to={basePath} onClick={close}>View All</Link>}
   </>;
 }
-export function DashboardNotificationsCard() {
-  const { data } = useNotificationInbox();
+export function DashboardNotificationsCard({ viewAllInHeader = false }: { viewAllInHeader?: boolean }) {
+  const { data, basePath } = useNotificationInbox();
   return <section className="ntf-scope card dashboard-card border-0 shadow-sm ntf-dashboard" aria-label="Recent notifications">
-    <div className="ntf-heading"><h5>Recent Notifications</h5><span aria-label="Unread notifications count">{data ? data.unreadCount : '—'}</span></div>
-    <QuickList dashboard />
+    <div className="ntf-heading"><h5>{viewAllInHeader && <svg className="cm-panel-icon" aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>}Recent Notifications</h5>
+      {viewAllInHeader ? <div className="cm-panel-actions"><span aria-label="Unread notifications count">{data ? data.unreadCount : '—'}</span><Link className="cm-panel-view-all academy-dashboard-link" to={basePath}>View All <i className="bi bi-arrow-right" aria-hidden="true" /></Link></div>
+        : <span aria-label="Unread notifications count">{data ? data.unreadCount : '—'}</span>}
+    </div>
+    <QuickList dashboard showViewAll={!viewAllInHeader} />
   </section>;
 }
 export function NotificationBellDropdown() {
-  const { data } = useNotificationInbox(); const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null); const trigger = useRef<HTMLButtonElement>(null); const id = useId();
-  useDismiss(open, () => setOpen(false), root, trigger);
-  return <div ref={root} className="ntf-scope ntf-anchor">
-    <button ref={trigger} type="button" className="icon-btn notification-btn position-relative" aria-label={`Notifications (${data?.unreadCount ?? 'not loaded'} unread)`}
-      aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
-      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>{data && data.unreadCount > 0 && <span className="ntf-count">{data.unreadCount > 99 ? '99+' : data.unreadCount}</span>}
-    </button>
-    {open && <div id={id} className="ntf-popover" role="region" aria-label="Recent notifications">
-      <div className="ntf-heading"><h5>Recent Notifications</h5><span>{data ? data.unreadCount : '—'} unread</span></div><QuickList close={() => setOpen(false)} />
-    </div>}
-  </div>;
+  const { data, quick, error, loading, store, basePath } = useNotificationInbox();
+  return <TopbarNotificationPopover unreadCount={error ? null : data?.unreadCount ?? null}>{close =>
+    <TopbarNotificationContent items={data ? quick : null} loading={loading} error={error} retry={store.refresh} basePath={basePath} close={close} />
+  }</TopbarNotificationPopover>;
 }
-export function AdminAccountDropdown() {
+export function AdminAccountDropdown({ centerManager = false, adminStaff = false }: { centerManager?: boolean; adminStaff?: boolean }) {
   const selection = useSelectedUser(); const { user: identity, error, loading } = selection;
   const [open, setOpen] = useState(false); const [imageError, setImageError] = useState(false);
   const root = useRef<HTMLDivElement>(null); const trigger = useRef<HTMLButtonElement>(null); const id = useId();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   useDismiss(open, () => setOpen(false), root, trigger);
-  const initials = identity?.fullName.split(' ').filter(Boolean).slice(-2).map(w => w[0]).join('') || '?';
+  const initials = (centerManager || adminStaff) ? '' : identity?.fullName.split(' ').filter(Boolean).slice(-2).map(w => w[0]).join('') || '?';
   return <div ref={root} className="ntf-scope ntf-anchor">
-    <button ref={trigger} className="ntf-account-trigger" type="button" aria-label="Account" aria-controls={id} aria-expanded={open} onClick={() => setOpen(!open)}>
-      {identity?.avatarUrl && !imageError ? <img src={identity.avatarUrl} alt="" onError={() => setImageError(true)} /> : <span className="ntf-avatar">{initials}</span>}
-      <span className="ntf-account-label"><strong>{identity?.fullName || (loading ? 'Loading account...' : 'No account selected')}</strong><small>{identity?.userCode || 'Select from system data'}</small></span>
+    <button ref={trigger} className="ntf-account-trigger" type="button" aria-label={`Account: ${identity?.fullName || 'Account information'}`} aria-controls={id} aria-expanded={open} onClick={() => { if (!open) announceTopbarPanel(root); setOpen(!open); }}>
+      {(centerManager || adminStaff) ? <CenterManagerTopbarAvatar key={`${identity?.userId}:${identity?.avatarUrl}`} name={identity?.fullName} url={identity?.avatarUrl} />
+        : identity?.avatarUrl && !imageError ? <img src={identity.avatarUrl} alt="" onError={() => setImageError(true)} /> : <span className="ntf-avatar">{initials}</span>}
+      <span className="ntf-account-label"><strong>{identity?.fullName || (loading ? 'Loading account...' : 'No account selected')}</strong></span>
       <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
     </button>
     {open && <div className="ntf-popover ntf-account-menu" id={id} role="region" aria-label="Account information">

@@ -38,6 +38,9 @@ for (const specifier of ['react/jsx-runtime', 'react-router-dom']) {
   for (const quote of ['"', "'"]) compiled = compiled.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(import.meta.resolve(specifier)));
 }
 compiled = compiled.replace("'../../../../BLL/services/centerManagerDashboardService'", JSON.stringify(new URL('../src/BLL/services/centerManagerDashboardService.ts', import.meta.url).href));
+// Vite resolves decorative SVG imports; the Node rendering harness uses their local URLs.
+compiled = compiled.replace(/import (\w+) from ['"]([^'"]+\.svg)['"];?/g,
+  (_, binding, specifier) => `const ${binding} = ${JSON.stringify(new URL(specifier, componentUrl).href)};`);
 const { default: Card } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);
 const render = props => renderToStaticMarkup(React.createElement(MemoryRouter, null, React.createElement(Card, { requests: [], loading: false, error: null, retry() {}, ...props })));
 
@@ -50,6 +53,13 @@ test('loading, empty and failed states are distinct and include View All', () =>
   assert.match(error, /Retry/);
   assert.doesNotMatch(error, /No pending/);
   assert.match(error, /href="\/center-manager\/approval-requests"/);
+});
+
+test('the approval illustration appears only in the empty state', () => {
+  assert.match(render({}), /manager-approvals-empty\.svg/);
+  for (const props of [{ loading: true }, { error: 'HTTP 503' }, { requests: [request(1)] }]) {
+    assert.doesNotMatch(render(props), /manager-approvals-empty\.svg/);
+  }
 });
 
 test('the list shows at most five while the shared pending collection retains the full total', () => {

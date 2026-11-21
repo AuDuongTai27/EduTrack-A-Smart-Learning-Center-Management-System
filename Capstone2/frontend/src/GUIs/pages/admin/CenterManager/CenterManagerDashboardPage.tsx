@@ -1,4 +1,5 @@
 import '../../../../assets/css/management-dashboard-kpis.css';
+import welcomeIllustration from '../../../../assets/illustrations/manager-welcome.svg';
 import feedbackDAL from '../../../../DAL/feedbackDAL';
 import { getManagerPendingRequests } from '../../../../BLL/services/centerManagerDashboardService';
 import PendingApprovalRequestsCard, { type PendingRequestsState } from '../../../components/admin/CenterManager/PendingApprovalRequestsCard';
@@ -158,13 +159,15 @@ export default function CenterManagerDashboardPage() {
       {/* Welcome */}
       <div className="card dashboard-welcome mb-4 border-0 shadow-sm">
         <div className="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div>
+          <div className="cm-welcome-copy">
             <h4 className="mb-1 text-white fw-bold">
               Welcome back, {manager ? manager.fullName : "Center Manager"}
             </h4>
-            <p className="mb-3 text-white-50">
+            <div className="cm-welcome-summary">
+            <p className="text-white-50">
               {centerName || "Center"} - Daily summary activity report.
             </p>
+            </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap gap-2">
               <div className="mb-2">
                 <button
@@ -187,14 +190,17 @@ export default function CenterManagerDashboardPage() {
               </div>
             </div>
           </div>
-          <div className="welcome-date text-white bg-white bg-opacity-25 px-3 py-2 rounded-pill">
-            <i className="bi bi-calendar3 me-2" />
+          <div className="welcome-date text-white rounded-pill">
+            <i className="bi bi-calendar3 me-2" aria-hidden="true" />
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               year: "numeric",
               month: "long",
               day: "numeric",
             })}
+          </div>
+          <div className="cm-welcome-aside">
+          <img className="cm-welcome-illustration" src={welcomeIllustration} alt="" aria-hidden="true" />
           </div>
         </div>
       </div>
@@ -204,6 +210,7 @@ export default function CenterManagerDashboardPage() {
         {/* Active Students */}
         <KpiCard
           kind="student"
+          decorativeWatermark
           title="Active Students"
           value={usersReady ? metrics.studentCount : "—"}
         />
@@ -211,6 +218,7 @@ export default function CenterManagerDashboardPage() {
         {/* Active Classes */}
         <KpiCard
           kind="class"
+          decorativeWatermark
           title="Active Classes"
           value={classesReady ? metrics.activeClassesCount : "—"}
         />
@@ -218,6 +226,7 @@ export default function CenterManagerDashboardPage() {
         {/* Active Staff */}
         <KpiCard
           kind="staff"
+          decorativeWatermark
           title="Active Staff"
           value={usersReady ? metrics.staffCount : "—"}
         />
@@ -225,6 +234,7 @@ export default function CenterManagerDashboardPage() {
         {/* Monthly Tuition Collected */}
         <KpiCard
           kind="collected"
+          decorativeWatermark
           title="Monthly Tuition Collected"
           currency="VND"
           value={monthlyCollected}
@@ -233,18 +243,19 @@ export default function CenterManagerDashboardPage() {
         {/* Overdue Tuition */}
         <KpiCard
           kind="overdue"
+          decorativeWatermark
           title="Overdue Tuition"
           currency="VND"
 
           value={tuitionMetrics?.overdueAmount ?? null}
         />
-        <KpiCard kind="approval" title="Pending Approval Requests"
+        <KpiCard kind="approval" decorativeWatermark title="Pending Approval Requests"
           value={pendingState.loading ? 'Loading…' : pendingState.error ? '—' : pendingState.requests.length} />
       </div>
 
       <div className="cm-dashboard-panels mb-4">
         <PendingApprovalRequestsCard {...pendingState} retry={retryApprovals} />
-        <DashboardNotificationsCard />
+        <DashboardNotificationsCard viewAllInHeader />
       </div>
 
       {/* QUICK ADD STUDENT MODAL */}

@@ -1,11 +1,14 @@
-import { Outlet } from "react-router-dom";
 import "../../../assets/css/teacher-layout.css";
+import "../../../assets/css/center-manager-academy.css";
+import "../../../assets/css/teaching-academy.css";
+import { CenterSettingsProvider } from "../../../contexts/CenterSettingsContext";
+import { Outlet } from "react-router-dom";
 import { TeacherTopBar } from "./TeacherTopBar";
 import TeacherSidebar from "./TeacherSidebar";
 
 export default function TeacherLayout() {
   return (
-    <div className="teacher-scope">
+    <CenterSettingsProvider><div className="teacher-scope teaching-academy">
       <div className="app-shell">
         {/* Sidebar */}
         <TeacherSidebar />
@@ -22,6 +25,6 @@ export default function TeacherLayout() {
         </div>
       </div>
       <div className="sidebar-overlay" id="sidebarOverlay" />
-    </div>
+    </div></CenterSettingsProvider>
   );
 }

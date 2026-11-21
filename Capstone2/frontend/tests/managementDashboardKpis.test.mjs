@@ -62,11 +62,14 @@ test('manager renders six display-only KPIs, including icons on both tuition car
   assert.match(html, /Monthly Tuition Collected/);
   assert.match(html, /Overdue Tuition/);
   assert.match(html, />8<\/h3>/);
+  assert.equal((html.match(/class="cm-kpi-watermark" aria-hidden="true"/g) || []).length, 6);
+
 });
 
 test('staff renders four display-only KPIs and shows pending count rather than total sent', () => {
   const html = staff(staffData);
   assertDisplayOnly(html, 4);
+  assert.equal((html.match(/class="cm-kpi-watermark" aria-hidden="true"/g) || []).length, 4);
   assert.match(html, /Pending Approval Requests/);
   assert.match(html, />2<\/h3>/);
   assert.doesNotMatch(html, />7<\/h3>/);

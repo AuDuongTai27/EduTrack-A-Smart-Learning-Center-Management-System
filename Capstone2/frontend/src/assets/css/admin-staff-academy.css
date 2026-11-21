@@ -1,0 +1,54 @@
+﻿/* Admin Staff composition; academy surfaces and shell are shared with Center Manager. */
+.staff-academy .staff-dashboard { min-width: 0; }
+.staff-academy .staff-dashboard-panels { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; }
+.staff-academy .staff-dashboard-panels > * { min-width: 0; display: flex; }
+.staff-academy .staff-dashboard-panels .dashboard-card { width: 100%; }
+.staff-academy .staff-dashboard .dashboard-welcome > .card-body { padding: 0; }
+.staff-academy .dashboard-welcome > .card-body > .d-flex { min-height: 146px; padding: 20px 26px; gap: 24px !important; flex-wrap: nowrap !important; }
+.staff-academy .welcome-title { color: #fff; font-size: 22px; line-height: 1.3; font-weight: 700; letter-spacing: -.4px; overflow-wrap: anywhere; }
+.staff-academy .welcome-text { color: #fff; font-size: 13px; line-height: 1.6; max-width: 520px; }
+.staff-academy .cm-welcome-aside { width: 280px; }
+.staff-academy .cm-welcome-illustration { top: 18px; height: 106px; }
+.admin-scope.staff-academy .staff-dashboard .dashboard-kpi:nth-child(2),
+.admin-scope.staff-academy .staff-dashboard .dashboard-kpi:nth-child(4) { --cm-kpi-bg: #fff9e9; --cm-kpi-border: #f1e7c7; --cm-kpi-ink: #a27406; }
+.admin-scope.staff-academy .staff-dashboard .dashboard-kpi:nth-child(3) { --cm-kpi-bg: #edf9fc; --cm-kpi-border: #d3eaf0; --cm-kpi-ink: #087c94; }
+.admin-scope.staff-academy .staff-dashboard .dashboard-kpi .kpi-currency-value { font-size: clamp(18px, 1.6vw, 24px); }
+.staff-academy .dashboard-card-header, .staff-academy .staff-requests-heading { gap: 12px; flex-wrap: wrap; }
+.staff-academy .dashboard-card-header > div, .staff-academy .staff-requests-heading > div { flex: 1; min-width: 190px; }
+.staff-academy .dashboard-card-header h5, .staff-academy .staff-requests-heading h5 { color: #142238; font-size: 14px; font-weight: 650; line-height: 1.5; display: flex; align-items: center; gap: 10px; }
+.staff-academy .dashboard-card-header small, .staff-academy .staff-requests-heading small { display: block; margin: 4px 0 0 42px; color: #64748b; font-size: 12px; line-height: 1.5; }
+.staff-academy .staff-panel-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 9px; color: #078444; background: #eaf8f1; font-size: 16px; }
+.staff-academy .dashboard-card-body { flex: 1; display: flex; }
+.staff-academy .schedule-list { display: flex; flex-direction: column; }
+.staff-academy .staff-schedule-empty { flex: 1; min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; font-size: 14px; }
+.staff-academy .staff-schedule-empty > i { display: inline-flex; align-items: center; justify-content: center; width: 86px; height: 78px; background: #eaf8f1; color: #409b70; border-radius: 24px; font-size: 40px; }
+.staff-academy .schedule-info { min-width: 0; overflow-wrap: anywhere; }
+.staff-academy .schedule-time, .staff-academy .schedule-line { flex-shrink: 0; }
+.staff-academy .schedule-item { border-color: #e4eee8; }
+.staff-academy .schedule-meta { color: #64748b; font-size: 12px; gap: 6px 14px; }
+.staff-academy .staff-requests-panel { min-width: 0; overflow: hidden; }
+.staff-academy .staff-requests-panel .table-responsive { width: 100%; }
+.staff-academy .staff-requests-panel table { min-width: 940px; }
+.staff-academy .staff-requests-panel th { background: #f0f8f3; color: #536477; font-size: 12px; white-space: nowrap; }
+.staff-academy .staff-requests-panel :is(th, td) { padding: 14px 16px; border-color: #e4eee8; }
+.staff-academy .staff-requests-panel td { font-size: 13px; }
+.staff-academy .staff-requests-panel .btn { border-radius: 8px; }
+@media (max-width: 1199px) {
+  .staff-academy .staff-dashboard-panels { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .staff-academy .dashboard-welcome > .card-body > .d-flex { padding: 20px; flex-direction: column; align-items: flex-start !important; gap: 12px !important; }
+  .staff-academy .welcome-title { font-size: 20px; }
+  .staff-academy .dashboard-card-header, .staff-academy .staff-requests-heading { padding: 14px !important; }
+  .staff-academy .schedule-item { gap: 10px; padding: 14px; flex-wrap: wrap; }
+  .staff-academy .schedule-info { flex-basis: calc(100% - 90px); }
+}
+/* Keep session statuses visible when schedule rows wrap on phones. */
+@media (max-width: 767px) {
+  .admin-scope.staff-academy .staff-dashboard .schedule-item > :is(.schedule-status, .notification-status) { display: inline-flex; margin-left: 78px; }
+}
+.admin-scope.staff-academy .staff-dashboard .staff-requests-panel thead th { background: #f0f8f3; }
+.admin-scope.staff-academy .staff-dashboard .staff-requests-panel { min-height: 0; }
+@media (min-width: 1200px) {
+  .staff-academy .staff-dashboard-panels :is(.dashboard-card-header, .ntf-heading) { min-height: 88px; }
+}

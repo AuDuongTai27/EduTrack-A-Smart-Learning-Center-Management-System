@@ -1,6 +1,8 @@
+import { announceTopbarPanel, useTopbarDismiss } from '../../hooks/useTopbarDismiss';
 import '../../../assets/css/simplified-topbar.css';
 import { NotificationBellDropdown } from '../../components/shared/notifications/NotificationQuickViews';
-import React, { useState, useEffect, useRef } from "react";
+import CenterManagerTopbarAvatar from '../../components/admin/CenterManager/CenterManagerTopbarAvatar';
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {useSelectedUser} from '../../hooks/useSelectedUser';
 import { authApi } from '../../../api/authApi';
@@ -8,21 +10,11 @@ import { authApi } from '../../../api/authApi';
 export function TeachingAssistantTopBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const {user: ta} = useSelectedUser();
 
-  // Đóng dropdown khi click ra ngoài
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  useTopbarDismiss(isDropdownOpen, () => setIsDropdownOpen(false), dropdownRef, triggerRef);
 
   const handleHome = () => {
     setIsDropdownOpen(false);
@@ -31,23 +23,11 @@ export function TeachingAssistantTopBar() {
     navigate("/");
   };
 
-  const initials = ta?.fullName
-    ? ta.fullName
-        .split(" ")
-        .filter(Boolean)
-        .slice(-2)
-        .map((w) => w[0]?.toUpperCase())
-        .join("")
-    : "TA";
-
   const userCode = ta?.userCode || '--';
   const displayName = ta?.fullName || 'No account selected';
-  const avatarSrc =
-    ta?.avatarUrl ||
-    '';
 
   return (
-    <header className="topbar et-simplified-topbar">
+    <header className="topbar et-simplified-topbar et-unified-topbar">
       <div className="topbar-left">
         <button
           className="mobile-menu-btn"
@@ -62,38 +42,25 @@ export function TeachingAssistantTopBar() {
         <NotificationBellDropdown />
 
         {/* User Info & Avatar with Dropdown */}
-        <div className="position-relative ms-1" ref={dropdownRef}>
+        <div className="ntf-scope position-relative" ref={dropdownRef}>
           <button
             type="button"
-            className="btn p-1 d-flex align-items-center gap-2 border-0 bg-transparent text-start shadow-none"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="ntf-account-trigger teaching-account-trigger"
+            ref={triggerRef}
+            onClick={() => { if (!isDropdownOpen) announceTopbarPanel(dropdownRef); setIsDropdownOpen(!isDropdownOpen); }}
             title={displayName}
+            aria-label={`Teaching Assistant account: ${displayName}`}
             aria-expanded={isDropdownOpen}
-            style={{ width: "190px" }}
           >
             {/* Avatar bên trái */}
             <div className="flex-shrink-0">
-              {avatarSrc ? (<img
-                src={avatarSrc}
-                alt={displayName}
-                className="rounded-circle border"
-                style={{ width: "36px", height: "36px", objectFit: "cover" }}
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (target.src !== "/assets/img/profiles/avatar-27.jpg") {
-                    target.src = "/assets/img/profiles/avatar-27.jpg";
-                  }
-                }}
-              />) : <span className="profile-avatar">{initials}</span>}
+              <CenterManagerTopbarAvatar key={ta?.avatarUrl} name={ta?.fullName} url={ta?.avatarUrl} />
             </div>
 
-            {/* Thông tin: Tên bên phải avatar và user code bên dưới tên, độ rộng cố định và text-truncate */}
-            <div className="flex-grow-1 overflow-hidden" style={{ lineHeight: 1.2, minWidth: 0 }}>
+            {/* Account name */}
+            <div className="ntf-account-label flex-grow-1 overflow-hidden" style={{ lineHeight: 1.2, minWidth: 0 }}>
               <span className="fw-semibold text-dark text-truncate d-block" style={{ fontSize: "13.5px" }} title={displayName}>
                 {displayName}
-              </span>
-              <span className="text-muted text-truncate d-block" style={{ fontSize: "11.5px", fontWeight: 500 }}>
-                #{userCode}
               </span>
             </div>
 
@@ -112,7 +79,7 @@ export function TeachingAssistantTopBar() {
             >
               {/* Header Dropdown: Thông tin người dùng */}
               <div className="px-3 py-2 border-bottom">
-                <div className="fw-bold text-dark text-truncate" style={{ fontSize: "14px" }}>
+                <div className="fw-bold text-dark topbar-profile-full-name" style={{ fontSize: "14px" }}>
                   {displayName}
                 </div>
                 <small className="text-muted d-block text-truncate mb-1">
