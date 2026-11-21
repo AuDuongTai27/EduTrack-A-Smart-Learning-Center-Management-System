@@ -1,7 +1,8 @@
+import { announceTopbarPanel, useTopbarDismiss } from '../../hooks/useTopbarDismiss';
 import '../../../assets/css/simplified-topbar.css';
 import { NotificationBellDropdown } from '../../components/shared/notifications/NotificationQuickViews';
 import CenterManagerTopbarAvatar from '../../components/admin/CenterManager/CenterManagerTopbarAvatar';
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {useSelectedUser} from '../../hooks/useSelectedUser';
 import { authApi } from '../../../api/authApi';
@@ -9,21 +10,11 @@ import { authApi } from '../../../api/authApi';
 export function TeachingAssistantTopBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const {user: ta} = useSelectedUser();
 
-  // Đóng dropdown khi click ra ngoài
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  useTopbarDismiss(isDropdownOpen, () => setIsDropdownOpen(false), dropdownRef, triggerRef);
 
   const handleHome = () => {
     setIsDropdownOpen(false);
@@ -36,7 +27,7 @@ export function TeachingAssistantTopBar() {
   const displayName = ta?.fullName || 'No account selected';
 
   return (
-    <header className="topbar et-simplified-topbar">
+    <header className="topbar et-simplified-topbar et-unified-topbar">
       <div className="topbar-left">
         <button
           className="mobile-menu-btn"
@@ -51,12 +42,14 @@ export function TeachingAssistantTopBar() {
         <NotificationBellDropdown />
 
         {/* User Info & Avatar with Dropdown */}
-        <div className="ntf-scope position-relative ms-1" ref={dropdownRef}>
+        <div className="ntf-scope position-relative" ref={dropdownRef}>
           <button
             type="button"
             className="ntf-account-trigger teaching-account-trigger"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            ref={triggerRef}
+            onClick={() => { if (!isDropdownOpen) announceTopbarPanel(dropdownRef); setIsDropdownOpen(!isDropdownOpen); }}
             title={displayName}
+            aria-label={`Teaching Assistant account: ${displayName}`}
             aria-expanded={isDropdownOpen}
           >
             {/* Avatar bên trái */}
@@ -64,13 +57,10 @@ export function TeachingAssistantTopBar() {
               <CenterManagerTopbarAvatar key={ta?.avatarUrl} name={ta?.fullName} url={ta?.avatarUrl} />
             </div>
 
-            {/* Thông tin: Tên bên phải avatar và user code bên dưới tên, độ rộng cố định và text-truncate */}
+            {/* Account name */}
             <div className="ntf-account-label flex-grow-1 overflow-hidden" style={{ lineHeight: 1.2, minWidth: 0 }}>
               <span className="fw-semibold text-dark text-truncate d-block" style={{ fontSize: "13.5px" }} title={displayName}>
                 {displayName}
-              </span>
-              <span className="text-muted text-truncate d-block" style={{ fontSize: "11.5px", fontWeight: 500 }}>
-                #{userCode}
               </span>
             </div>
 
@@ -89,7 +79,7 @@ export function TeachingAssistantTopBar() {
             >
               {/* Header Dropdown: Thông tin người dùng */}
               <div className="px-3 py-2 border-bottom">
-                <div className="fw-bold text-dark text-truncate" style={{ fontSize: "14px" }}>
+                <div className="fw-bold text-dark topbar-profile-full-name" style={{ fontSize: "14px" }}>
                   {displayName}
                 </div>
                 <small className="text-muted d-block text-truncate mb-1">

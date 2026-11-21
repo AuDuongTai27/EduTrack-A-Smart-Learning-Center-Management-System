@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useSyncExternalStore } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
+import { NavLink } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
-import { authApi, getAuthUser, subscribeAuth } from '../../../api/authApi';
+import { getAuthUser, subscribeAuth } from '../../../api/authApi';
 
 interface ParentNavMenuProps {
   onLinkClick?: () => void;
@@ -14,23 +14,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const { selectedChild } = useParent();
   const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [isDropupOpen, setIsDropupOpen] = useState<boolean>(false);
-  const footerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
   const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
-
-  const isParentAuth =
-    authUser &&
-    (authUser.primaryRole === 'parent' || authUser.roles?.includes('parent'));
-
-  const displayName = isParentAuth ? authUser.fullName : 'Lê Văn Nam';
-  const displayInitials =
-    displayName
-      .split(' ')
-      .filter(Boolean)
-      .slice(-2)
-      .map((w) => w[0]?.toUpperCase())
-      .join('') || 'VN';
 
   useEffect(() => {
     let mounted = true;
@@ -48,32 +32,6 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
       window.removeEventListener('focus', onUpdate);
     };
   }, [targetStudentId, authUser?.userId]);
-
-  // Đóng dropup khi click bên ngoài
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (footerRef.current && !footerRef.current.contains(event.target as Node)) {
-        setIsDropupOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const handleGoProfile = () => {
-    setIsDropupOpen(false);
-    onLinkClick?.();
-    navigate('/parent/profile');
-  };
-
-  const handleHome = () => {
-    setIsDropupOpen(false);
-    onLinkClick?.();
-    authApi.logout();
-    navigate('/');
-  };
 
   return (
     <>
@@ -163,65 +121,6 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
         </ul>
       </nav>
 
-      {/* FOOTER PROFILE PHỤ HUYNH */}
-      <div className="sidebar-footer mt-auto" ref={footerRef}>
-        {/* Dropup Menu */}
-        {isDropupOpen && (
-          <div className="sidebar-user-dropup">
-            <div className="px-3 py-2 border-bottom mb-1">
-              <div className="fw-bold text-dark text-truncate" style={{ fontSize: '13px' }}>
-                {displayName}
-              </div>
-              <div className="text-muted text-truncate" style={{ fontSize: '11px' }}>
-                {selectedChild ? `Parent of ${selectedChild.name}` : 'Student Parent'}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="sidebar-dropup-item"
-              onClick={handleGoProfile}
-            >
-              <i className="bi bi-person-gear text-primary fs-6" />
-              <span>Edit Profile</span>
-            </button>
-
-            <div className="my-1 border-top" style={{ borderColor: 'var(--et-border-subtle)' }} />
-
-            <button
-              type="button"
-              className="sidebar-dropup-item text-danger"
-              onClick={handleHome}
-            >
-              <i className="bi bi-box-arrow-right fs-6" />
-              <span>Logout</span>
-            </button>
-          </div>
-        )}
-
-        {/* Clickable Avatar Chip */}
-        <button
-          type="button"
-          className={`student-chip-btn ${isDropupOpen ? 'active' : ''}`}
-          onClick={() => setIsDropupOpen(!isDropupOpen)}
-          title="Parent Account"
-          aria-expanded={isDropupOpen}
-        >
-          <div
-            className="student-avatar"
-            style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}
-          >
-            {displayInitials}
-          </div>
-          <div className="student-info">
-            <div className="student-name">{displayName}</div>
-            <div className="student-grade">
-              {selectedChild ? `Parent of ${selectedChild.name}` : 'Student Parent'}
-            </div>
-          </div>
-          <i className="bi bi-three-dots-vertical text-muted ms-auto small" />
-        </button>
-      </div>
     </>
   );
 }

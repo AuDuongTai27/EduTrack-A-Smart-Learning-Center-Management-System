@@ -91,9 +91,7 @@
 /* Child selector remains the existing component, with the same buttons and handlers. */
 .et-parent-portal .sidebar-child-switcher button[aria-expanded] { border-color: var(--et-border) !important; }
 .et-parent-portal .sidebar-child-switcher button[aria-expanded="true"] { border-color: var(--et-primary) !important; }
-.et-parent-portal .sidebar-child-switcher button > .rounded-circle,
-.et-parent-portal .mobile-topbar .student-avatar,
-.et-parent-portal .sidebar-footer .student-avatar { background: var(--et-primary) !important; }
+.et-parent-portal .sidebar-child-switcher button > .rounded-circle { background: var(--et-primary) !important; }
 @media (max-width: 991.98px) {
   .student-scope .et-parent-dashboard .classes-grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,320px),1fr)); }
 }

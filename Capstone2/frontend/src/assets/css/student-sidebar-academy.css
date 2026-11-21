@@ -22,12 +22,7 @@
   mask-image: radial-gradient(ellipse 70% 66% at 50% 52%, #000 48%, transparent 85%);
   pointer-events: none;
 }
-/* Keep the footer's existing border thickness/geometry, without a visible seam. */
-.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) > .sidebar-footer {
-  border-top-color: transparent;
-  background-color: var(--et-card);
-}
-/* Prioritize scrolling navigation and the account chip on short screens. */
+/* Prioritize scrolling navigation on short screens. */
 @media (max-height: 740px), (max-width: 991.98px) {
   .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav::after { display: none; }
 }

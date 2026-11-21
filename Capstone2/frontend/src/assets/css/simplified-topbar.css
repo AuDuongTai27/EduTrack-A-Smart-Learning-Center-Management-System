@@ -1,3 +1,4 @@
+@import './unified-topbar.css';
 /* KAN-53: opt-in for the four management/teaching roles only. */
 :is(.admin-scope, .teacher-scope) .topbar.et-simplified-topbar {
   gap: 12px;

@@ -181,3 +181,24 @@ Các widths khác và regression screenshots CM/Admin Staff nằm cùng thư m�
 - Full frontend suite không chạy lại ở vòng nhỏ này. Kết quả full suite gần nhất ở vòng unified vẫn được ghi nhận: 149 PASS / 34 FAIL / notificationInbox timeout, không được diễn giải thành full-suite PASS cho vòng adjustments. Các failures ngoài phạm vi không sửa.
 - Browser fixtures xác nhận presentation/clock behavior, không chứng minh dữ liệu backend hoặc end-to-end tài khoản thật. Known legacy DAL mock fallback và sidebar toggle limitation đã ghi ở vòng trước giữ nguyên, không xử lý trong scope này.
 - Chỉ cập nhật báo cáo này. Branch/HEAD giữ nguyên, index trống, working tree vẫn bao gồm thay đổi có sẵn và adjustments nêu trên. Không stage, commit, push, merge hoặc tạo PR. Dừng để người dùng nghiệm thu.
+
+
+## Unified Topbar across six roles — KAN-72 / KAN-89 / KAN-90 / KAN-95 (2026-11-21)
+
+- Teacher và Teaching Assistant: Bỏ #userCode khỏi hai trigger; giữ code trong dropdown, avatar, profile links và logout. Dùng shared dismissal để keyboard/ngoài vùng và phối hợp Bell/Profile.
+- Giữ Elegant Green Waves/Soft Glass và chuẩn hóa theo accepted Manager: header 58px, controls 46px, avatar 36px, gap 12px; trigger một dòng, width co giãn theo tên. Shared CSS opt-in, không sửa Dashboard/KPI/Welcome/sidebar hay business/API/auth/routing.
+- Shared Bell presentation dùng TopbarNotificationPopover; bốn role cũ giữ nguyên NotificationInbox/QuickList source. Student/Parent dùng adapter Learning API riêng, không dùng mock trong Bell.
+- Chi tiết implementation/files, bảng ảnh cả sáu role, functional/responsive QA, 25/25 targeted PASS, baseline full-suite failures và limitations: [báo cáo KAN-72](EDUTRACK_KAN72_RESULT.md#unified-topbar-across-six-roles--kan-72--kan-89--kan-90--kan-95-2026-11-21).
+- QA local trong tmp/unified-topbar/, không stage artifacts. Lint/typecheck/build/diff check PASS; full suite 16 file pass / 12 fail / 1 timeout, 28 kết quả cũ giống baseline. Hamburger của bốn role cũ chưa có handler trong baseline; giữ nguyên và không tuyên bố PASS cho sidebar mobile. CM/AD cũng chưa có profile link/route trong dropdown gốc.
+- Branch Duy, HEAD 4d27731337829fbb2b323f58c63fb786c57628ae; bảo toàn KAN-72 chưa commit, index trống. Không stage/commit/push/merge/PR. Dừng nghiệm thu.
+
+
+## KAN-72 refinement — Fixed-width Profile và unread-only Quick Notifications
+
+- Đồng bộ sáu Topbar theo yêu cầu mới: Profile cố định 230px desktop (206px ở 390px), Profile/Bell 42px, avatar 34px; giữ header 58px, Green Waves và Soft Glass. Tên ngắn/dài không đổi width; CSS ellipsis trên trigger, tên đầy đủ trong dropdown.
+- Bell dùng TopbarNotificationContent chung cho list/timestamp/empty/loading/error/Retry/View All + arrow. Bốn role cũ giữ nguyên store và quickNotifications unread-only đã có; không sửa grace timers, Dashboard hoặc full Inbox. Student/Parent tái sử dụng cùng helper, không backfill read history vào Bell.
+- Read/visibility/scope: giữ nguồn API và nghiệp vụ từng role, tổng unread cho badge, chỉ 5 unread mới nhất trong preview; read history vẫn ở Inbox đầy đủ. Không sửa backend/auth/route/Child Switcher/business pages.
+- Browser: 108 profile cases (6 roles × 6 widths × 3 tên), 42 notification-state cases, read-one/read-all trên sáu Notifications pages, account/child isolation và keyboard/outside/mutual exclusion đạt. Screenshots và raw evidence chỉ local trong tmp/kan72-refinement/.
+- Lint/typecheck/build/diff check PASS, 212 warnings/chunk warning baseline. Targeted 31/31 PASS. Full suite 30 file: 17 pass / 12 fail / 1 timeout; 29 file cũ giữ nguyên kết quả, file presentation mới PASS.
+- Danh sách delta files, screenshots before/after của sáu role và limitations: [báo cáo KAN-72](EDUTRACK_KAN72_RESULT.md). Các giới hạn hamburger bốn role cũ, CM/AD profile route/link và chưa có live backend QA được ghi rõ; không tuyên bố PASS cho chúng.
+- Giữ Duy / 4d27731337829fbb2b323f58c63fb786c57628ae, bảo toàn toàn bộ changes trước đó, index trống. Không stage/commit/push/merge/PR; dừng nghiệm thu.

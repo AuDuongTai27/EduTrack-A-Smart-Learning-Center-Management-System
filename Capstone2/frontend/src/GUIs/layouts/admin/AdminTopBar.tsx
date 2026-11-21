@@ -2,7 +2,7 @@ import '../../../assets/css/simplified-topbar.css';
 import { NotificationBellDropdown, AdminAccountDropdown } from '../../components/shared/notifications/NotificationQuickViews';
 export default function AdminTopBar({ centerManager = false, adminStaff = false }: { centerManager?: boolean; adminStaff?: boolean }) {
   return (
-    <header className="topbar et-simplified-topbar">
+    <header className="topbar et-simplified-topbar et-unified-topbar">
       <div className="topbar-left">
         <button
           className="mobile-menu-btn"
