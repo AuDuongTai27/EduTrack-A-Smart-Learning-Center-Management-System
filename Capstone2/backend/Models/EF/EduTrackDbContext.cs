@@ -19,6 +19,8 @@ namespace EduTrack.API.Models.EF
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<UserRole> UserRoles { get; set; } = null!;
+        public virtual DbSet<UserSubject> UserSubjects { get; set; } = null!;
+        public virtual DbSet<UserGrade> UserGrades { get; set; } = null!;
         public virtual DbSet<ParentStudent> ParentStudents { get; set; } = null!;
         public virtual DbSet<Subject> Subjects { get; set; } = null!;
         public virtual DbSet<Class> Classes { get; set; } = null!;
@@ -126,6 +128,37 @@ namespace EduTrack.API.Models.EF
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // 2b. UserSubject & UserGrade composite primary keys (Multi-specialty & Multi-grade for staff)
+            modelBuilder.Entity<UserSubject>(entity =>
+            {
+                entity.HasKey(us => new { us.UserId, us.SubjectId });
+
+                entity.HasOne(us => us.User)
+                    .WithMany(u => u.UserSubjects)
+                    .HasForeignKey(us => us.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(us => us.Subject)
+                    .WithMany(s => s.UserSubjects)
+                    .HasForeignKey(us => us.SubjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<UserGrade>(entity =>
+            {
+                entity.HasKey(ug => new { ug.UserId, ug.GradeId });
+
+                entity.HasOne(ug => ug.User)
+                    .WithMany(u => u.UserGrades)
+                    .HasForeignKey(ug => ug.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ug => ug.Grade)
+                    .WithMany(g => g.UserGrades)
+                    .HasForeignKey(ug => ug.GradeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // 3. User indexes
             modelBuilder.Entity<User>(entity =>
             {
@@ -136,11 +169,17 @@ namespace EduTrack.API.Models.EF
             });
 
             // 4. Classes & Academic Relationships
+            modelBuilder.Entity<Subject>(entity =>
+            {
+                entity.Property(s => s.Status).HasDefaultValue("active");
+            });
+
             modelBuilder.Entity<Grade>(entity =>
             {
                 entity.Property(g => g.GradeId).ValueGeneratedNever();
+                entity.Property(g => g.Status).HasDefaultValue("active");
                 entity.HasData(Enumerable.Range(1, 12)
-                    .Select(id => new Grade { GradeId = id, GradeName = $"Khối {id}" }));
+                    .Select(id => new Grade { GradeId = id, GradeName = $"Khối {id}", Status = "active" }));
             });
 
             modelBuilder.Entity<Class>()

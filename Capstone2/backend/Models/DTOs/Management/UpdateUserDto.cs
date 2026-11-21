@@ -32,6 +32,26 @@ namespace EduTrack.API.Models.DTOs.Management
         [StringLength(100)]
         public string? Specialty { get; set; }
 
+        private System.Collections.Generic.List<int>? _subjectIds;
+        public System.Collections.Generic.List<int>? SubjectIds
+        {
+            get => _subjectIds;
+            set { _subjectIds = value; SubjectsSpecified = true; }
+        }
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool SubjectsSpecified { get; private set; }
+
+        private System.Collections.Generic.List<int>? _gradeIds;
+        public System.Collections.Generic.List<int>? GradeIds
+        {
+            get => _gradeIds;
+            set { _gradeIds = value; GradesSpecified = true; }
+        }
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool GradesSpecified { get; private set; }
+
         [StringLength(20)]
         public string? Gender { get; set; }
 

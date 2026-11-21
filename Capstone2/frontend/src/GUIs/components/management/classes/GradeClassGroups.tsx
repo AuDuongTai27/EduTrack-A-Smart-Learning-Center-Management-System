@@ -32,7 +32,15 @@ export default function GradeClassGroups({items, role, onEdit, onDelete}: Props)
               <Link className="btn btn-sm btn-outline-primary" to={`/${role}/classes/${item.classId}`}>Class Details</Link>
               <div className="d-flex gap-1">
                 <TableActionButton action="Edit" title={`Edit ${item.className}`} onClick={() => onEdit(item)} />
-                <TableActionButton action="Delete" title={`Delete ${item.className}`} onClick={() => onDelete(item)} />
+                <TableActionButton
+                  action={(item.status || "active").toLowerCase() === "active" ? "Lock" : "Unlock"}
+                  title={
+                    (item.status || "active").toLowerCase() === "active"
+                      ? `Set ${item.className} to Inactive`
+                      : `Activate ${item.className}`
+                  }
+                  onClick={() => onDelete(item)}
+                />
               </div>
             </div>
           </div>

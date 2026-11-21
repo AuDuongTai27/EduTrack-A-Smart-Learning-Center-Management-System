@@ -7,4 +7,5 @@ export interface SubjectDto {
   subjectName: string;
   description?: string | null;
   totalClasses?: number;
+  status?: string;
 }

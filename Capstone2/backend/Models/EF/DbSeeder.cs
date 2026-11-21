@@ -11,6 +11,36 @@ namespace EduTrack.API.Models.EF
     {
         public static async Task SeedAsync(EduTrackDbContext context)
         {
+            if (context.Database.IsRelational())
+            {
+                try
+                {
+                    await context.Database.ExecuteSqlRawAsync(@"
+                        CREATE TABLE IF NOT EXISTS `user_subjects` (
+                            `user_id` int NOT NULL,
+                            `subject_id` int NOT NULL,
+                            PRIMARY KEY (`user_id`, `subject_id`),
+                            KEY `IX_user_subjects_subject_id` (`subject_id`),
+                            CONSTRAINT `FK_user_subjects_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+                            CONSTRAINT `FK_user_subjects_subjects_subject_id` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`subject_id`) ON DELETE CASCADE
+                        ) CHARACTER SET=utf8mb4;");
+
+                    await context.Database.ExecuteSqlRawAsync(@"
+                        CREATE TABLE IF NOT EXISTS `user_grades` (
+                            `user_id` int NOT NULL,
+                            `grade_id` int NOT NULL,
+                            PRIMARY KEY (`user_id`, `grade_id`),
+                            KEY `IX_user_grades_grade_id` (`grade_id`),
+                            CONSTRAINT `FK_user_grades_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+                            CONSTRAINT `FK_user_grades_grades_grade_id` FOREIGN KEY (`grade_id`) REFERENCES `grades` (`grade_id`) ON DELETE CASCADE
+                        ) CHARACTER SET=utf8mb4;");
+                }
+                catch
+                {
+                    // Safe fallback if table creation is managed by migrations
+                }
+            }
+
             // 1. Roles
             if (!await context.Roles.AnyAsync())
             {
@@ -241,6 +271,61 @@ namespace EduTrack.API.Models.EF
                 };
                 await context.Subjects.AddRangeAsync(subjects);
                 await context.SaveChangesAsync();
+            }
+
+            // 5b. User Subjects & User Grades (Multi-specialty & Multi-grade seed for Teachers & TA)
+            if (!await context.UserSubjects.AnyAsync())
+            {
+                var existingUserIds = await context.Users.Select(u => u.UserId).ToListAsync();
+                var existingSubjectIds = await context.Subjects.Select(s => s.SubjectId).ToListAsync();
+                var seedUserSubjects = new List<UserSubject>();
+
+                if (existingUserIds.Contains(3) && existingSubjectIds.Contains(1))
+                    seedUserSubjects.Add(new UserSubject { UserId = 3, SubjectId = 1 }); // TC001: Mathematics
+                if (existingUserIds.Contains(4) && existingSubjectIds.Contains(2))
+                    seedUserSubjects.Add(new UserSubject { UserId = 4, SubjectId = 2 }); // TC002: Physics
+                if (existingUserIds.Contains(5))
+                {
+                    if (existingSubjectIds.Contains(1))
+                        seedUserSubjects.Add(new UserSubject { UserId = 5, SubjectId = 1 }); // TA001: Mathematics
+                    if (existingSubjectIds.Contains(2))
+                        seedUserSubjects.Add(new UserSubject { UserId = 5, SubjectId = 2 }); // TA001: Physics
+                }
+
+                if (seedUserSubjects.Count > 0)
+                {
+                    await context.UserSubjects.AddRangeAsync(seedUserSubjects);
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            if (!await context.UserGrades.AnyAsync())
+            {
+                var existingUserIds = await context.Users.Select(u => u.UserId).ToListAsync();
+                var existingGradeIds = await context.Grades.Select(g => g.GradeId).ToListAsync();
+                var seedUserGrades = new List<UserGrade>();
+
+                if (existingUserIds.Contains(3))
+                {
+                    if (existingGradeIds.Contains(9)) seedUserGrades.Add(new UserGrade { UserId = 3, GradeId = 9 });
+                    if (existingGradeIds.Contains(10)) seedUserGrades.Add(new UserGrade { UserId = 3, GradeId = 10 });
+                }
+                if (existingUserIds.Contains(4))
+                {
+                    if (existingGradeIds.Contains(9)) seedUserGrades.Add(new UserGrade { UserId = 4, GradeId = 9 });
+                    if (existingGradeIds.Contains(11)) seedUserGrades.Add(new UserGrade { UserId = 4, GradeId = 11 });
+                }
+                if (existingUserIds.Contains(5))
+                {
+                    if (existingGradeIds.Contains(8)) seedUserGrades.Add(new UserGrade { UserId = 5, GradeId = 8 });
+                    if (existingGradeIds.Contains(9)) seedUserGrades.Add(new UserGrade { UserId = 5, GradeId = 9 });
+                }
+
+                if (seedUserGrades.Count > 0)
+                {
+                    await context.UserGrades.AddRangeAsync(seedUserGrades);
+                    await context.SaveChangesAsync();
+                }
             }
 
             // 6. Classes

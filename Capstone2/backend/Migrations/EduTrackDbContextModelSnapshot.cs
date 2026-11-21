@@ -611,6 +611,14 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("grade_name");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("active")
+                        .HasColumnName("status");
+
                     b.HasKey("GradeId");
 
                     b.ToTable("grades");
@@ -619,62 +627,74 @@ namespace EduTrack.API.Migrations
                         new
                         {
                             GradeId = 1,
-                            GradeName = "Khối 1"
+                            GradeName = "Khối 1",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 2,
-                            GradeName = "Khối 2"
+                            GradeName = "Khối 2",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 3,
-                            GradeName = "Khối 3"
+                            GradeName = "Khối 3",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 4,
-                            GradeName = "Khối 4"
+                            GradeName = "Khối 4",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 5,
-                            GradeName = "Khối 5"
+                            GradeName = "Khối 5",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 6,
-                            GradeName = "Khối 6"
+                            GradeName = "Khối 6",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 7,
-                            GradeName = "Khối 7"
+                            GradeName = "Khối 7",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 8,
-                            GradeName = "Khối 8"
+                            GradeName = "Khối 8",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 9,
-                            GradeName = "Khối 9"
+                            GradeName = "Khối 9",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 10,
-                            GradeName = "Khối 10"
+                            GradeName = "Khối 10",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 11,
-                            GradeName = "Khối 11"
+                            GradeName = "Khối 11",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 12,
-                            GradeName = "Khối 12"
+                            GradeName = "Khối 12",
+                            Status = "active"
                         });
                 });
 
@@ -1096,6 +1116,14 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("description");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("active")
+                        .HasColumnName("status");
+
                     b.Property<string>("SubjectCode")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1386,6 +1414,23 @@ namespace EduTrack.API.Migrations
                     b.ToTable("users");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserGrade", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
+                    b.HasKey("UserId", "GradeId");
+
+                    b.HasIndex("GradeId");
+
+                    b.ToTable("user_grades");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.UserRole", b =>
                 {
                     b.Property<int>("UserRoleId")
@@ -1411,6 +1456,23 @@ namespace EduTrack.API.Migrations
                         .IsUnique();
 
                     b.ToTable("user_roles");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserSubject", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int")
+                        .HasColumnName("subject_id");
+
+                    b.HasKey("UserId", "SubjectId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("user_subjects");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.AiEvaluation", b =>
@@ -1865,6 +1927,25 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Grade");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserGrade", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Grade", "Grade")
+                        .WithMany("UserGrades")
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.User", "User")
+                        .WithMany("UserGrades")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Grade");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.UserRole", b =>
                 {
                     b.HasOne("EduTrack.API.Models.Entities.Role", "Role")
@@ -1880,6 +1961,25 @@ namespace EduTrack.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserSubject", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Subject", "Subject")
+                        .WithMany("UserSubjects")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.User", "User")
+                        .WithMany("UserSubjects")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
 
                     b.Navigation("User");
                 });
@@ -1941,6 +2041,8 @@ namespace EduTrack.API.Migrations
             modelBuilder.Entity("EduTrack.API.Models.Entities.Grade", b =>
                 {
                     b.Navigation("Classes");
+
+                    b.Navigation("UserGrades");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>
@@ -1956,6 +2058,8 @@ namespace EduTrack.API.Migrations
             modelBuilder.Entity("EduTrack.API.Models.Entities.Subject", b =>
                 {
                     b.Navigation("Classes");
+
+                    b.Navigation("UserSubjects");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Submission", b =>
@@ -2012,7 +2116,11 @@ namespace EduTrack.API.Migrations
 
                     b.Navigation("UpdatedSettings");
 
+                    b.Navigation("UserGrades");
+
                     b.Navigation("UserRoles");
+
+                    b.Navigation("UserSubjects");
 
                     b.Navigation("WrittenProgressNotes");
                 });

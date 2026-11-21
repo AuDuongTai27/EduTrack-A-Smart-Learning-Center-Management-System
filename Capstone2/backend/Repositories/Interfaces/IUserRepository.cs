@@ -7,9 +7,21 @@ namespace EduTrack.API.Repositories.Interfaces
     /// </summary>
     public interface IUserRepository : IGenericRepository<User>
     {
-        Task<User> CreateUserWithRoleAsync(User user, string roleName);
+        Task<User> CreateUserWithRoleAsync(
+            User user,
+            string roleName,
+            IReadOnlyCollection<int>? subjectIds = null,
+            IReadOnlyCollection<int>? gradeIds = null);
         Task<User> CreateStudentWithClassesAsync(User user, int? gradeId, IReadOnlyCollection<int> classIds);
-        Task<User?> UpdateUserWithRoleAsync(int id, User updatedUser, string? roleName, bool gradeSpecified = false);
+        Task<User?> UpdateUserWithRoleAsync(
+            int id,
+            User updatedUser,
+            string? roleName,
+            bool gradeSpecified = false,
+            IReadOnlyCollection<int>? subjectIds = null,
+            bool subjectsSpecified = false,
+            IReadOnlyCollection<int>? gradeIds = null,
+            bool gradesSpecified = false);
         Task<bool> UpdateStatusAsync(int id, string status);
         Task<bool> DeleteUserAsync(int id);
     }

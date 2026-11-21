@@ -43,7 +43,7 @@ namespace EduTrack.API.Services.Management.Implementation
                     : $"{prefix}{DateTime.UtcNow:MMddHHmm}";
 
             var user = BuildUser(dto, userCode);
-            var created = await _userRepository.CreateUserWithRoleAsync(user, role);
+            var created = await _userRepository.CreateUserWithRoleAsync(user, role, dto.SubjectIds, dto.GradeIds);
             return MapUserToDto(created);
         }
 
@@ -95,7 +95,15 @@ namespace EduTrack.API.Services.Management.Implementation
                 Status = dto.Status?.Trim() ?? "active"
             };
 
-            var result = await _userRepository.UpdateUserWithRoleAsync(id, updatedUser, dto.Role?.Trim().ToLower(), dto.GradeSpecified);
+            var result = await _userRepository.UpdateUserWithRoleAsync(
+                id,
+                updatedUser,
+                dto.Role?.Trim().ToLower(),
+                dto.GradeSpecified,
+                dto.SubjectIds,
+                dto.SubjectsSpecified,
+                dto.GradeIds,
+                dto.GradesSpecified);
             return result == null ? null : MapUserToDto(result);
         }
 
@@ -149,6 +157,18 @@ namespace EduTrack.API.Services.Management.Implementation
 
         private static UserDto MapUserToDto(User u)
         {
+            var orderedSubjects = u.UserSubjects?
+                .Where(us => us.Subject != null)
+                .OrderBy(us => us.SubjectId)
+                .Select(us => us.Subject)
+                .ToList() ?? new List<Subject>();
+
+            var orderedGrades = u.UserGrades?
+                .Where(ug => ug.Grade != null)
+                .OrderBy(ug => ug.GradeId)
+                .Select(ug => ug.Grade)
+                .ToList() ?? new List<Grade>();
+
             return new UserDto
             {
                 UserId = u.UserId,
@@ -162,6 +182,10 @@ namespace EduTrack.API.Services.Management.Implementation
                 Specialty = u.Specialty,
                 GradeId = u.GradeId,
                 GradeName = u.Grade?.GradeName,
+                SubjectIds = orderedSubjects.Select(s => s.SubjectId).ToList(),
+                SubjectNames = orderedSubjects.Select(s => s.SubjectName).ToList(),
+                GradeIds = orderedGrades.Select(g => g.GradeId).ToList(),
+                GradeNames = orderedGrades.Select(g => g.GradeName).ToList(),
                 EnrolledSince = u.EnrolledSince,
                 Status = u.Status,
                 CreatedAt = u.CreatedAt,

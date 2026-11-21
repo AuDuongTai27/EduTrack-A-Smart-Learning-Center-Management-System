@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace EduTrack.API.Models.DTOs
@@ -16,6 +16,10 @@ namespace EduTrack.API.Models.DTOs
         public string? Specialty { get; set; }
         public int? GradeId { get; set; }
         public string? GradeName { get; set; }
+        public List<int> SubjectIds { get; set; } = new();
+        public List<string> SubjectNames { get; set; } = new();
+        public List<int> GradeIds { get; set; } = new();
+        public List<string> GradeNames { get; set; } = new();
         public DateTime? EnrolledSince { get; set; }
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }

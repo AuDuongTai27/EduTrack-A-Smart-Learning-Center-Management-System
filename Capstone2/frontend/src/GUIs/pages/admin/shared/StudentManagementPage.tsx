@@ -428,33 +428,32 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
     }
   };
 
-  // Open Delete Modal
+  // Open Status Toggle Modal
   const handleOpenDeleteModal = (u: UserDto) => {
     setUserToDelete(u);
     setShowDeleteModal(true);
     setActionErrorMsg(null);
   };
 
-  // Handle Confirm Delete
+  // Handle Confirm Status Toggle (active <-> inactive)
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
+
+    const currentStatus = (userToDelete.status || "active").toLowerCase();
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
 
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await managementDAL.deleteUser(userToDelete.userId);
-      if (res.success) {
-        setUsers(users.filter((item) => item.userId !== userToDelete.userId));
-        // Remove related links
-        setLinks(links.filter((l) => l.studentId !== userToDelete.userId && l.parentId !== userToDelete.userId));
-        setShowDeleteModal(false);
-        setActionSuccessMsg(`Successfully deleted account "${userToDelete.fullName}" (${userToDelete.userCode})!`);
-        setTimeout(() => setActionSuccessMsg(null), 3500);
-      } else {
-        setActionErrorMsg(res.message || "Unable to delete account.");
-      }
+      await managementDAL.updateUserStatus(userToDelete.userId, nextStatus);
+      setUsers(users.map((item) => (item.userId === userToDelete.userId ? { ...item, status: nextStatus } : item)));
+      setShowDeleteModal(false);
+      setActionSuccessMsg(
+        `Updated status for "${userToDelete.fullName}" (#${userToDelete.userCode}) to ${nextStatus.toUpperCase()}!`
+      );
+      setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Error deleting account.");
+      setActionErrorMsg(err.message || "Error updating account status.");
     } finally {
       setSubmitting(false);
       setUserToDelete(null);
@@ -813,9 +812,13 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                           />
 
                           <TableActionButton
-                            action="Delete"
+                            action={(item.status || "active").toLowerCase() === "active" ? "Lock" : "Unlock"}
                             onClick={() => handleOpenDeleteModal(item)}
-                            title="Delete account"
+                            title={
+                              (item.status || "active").toLowerCase() === "active"
+                                ? "Set account to Inactive"
+                                : "Activate account"
+                            }
                           />
                         </div>
                       </td>
@@ -1280,25 +1283,43 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* STATUS TOGGLE CONFIRMATION MODAL */}
       {showDeleteModal && userToDelete && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-danger text-white">
+              <div
+                className={`modal-header ${
+                  (userToDelete.status || "active").toLowerCase() === "active"
+                    ? "bg-warning text-dark"
+                    : "bg-success text-white"
+                }`}
+              >
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-exclamation-triangle-fill me-2" />
-                  Confirm Delete Account
+                  <i
+                    className={`bi ${
+                      (userToDelete.status || "active").toLowerCase() === "active"
+                        ? "bi-lock-fill"
+                        : "bi-unlock-fill"
+                    } me-2`}
+                  />
+                  {(userToDelete.status || "active").toLowerCase() === "active"
+                    ? "Confirm Deactivate Account"
+                    : "Confirm Activate Account"}
                 </h5>
                 <button
                   type="button"
-                  className="btn-close btn-close-white"
+                  className={`btn-close ${
+                    (userToDelete.status || "active").toLowerCase() === "active" ? "" : "btn-close-white"
+                  }`}
                   onClick={() => setShowDeleteModal(false)}
                 />
               </div>
               <div className="modal-body p-4">
                 <p className="mb-2">
-                  Are you sure you want to delete the following account from the system?
+                  {(userToDelete.status || "active").toLowerCase() === "active"
+                    ? "Are you sure you want to set the following account to INACTIVE?"
+                    : "Are you sure you want to reactivate the following account to ACTIVE?"}
                 </p>
                 <div className="p-3 bg-light rounded border mb-3">
                   <div className="d-flex align-items-center gap-2 mb-2">
@@ -1311,11 +1332,12 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   <div className="d-flex align-items-center gap-2">
                     <span className="badge bg-secondary font-monospace">#{userToDelete.userCode}</span>
                     <RoleBadge role={userToDelete.roles?.[0] || "user"} />
+                    <DotStatusBadge status={userToDelete.status || "active"} />
                   </div>
                 </div>
-                <div className="alert alert-warning py-2 mb-0 small">
+                <div className="alert alert-info py-2 mb-0 small">
                   <i className="bi bi-info-circle me-1" />
-                  Related student-parent link data will also be automatically released.
+                  All enrollment history, tuition records, and parent-student links will be safely preserved.
                 </div>
               </div>
               <div className="modal-footer bg-light">
@@ -1329,11 +1351,19 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 </button>
                 <button
                   type="button"
-                  className="btn btn-danger px-4"
+                  className={`btn ${
+                    (userToDelete.status || "active").toLowerCase() === "active"
+                      ? "btn-warning fw-bold"
+                      : "btn-success"
+                  } px-4`}
                   onClick={handleConfirmDelete}
                   disabled={submitting}
                 >
-                  {submitting ? "Deleting..." : "Confirm Delete"}
+                  {submitting
+                    ? "Updating..."
+                    : (userToDelete.status || "active").toLowerCase() === "active"
+                      ? "Set Inactive"
+                      : "Activate Account"}
                 </button>
               </div>
             </div>

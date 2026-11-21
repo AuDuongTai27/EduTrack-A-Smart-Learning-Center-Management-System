@@ -23,6 +23,15 @@ export const gradeManagementApi = {
   async getById(id: number) { return summary(await gradeApi.getById(id)); },
   create(gradeName: string) { return save("POST", gradeName); },
   rename(id: number, gradeName: string) { return save("PUT", gradeName, id); },
+  async updateStatus(id: number, status: "active" | "inactive") {
+    const response = await fetch(`${API_BASE_URL}/grades/${id}/status`, {
+      method: "PATCH",
+      headers: {Accept: "application/json", "Content-Type": "application/json", ...getAuthHeaders()},
+      body: JSON.stringify({status}),
+    });
+    if (!response.ok) throw await apiError(response, "Failed to update grade level status.");
+    return summary(readGradeResponse(await response.json()));
+  },
   async delete(id: number) {
     const response = await fetch(`${API_BASE_URL}/grades/${id}`, {method: "DELETE", headers: {Accept: "application/json", ...getAuthHeaders()}});
     if (!response.ok) throw await apiError(response, "Failed to delete grade level.");

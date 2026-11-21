@@ -8,6 +8,7 @@ namespace EduTrack.API.Services.Management.Interfaces
     {
         Task<SubjectDto> CreateSubjectAsync(CreateSubjectDto dto);
         Task<SubjectDto?> UpdateSubjectAsync(int id, UpdateSubjectDto dto);
+        Task<SubjectDto?> UpdateStatusAsync(int id, string status);
         Task<bool> DeleteSubjectAsync(int id);
     }
 }

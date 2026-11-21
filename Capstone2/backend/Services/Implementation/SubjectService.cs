@@ -37,7 +37,8 @@ namespace EduTrack.API.Services.Implementation
                 SubjectCode = x.SubjectCode,
                 SubjectName = x.SubjectName,
                 Description = x.Description,
-                TotalClasses = x.Classes?.Count ?? 0
+                TotalClasses = x.Classes?.Count ?? 0,
+                Status = string.IsNullOrWhiteSpace(x.Status) ? "active" : x.Status
             };
         }
     }
