@@ -6,6 +6,20 @@
 .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav > :is(.sidebar-nav-title, .sidebar-nav-list) {
   flex: 0 0 auto;
 }
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav-title::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: rgba(15, 23, 42, 0.08);
+}
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav-list + .sidebar-nav-title {
+  margin-top: 12px;
+}
 .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav::after {
   content: '';
   display: block;

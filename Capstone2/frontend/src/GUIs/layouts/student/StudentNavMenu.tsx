@@ -28,88 +28,58 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
     };
   }, [authUser?.userId]);
 
-  return (
-    <>
-      <nav className="sidebar-nav">
-        <div className="sidebar-nav-title">Menu</div>
-        <ul className="sidebar-nav-list">
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/student/dashboard"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-grid-1x2"></i></span>
-              <span className="nav-label">Dashboard</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/student/classes"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-collection"></i></span>
-              <span className="nav-label">Classes</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/student/schedule"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-calendar-event"></i></span>
-              <span className="nav-label">Schedule</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/student/tuition"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-credit-card"></i></span>
-              <span className="nav-label">Tuition</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/student/notifications"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-bell"></i></span>
-              <span className="nav-label">Notifications</span>
-              {unreadCount > 0 && <span className="sidebar-badge">{unreadCount}</span>}
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/student/feedback"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-chat-dots"></i></span>
-              <span className="nav-label">Feedback & Support</span>
-            </NavLink>
-          </li>
-        </ul>
-      </nav>
+  const sections = [
+    {
+      title: "MAIN",
+      items: [{ to: "/student/dashboard", icon: "bi-grid-1x2", label: "Dashboard" }],
+    },
+    {
+      title: "ACADEMIC",
+      items: [
+        { to: "/student/classes", icon: "bi-collection", label: "Classes" },
+        { to: "/student/schedule", icon: "bi-calendar-event", label: "Schedule" },
+      ],
+    },
+    {
+      title: "FINANCE",
+      items: [{ to: "/student/tuition", icon: "bi-credit-card", label: "Tuition" }],
+    },
+    {
+      title: "COMMUNICATION",
+      items: [
+        { to: "/student/notifications", icon: "bi-bell", label: "Notifications", badge: unreadCount > 0 ? unreadCount : null },
+        { to: "/student/feedback", icon: "bi-chat-dots", label: "Feedback & Support" },
+      ],
+    },
+  ];
 
-    </>
+  return (
+    <nav className="sidebar-nav">
+      {sections.map((section) => (
+        <React.Fragment key={section.title}>
+          <div className="sidebar-nav-title">{section.title}</div>
+          <ul className="sidebar-nav-list">
+            {section.items.map((item) => (
+              <li className="sidebar-nav-item" key={item.to}>
+                <NavLink
+                  to={item.to}
+                  onClick={onLinkClick}
+                  className={({ isActive }) =>
+                    `sidebar-nav-link ${isActive ? "active" : ""}`
+                  }
+                >
+                  <span className="nav-icon"><i className={`bi ${item.icon}`}></i></span>
+                  <span className="nav-label">{item.label}</span>
+                  {"badge" in item && item.badge !== null && item.badge !== undefined && (
+                    <span className="sidebar-badge">{item.badge}</span>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </React.Fragment>
+      ))}
+    </nav>
   );
 }
 
