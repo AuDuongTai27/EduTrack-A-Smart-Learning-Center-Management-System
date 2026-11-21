@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import teachingDAL, { type TeachingSessionItemDto, isSessionStarted } from "../../../../../DAL/teachingDAL";
+import teachingDAL, { type TeachingSessionItemDto, isSessionStarted, isAttendanceExpired } from "../../../../../DAL/teachingDAL";
 
 export interface SessionsSectionProps {
   classId?: string | number;
@@ -66,6 +66,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
               {sessions.map((s, idx) => {
                 const isCompleted = s.status === "completed" || s.isRecorded;
                 const hasStarted = s.hasStarted !== undefined ? s.hasStarted : (isCompleted || isSessionStarted(s));
+                const canTakeAttendance = s.canTakeAttendance !== undefined ? s.canTakeAttendance : (hasStarted && !isAttendanceExpired(s));
 
                 return (
                   <tr key={s.sessionId} className={isCompleted ? "session-row-ended" : ""}>
@@ -106,7 +107,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
                             <i className="bi bi-clipboard-check" />
                             <span>View Attendance</span>
                           </Link>
-                        ) : hasStarted ? (
+                        ) : canTakeAttendance ? (
                           <Link
                             to={`${baseRolePath}/classes/${classId}/attendance?sessionId=${s.sessionId}`}
                             className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm"
@@ -114,6 +115,16 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teachi
                             <i className="bi bi-clipboard-check" />
                             <span>Take Attendance</span>
                           </Link>
+                        ) : hasStarted ? (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border text-muted d-inline-flex align-items-center gap-1 opacity-75"
+                            disabled
+                            title="Attendance is closed 2 hours after the session ends"
+                          >
+                            <i className="bi bi-lock-fill text-secondary" />
+                            <span>Attendance Closed</span>
+                          </button>
                         ) : (
                           <button
                             type="button"

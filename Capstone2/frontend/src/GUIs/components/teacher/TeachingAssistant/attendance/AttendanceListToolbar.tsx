@@ -85,7 +85,7 @@ export function AttendanceListToolbar({
             <button
               type="button"
               className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1.5 shadow-sm"
-              title={canMarkAll ? "Mark all students present" : "Only started sessions can be marked for attendance"}
+              title={canMarkAll ? "Mark all students present" : "Attendance is only available from session start until 2 hours after session end"}
               onClick={canMarkAll ? onMarkAllPresent : undefined}
               disabled={!canMarkAll}
             >
