@@ -228,7 +228,6 @@ export function FeedbackView({
         {/* Page Header */}
         <StudentPageHeader
           title="Feedback & Support"
-          subtitle="Submit inquiries, feedback, or support requests directly to the Learning Center staff"
           breadcrumbs={[
             { label: 'Home', href: userRole === 'parent' ? '/parent/dashboard' : '/student/dashboard' },
             { label: 'Feedback & Support' },

@@ -254,9 +254,6 @@ export function StudentNotificationsPage() {
                   </span>
                 )}
               </div>
-              <p className="text-muted small mb-0 mt-1">
-                Updates on assignments, schedule, academic results, and teacher messages
-              </p>
             </div>
           </div>
 

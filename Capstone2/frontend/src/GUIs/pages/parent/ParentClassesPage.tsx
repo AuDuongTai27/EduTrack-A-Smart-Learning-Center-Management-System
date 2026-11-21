@@ -29,10 +29,7 @@ export function ParentClassesPage() {
         {/* Page Header */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="page-title mb-1">Child's Classes</h1>
-            <p className="page-subtitle text-muted mb-0">
-              List of classes that <strong>{selectedChild.name}</strong> is attending this semester
-            </p>
+            <h1 className="page-title mb-0">Child's Classes</h1>
           </div>
 
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">

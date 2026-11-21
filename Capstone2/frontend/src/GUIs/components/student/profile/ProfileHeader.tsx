@@ -28,7 +28,6 @@ export function ProfileHeader({ isEditing, onEdit }: ProfileHeaderProps) {
   return (
     <StudentPageHeader
       title="Personal Profile"
-      subtitle="View and update your personal information"
       breadcrumbs={breadcrumbs}
       actions={actions}
     />

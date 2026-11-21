@@ -26,10 +26,7 @@ export function ParentDashboardPage() {
         {/* 1. Page Header */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="page-title mb-1">Learning Dashboard</h1>
-            <p className="page-subtitle text-muted mb-0">
-              Track your child's academic performance and activities at EduTrack center
-            </p>
+            <h1 className="page-title mb-0">Learning Dashboard</h1>
           </div>
 
           <div className="d-flex align-items-center gap-2">
