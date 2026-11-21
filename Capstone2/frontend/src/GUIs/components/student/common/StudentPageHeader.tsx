@@ -26,8 +26,18 @@ export function StudentPageHeader({
   return (
     <div className={`student-page-header-unified d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 ${className}`}>
       <div className="student-page-header-main flex-grow-1">
+        <div className="d-flex align-items-center gap-2.5 flex-wrap">
+          <h1
+            className="student-unified-page-title mb-0 fw-bold text-dark"
+            style={{ fontSize: '24px', letterSpacing: '-0.02em', lineHeight: 1.25 }}
+          >
+            {title}
+          </h1>
+          {badge && <div className="student-header-badge d-flex align-items-center">{badge}</div>}
+        </div>
+
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav aria-label="breadcrumb" className="student-header-breadcrumbs mb-1.5">
+          <nav aria-label="breadcrumb" className="student-header-breadcrumbs mt-1.5">
             <ol className="list-unstyled d-flex align-items-center gap-1.5 mb-0" style={{ fontSize: '12px' }}>
               {breadcrumbs.map((bc, idx) => {
                 const isLast = idx === breadcrumbs.length - 1;
@@ -57,16 +67,6 @@ export function StudentPageHeader({
             </ol>
           </nav>
         )}
-
-        <div className="d-flex align-items-center gap-2.5 flex-wrap">
-          <h1
-            className="student-unified-page-title mb-0 fw-bold text-dark"
-            style={{ fontSize: '24px', letterSpacing: '-0.02em', lineHeight: 1.25 }}
-          >
-            {title}
-          </h1>
-          {badge && <div className="student-header-badge d-flex align-items-center">{badge}</div>}
-        </div>
 
         {subtitle && (
           <div

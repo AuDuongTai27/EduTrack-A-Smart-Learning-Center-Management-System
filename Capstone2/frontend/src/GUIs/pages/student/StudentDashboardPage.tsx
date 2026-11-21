@@ -62,10 +62,6 @@ export function StudentDashboardPage() {
         {/* 1. Page Header */}
         <StudentPageHeader
           title="Dashboard"
-          breadcrumbs={[
-            { label: 'Student Portal' },
-            { label: 'Dashboard' },
-          ]}
         />
 
         {/* 2. Welcome Banner */}

@@ -162,19 +162,6 @@ export function ParentClassDetailPage() {
               <span className="fw-medium">Back to Class List</span>
             </Link>
 
-            {/* Breadcrumbs */}
-            <div className="d-flex align-items-center gap-2 small text-white-50 mb-2 et-class-hero-breadcrumbs">
-              <Link to="/parent/dashboard" className="text-white text-decoration-none opacity-75">
-                Dashboard
-              </Link>
-              <i className="bi bi-chevron-right fs-xs"></i>
-              <Link to="/parent/classes" className="text-white text-decoration-none opacity-75">
-                Child's Classes
-              </Link>
-              <i className="bi bi-chevron-right fs-xs"></i>
-              <span className="fw-semibold text-white">{cls.name}</span>
-            </div>
-
             {/* Hero Main Info */}
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2 et-class-hero-row">
               <div className="et-class-hero-copy">
@@ -182,6 +169,18 @@ export function ParentClassDetailPage() {
                   {cls.subject}
                 </span>
                 <h1 className="h3 fw-bold mb-2 text-white">{cls.name}</h1>
+                {/* Breadcrumbs */}
+                <div className="d-flex align-items-center gap-2 small text-white-50 mb-2 et-class-hero-breadcrumbs">
+                  <Link to="/parent/dashboard" className="text-white text-decoration-none opacity-75">
+                    Dashboard
+                  </Link>
+                  <i className="bi bi-chevron-right fs-xs"></i>
+                  <Link to="/parent/classes" className="text-white text-decoration-none opacity-75">
+                    Child's Classes
+                  </Link>
+                  <i className="bi bi-chevron-right fs-xs"></i>
+                  <span className="fw-semibold text-white">{cls.name}</span>
+                </div>
                 <p className="mb-0 text-white-50 small">
                   <span>Student: <strong className="text-white">{selectedChild.name}</strong> ({selectedChild.grade})</span>
                   <span className="mx-2">·</span>
