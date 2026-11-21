@@ -123,6 +123,8 @@ export const managementApi = {
     phone?: string;
     role: string;
     specialty?: string;
+    subjectIds?: number[];
+    gradeIds?: number[];
     gender?: string;
   }): Promise<UserDto> {
     const res = await fetch(`${API_BASE_URL}/users`, {
@@ -147,6 +149,8 @@ export const managementApi = {
       phone?: string;
       role?: string;
       specialty?: string;
+      subjectIds?: number[];
+      gradeIds?: number[];
       gradeId?: number | null;
       gender?: string;
       status?: string;

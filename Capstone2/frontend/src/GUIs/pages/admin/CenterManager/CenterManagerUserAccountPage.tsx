@@ -9,12 +9,23 @@ import RoleBadge from "../../../components/Common/RoleBadge";
 import TableActionButton from "../../../components/Common/TableActionButton";
 import userDAL from "../../../../DAL/userDAL";
 import managementDAL from "../../../../DAL/managementDAL";
+import subjectDAL from "../../../../DAL/subjectDAL";
+import { gradeApi } from "../../../../api/gradeApi";
 import type { UserDto } from "../../../../BLL/models/UserDto";
+import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
+import type { GradeDto } from "../../../../BLL/models/GradeDto";
 
 const INTERNAL_STAFF_ROLES = ["center_manager", "admin_staff", "teacher", "teaching_assistant"];
 
+function isTeachingRole(role?: string | null): boolean {
+  const normalized = (role || "").toLowerCase();
+  return normalized === "teacher" || normalized === "teaching_assistant" || normalized === "ta";
+}
+
 export default function CenterManagerUserAccountPage() {
   const [users, setUsers] = useState<UserDto[]>([]);
+  const [subjects, setSubjects] = useState<SubjectDto[]>([]);
+  const [grades, setGrades] = useState<GradeDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Filters state
@@ -38,7 +49,9 @@ export default function CenterManagerUserAccountPage() {
     phone: "",
     email: "",
     role: "teacher",
-    specialty: "Mathematics",
+    specialty: "",
+    subjectIds: [] as number[],
+    gradeIds: [] as number[],
     gender: "male",
   });
 
@@ -52,6 +65,8 @@ export default function CenterManagerUserAccountPage() {
     email: "",
     role: "teacher",
     specialty: "",
+    subjectIds: [] as number[],
+    gradeIds: [] as number[],
     gender: "male",
     status: "active",
   });
@@ -66,16 +81,23 @@ export default function CenterManagerUserAccountPage() {
 
   useEffect(() => {
     let isMounted = true;
-    async function fetchUsers() {
+    async function fetchInitialData() {
       try {
         setLoading(true);
-        const res = await userDAL.getAllUsers();
-        if (isMounted && res.data) {
-          // Important note: Only manage internal staff (center_manager, admin_staff, teacher, teaching_assistant)
-          const staffOnly = res.data.filter((u) =>
-            u.roles && u.roles.some((r) => INTERNAL_STAFF_ROLES.includes(r.toLowerCase()))
-          );
-          setUsers(staffOnly);
+        const [usersRes, subjectsRes, gradesRes] = await Promise.all([
+          userDAL.getAllUsers(),
+          subjectDAL.getAllSubjects().catch(() => ({ data: [] as SubjectDto[] })),
+          gradeApi.getAll().catch(() => [] as GradeDto[]),
+        ]);
+        if (isMounted) {
+          if (usersRes.data) {
+            const staffOnly = usersRes.data.filter((u) =>
+              u.roles && u.roles.some((r) => INTERNAL_STAFF_ROLES.includes(r.toLowerCase()))
+            );
+            setUsers(staffOnly);
+          }
+          if (subjectsRes.data) setSubjects(subjectsRes.data);
+          if (gradesRes) setGrades(gradesRes);
         }
       } catch (err) {
         console.warn("Failed to load user accounts:", err);
@@ -83,11 +105,37 @@ export default function CenterManagerUserAccountPage() {
         if (isMounted) setLoading(false);
       }
     }
-    fetchUsers();
+    fetchInitialData();
     return () => {
       isMounted = false;
     };
   }, []);
+
+  const getUserSubjectNames = (u: UserDto): string[] => {
+    if (u.subjectNames && u.subjectNames.length > 0) return u.subjectNames;
+    if (u.subjectIds && u.subjectIds.length > 0 && subjects.length > 0) {
+      const mapped = subjects.filter((s) => u.subjectIds!.includes(s.subjectId)).map((s) => s.subjectName);
+      if (mapped.length > 0) return mapped;
+    }
+    if (u.specialty && u.specialty.trim()) {
+      return u.specialty
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  const getUserGradeNames = (u: UserDto): string[] => {
+    if (u.gradeNames && u.gradeNames.length > 0) return u.gradeNames;
+    if (u.gradeIds && u.gradeIds.length > 0 && grades.length > 0) {
+      return grades.filter((g) => u.gradeIds!.includes(g.gradeId)).map((g) => g.gradeName);
+    }
+    return [];
+  };
+
+  const toggleIdInList = (list: number[], id: number): number[] =>
+    list.includes(id) ? list.filter((item) => item !== id) : [...list, id];
 
   // Filter & Search logic
   const filteredUsers = useMemo(() => {
@@ -151,6 +199,14 @@ export default function CenterManagerUserAccountPage() {
     e.preventDefault();
     if (!addForm.fullName.trim()) return;
 
+    const teaching = isTeachingRole(addForm.role);
+    const chosenSubjectNames = subjects
+      .filter((s) => addForm.subjectIds.includes(s.subjectId))
+      .map((s) => s.subjectName);
+    const resolvedSpecialty = teaching
+      ? chosenSubjectNames.join(", ") || addForm.specialty.trim() || undefined
+      : addForm.specialty.trim() || undefined;
+
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
@@ -159,7 +215,9 @@ export default function CenterManagerUserAccountPage() {
         phone: addForm.phone.trim() || undefined,
         email: addForm.email.trim() || undefined,
         role: addForm.role,
-        specialty: addForm.specialty.trim() || undefined,
+        specialty: resolvedSpecialty,
+        subjectIds: teaching ? addForm.subjectIds : [],
+        gradeIds: teaching ? addForm.gradeIds : [],
         gender: addForm.gender,
       });
 
@@ -170,7 +228,9 @@ export default function CenterManagerUserAccountPage() {
         phone: "",
         email: "",
         role: "teacher",
-        specialty: "Mathematics",
+        specialty: "",
+        subjectIds: [],
+        gradeIds: [],
         gender: "male",
       });
       setActionSuccessMsg(`Created new account: "${res.data.fullName}" (${res.data.userCode}) successfully!`);
@@ -184,14 +244,26 @@ export default function CenterManagerUserAccountPage() {
 
   // Open Edit Modal
   const handleOpenEditModal = (u: UserDto) => {
+    const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : "teacher";
+    let initialSubjectIds = u.subjectIds && u.subjectIds.length > 0 ? [...u.subjectIds] : [];
+    if (initialSubjectIds.length === 0 && isTeachingRole(primaryRole) && u.specialty) {
+      const tokens = u.specialty.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+      initialSubjectIds = subjects
+        .filter((s) => tokens.includes(s.subjectName.toLowerCase()) || tokens.includes(s.subjectCode.toLowerCase()))
+        .map((s) => s.subjectId);
+    }
+    const initialGradeIds = u.gradeIds && u.gradeIds.length > 0 ? [...u.gradeIds] : [];
+
     setEditForm({
       userId: u.userId,
       userCode: u.userCode || `USR${u.userId}`,
       fullName: u.fullName,
       phone: u.phone || "",
       email: u.email || "",
-      role: u.roles && u.roles.length > 0 ? u.roles[0] : "teacher",
+      role: primaryRole,
       specialty: u.specialty || "",
+      subjectIds: initialSubjectIds,
+      gradeIds: initialGradeIds,
       gender: u.gender || "male",
       status: u.status || "active",
     });
@@ -204,6 +276,14 @@ export default function CenterManagerUserAccountPage() {
     e.preventDefault();
     if (!editForm.fullName.trim()) return;
 
+    const teaching = isTeachingRole(editForm.role);
+    const chosenSubjectNames = subjects
+      .filter((s) => editForm.subjectIds.includes(s.subjectId))
+      .map((s) => s.subjectName);
+    const resolvedSpecialty = teaching
+      ? chosenSubjectNames.join(", ") || editForm.specialty.trim() || undefined
+      : editForm.specialty.trim() || undefined;
+
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
@@ -212,7 +292,9 @@ export default function CenterManagerUserAccountPage() {
         phone: editForm.phone.trim() || undefined,
         email: editForm.email.trim() || undefined,
         role: editForm.role,
-        specialty: editForm.specialty.trim() || undefined,
+        specialty: resolvedSpecialty,
+        subjectIds: teaching ? editForm.subjectIds : [],
+        gradeIds: teaching ? editForm.gradeIds : [],
         gender: editForm.gender,
         status: editForm.status,
       });
@@ -401,7 +483,8 @@ export default function CenterManagerUserAccountPage() {
                 <th className="fw-bold">User Code</th>
                 <th className="fw-bold">Staff Name</th>
                 <th className="fw-bold">Phone Number</th>
-                <th className="fw-bold">Specialty</th>
+                <th className="fw-bold">Specialties / Dept</th>
+                <th className="fw-bold">Grade Levels</th>
                 <th className="fw-bold">Role</th>
                 <th className="fw-bold">Status</th>
                 <th className="text-center fw-bold">Actions</th>
@@ -410,14 +493,14 @@ export default function CenterManagerUserAccountPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5 text-muted">
+                  <td colSpan={9} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
                     Loading staff accounts...
                   </td>
                 </tr>
               ) : paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5 text-muted">
+                  <td colSpan={9} className="text-center py-5 text-muted">
                     <i className="bi bi-people fs-2 d-block mb-2 text-secondary" />
                     No matching staff accounts found.
                   </td>
@@ -426,6 +509,13 @@ export default function CenterManagerUserAccountPage() {
                 paginatedUsers.map((u, idx) => {
                   const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
                   const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : "user";
+                  const teaching = isTeachingRole(primaryRole);
+                  const subjectList = getUserSubjectNames(u);
+                  const gradeList = getUserGradeNames(u);
+                  const visibleSubjects = subjectList.slice(0, 2);
+                  const extraSubjectCount = subjectList.length > 2 ? subjectList.length - 2 : 0;
+                  const visibleGrades = gradeList.slice(0, 2);
+                  const extraGradeCount = gradeList.length > 2 ? gradeList.length - 2 : 0;
 
                   return (
                     <tr key={u.userId}>
@@ -446,7 +536,55 @@ export default function CenterManagerUserAccountPage() {
                       </td>
                       <td>{u.phone || "—"}</td>
                       <td>
-                        <SubjectBadge subject={u.specialty || "General"} />
+                        {teaching ? (
+                          subjectList.length > 0 ? (
+                            <div className="d-flex flex-wrap align-items-center gap-1" title={subjectList.join(", ")}>
+                              {visibleSubjects.map((subj) => (
+                                <SubjectBadge key={subj} subject={subj} />
+                              ))}
+                              {extraSubjectCount > 0 && (
+                                <span
+                                  className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fw-semibold"
+                                  title={`All specialties: ${subjectList.join(", ")}`}
+                                >
+                                  +{extraSubjectCount}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted small">Not assigned</span>
+                          )
+                        ) : (
+                          <SubjectBadge subject={u.specialty || "General"} />
+                        )}
+                      </td>
+                      <td>
+                        {teaching ? (
+                          gradeList.length > 0 ? (
+                            <div className="d-flex flex-wrap align-items-center gap-1" title={gradeList.join(", ")}>
+                              {visibleGrades.map((gr) => (
+                                <span
+                                  key={gr}
+                                  className="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-semibold"
+                                >
+                                  {gr}
+                                </span>
+                              ))}
+                              {extraGradeCount > 0 && (
+                                <span
+                                  className="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border fw-semibold"
+                                  title={`All grade levels: ${gradeList.join(", ")}`}
+                                >
+                                  +{extraGradeCount}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted small">—</span>
+                          )
+                        ) : (
+                          <span className="text-muted small">—</span>
+                        )}
                       </td>
                       <td>
                         <RoleBadge role={primaryRole} />
@@ -573,16 +711,103 @@ export default function CenterManagerUserAccountPage() {
                         <option value="other">Other</option>
                       </select>
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-bold">Specialty / Grade Level</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="e.g. Mathematics, Physics, Grade 12..."
-                        value={addForm.specialty}
-                        onChange={(e) => setAddForm({ ...addForm, specialty: e.target.value })}
-                      />
-                    </div>
+                    {isTeachingRole(addForm.role) ? (
+                      <>
+                        <div className="col-12">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <label className="form-label fw-bold mb-0">
+                              <i className="bi bi-journal-bookmark-fill text-primary me-1" />
+                              Specialties / Subjects (Chọn 1 hoặc nhiều chuyên môn)
+                            </label>
+                            <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
+                              {addForm.subjectIds.length} selected
+                            </span>
+                          </div>
+                          {subjects.length > 0 ? (
+                            <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
+                              {subjects.map((subj) => {
+                                const checked = addForm.subjectIds.includes(subj.subjectId);
+                                return (
+                                  <button
+                                    key={subj.subjectId}
+                                    type="button"
+                                    className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                      checked ? "btn-primary shadow-sm" : "btn-outline-secondary bg-white"
+                                    }`}
+                                    onClick={() =>
+                                      setAddForm({
+                                        ...addForm,
+                                        subjectIds: toggleIdInList(addForm.subjectIds, subj.subjectId),
+                                      })
+                                    }
+                                  >
+                                    <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-plus-circle"}`} />
+                                    {subj.subjectName}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="e.g. Mathematics, Physics..."
+                              value={addForm.specialty}
+                              onChange={(e) => setAddForm({ ...addForm, specialty: e.target.value })}
+                            />
+                          )}
+                        </div>
+                        <div className="col-12">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <label className="form-label fw-bold mb-0">
+                              <i className="bi bi-mortarboard-fill text-info me-1" />
+                              Grade Levels (Chọn 1 hoặc nhiều khối lớp phụ trách)
+                            </label>
+                            <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                              {addForm.gradeIds.length} selected
+                            </span>
+                          </div>
+                          {grades.length > 0 ? (
+                            <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
+                              {grades.map((gr) => {
+                                const checked = addForm.gradeIds.includes(gr.gradeId);
+                                return (
+                                  <button
+                                    key={gr.gradeId}
+                                    type="button"
+                                    className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                      checked ? "btn-info text-white shadow-sm" : "btn-outline-secondary bg-white"
+                                    }`}
+                                    onClick={() =>
+                                      setAddForm({
+                                        ...addForm,
+                                        gradeIds: toggleIdInList(addForm.gradeIds, gr.gradeId),
+                                      })
+                                    }
+                                  >
+                                    <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-circle"}`} />
+                                    {gr.gradeName}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="text-muted small">No grade levels available.</div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="col-md-6">
+                        <label className="form-label fw-bold">Department / Function</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="e.g. Center Administration, Customer Service & Billing..."
+                          value={addForm.specialty}
+                          onChange={(e) => setAddForm({ ...addForm, specialty: e.target.value })}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="modal-footer bg-light">
@@ -683,15 +908,101 @@ export default function CenterManagerUserAccountPage() {
                         <option value="locked">Locked</option>
                       </select>
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-bold">Specialty / Grade Level</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={editForm.specialty}
-                        onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
-                      />
-                    </div>
+                    {isTeachingRole(editForm.role) ? (
+                      <>
+                        <div className="col-12">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <label className="form-label fw-bold mb-0">
+                              <i className="bi bi-journal-bookmark-fill text-primary me-1" />
+                              Specialties / Subjects (Chọn 1 hoặc nhiều chuyên môn)
+                            </label>
+                            <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
+                              {editForm.subjectIds.length} selected
+                            </span>
+                          </div>
+                          {subjects.length > 0 ? (
+                            <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
+                              {subjects.map((subj) => {
+                                const checked = editForm.subjectIds.includes(subj.subjectId);
+                                return (
+                                  <button
+                                    key={subj.subjectId}
+                                    type="button"
+                                    className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                      checked ? "btn-primary shadow-sm" : "btn-outline-secondary bg-white"
+                                    }`}
+                                    onClick={() =>
+                                      setEditForm({
+                                        ...editForm,
+                                        subjectIds: toggleIdInList(editForm.subjectIds, subj.subjectId),
+                                      })
+                                    }
+                                  >
+                                    <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-plus-circle"}`} />
+                                    {subj.subjectName}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={editForm.specialty}
+                              onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
+                            />
+                          )}
+                        </div>
+                        <div className="col-12">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <label className="form-label fw-bold mb-0">
+                              <i className="bi bi-mortarboard-fill text-info me-1" />
+                              Grade Levels (Chọn 1 hoặc nhiều khối lớp phụ trách)
+                            </label>
+                            <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                              {editForm.gradeIds.length} selected
+                            </span>
+                          </div>
+                          {grades.length > 0 ? (
+                            <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
+                              {grades.map((gr) => {
+                                const checked = editForm.gradeIds.includes(gr.gradeId);
+                                return (
+                                  <button
+                                    key={gr.gradeId}
+                                    type="button"
+                                    className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                      checked ? "btn-info text-white shadow-sm" : "btn-outline-secondary bg-white"
+                                    }`}
+                                    onClick={() =>
+                                      setEditForm({
+                                        ...editForm,
+                                        gradeIds: toggleIdInList(editForm.gradeIds, gr.gradeId),
+                                      })
+                                    }
+                                  >
+                                    <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-circle"}`} />
+                                    {gr.gradeName}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="text-muted small">No grade levels available.</div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="col-md-6">
+                        <label className="form-label fw-bold">Department / Function</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={editForm.specialty}
+                          onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="modal-footer bg-light">
@@ -842,13 +1153,46 @@ export default function CenterManagerUserAccountPage() {
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <div className="p-3 bg-light rounded-3">
-                          <small className="text-muted d-block mb-1">Specialty / Grade Level</small>
-                          <strong className="text-dark">{selectedUser.specialty || "All-around"}</strong>
+                        <div className="p-3 bg-light rounded-3 h-100">
+                          <small className="text-muted d-block mb-2">
+                            {isTeachingRole(selectedUser.roles?.[0]) ? "Specialties (Subjects)" : "Department / Function"}
+                          </small>
+                          {isTeachingRole(selectedUser.roles?.[0]) ? (
+                            getUserSubjectNames(selectedUser).length > 0 ? (
+                              <div className="d-flex flex-wrap gap-1">
+                                {getUserSubjectNames(selectedUser).map((subj) => (
+                                  <SubjectBadge key={subj} subject={subj} />
+                                ))}
+                              </div>
+                            ) : (
+                              <strong className="text-dark">Not assigned</strong>
+                            )
+                          ) : (
+                            <strong className="text-dark">{selectedUser.specialty || "General"}</strong>
+                          )}
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <div className="p-3 bg-light rounded-3">
+                        <div className="p-3 bg-light rounded-3 h-100">
+                          <small className="text-muted d-block mb-2">Grade Levels</small>
+                          {isTeachingRole(selectedUser.roles?.[0]) && getUserGradeNames(selectedUser).length > 0 ? (
+                            <div className="d-flex flex-wrap gap-1">
+                              {getUserGradeNames(selectedUser).map((gr) => (
+                                <span
+                                  key={gr}
+                                  className="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-semibold"
+                                >
+                                  {gr}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <strong className="text-dark">—</strong>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="p-3 bg-light rounded-3 h-100">
                           <small className="text-muted d-block mb-1">Date Joined</small>
                           <strong className="text-dark">
                             {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString("en-US") : "01/08/2026"}

@@ -24,6 +24,10 @@ namespace EduTrack.API.Models.DTOs.Management
         [StringLength(100)]
         public string? Specialty { get; set; }
 
+        public System.Collections.Generic.List<int>? SubjectIds { get; set; }
+
+        public System.Collections.Generic.List<int>? GradeIds { get; set; }
+
         [StringLength(20)]
         public string? Gender { get; set; }
 

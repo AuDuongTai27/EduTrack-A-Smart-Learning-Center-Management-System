@@ -1386,6 +1386,23 @@ namespace EduTrack.API.Migrations
                     b.ToTable("users");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserGrade", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
+                    b.HasKey("UserId", "GradeId");
+
+                    b.HasIndex("GradeId");
+
+                    b.ToTable("user_grades");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.UserRole", b =>
                 {
                     b.Property<int>("UserRoleId")
@@ -1411,6 +1428,23 @@ namespace EduTrack.API.Migrations
                         .IsUnique();
 
                     b.ToTable("user_roles");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserSubject", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int")
+                        .HasColumnName("subject_id");
+
+                    b.HasKey("UserId", "SubjectId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("user_subjects");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.AiEvaluation", b =>
@@ -1865,6 +1899,25 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Grade");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserGrade", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Grade", "Grade")
+                        .WithMany("UserGrades")
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.User", "User")
+                        .WithMany("UserGrades")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Grade");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.UserRole", b =>
                 {
                     b.HasOne("EduTrack.API.Models.Entities.Role", "Role")
@@ -1880,6 +1933,25 @@ namespace EduTrack.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserSubject", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Subject", "Subject")
+                        .WithMany("UserSubjects")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.User", "User")
+                        .WithMany("UserSubjects")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
 
                     b.Navigation("User");
                 });
@@ -1941,6 +2013,8 @@ namespace EduTrack.API.Migrations
             modelBuilder.Entity("EduTrack.API.Models.Entities.Grade", b =>
                 {
                     b.Navigation("Classes");
+
+                    b.Navigation("UserGrades");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>
@@ -1956,6 +2030,8 @@ namespace EduTrack.API.Migrations
             modelBuilder.Entity("EduTrack.API.Models.Entities.Subject", b =>
                 {
                     b.Navigation("Classes");
+
+                    b.Navigation("UserSubjects");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Submission", b =>
@@ -2012,7 +2088,11 @@ namespace EduTrack.API.Migrations
 
                     b.Navigation("UpdatedSettings");
 
+                    b.Navigation("UserGrades");
+
                     b.Navigation("UserRoles");
+
+                    b.Navigation("UserSubjects");
 
                     b.Navigation("WrittenProgressNotes");
                 });

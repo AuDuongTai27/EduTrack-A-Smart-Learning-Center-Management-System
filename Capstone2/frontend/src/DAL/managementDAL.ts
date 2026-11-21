@@ -39,6 +39,8 @@ export const managementDAL = {
     phone?: string;
     role: string;
     specialty?: string;
+    subjectIds?: number[];
+    gradeIds?: number[];
     gender?: string;
   }): Promise<{ data: UserDto; isLiveApi: boolean }> {
     const created = await managementApi.createUser(dto);
@@ -53,6 +55,8 @@ export const managementDAL = {
       phone?: string;
       role?: string;
       specialty?: string;
+      subjectIds?: number[];
+      gradeIds?: number[];
       gradeId?: number | null;
       gender?: string;
       status?: string;

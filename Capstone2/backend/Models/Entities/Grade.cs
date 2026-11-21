@@ -16,4 +16,5 @@ public class Grade
     public string GradeName { get; set; } = null!;
 
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
+    public virtual ICollection<UserGrade> UserGrades { get; set; } = new List<UserGrade>();
 }

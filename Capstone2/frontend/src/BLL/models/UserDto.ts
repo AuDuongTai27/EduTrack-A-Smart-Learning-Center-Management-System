@@ -10,6 +10,10 @@ export interface UserDto {
   specialty?: string | null;
   gradeId?: number | null;
   gradeName?: string | null;
+  subjectIds?: number[];
+  subjectNames?: string[];
+  gradeIds?: number[];
+  gradeNames?: string[];
   enrolledSince?: string | null;
   status: string;
   createdAt: string;
