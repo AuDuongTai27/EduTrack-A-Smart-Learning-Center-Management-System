@@ -55,11 +55,22 @@ export default function ClassManagementPage({role}: {role: ManagementRole}) {
   const roleName = role === "center-manager" ? "Center Manager" : "Admin Staff";
   const remove = async () => {
     if (!deleting || deleteInFlight.current) return;
+    const currentStatus = (deleting.status || "active").toLowerCase();
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
     deleteInFlight.current = true; setDeletingBusy(true); setDeleteError(null);
     try {
-      const result = await managementDAL.deleteClass(deleting.classId);
-      if (!result.success) throw new Error(result.message || "Server did not confirm class deletion.");
-      setSuccess(`Deleted class “${deleting.className}”.`);
+      const result = await managementDAL.updateClass(deleting.classId, {
+        className: deleting.className,
+        gradeId: deleting.gradeId ?? null,
+        subjectId: deleting.subjectId,
+        room: deleting.room ?? null,
+        tuitionFee: deleting.tuitionFee,
+        startDate: deleting.startDate,
+        endDate: deleting.endDate ?? null,
+        status: nextStatus,
+      });
+      if (!result.success) throw new Error(result.message || "Server did not confirm class status update.");
+      setSuccess(`Changed class “${deleting.className}” status to ${nextStatus.toUpperCase()}.`);
       setDeleting(null); refresh();
     } catch (cause) {setDeleteError(classError(cause));}
     finally {deleteInFlight.current = false; setDeletingBusy(false);}
@@ -129,7 +140,15 @@ export default function ClassManagementPage({role}: {role: ManagementRole}) {
                       <td><div className="d-flex justify-content-center gap-1">
                         <Link className="table-action-btn text-primary" to={`/${role}/classes/${item.classId}`} title="View class details" aria-label={`View ${item.className}`}><i className="bi bi-eye" /></Link>
                         <TableActionButton action="Edit" title={`Edit ${item.className}`} onClick={() => {setSuccess(null); setEditor(item.classId);}} />
-                        <TableActionButton action="Delete" title={`Delete ${item.className}`} onClick={() => {setSuccess(null); setDeleteError(null); setDeleting(item);}} />
+                        <TableActionButton
+                          action={(item.status || "active").toLowerCase() === "active" ? "Lock" : "Unlock"}
+                          title={
+                            (item.status || "active").toLowerCase() === "active"
+                              ? `Set ${item.className} to Inactive`
+                              : `Activate ${item.className}`
+                          }
+                          onClick={() => {setSuccess(null); setDeleteError(null); setDeleting(item);}}
+                        />
                       </div></td>
                     </tr>)}
             </tbody>
@@ -143,14 +162,28 @@ export default function ClassManagementPage({role}: {role: ManagementRole}) {
         onClose={() => setEditor(null)} onSaved={item => {setSuccess(`Saved class “${item.className}” (#CLS${item.classId}).`); setEditor(null); refresh();}} />}
       {deleting && <div className="modal show d-block" role="dialog" aria-modal="true" aria-labelledby="class-delete-title" style={{backgroundColor: "rgba(0,0,0,0.5)"}}>
         <div className="modal-dialog modal-dialog-centered"><div className="modal-content border-0 shadow-lg">
-          <div className="modal-header"><h5 id="class-delete-title" className="modal-title">Delete Class</h5><button type="button" className="btn-close" aria-label="Close" disabled={deletingBusy} onClick={() => setDeleting(null)} /></div>
+          <div className={`modal-header ${(deleting.status || "active").toLowerCase() === "active" ? "bg-warning text-dark" : "bg-success text-white"}`}>
+            <h5 id="class-delete-title" className="modal-title fw-bold">
+              <i className={`bi ${(deleting.status || "active").toLowerCase() === "active" ? "bi-lock-fill" : "bi-unlock-fill"} me-2`} />
+              {(deleting.status || "active").toLowerCase() === "active" ? "Deactivate Class" : "Activate Class"}
+            </h5>
+            <button type="button" className={`btn-close ${(deleting.status || "active").toLowerCase() === "active" ? "" : "btn-close-white"}`} aria-label="Close" disabled={deletingBusy} onClick={() => setDeleting(null)} />
+          </div>
           <div className="modal-body p-4">
-            <p>Are you sure you want to permanently delete class <strong>{deleting.className}</strong>?</p>
-            <div className="alert alert-warning small mb-0">Only classes with no associated data can be permanently deleted. Backend will reject deletion if there are enrolled students, schedules, Teacher/TA assignments, sessions, attendance, assignments, invoices, payments, or other history. Please change status to Inactive or Completed to preserve history.</div>
+            <p>
+              {(deleting.status || "active").toLowerCase() === "active"
+                ? <>Are you sure you want to set class <strong>{deleting.className}</strong> to <strong>INACTIVE</strong>?</>
+                : <>Are you sure you want to reactivate class <strong>{deleting.className}</strong> to <strong>ACTIVE</strong>?</>}
+            </p>
+            <div className="alert alert-info small mb-0">
+              All enrolled students, schedules, Teacher/TA assignments, attendance records, assignments, and tuition history will be safely preserved.
+            </div>
             {deleteError && <div className="alert alert-danger mt-3 mb-0" role="alert">{deleteError}</div>}
           </div>
-          <div className="modal-footer"><button type="button" className="btn btn-outline-secondary" disabled={deletingBusy} onClick={() => setDeleting(null)}>Cancel</button>
-            <button type="button" className="btn btn-danger" disabled={deletingBusy} onClick={remove}>{deletingBusy ? "Deleting..." : "Confirm Delete"}</button></div>
+          <div className="modal-footer bg-light"><button type="button" className="btn btn-outline-secondary" disabled={deletingBusy} onClick={() => setDeleting(null)}>Cancel</button>
+            <button type="button" className={`btn ${(deleting.status || "active").toLowerCase() === "active" ? "btn-warning fw-bold" : "btn-success"}`} disabled={deletingBusy} onClick={remove}>
+              {deletingBusy ? "Updating..." : (deleting.status || "active").toLowerCase() === "active" ? "Set Inactive" : "Activate Class"}
+            </button></div>
         </div></div>
       </div>}
     </>

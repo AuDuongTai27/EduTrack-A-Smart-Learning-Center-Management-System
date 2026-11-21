@@ -114,6 +114,35 @@ namespace EduTrack.API.Controllers.Queries
         }
 
         /// <summary>
+        /// Cập nhật trạng thái môn học (active / inactive)
+        /// PATCH: api/subjects/{id}/status
+        /// </summary>
+        [HttpPatch("{id:int}/status")]
+        [Authorize(Roles = JwtAuthHelper.RolesManagement)]
+        public async Task<ActionResult<SubjectDto>> UpdateStatus(int id, [FromBody] UpdateUserStatusDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var updated = await _managementService!.UpdateStatusAsync(id, dto.Status);
+                if (updated == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy môn học có ID = " + id });
+                }
+
+                return Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Xóa môn học theo ID
         /// DELETE: api/subjects/{id}
         /// </summary>

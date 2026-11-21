@@ -9,5 +9,6 @@ public class ManagementGradeService(IGradeRepository repository) : IManagementGr
 {
     public Task<GradeDto> CreateAsync(SaveGradeDto dto) => repository.CreateAsync(GradeNames.RequireValid(dto.GradeName));
     public Task<GradeDto?> RenameAsync(int id, SaveGradeDto dto) => repository.RenameAsync(id, GradeNames.RequireValid(dto.GradeName));
+    public Task<GradeDto?> UpdateStatusAsync(int id, string status) => repository.UpdateStatusAsync(id, status);
     public Task<bool> DeleteAsync(int id) => repository.DeleteAsync(id);
 }

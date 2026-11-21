@@ -11,7 +11,7 @@ namespace EduTrack.API.Repositories.Implementation;
 public class GradeRepository(EduTrackDbContext context) : IGradeRepository
 {
     private IQueryable<GradeDto> Summaries => context.Grades.AsNoTracking()
-        .Select(g => new GradeDto { GradeId = g.GradeId, GradeName = g.GradeName, TotalClasses = g.Classes.Count });
+        .Select(g => new GradeDto { GradeId = g.GradeId, GradeName = g.GradeName, TotalClasses = g.Classes.Count, Status = g.Status });
 
     public async Task<IReadOnlyList<GradeDto>> ReadAllAsync() =>
         await Summaries.OrderBy(g => g.GradeId).ToListAsync();
@@ -39,11 +39,28 @@ public class GradeRepository(EduTrackDbContext context) : IGradeRepository
         await EnsureUniqueAsync(locked, name);
         var highest = locked.Count == 0 ? 0 : locked.Max(g => g.GradeId);
         if (highest == int.MaxValue) throw new InvalidOperationException("Không thể cấp thêm mã khối lớp.");
-        var entity = new Grade { GradeId = highest + 1, GradeName = name };
+        var entity = new Grade { GradeId = highest + 1, GradeName = name, Status = "active" };
         context.Grades.Add(entity);
         await context.SaveChangesAsync();
         await transaction.CommitAsync();
-        return new GradeDto { GradeId = entity.GradeId, GradeName = entity.GradeName, TotalClasses = 0 };
+        return new GradeDto { GradeId = entity.GradeId, GradeName = entity.GradeName, TotalClasses = 0, Status = entity.Status };
+    }
+
+    public async Task<GradeDto?> UpdateStatusAsync(int id, string status)
+    {
+        var normalized = (status ?? "").Trim().ToLowerInvariant();
+        if (normalized != "active" && normalized != "inactive")
+            throw new ArgumentException("Trạng thái khối lớp chỉ nhận giá trị 'active' hoặc 'inactive'.");
+
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var locked = await LockCatalogueAsync();
+        var entity = locked.SingleOrDefault(g => g.GradeId == id);
+        if (entity == null) return null;
+        entity.Status = normalized;
+        await context.SaveChangesAsync();
+        var result = await ReadByIdAsync(id);
+        await transaction.CommitAsync();
+        return result;
     }
 
     public async Task<GradeDto?> RenameAsync(int id, string name)

@@ -310,45 +310,32 @@ export default function CenterManagerUserAccountPage() {
     }
   };
 
-  // Handle Status Toggle
-  const handleToggleStatus = async (u: UserDto) => {
-    const nextStatus = u.status === "active" ? "locked" : "active";
-    try {
-      await managementDAL.updateUserStatus(u.userId, nextStatus);
-      const updated = users.map((item) => (item.userId === u.userId ? { ...item, status: nextStatus } : item));
-      setUsers(updated);
-      setActionSuccessMsg(`Updated account status for ${u.fullName} to: ${nextStatus.toUpperCase()}!`);
-      setTimeout(() => setActionSuccessMsg(null), 3000);
-    } catch (err: any) {
-      setActionErrorMsg(err.message || "Failed to update status.");
-    }
-  };
-
-  // Open Delete Modal
+  // Open Status Toggle Confirmation Modal
   const handleOpenDeleteModal = (u: UserDto) => {
     setUserToDelete(u);
     setShowDeleteModal(true);
     setActionErrorMsg(null);
   };
 
-  // Handle Confirm Delete
+  // Handle Confirm Status Toggle (active <-> inactive)
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
+
+    const currentStatus = (userToDelete.status || "active").toLowerCase();
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
 
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await managementDAL.deleteUser(userToDelete.userId);
-      if (res.success) {
-        setUsers(users.filter((item) => item.userId !== userToDelete.userId));
-        setShowDeleteModal(false);
-        setActionSuccessMsg(`Deleted account "${userToDelete.fullName}" (${userToDelete.userCode}) successfully!`);
-        setTimeout(() => setActionSuccessMsg(null), 3500);
-      } else {
-        setActionErrorMsg(res.message || "Failed to delete user account.");
-      }
+      await managementDAL.updateUserStatus(userToDelete.userId, nextStatus);
+      setUsers(users.map((item) => (item.userId === userToDelete.userId ? { ...item, status: nextStatus } : item)));
+      setShowDeleteModal(false);
+      setActionSuccessMsg(
+        `Changed account status for "${userToDelete.fullName}" (#${userToDelete.userCode}) to ${nextStatus.toUpperCase()}!`
+      );
+      setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Error deleting user account.");
+      setActionErrorMsg(err.message || "Error updating user account status.");
     } finally {
       setSubmitting(false);
       setUserToDelete(null);
@@ -605,14 +592,13 @@ export default function CenterManagerUserAccountPage() {
                             title="Edit account"
                           />
                           <TableActionButton
-                            action={u.status === "active" ? "Lock" : "Unlock"}
-                            onClick={() => handleToggleStatus(u)}
-                            title={u.status === "active" ? "Lock account" : "Unlock account"}
-                          />
-                          <TableActionButton
-                            action="Delete"
+                            action={(u.status || "active").toLowerCase() === "active" ? "Lock" : "Unlock"}
                             onClick={() => handleOpenDeleteModal(u)}
-                            title="Delete account"
+                            title={
+                              (u.status || "active").toLowerCase() === "active"
+                                ? "Set account to Inactive"
+                                : "Activate account"
+                            }
                           />
                         </div>
                       </td>
@@ -1031,25 +1017,43 @@ export default function CenterManagerUserAccountPage() {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* STATUS TOGGLE CONFIRMATION MODAL */}
       {showDeleteModal && userToDelete && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-danger text-white">
+              <div
+                className={`modal-header ${
+                  (userToDelete.status || "active").toLowerCase() === "active"
+                    ? "bg-warning text-dark"
+                    : "bg-success text-white"
+                }`}
+              >
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-exclamation-triangle-fill me-2" />
-                  Confirm Delete User Account
+                  <i
+                    className={`bi ${
+                      (userToDelete.status || "active").toLowerCase() === "active"
+                        ? "bi-lock-fill"
+                        : "bi-unlock-fill"
+                    } me-2`}
+                  />
+                  {(userToDelete.status || "active").toLowerCase() === "active"
+                    ? "Confirm Deactivate Staff Account"
+                    : "Confirm Activate Staff Account"}
                 </h5>
                 <button
                   type="button"
-                  className="btn-close btn-close-white"
+                  className={`btn-close ${
+                    (userToDelete.status || "active").toLowerCase() === "active" ? "" : "btn-close-white"
+                  }`}
                   onClick={() => setShowDeleteModal(false)}
                 />
               </div>
               <div className="modal-body p-4">
                 <p className="mb-2">
-                  Are you sure you want to delete this staff account from the system?
+                  {(userToDelete.status || "active").toLowerCase() === "active"
+                    ? "Are you sure you want to set this staff account to INACTIVE?"
+                    : "Are you sure you want to reactivate this staff account to ACTIVE?"}
                 </p>
                 <div className="p-3 bg-light rounded border mb-3">
                   <div className="d-flex align-items-center gap-2 mb-2">
@@ -1062,11 +1066,14 @@ export default function CenterManagerUserAccountPage() {
                   <div className="d-flex align-items-center gap-2">
                     <span className="badge bg-secondary font-monospace">#{userToDelete.userCode}</span>
                     <RoleBadge role={userToDelete.roles?.[0] || "user"} />
+                    <DotStatusBadge status={userToDelete.status || "active"} />
                   </div>
                 </div>
-                <div className="alert alert-warning py-2 mb-0 small">
+                <div className="alert alert-info py-2 mb-0 small">
                   <i className="bi bi-info-circle me-1" />
-                  This action will remove associated role and access credentials.
+                  {(userToDelete.status || "active").toLowerCase() === "active"
+                    ? "Deactivating preserves all academic history and assignments while disabling system sign-in."
+                    : "Reactivating restores sign-in access for this staff member."}
                 </div>
               </div>
               <div className="modal-footer bg-light">
@@ -1080,17 +1087,23 @@ export default function CenterManagerUserAccountPage() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-danger px-4"
+                  className={`btn ${
+                    (userToDelete.status || "active").toLowerCase() === "active"
+                      ? "btn-warning fw-bold"
+                      : "btn-success"
+                  } px-4`}
                   onClick={handleConfirmDelete}
                   disabled={submitting}
                 >
                   {submitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" />
-                      Deleting...
+                      Updating...
                     </>
+                  ) : (userToDelete.status || "active").toLowerCase() === "active" ? (
+                    "Set Inactive"
                   ) : (
-                    "Confirm Delete"
+                    "Activate Account"
                   )}
                 </button>
               </div>

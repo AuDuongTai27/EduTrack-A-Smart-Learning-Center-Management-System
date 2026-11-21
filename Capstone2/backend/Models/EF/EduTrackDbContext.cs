@@ -169,11 +169,17 @@ namespace EduTrack.API.Models.EF
             });
 
             // 4. Classes & Academic Relationships
+            modelBuilder.Entity<Subject>(entity =>
+            {
+                entity.Property(s => s.Status).HasDefaultValue("active");
+            });
+
             modelBuilder.Entity<Grade>(entity =>
             {
                 entity.Property(g => g.GradeId).ValueGeneratedNever();
+                entity.Property(g => g.Status).HasDefaultValue("active");
                 entity.HasData(Enumerable.Range(1, 12)
-                    .Select(id => new Grade { GradeId = id, GradeName = $"Khối {id}" }));
+                    .Select(id => new Grade { GradeId = id, GradeName = $"Khối {id}", Status = "active" }));
             });
 
             modelBuilder.Entity<Class>()

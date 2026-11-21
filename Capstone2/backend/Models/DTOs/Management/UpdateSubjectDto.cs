@@ -12,5 +12,8 @@ namespace EduTrack.API.Models.DTOs.Management
         public string SubjectName { get; set; } = null!;
 
         public string? Description { get; set; }
+
+        [StringLength(20)]
+        public string? Status { get; set; }
     }
 }

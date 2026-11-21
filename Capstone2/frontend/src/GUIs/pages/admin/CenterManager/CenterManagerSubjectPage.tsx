@@ -14,6 +14,7 @@ export default function CenterManagerSubjectPage() {
 
   // Filters state
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [selectedSort, setSelectedSort] = useState<string>("az");
 
   // Pagination state
@@ -80,7 +81,11 @@ export default function CenterManagerSubjectPage() {
           (s.subjectCode && s.subjectCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (s.description && s.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        return matchSearch;
+        const matchStatus =
+          selectedStatus === "All" ||
+          (s.status || "active").toLowerCase() === selectedStatus.toLowerCase();
+
+        return matchSearch && matchStatus;
       })
       .sort((a, b) => {
         if (selectedSort === "az") return a.subjectName.localeCompare(b.subjectName);
@@ -89,7 +94,7 @@ export default function CenterManagerSubjectPage() {
         if (selectedSort === "oldest") return a.subjectId - b.subjectId;
         return 0;
       });
-  }, [subjects, searchTerm, selectedSort]);
+  }, [subjects, searchTerm, selectedStatus, selectedSort]);
 
   // Paginated list
   const paginatedSubjects = useMemo(() => {
@@ -174,31 +179,34 @@ export default function CenterManagerSubjectPage() {
     }
   };
 
-  // Open Delete Confirmation Modal
+  // Open Status Toggle Confirmation Modal
   const handleOpenDeleteModal = (sub: SubjectDto) => {
     setSubjectToDelete(sub);
     setShowDeleteModal(true);
     setActionErrorMsg(null);
   };
 
-  // Handle Confirm Delete (Delete)
+  // Handle Confirm Status Toggle (active <-> inactive)
   const handleConfirmDelete = async () => {
     if (!subjectToDelete) return;
+
+    const currentStatus = ((subjectToDelete.status || "active").toLowerCase() === "active" ? "active" : "inactive") as
+      | "active"
+      | "inactive";
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
 
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const res = await managementDAL.deleteSubject(subjectToDelete.subjectId);
-      if (res.success) {
-        setSubjects(subjects.filter((s) => s.subjectId !== subjectToDelete.subjectId));
-        setShowDeleteModal(false);
-        setActionSuccessMsg(`Deleted subject "${subjectToDelete.subjectName}" successfully!`);
-        setTimeout(() => setActionSuccessMsg(null), 3500);
-      } else {
-        setActionErrorMsg(res.message || "Failed to delete subject.");
-      }
+      const res = await managementDAL.updateSubjectStatus(subjectToDelete.subjectId, nextStatus);
+      setSubjects(subjects.map((s) => (s.subjectId === subjectToDelete.subjectId ? res.data : s)));
+      setShowDeleteModal(false);
+      setActionSuccessMsg(
+        `Updated subject "${subjectToDelete.subjectName}" (#${subjectToDelete.subjectCode}) status to ${nextStatus.toUpperCase()}!`
+      );
+      setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      setActionErrorMsg(err.message || "Error deleting subject.");
+      setActionErrorMsg(err.message || "Error updating subject status.");
     } finally {
       setSubmitting(false);
       setSubjectToDelete(null);
@@ -252,7 +260,7 @@ export default function CenterManagerSubjectPage() {
         {/* Filter */}
         <div className="card-header user-list-header bg-white py-3 border-bottom">
           <div className="row g-3 align-items-center">
-            <div className="col-xl-8 col-lg-8">
+            <div className="col-xl-6 col-lg-6">
               <div className="user-search position-relative">
                 <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
                 <input
@@ -267,7 +275,21 @@ export default function CenterManagerSubjectPage() {
                 />
               </div>
             </div>
-            <div className="col-xl-4 col-lg-4">
+            <div className="col-xl-3 col-lg-3 col-md-6">
+              <select
+                className="form-select"
+                value={selectedStatus}
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="col-xl-3 col-lg-3 col-md-6">
               <select
                 className="form-select"
                 value={selectedSort}
@@ -348,7 +370,7 @@ export default function CenterManagerSubjectPage() {
                         </span>
                       </td>
                       <td>
-                        <DotStatusBadge status="Active" />
+                        <DotStatusBadge status={sub.status || "active"} />
                       </td>
                       <td className="text-center">
                         <div className="d-flex align-items-center justify-content-center gap-1">
@@ -363,9 +385,13 @@ export default function CenterManagerSubjectPage() {
                             title="Edit subject"
                           />
                           <TableActionButton
-                            action="Delete"
+                            action={(sub.status || "active").toLowerCase() === "active" ? "Lock" : "Unlock"}
                             onClick={() => handleOpenDeleteModal(sub)}
-                            title="Delete subject"
+                            title={
+                              (sub.status || "active").toLowerCase() === "active"
+                                ? "Set subject to Inactive"
+                                : "Activate subject"
+                            }
                           />
                         </div>
                       </td>
@@ -539,34 +565,55 @@ export default function CenterManagerSubjectPage() {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* STATUS TOGGLE CONFIRMATION MODAL */}
       {showDeleteModal && subjectToDelete && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-danger text-white">
+              <div
+                className={`modal-header ${
+                  (subjectToDelete.status || "active").toLowerCase() === "active"
+                    ? "bg-warning text-dark"
+                    : "bg-success text-white"
+                }`}
+              >
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-exclamation-triangle-fill me-2" />
-                  Confirm Delete Subject
+                  <i
+                    className={`bi ${
+                      (subjectToDelete.status || "active").toLowerCase() === "active"
+                        ? "bi-lock-fill"
+                        : "bi-unlock-fill"
+                    } me-2`}
+                  />
+                  {(subjectToDelete.status || "active").toLowerCase() === "active"
+                    ? "Confirm Deactivate Subject"
+                    : "Confirm Activate Subject"}
                 </h5>
                 <button
                   type="button"
-                  className="btn-close btn-close-white"
+                  className={`btn-close ${
+                    (subjectToDelete.status || "active").toLowerCase() === "active" ? "" : "btn-close-white"
+                  }`}
                   onClick={() => setShowDeleteModal(false)}
                 />
               </div>
               <div className="modal-body p-4">
                 <p className="mb-2">
-                  Are you sure you want to delete this subject from the system?
+                  {(subjectToDelete.status || "active").toLowerCase() === "active"
+                    ? "Are you sure you want to set this subject to INACTIVE?"
+                    : "Are you sure you want to reactivate this subject to ACTIVE?"}
                 </p>
                 <div className="p-3 bg-light rounded border mb-3">
                   <h6 className="fw-bold mb-1 text-dark">{subjectToDelete.subjectName}</h6>
-                  <span className="badge bg-secondary font-monospace me-2">#{subjectToDelete.subjectCode}</span>
-                  <small className="text-muted">Currently has {subjectToDelete.totalClasses || 0} classes</small>
+                  <div className="d-flex align-items-center gap-2">
+                    <span className="badge bg-secondary font-monospace">#{subjectToDelete.subjectCode}</span>
+                    <DotStatusBadge status={subjectToDelete.status || "active"} />
+                    <small className="text-muted">Currently has {subjectToDelete.totalClasses || 0} classes</small>
+                  </div>
                 </div>
-                <div className="alert alert-warning py-2 mb-0 small">
+                <div className="alert alert-info py-2 mb-0 small">
                   <i className="bi bi-info-circle me-1" />
-                  This action cannot be undone if the subject has not been linked to any classes.
+                  All existing classes and teacher specialties linked to this subject will be safely preserved.
                 </div>
               </div>
               <div className="modal-footer bg-light">
@@ -580,17 +627,23 @@ export default function CenterManagerSubjectPage() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-danger px-4"
+                  className={`btn ${
+                    (subjectToDelete.status || "active").toLowerCase() === "active"
+                      ? "btn-warning fw-bold"
+                      : "btn-success"
+                  } px-4`}
                   onClick={handleConfirmDelete}
                   disabled={submitting}
                 >
                   {submitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" />
-                      Deleting...
+                      Updating...
                     </>
+                  ) : (subjectToDelete.status || "active").toLowerCase() === "active" ? (
+                    "Set Inactive"
                   ) : (
-                    "Confirm Delete"
+                    "Activate Subject"
                   )}
                 </button>
               </div>

@@ -611,6 +611,14 @@ namespace EduTrack.API.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("grade_name");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("active")
+                        .HasColumnName("status");
+
                     b.HasKey("GradeId");
 
                     b.ToTable("grades");
@@ -619,62 +627,74 @@ namespace EduTrack.API.Migrations
                         new
                         {
                             GradeId = 1,
-                            GradeName = "Khối 1"
+                            GradeName = "Khối 1",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 2,
-                            GradeName = "Khối 2"
+                            GradeName = "Khối 2",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 3,
-                            GradeName = "Khối 3"
+                            GradeName = "Khối 3",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 4,
-                            GradeName = "Khối 4"
+                            GradeName = "Khối 4",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 5,
-                            GradeName = "Khối 5"
+                            GradeName = "Khối 5",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 6,
-                            GradeName = "Khối 6"
+                            GradeName = "Khối 6",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 7,
-                            GradeName = "Khối 7"
+                            GradeName = "Khối 7",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 8,
-                            GradeName = "Khối 8"
+                            GradeName = "Khối 8",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 9,
-                            GradeName = "Khối 9"
+                            GradeName = "Khối 9",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 10,
-                            GradeName = "Khối 10"
+                            GradeName = "Khối 10",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 11,
-                            GradeName = "Khối 11"
+                            GradeName = "Khối 11",
+                            Status = "active"
                         },
                         new
                         {
                             GradeId = 12,
-                            GradeName = "Khối 12"
+                            GradeName = "Khối 12",
+                            Status = "active"
                         });
                 });
 
@@ -1095,6 +1115,14 @@ namespace EduTrack.API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext")
                         .HasColumnName("description");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("active")
+                        .HasColumnName("status");
 
                     b.Property<string>("SubjectCode")
                         .IsRequired()

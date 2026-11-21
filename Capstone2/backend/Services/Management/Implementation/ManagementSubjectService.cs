@@ -39,10 +39,34 @@ namespace EduTrack.API.Services.Management.Implementation
                 SubjectId = id,
                 SubjectCode = string.IsNullOrWhiteSpace(dto.SubjectCode) ? existing.SubjectCode : dto.SubjectCode.Trim().ToUpper(),
                 SubjectName = dto.SubjectName.Trim(),
-                Description = dto.Description?.Trim()
+                Description = dto.Description?.Trim(),
+                Status = string.IsNullOrWhiteSpace(dto.Status) ? existing.Status : dto.Status.Trim().ToLowerInvariant()
             };
 
             var updated = await _repository.UpdateAsync(entityToUpdate);
+            return MapToDto(updated);
+        }
+
+        public async Task<SubjectDto?> UpdateStatusAsync(int id, string status)
+        {
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing == null) return null;
+
+            var normalized = string.IsNullOrWhiteSpace(status) ? "active" : status.Trim().ToLowerInvariant();
+            if (normalized != "active" && normalized != "inactive")
+                throw new System.ArgumentException("Trạng thái môn học chỉ nhận giá trị 'active' hoặc 'inactive'.");
+
+            var entityToUpdate = new Subject
+            {
+                SubjectId = id,
+                SubjectCode = existing.SubjectCode,
+                SubjectName = existing.SubjectName,
+                Description = existing.Description,
+                Status = normalized
+            };
+
+            var updated = await _repository.UpdateAsync(entityToUpdate);
+            updated.Classes = existing.Classes ?? updated.Classes;
             return MapToDto(updated);
         }
 
@@ -59,7 +83,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 SubjectCode = x.SubjectCode,
                 SubjectName = x.SubjectName,
                 Description = x.Description,
-                TotalClasses = x.Classes?.Count ?? 0
+                TotalClasses = x.Classes?.Count ?? 0,
+                Status = string.IsNullOrWhiteSpace(x.Status) ? "active" : x.Status
             };
         }
     }

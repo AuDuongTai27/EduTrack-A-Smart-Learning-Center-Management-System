@@ -50,6 +50,14 @@ public class GradesController(
         return item == null ? NotFound(new { message = "Không tìm thấy khối lớp." }) : Ok(item);
     });
 
+    [HttpPatch("{id:int:min(1)}/status")]
+    [Authorize(Roles = JwtAuthHelper.RolesManagement)]
+    public Task<IActionResult> UpdateStatus(int id, UpdateUserStatusDto dto) => Run(async () =>
+    {
+        var item = await managementService!.UpdateStatusAsync(id, dto.Status);
+        return item == null ? NotFound(new { message = "Không tìm thấy khối lớp." }) : Ok(item);
+    });
+
     [HttpDelete("{id:int:min(1)}")]
     [Authorize(Roles = JwtAuthHelper.RolesManagement)]
     public Task<IActionResult> Delete(int id) => Run(async () =>

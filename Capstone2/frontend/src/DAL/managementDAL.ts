@@ -113,9 +113,17 @@ export const managementDAL = {
 
   async updateSubject(
     id: number,
-    dto: { subjectCode?: string; subjectName: string; description?: string },
+    dto: { subjectCode?: string; subjectName: string; description?: string; status?: string },
   ): Promise<{ data: SubjectDto; isLiveApi: boolean }> {
     const updated = await managementApi.updateSubject(id, dto);
+    return { data: updated, isLiveApi: true };
+  },
+
+  async updateSubjectStatus(
+    id: number,
+    status: "active" | "inactive",
+  ): Promise<{ data: SubjectDto; isLiveApi: boolean }> {
+    const updated = await managementApi.updateSubjectStatus(id, status);
     return { data: updated, isLiveApi: true };
   },
 

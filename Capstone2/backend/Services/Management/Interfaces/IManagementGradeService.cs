@@ -7,5 +7,6 @@ public interface IManagementGradeService
 {
     Task<GradeDto> CreateAsync(SaveGradeDto dto);
     Task<GradeDto?> RenameAsync(int id, SaveGradeDto dto);
+    Task<GradeDto?> UpdateStatusAsync(int id, string status);
     Task<bool> DeleteAsync(int id);
 }

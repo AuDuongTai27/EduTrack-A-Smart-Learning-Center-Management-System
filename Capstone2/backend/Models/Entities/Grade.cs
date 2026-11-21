@@ -15,6 +15,10 @@ public class Grade
     [Column("grade_name")]
     public string GradeName { get; set; } = null!;
 
+    [Required, StringLength(20)]
+    [Column("status")]
+    public string Status { get; set; } = "active";
+
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
     public virtual ICollection<UserGrade> UserGrades { get; set; } = new List<UserGrade>();
 }

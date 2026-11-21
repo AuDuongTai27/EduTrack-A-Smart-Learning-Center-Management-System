@@ -268,12 +268,30 @@ export const managementApi = {
 
   async updateSubject(
     id: number,
-    data: { subjectCode?: string; subjectName: string; description?: string },
+    data: { subjectCode?: string; subjectName: string; description?: string; status?: string },
   ): Promise<SubjectDto> {
     const res = await fetch(`${API_BASE_URL}/subjects/${id}`, {
       method: "PUT",
       headers: defaultHeaders(),
       body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(
+        errBody.message || `HTTP Error ${res.status}: ${res.statusText}`,
+      );
+    }
+    return await res.json();
+  },
+
+  async updateSubjectStatus(
+    id: number,
+    status: "active" | "inactive",
+  ): Promise<SubjectDto> {
+    const res = await fetch(`${API_BASE_URL}/subjects/${id}/status`, {
+      method: "PATCH",
+      headers: defaultHeaders(),
+      body: JSON.stringify({ status }),
     });
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));

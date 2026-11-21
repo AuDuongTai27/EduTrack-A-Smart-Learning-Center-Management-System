@@ -25,6 +25,11 @@ namespace EduTrack.API.Models.Entities
         [Column("description")]
         public string? Description { get; set; }
 
+        [Required]
+        [StringLength(20)]
+        [Column("status")]
+        public string Status { get; set; } = "active";
+
         // Navigation Properties
         public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
         public virtual ICollection<UserSubject> UserSubjects { get; set; } = new List<UserSubject>();
