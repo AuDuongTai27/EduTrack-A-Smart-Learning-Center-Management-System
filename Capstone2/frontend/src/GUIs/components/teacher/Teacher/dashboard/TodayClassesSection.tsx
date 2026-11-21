@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 
 export interface TodayClassItem {
@@ -19,51 +19,74 @@ export interface TodayClassesSectionProps {
   classes?: TodayClassItem[];
 }
 
+type TodayClassStatus = "Completed" | "Ongoing" | "Upcoming";
+
+function resolveClassStatus(cls: TodayClassItem, currentMinutes: number): TodayClassStatus {
+  const normalized = cls.status?.toLowerCase();
+
+  if (cls.startTime && cls.endTime) {
+    const [startH, startM] = cls.startTime.split(":").map(Number);
+    const [endH, endM] = cls.endTime.split(":").map(Number);
+    const startMinutes = (startH || 0) * 60 + (startM || 0);
+    const endMinutes = (endH || 0) * 60 + (endM || 0);
+
+    if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+      return "Ongoing";
+    }
+    if (currentMinutes >= endMinutes || normalized === "completed") {
+      return "Completed";
+    }
+    return "Upcoming";
+  }
+
+  if (normalized === "completed") {
+    return "Completed";
+  }
+  if (normalized === "ongoing" || normalized === "in progress") {
+    return "Ongoing";
+  }
+  return "Upcoming";
+}
+
+const STATUS_ORDER: Record<TodayClassStatus, number> = {
+  Completed: 0,
+  Ongoing: 1,
+  Upcoming: 2,
+};
+
 export function TodayClassesSection({
   classes = [],
 }: TodayClassesSectionProps = {}) {
-  // Lọc chỉ giữ các lớp chưa hoàn thành trong ngày (bỏ lớp completed hoặc đã quá giờ kết thúc)
-  const activeClasses = classes
-    .filter((cls) => {
-      if (cls.status?.toLowerCase() === "completed") return false;
-      if (cls.startTime && cls.endTime) {
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const [endH, endM] = cls.endTime.split(":").map(Number);
-        const endMinutes = (endH || 0) * 60 + (endM || 0);
-        if (currentMinutes >= endMinutes) return false;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      // Ưu tiên lớp Ongoing lên đầu tiên, sau đó đến các lớp Upcoming theo giờ bắt đầu
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const listRef = useRef<HTMLDivElement>(null);
+  const firstActiveRef = useRef<HTMLDivElement>(null);
 
-      const isOngoing = (cls: TodayClassItem) => {
-        if (cls.status?.toLowerCase() === "ongoing" || cls.status?.toLowerCase() === "in progress") return true;
-        if (cls.startTime && cls.endTime) {
-          const [startH, startM] = cls.startTime.split(":").map(Number);
-          const [endH, endM] = cls.endTime.split(":").map(Number);
-          const startMin = (startH || 0) * 60 + (startM || 0);
-          const endMin = (endH || 0) * 60 + (endM || 0);
-          return currentMinutes >= startMin && currentMinutes < endMin;
-        }
-        return false;
-      };
+  const displayClasses = useMemo(() => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-      const aOngoing = isOngoing(a);
-      const bOngoing = isOngoing(b);
+    return classes
+      .map((cls) => ({
+        cls,
+        resolvedStatus: resolveClassStatus(cls, currentMinutes),
+      }))
+      .sort((a, b) => {
+        const orderDiff = STATUS_ORDER[a.resolvedStatus] - STATUS_ORDER[b.resolvedStatus];
+        if (orderDiff !== 0) return orderDiff;
+        return (a.cls.startTime || "").localeCompare(b.cls.startTime || "");
+      });
+  }, [classes]);
 
-      if (aOngoing && !bOngoing) return -1;
-      if (!aOngoing && bOngoing) return 1;
-      return (a.startTime || "").localeCompare(b.startTime || "");
-    });
+  const firstActiveIndex = displayClasses.findIndex(
+    (entry) => entry.resolvedStatus === "Ongoing" || entry.resolvedStatus === "Upcoming"
+  );
 
-  const displayClasses = activeClasses;
-  const maxDisplay = 3;
-  const displayedClasses = displayClasses.slice(0, maxDisplay);
-  const remainingCount = displayClasses.length - maxDisplay;
+  // Scroll to the first ongoing/upcoming class so completed sessions sit above and remain accessible by scrolling up.
+  useEffect(() => {
+    const container = listRef.current;
+    const firstActive = firstActiveRef.current;
+    if (!container || !firstActive) return;
+    container.scrollTop = firstActive.offsetTop - container.offsetTop;
+  }, [displayClasses, firstActiveIndex]);
 
   const todayFormatted = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -90,60 +113,51 @@ export function TodayClassesSection({
         {displayClasses.length === 0 ? (
           <p className="text-muted text-center my-3">No classes scheduled for today.</p>
         ) : (
-          <div className="d-flex flex-column gap-3">
-            {displayedClasses.map((cls, idx) => {
+          <div ref={listRef} className="today-classes-scroll d-flex flex-column gap-3">
+            {displayClasses.map(({ cls, resolvedStatus }, idx) => {
               const roomText = cls.room || `Room ${201 + idx}`;
               const countText = `${cls.studentsCount ?? 0} Students`;
+              const isCompleted = resolvedStatus === "Completed";
+              const isOngoing = resolvedStatus === "Ongoing";
 
-              // Xác định trạng thái Ongoing nếu thời gian hiện tại nằm trong khoảng startTime - endTime
-              let isOngoing = false;
-              if (cls.status?.toLowerCase() === "ongoing" || cls.status?.toLowerCase() === "in progress") {
-                isOngoing = true;
-              }
-
-              if (cls.startTime && cls.endTime) {
-                const now = new Date();
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
-                const [startH, startM] = cls.startTime.split(":").map(Number);
-                const [endH, endM] = cls.endTime.split(":").map(Number);
-                const startMinutes = (startH || 0) * 60 + (startM || 0);
-                const endMinutes = (endH || 0) * 60 + (endM || 0);
-
-                if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-                  isOngoing = true;
-                } else {
-                  isOngoing = false;
-                }
-              }
-
-              const statusText = isOngoing ? "Ongoing" : "Upcoming";
-              const badgeColorClass = isOngoing
-                ? "bg-primary-subtle text-primary border-primary-subtle"
-                : "bg-success-subtle text-success border-success-subtle";
+              const badgeColorClass = isCompleted
+                ? "bg-secondary-subtle text-secondary border-secondary-subtle"
+                : isOngoing
+                  ? "bg-primary-subtle text-primary border-primary-subtle"
+                  : "bg-success-subtle text-success border-success-subtle";
 
               return (
                 <div
                   key={cls.sessionId ?? cls.id}
-                  className="p-3 rounded-3 border bg-white shadow-xs d-flex flex-column gap-2"
+                  ref={idx === firstActiveIndex ? firstActiveRef : undefined}
+                  className={`p-3 rounded-3 border d-flex flex-column gap-2 today-class-card ${
+                    isCompleted
+                      ? "today-class-card--completed bg-light"
+                      : isOngoing
+                        ? "today-class-card--ongoing shadow-sm"
+                        : "bg-white shadow-xs"
+                  }`}
                 >
                   <div className="d-flex align-items-center justify-content-between">
                     <span className={`badge border rounded-pill px-2.5 py-1 small fw-medium ${badgeColorClass}`}>
-                      {statusText}
+                      {resolvedStatus}
                     </span>
-                    <span className="fw-semibold text-primary small">
+                    <span className={`fw-semibold small ${isCompleted ? "text-muted" : "text-primary"}`}>
                       {cls.timePeriod}
                     </span>
                   </div>
 
                   <div>
-                    <h6 className="mb-1 fw-bold text-dark">{cls.className}</h6>
-                    <span className="text-muted small">
+                    <h6 className={`mb-1 fw-bold ${isCompleted ? "text-secondary" : "text-dark"}`}>
+                      {cls.className}
+                    </h6>
+                    <span className="small text-muted">
                       {roomText} • {countText}
                     </span>
                   </div>
 
                   <div className="pt-2 border-top d-flex align-items-center">
-                    {isOngoing ? (
+                    {isOngoing && !cls.attendanceTaken ? (
                       <Link
                         to={cls.sessionId ? `/teacher/classes/${cls.id}/attendance?sessionId=${cls.sessionId}` : `/teacher/classes/${cls.id}/attendance`}
                         className="text-decoration-none text-primary fw-medium small d-inline-flex align-items-center gap-1.5"
@@ -154,7 +168,9 @@ export function TodayClassesSection({
                     ) : (
                       <Link
                         to={`/teacher/classes/${cls.id}`}
-                        className="text-decoration-none text-secondary fw-medium small d-inline-flex align-items-center gap-1.5"
+                        className={`text-decoration-none fw-medium small d-inline-flex align-items-center gap-1.5 ${
+                          isCompleted ? "text-muted" : "text-secondary"
+                        }`}
                       >
                         <i className="bi bi-arrow-right-circle" />
                         <span>View Class</span>
@@ -164,17 +180,6 @@ export function TodayClassesSection({
                 </div>
               );
             })}
-
-            {remainingCount > 0 && (
-              <div className="text-center pt-2 mt-auto border-top">
-                <span
-                  className="fst-italic small select-none"
-                  style={{ color: "#94a3b8", fontSize: "0.82rem" }}
-                >
-                  *{remainingCount} more class{remainingCount > 1 ? "es" : ""} today...*
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>
