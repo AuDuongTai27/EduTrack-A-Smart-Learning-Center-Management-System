@@ -6,9 +6,9 @@ namespace EduTrack.API.Models.DTOs.Auth
     public class LoginRequestDto
     {
         /// <summary>
-        /// Số điện thoại, Email hoặc Mã người dùng (UserCode)
+        /// Số điện thoại hoặc Email
         /// </summary>
-        [Required(ErrorMessage = "Vui lòng nhập Số điện thoại, Email hoặc Mã số tài khoản.")]
+        [Required(ErrorMessage = "Vui lòng nhập Email hoặc Số điện thoại.")]
         public string Identifier { get; set; } = string.Empty;
 
         /// <summary>
