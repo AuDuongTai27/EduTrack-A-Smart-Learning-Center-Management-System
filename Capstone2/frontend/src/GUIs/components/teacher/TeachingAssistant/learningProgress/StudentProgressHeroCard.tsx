@@ -3,12 +3,10 @@ import type { TeachingStudentProgressDetailDto } from "../../../../../BLL/models
 
 export interface StudentProgressHeroCardProps {
   student: TeachingStudentProgressDetailDto;
-  onOpenEvaluationModal: () => void;
 }
 
 export default function StudentProgressHeroCard({
   student,
-  onOpenEvaluationModal,
 }: StudentProgressHeroCardProps) {
   const completedAssignmentsCount = student.assignments.filter(
     (a) => a.status === "graded" || a.status === "submitted"
@@ -25,7 +23,7 @@ export default function StudentProgressHeroCard({
                 width: "64px",
                 height: "64px",
                 fontSize: "22px",
-                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                background: "var(--et-brand-banner)",
               }}
             >
               {student.avatarInitials}
@@ -33,9 +31,6 @@ export default function StudentProgressHeroCard({
             <div>
               <div className="d-flex align-items-center gap-2 flex-wrap">
                 <h4 className="fw-bold text-dark mb-0">{student.fullName}</h4>
-                <span className="badge bg-emerald-subtle text-success border border-success-subtle px-2 py-1">
-                  #{student.studentCode}
-                </span>
                 <span className="badge bg-light text-secondary border">
                   {student.className}
                 </span>

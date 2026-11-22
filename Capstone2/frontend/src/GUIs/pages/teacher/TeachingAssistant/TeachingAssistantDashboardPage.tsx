@@ -91,13 +91,9 @@ export default function TeachingAssistantDashboardPage() {
 
   return (
     <div className="teaching-dashboard">
-      {/* Breadcrumb & Page Title */}
+      {/* Page Title */}
       <PageHeader
         title="Teaching Assistant Dashboard"
-        breadcrumbItems={[
-          { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Teaching Assistant Overview" },
-        ]}
       />
 
       {/* Greeting section */}

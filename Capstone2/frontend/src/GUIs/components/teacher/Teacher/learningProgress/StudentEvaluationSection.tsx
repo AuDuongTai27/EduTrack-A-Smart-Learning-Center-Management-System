@@ -13,20 +13,15 @@ export default function StudentEvaluationSection({
   return (
     <div className="card border-0 mb-4 shadow-sm rounded-4 overflow-hidden">
       <div className="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div>
-          <h5 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-            <i className="bi bi-chat-square-heart text-warning" />
-            2. Individual Evaluations from Teacher &amp; Teaching Assistant
-          </h5>
-          <small className="text-muted">
-            Independent evaluation of attitude, thinking, progress, and notes to parents (independent of assignment scores)
-          </small>
-        </div>
+        <h5 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+          <i className="bi bi-chat-square-heart text-warning" />
+          Individual Evaluations from Teacher &amp; Teaching Assistant
+        </h5>
 
         {/* Nút tạo đánh giá bên trong (ngay trong section) */}
         <button
           type="button"
-          className="btn btn-primary d-inline-flex align-items-center gap-1.5 shadow-xs px-3 py-2 fw-semibold"
+          className="btn btn-primary d-inline-flex align-items-center gap-2 shadow-xs px-3 py-2 fw-semibold"
           onClick={onOpenEvaluationModal}
         >
           <i className="bi bi-plus-circle" /> Create New Evaluation
@@ -58,7 +53,7 @@ export default function StudentEvaluationSection({
                     </div>
                     <div>
                       <strong className="text-dark small d-block">{item.evaluatorName}</strong>
-                      <span className="badge bg-secondary-subtle text-secondary small py-0.5">
+                      <span className="badge bg-secondary-subtle text-secondary small py-1">
                         {item.evaluatorRole}
                       </span>
                     </div>
@@ -76,7 +71,7 @@ export default function StudentEvaluationSection({
                 </p>
 
                 {item.suggestions && (
-                  <div className="mt-3.5 px-3 py-2 rounded-2 bg-light-subtle border small text-muted d-flex align-items-center gap-2" style={{ marginTop: "14px" }}>
+                  <div className="mt-3 px-3 py-2 rounded-2 bg-light-subtle border small text-muted d-flex align-items-center gap-2">
                     <i className="bi bi-lightbulb text-warning fs-6" />
                     <div>
                       <strong className="text-secondary">Recommendations: </strong>

@@ -7,8 +7,6 @@ import {ScheduleCalendar} from './ScheduleCalendar';
 import {ScheduleList} from './ScheduleList';
 import {ScheduleSessionDetail} from './ScheduleSessionDetail';
 import {ScheduleManagement} from './ScheduleManagement';
-import ScheduleListHeader from '../../teacher/Teacher/schedule/ScheduleListHeader';
-import TaListHeader from '../../teacher/TeachingAssistant/schedule/ScheduleListHeader';
 import ScheduleListToolbar from '../../teacher/Teacher/schedule/ScheduleListToolbar';
 import '../../../../assets/css/schedule-calendar.css';
 import './schedule.css';
@@ -119,7 +117,6 @@ export function ScheduleWorkspace({
     model.navigate(currentMonday);
   }
 
-  const range = displayScheduleDate(model.monday) + ' – ' + displayScheduleDate(addScheduleDays(model.monday, 6));
   const weekControls = (
     <div className="week-navigator-controls d-flex align-items-center flex-wrap gap-2">
       <button type="button" className="btn-week-today" id="btnWeekToday" onClick={handleToday}>
@@ -158,7 +155,6 @@ export function ScheduleWorkspace({
       {weekControls}
     </ScheduleListToolbar>
   );
-  const ListHeader = role === 'teaching-assistant' ? TaListHeader : ScheduleListHeader;
   return <>
     {renderHeader?.(null)}
     <section className="et-schedule schedule-official" aria-label="Official session schedule">
@@ -297,8 +293,7 @@ export function ScheduleWorkspace({
       <div className="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 border shadow-sm et-schedule-summary">
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-            <i className="bi bi-calendar-week me-1" />{model.view === 'calendar' ? 'Weekly Schedule' : range}</span>
-          <span className="small text-muted">Total <strong>{displayedSessions.length}</strong> scheduled sessions</span>
+            <i className="bi bi-calendar-week me-1" />Weekly Schedule</span>
         </div>
         <div className="d-flex align-items-center gap-2">
           <div className="btn-group btn-group-sm" role="group" aria-label="View mode">
@@ -313,13 +308,11 @@ export function ScheduleWorkspace({
             aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>Filters{Object.values(model.filters).some(Boolean) ? ' •' : ''}</button>
         </div>
       </div>
-      <div className="schedule-body-card">{model.view === 'list' && <ListHeader />}{toolbar}
+      <div className="schedule-body-card">{toolbar}
         {model.loading ? <div className="p-5 text-center bg-white rounded-4 border shadow-sm my-3 et-schedule-state" role="status">
           <div className="spinner-border text-primary mx-auto mb-2" role="status" /><p className="text-muted mb-0">Loading schedule…</p></div> :
           model.error ? <div className="et-schedule-state et-schedule-error" role="alert"><p>{model.error}</p>
             <button type="button" className="btn btn-sm btn-outline-danger" onClick={model.retry}>Retry</button></div> : <>
-          {displayedSessions.length === 0 && <div className="et-schedule-state" role="status"><strong>No schedule available</strong>
-            <p>{model.sessions.length ? 'No sessions match the filters.' : 'No sessions scheduled for the selected week.'}</p></div>}
           {model.view === 'calendar' ? <ScheduleCalendar sessions={displayedSessions} monday={model.monday} now={model.now} onOpen={model.open}
             partner={role === 'teacher' ? 'ta' : 'teacher'} /> :
             <ScheduleList sessions={displayedSessions} now={model.now} role={role}

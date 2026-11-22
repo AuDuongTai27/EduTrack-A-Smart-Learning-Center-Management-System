@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
   RequestListHeader,
-  RequestPagination,
   RequestTable,
 } from "../../../components/teacher/TeachingAssistant/request";
 import teachingDAL from "../../../../DAL/teachingDAL";
@@ -59,10 +58,10 @@ export default function TeachingAssistantRequestPage() {
     <>
       {/* Page Header Title & Breadcrumb */}
       <PageHeader
-        title="Submitted Requests"
+        title="Teaching Assistant Requests"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Teaching Assistant Requests" },
+          { label: "Requests" },
         ]}
       />
 

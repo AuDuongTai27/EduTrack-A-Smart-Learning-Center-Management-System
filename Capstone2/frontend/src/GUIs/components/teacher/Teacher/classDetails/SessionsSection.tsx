@@ -38,7 +38,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-calendar-week-fill text-primary fs-5" />
           <h4 className="class-list-title mb-0">
-            Class Sessions Schedule ({sessions.length > 0 ? sessions.length : 3})
+            Class Sessions Schedule ({sessions.length})
           </h4>
         </div>
         <i className="bi bi-chevron-down details-chevron text-muted" />

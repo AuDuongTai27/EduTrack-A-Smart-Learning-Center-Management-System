@@ -21,9 +21,9 @@ export default function TeachingDashboardNotifications() {
   const unreadQuick = quick.filter(n => !n.isRead);
   return <section className="ntf-scope ntf-dashboard ntf-teaching-dashboard card dashboard-card d-flex flex-column" aria-label="Recent Notifications">
     <div className="card-header dashboard-card-header d-flex align-items-center justify-content-between gap-2">
-      <div><h5 className="mb-1 d-flex align-items-center gap-2 flex-wrap"><i className="bi bi-bell academy-panel-icon" aria-hidden="true" /><span>New Notifications</span>
+      <div><h5 className="mb-0 d-flex align-items-center gap-2 flex-wrap"><i className="bi bi-bell academy-panel-icon" aria-hidden="true" /><span>New Notifications</span>
         <span className="badge bg-danger rounded-pill px-2 py-1 small fw-semibold" aria-label="Unread notifications count">{data ? data.unreadCount : '—'} new</span>
-      </h5><small className="text-muted">Recent notifications from EduTrack Center</small></div>
+      </h5></div>
       <Link to={basePath} className="dashboard-view-all academy-dashboard-link">View All <i className="bi bi-arrow-right" aria-hidden="true" /></Link>
     </div>
     <div className="card-body dashboard-card-body">
@@ -42,7 +42,7 @@ export default function TeachingDashboardNotifications() {
               </div>
               <p className="mb-1 text-muted small ntf-clamp">{n.content}</p>
               <div className="ntf-teaching-meta d-flex align-items-center flex-wrap gap-2 text-muted small">
-                <span className="fw-medium text-secondary">{n.senderName || 'No sender information'}</span>
+                <span className="fw-medium text-secondary">{n.senderName || 'EduTrack System'}</span>
                 <span aria-hidden="true">•</span><time dateTime={n.createdAt}>{notificationTime(n.createdAt)}</time>
               </div>
             </div>

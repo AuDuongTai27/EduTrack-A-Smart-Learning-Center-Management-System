@@ -14,11 +14,17 @@ export default function RequestPagination({
   rowsPerPage = 10,
   onPageChange,
 }: RequestPaginationProps) {
+  if (totalItems === 0) return null;
+
   const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
+  const startItem = (currentPage - 1) * rowsPerPage + 1;
+  const endItem = Math.min(currentPage * rowsPerPage, totalItems);
 
   return (
     <div className="table-pagination-footer d-flex align-items-center justify-content-between p-3 border-top flex-wrap gap-2">
-      <span className="small text-muted">Showing {totalItems} requests</span>
+      <span className="small text-muted">
+        Showing {startItem}–{endItem} of {totalItems} requests
+      </span>
 
       <div className="d-flex align-items-center gap-2">
         <button

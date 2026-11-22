@@ -5,6 +5,7 @@ export interface AttendanceTableProps {
   students?: TeachingStudentAttendanceItemDto[];
   onStatusChange?: (studentId: number, status: string) => void;
   onNoteChange?: (studentId: number, note: string) => void;
+  disabled?: boolean;
   // Backward compatibility
   attendances?: any[];
 }
@@ -13,6 +14,7 @@ export function AttendanceTable({
   students = [],
   onStatusChange,
   onNoteChange,
+  disabled = false,
 }: AttendanceTableProps) {
   const getInitials = (name?: string) => {
     if (!name) return "ST";
@@ -48,11 +50,10 @@ export function AttendanceTable({
         <thead className="table-light">
           <tr>
             <th style={{ width: "50px" }} className="text-center">No.</th>
-            <th style={{ width: "70px" }}>Photo</th>
-            <th>Student Name</th>
-            <th style={{ minWidth: "320px" }}>Attendance Status</th>
+            <th><span style={{ marginLeft: "36px" }}>Student Name</span></th>
+            <th style={{ minWidth: "300px" }}>Attendance Status</th>
             <th style={{ minWidth: "220px" }}>Attendance Notes</th>
-            <th style={{ width: "120px" }} className="text-center">Status</th>
+            <th style={{ width: "110px" }} className="text-center">Record</th>
           </tr>
         </thead>
         <tbody>
@@ -65,48 +66,44 @@ export function AttendanceTable({
                 {/* STT */}
                 <td className="text-center text-muted fw-semibold">{idx + 1}</td>
 
-                {/* Avatar */}
+                {/* Avatar + Name */}
                 <td>
-                  {st.avatarUrl && st.avatarUrl !== "/assets/img/profiles/avatar-27.jpg" ? (
-                    <img
-                      src={st.avatarUrl}
-                      alt={st.fullName}
-                      className="rounded-circle border"
-                      style={{ width: "36px", height: "36px", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <div className={`ta-avatar-initials avatar-initials-sm ${getAvatarClass(idx)}`}>
-                      {getInitials(st.fullName)}
-                    </div>
-                  )}
-                </td>
-
-                {/* Name & Code */}
-                <td>
-                  <div className="fw-semibold text-dark">{st.fullName}</div>
-                  <small className="badge bg-secondary-subtle text-secondary fw-normal">
-                    #{st.studentCode}
-                  </small>
+                  <div className="d-flex align-items-center gap-2">
+                    {st.avatarUrl && st.avatarUrl !== "/assets/img/profiles/avatar-27.jpg" ? (
+                      <img
+                        src={st.avatarUrl}
+                        alt={st.fullName}
+                        className="rounded-circle border flex-shrink-0"
+                        style={{ width: "28px", height: "28px", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div className={`ta-avatar-initials flex-shrink-0 ${getAvatarClass(idx)}`}>
+                        {getInitials(st.fullName)}
+                      </div>
+                    )}
+                    <span className="fw-semibold text-dark">{st.fullName}</span>
+                  </div>
                 </td>
 
                 {/* Status Radio Buttons */}
                 <td>
-                  <div className="d-flex align-items-center gap-3 flex-wrap">
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
                     {/* Có mặt */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2 py-1 ${
                         currentStatus === "present"
                           ? "btn-success text-white shadow-sm fw-bold"
                           : "btn-outline-secondary"
-                      }`}
-                      style={{ cursor: "pointer" }}
+                      } ${disabled ? "opacity-50" : ""}`}
+                      style={{ cursor: disabled ? "not-allowed" : "pointer" }}
                     >
                       <input
                         type="radio"
                         className="d-none"
                         name={radioName}
                         checked={currentStatus === "present"}
-                        onChange={() => onStatusChange && onStatusChange(st.studentId, "present")}
+                        disabled={disabled}
+                        onChange={() => !disabled && onStatusChange && onStatusChange(st.studentId, "present")}
                       />
                       <i className="bi bi-check-circle-fill" />
                       <span>Present</span>
@@ -114,19 +111,20 @@ export function AttendanceTable({
 
                     {/* Đi muộn */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2 py-1 ${
                         currentStatus === "late"
                           ? "btn-warning text-dark shadow-sm fw-bold"
                           : "btn-outline-secondary"
-                      }`}
-                      style={{ cursor: "pointer" }}
+                      } ${disabled ? "opacity-50" : ""}`}
+                      style={{ cursor: disabled ? "not-allowed" : "pointer" }}
                     >
                       <input
                         type="radio"
                         className="d-none"
                         name={radioName}
                         checked={currentStatus === "late"}
-                        onChange={() => onStatusChange && onStatusChange(st.studentId, "late")}
+                        disabled={disabled}
+                        onChange={() => !disabled && onStatusChange && onStatusChange(st.studentId, "late")}
                       />
                       <i className="bi bi-clock-history" />
                       <span>Late</span>
@@ -134,19 +132,20 @@ export function AttendanceTable({
 
                     {/* Vắng */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2 py-1 ${
                         currentStatus === "absent"
                           ? "btn-danger text-white shadow-sm fw-bold"
                           : "btn-outline-secondary"
-                      }`}
-                      style={{ cursor: "pointer" }}
+                      } ${disabled ? "opacity-50" : ""}`}
+                      style={{ cursor: disabled ? "not-allowed" : "pointer" }}
                     >
                       <input
                         type="radio"
                         className="d-none"
                         name={radioName}
                         checked={currentStatus === "absent"}
-                        onChange={() => onStatusChange && onStatusChange(st.studentId, "absent")}
+                        disabled={disabled}
+                        onChange={() => !disabled && onStatusChange && onStatusChange(st.studentId, "absent")}
                       />
                       <i className="bi bi-x-circle-fill" />
                       <span>Absent</span>
@@ -154,19 +153,20 @@ export function AttendanceTable({
 
                     {/* Có phép */}
                     <label
-                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2.5 py-1 ${
+                      className={`btn btn-sm d-inline-flex align-items-center gap-2 px-2 py-1 ${
                         currentStatus === "excused" || currentStatus === "excuse"
                           ? "btn-info text-dark shadow-sm fw-bold"
                           : "btn-outline-secondary"
-                      }`}
-                      style={{ cursor: "pointer" }}
+                      } ${disabled ? "opacity-50" : ""}`}
+                      style={{ cursor: disabled ? "not-allowed" : "pointer" }}
                     >
                       <input
                         type="radio"
                         className="d-none"
                         name={radioName}
                         checked={currentStatus === "excused" || currentStatus === "excuse"}
-                        onChange={() => onStatusChange && onStatusChange(st.studentId, "excused")}
+                        disabled={disabled}
+                        onChange={() => !disabled && onStatusChange && onStatusChange(st.studentId, "excused")}
                       />
                       <i className="bi bi-shield-check" />
                       <span>Excused</span>
@@ -181,6 +181,7 @@ export function AttendanceTable({
                     className="form-control form-control-sm"
                     placeholder="Reason for late/absence, learning attitude..."
                     value={st.note || ""}
+                    disabled={disabled}
                     onChange={(e) => onNoteChange && onNoteChange(st.studentId, e.target.value)}
                   />
                 </td>

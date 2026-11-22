@@ -6,16 +6,16 @@ export interface EditRequestModalProps {
   isOpen: boolean;
   request: ApprovalRequestDto | null;
   onClose: () => void;
+  onCancel?: () => void;
   onRequestUpdated?: (updatedRequest: ApprovalRequestDto) => void;
-  userRoleName?: string;
 }
 
 export default function EditRequestModal({
   isOpen,
   request,
   onClose,
+  onCancel,
   onRequestUpdated,
-  userRoleName = 'Teacher',
 }: EditRequestModalProps) {
   const [requestType, setRequestType] = useState('leave_request');
   const [priority, setPriority] = useState('medium');
@@ -42,6 +42,16 @@ export default function EditRequestModal({
     if (isSubmitting) return;
     setErrorMsg(null);
     onClose();
+  };
+
+  const handleCancel = () => {
+    if (isSubmitting) return;
+    setErrorMsg(null);
+    if (onCancel) {
+      onCancel();
+    } else {
+      onClose();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,7 +107,7 @@ export default function EditRequestModal({
           <div className="modal-content shadow border-0 rounded-3">
             <div className="modal-header border-bottom py-3 px-4">
               <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="editRequestModalTitle">
-                <i className="bi bi-pencil-square text-warning fs-5" />
+                <i className="bi bi-pencil-square text-primary fs-5" />
                 <span>Edit Request #{request.requestCode || request.requestId}</span>
               </h5>
               <button
@@ -111,14 +121,6 @@ export default function EditRequestModal({
 
             <form onSubmit={handleSubmit}>
               <div className="modal-body p-4">
-                {/* Status Notice */}
-                <div className="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-                  <i className="bi bi-info-circle-fill fs-6 text-info flex-shrink-0" />
-                  <div>
-                    The request is currently <strong>Pending Review</strong> (not yet claimed by a reviewer). You can edit the details below.
-                  </div>
-                </div>
-
                 {errorMsg && (
                   <div className="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
                     <i className="bi bi-exclamation-triangle-fill text-danger flex-shrink-0" />
@@ -140,10 +142,10 @@ export default function EditRequestModal({
                       disabled={isSubmitting}
                     >
                       <option value="leave_request">Leave Request / Absence</option>
-                      <option value="schedule_change">Teaching / Duty Schedule Change</option>
-                      <option value="facility_request">Equipment &amp; Room Request</option>
-                      <option value="teaching_support">Teaching Support Proposal</option>
-                      <option value="other">Other Feedback / Proposal</option>
+                      <option value="schedule_change">Schedule Change</option>
+                      <option value="facility_request">Facility / Equipment</option>
+                      <option value="teaching_support">Teaching Support</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
 
@@ -158,9 +160,9 @@ export default function EditRequestModal({
                       onChange={(e) => setPriority(e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="low">Low (Non-urgent)</option>
+                      <option value="low">Low</option>
                       <option value="medium">Medium</option>
-                      <option value="high">High (Urgent)</option>
+                      <option value="high">High</option>
                     </select>
                   </div>
                 </div>
@@ -204,23 +206,23 @@ export default function EditRequestModal({
                 </div>
               </div>
 
-              <div className="modal-footer border-top py-2 px-4 bg-light">
+              <div className="modal-footer border-top py-2 px-4 d-flex justify-content-end gap-2 bg-light rounded-bottom-3">
                 <button
                   type="button"
-                  className="btn btn-sm btn-outline-secondary"
-                  onClick={handleClose}
+                  className="btn btn-outline-secondary btn-sm px-3"
+                  onClick={handleCancel}
                   disabled={isSubmitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm btn-warning d-inline-flex align-items-center gap-2 text-dark fw-semibold"
+                  className="btn btn-primary btn-sm px-3 d-inline-flex align-items-center gap-1"
                   disabled={!isFormValid || isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                      <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" />
                       <span>Saving...</span>
                     </>
                   ) : (

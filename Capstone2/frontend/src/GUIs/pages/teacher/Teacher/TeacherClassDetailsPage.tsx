@@ -96,15 +96,13 @@ export default function TeacherClassDetailsPage() {
                     {/* Class Header */}
                     <ClassInfoCard
                         classInfo={classInfo}
-                        teacherName="ThS. Hoàng Quốc Việt"
-                        taName="Âu Dương Tài"
+                        teacherName={classInfo?.teacherName || "MSc. Hoang Quoc Viet"}
+                        taName={classInfo?.taName || classInfo?.partnerName || "Au Duong Tai"}
                     />
                     {/* Participant List */}
                     <ParticipantsSection
                         classId={targetClassId}
                         participants={students}
-                        teacherName="ThS. Hoàng Quốc Việt"
-                        taName="Âu Dương Tài"
                     />
                     {/* Sessions List */}
                     <SessionsSection classId={targetClassId} />

@@ -28,7 +28,7 @@ export function AttendanceListToolbar({
 }: AttendanceListToolbarProps) {
   return (
     <div className="p-3 bg-light border-bottom">
-      <div className="row g-3 align-items-center">
+      <div className="row g-3 align-items-end">
         {/* Session Selector */}
         <div className="col-md-5 col-lg-4">
           <label className="form-label small fw-bold text-dark mb-1" htmlFor="sessionSelect">
@@ -84,7 +84,7 @@ export function AttendanceListToolbar({
           {onMarkAllPresent && (
             <button
               type="button"
-              className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1.5 shadow-sm"
+              className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-2 shadow-sm"
               title={canMarkAll ? "Mark all students present" : "Attendance is only available from session start until 2 hours after session end"}
               onClick={canMarkAll ? onMarkAllPresent : undefined}
               disabled={!canMarkAll}
@@ -100,19 +100,19 @@ export function AttendanceListToolbar({
       {stats && (
         <div className="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top">
           <span className="small text-muted fw-semibold me-1">Attendance status:</span>
-          <span className="badge bg-success text-white px-2.5 py-1">
+          <span className="badge bg-success text-white px-2 py-1">
             <i className="bi bi-check-circle me-1" />
             Present: {stats.presentCount}
           </span>
-          <span className="badge bg-warning text-dark px-2.5 py-1">
+          <span className="badge bg-warning text-dark px-2 py-1">
             <i className="bi bi-clock-history me-1" />
             Late: {stats.lateCount}
           </span>
-          <span className="badge bg-danger text-white px-2.5 py-1">
+          <span className="badge bg-danger text-white px-2 py-1">
             <i className="bi bi-x-circle me-1" />
             Absent: {stats.absentCount}
           </span>
-          <span className="badge bg-info text-dark px-2.5 py-1">
+          <span className="badge bg-info text-dark px-2 py-1">
             <i className="bi bi-shield-check me-1" />
             Excused: {stats.excusedCount}
           </span>

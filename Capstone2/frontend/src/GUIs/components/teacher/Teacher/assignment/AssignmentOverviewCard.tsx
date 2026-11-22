@@ -124,56 +124,46 @@ function AssignmentOverviewCard({
       <div className="card class-list-card border-0 mb-4 shadow-sm">
         <div className="card-body p-4">
           {/* Header Top Row */}
-          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div className="d-flex align-items-start justify-content-between flex-wrap gap-3">
             <div>
-              <span className="badge bg-primary-subtle text-primary fw-medium mb-2 px-2.5 py-1">
+              <span className="badge bg-primary-subtle text-primary fw-medium mb-2 px-2 py-1">
                 {displayClass}
               </span>
               <h3 className="mb-1 text-dark fw-bold">
                 {title}
               </h3>
-              <p className="text-muted mb-0 small">
+              <p className="text-muted mb-2 small">
                 {description}
               </p>
+              <div className="d-flex align-items-center gap-2 text-muted small flex-wrap" style={{ fontSize: "13px" }}>
+                <span className="d-inline-flex align-items-center gap-1 text-danger fw-medium">
+                  <i className="bi bi-clock" />
+                  Due: {deadline}
+                </span>
+                <span>&middot;</span>
+                <span className="d-inline-flex align-items-center gap-1 text-success fw-semibold">
+                  <i className="bi bi-award" />
+                  Max score: {assignment?.maxScore ?? 10} pts
+                </span>
+              </div>
             </div>
-            <div className="d-flex align-items-center gap-3 flex-wrap">
-              <div className="bg-light p-2.5 px-3 rounded border">
-                <small className="text-muted d-block fw-semibold meta-label-xs">CREATION DATE</small>
-                <span className="fw-semibold text-dark">
-                  <i className="bi bi-calendar-event me-1 text-primary" />
-                  {assignment?.createdAt || "Aug 04, 2026"}
-                </span>
-              </div>
-              <div className="bg-light p-2.5 px-3 rounded border">
-                <small className="text-muted d-block fw-semibold meta-label-xs">DEADLINE</small>
-                <span className="fw-semibold text-danger">
-                  <i className="bi bi-clock-history me-1" />
-                  {deadline}
-                </span>
-              </div>
-              <div className="bg-light p-2.5 px-3 rounded border">
-                <small className="text-muted d-block fw-semibold meta-label-xs">MAX SCORE</small>
-                <span className="fw-bold text-success">
-                  <i className="bi bi-award me-1" />
-                  {assignment?.maxScore ?? 10} pts
-                </span>
-              </div>
-              <div className="d-flex align-items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(true)}
-                  className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 shadow-sm"
-                >
-                  <i className="bi bi-pencil" /> Modify
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteModal(true)}
-                  className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 shadow-sm"
-                >
-                  <i className="bi bi-trash" /> Delete
-                </button>
-              </div>
+            <div className="d-flex align-items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(true)}
+                className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-2 px-3"
+              >
+                <i className="bi bi-pencil" /> Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center rounded-2 px-2"
+                title="Delete assignment"
+                aria-label="Delete assignment"
+              >
+                <i className="bi bi-trash" />
+              </button>
             </div>
           </div>
 

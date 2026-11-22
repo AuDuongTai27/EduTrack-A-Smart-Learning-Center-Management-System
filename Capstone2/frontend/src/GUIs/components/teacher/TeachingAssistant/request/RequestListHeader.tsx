@@ -29,8 +29,7 @@ export default function RequestListHeader({
     <>
       <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
         <div>
-          <h4 className="class-list-title mb-1">Teaching Assistant Requests &amp; Proposals</h4>
-          <small className="text-muted">Submit and manage duty leave requests, class support proposals</small>
+          <h4 className="class-list-title mb-0">Requests List</h4>
         </div>
 
         <div className="d-flex align-items-center gap-2 flex-wrap position-relative">
@@ -63,7 +62,7 @@ export default function RequestListHeader({
                 className="dropdown-menu dropdown-menu-end show p-3 shadow border-0"
                 style={{ minWidth: 200, zIndex: 1050, position: "absolute", right: 0 }}
               >
-                <label className="form-label small fw-bold mb-2">Filter by status:</label>
+                <label className="form-label small fw-bold mb-2">Filter by Status:</label>
                 <div className="d-flex flex-column gap-1">
                   <button
                     type="button"
@@ -73,7 +72,7 @@ export default function RequestListHeader({
                       setFilterOpen(false);
                     }}
                   >
-                    All requests
+                    All Requests
                   </button>
                   <button
                     type="button"

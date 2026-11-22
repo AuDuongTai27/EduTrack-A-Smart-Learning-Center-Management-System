@@ -91,13 +91,9 @@ export default function TeacherDashboardPage() {
 
   return (
     <div className="teaching-dashboard">
-      {/* Breadcrumb & Page Title */}
+      {/* Page Title */}
       <PageHeader
         title="Teacher Dashboard"
-        breadcrumbItems={[
-          { label: "Dashboard", path: "/teacher/dashboard" },
-          { label: "Teaching Overview" },
-        ]}
       />
 
       {/* Greeting section */}

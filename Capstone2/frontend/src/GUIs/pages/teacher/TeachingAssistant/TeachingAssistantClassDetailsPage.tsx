@@ -68,7 +68,7 @@ export default function TeachingAssistantClassDetailsPage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title={classInfo ? `${classInfo.className} (Class Details)` : `Class Details #${targetClassId}`}
+        title={classInfo ? classInfo.className : `Class #${targetClassId}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },
@@ -96,15 +96,13 @@ export default function TeachingAssistantClassDetailsPage() {
           {/* Class Header */}
           <ClassInfoCard
             classInfo={classInfo}
-            teacherName="ThS. Hoàng Quốc Việt"
-            taName="Âu Dương Tài"
+            teacherName={classInfo?.teacherName || "MSc. Hoang Quoc Viet"}
+            taName={classInfo?.taName || classInfo?.partnerName || "Au Duong Tai"}
           />
           {/* Participant List */}
           <ParticipantsSection
             classId={targetClassId}
             participants={students}
-            teacherName="ThS. Hoàng Quốc Việt"
-            taName="Âu Dương Tài"
             baseRolePath="/teaching-assistant"
           />
           {/* Sessions List */}

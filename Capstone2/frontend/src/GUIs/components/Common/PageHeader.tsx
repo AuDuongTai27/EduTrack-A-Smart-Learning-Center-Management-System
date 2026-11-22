@@ -8,7 +8,7 @@ interface BreadcrumbItem {
 
 interface PageHeaderProps {
   title: string;
-  breadcrumbItems: BreadcrumbItem[];
+  breadcrumbItems?: BreadcrumbItem[];
   action?: ReactNode;
 }
 
@@ -17,12 +17,13 @@ export default function PageHeader({
   breadcrumbItems,
   action,
 }: PageHeaderProps) {
+  const hasBreadcrumbs = Boolean(breadcrumbItems && breadcrumbItems.length > 0);
   return (
     <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
       <div className="my-auto mb-2">
-        <h3 className="page-title mb-1 fw-bold">{title}</h3>
+        <h3 className={`page-title ${hasBreadcrumbs ? "mb-1" : "mb-0"} fw-bold`}>{title}</h3>
 
-        <Breadcrumb items={breadcrumbItems} />
+        {hasBreadcrumbs && <Breadcrumb items={breadcrumbItems!} />}
       </div>
 
       {action && <div className="mb-2">{action}</div>}

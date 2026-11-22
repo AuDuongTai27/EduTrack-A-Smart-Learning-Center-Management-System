@@ -15,7 +15,7 @@ export function ClassListTable({
       <table className="table custom-table align-middle mb-0" id="taClassesTable">
         <thead>
           <tr>
-            <th>Class Code &amp; Name</th>
+            <th>Class</th>
             <th>Subject</th>
             <th>Room</th>
             <th>Main Teacher</th>
@@ -33,24 +33,11 @@ export function ClassListTable({
                 cls.status === "open";
               const teacherName =
                 item.teacherName || item.partnerName || "MSc. Hoàng Quốc Việt";
-              const teacherInitials =
-                teacherName
-                  .split(" ")
-                  .map((w: string) => w[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(-2) || "T";
 
               return (
                 <tr key={cls.classId}>
                   <td>
-                    <Link
-                      to={`/teaching-assistant/classes/${cls.classId}`}
-                      className="fw-bold text-dark text-decoration-none"
-                    >
-                      {cls.className}
-                    </Link>
-                    <small className="text-muted d-block">Class ID: #{cls.classId}</small>
+                    <span className="fw-bold text-dark">{cls.className}</span>
                   </td>
                   <td>
                     <span className="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill">
@@ -64,20 +51,7 @@ export function ClassListTable({
                     </span>
                   </td>
                   <td>
-                    <div className="d-flex align-items-center gap-2">
-                      <div
-                        className="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center"
-                        style={{
-                          width: "28px",
-                          height: "28px",
-                          fontSize: "12px",
-                          border: "1px solid #dee2e6",
-                        }}
-                      >
-                        {teacherInitials}
-                      </div>
-                      <span className="small">{teacherName}</span>
-                    </div>
+                    <span className="small text-dark">{teacherName}</span>
                   </td>
                   <td>
                     <span

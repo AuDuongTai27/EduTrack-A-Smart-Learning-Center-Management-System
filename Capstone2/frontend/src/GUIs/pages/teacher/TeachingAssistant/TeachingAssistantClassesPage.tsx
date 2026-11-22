@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
-  ClassListHeader,
   ClassListPagination,
   ClassListTable,
   ClassListToolbar,
@@ -90,7 +89,7 @@ export default function TeachingAssistantClassesPage() {
         title="My Teaching Assistant Classes"
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
-          { label: "Class List" },
+          { label: "My Classes" },
         ]}
       />
 
@@ -103,9 +102,6 @@ export default function TeachingAssistantClassesPage() {
 
       {/* Class list section */}
       <div className="card class-list-card border-0 mb-4 shadow-sm">
-        {/* Card Header */}
-        <ClassListHeader />
-
         {/* Toolbar */}
         <ClassListToolbar
           searchTerm={searchTerm}

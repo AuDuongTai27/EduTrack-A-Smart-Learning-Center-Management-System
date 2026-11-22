@@ -1,4 +1,4 @@
-﻿/* Teacher/TA composition. Shared academy chrome, waves, surfaces and tokens live
+/* Teacher/TA composition. Shared academy chrome, waves, surfaces and tokens live
    in center-manager-academy.css; every addition here is explicitly teaching-scoped. */
 .teacher-scope.teaching-academy { --page-bg: #f7faf8; --text-dark: #142238; --sidebar-border: #dcebe3; --topbar-border: #dcebe3; color: #142238; }
 .teacher-scope.teaching-academy .sidebar { background: linear-gradient(175deg, #fff 35%, #f2faf6 100%); }
@@ -33,7 +33,7 @@
 .teacher-scope.teaching-academy .teaching-dashboard .dashboard-card { margin-bottom: 0; border: 1px solid #dcebe3; border-radius: 14px; box-shadow: 0 4px 16px #14223805; background: linear-gradient(180deg, #fff 55%, #f9fcfa); overflow: hidden; }
 .teacher-scope.teaching-academy .teaching-dashboard .dashboard-card-header { min-height: 88px; padding: 16px 20px; border-bottom: 1px solid #e4eee8; background: #fff; gap: 12px; }
 .teaching-academy .dashboard-card-header > div { min-width: 0; }
-.teacher-scope.teaching-academy .teaching-dashboard .dashboard-card-header h5 { display: flex; align-items: center; gap: 10px; color: #142238; font-size: 14px; line-height: 1.5; font-weight: 650 !important; }
+.teacher-scope.teaching-academy .teaching-dashboard .dashboard-card-header h5 { display: flex; align-items: center; gap: 10px; color: #142238; font-size: 17px; line-height: 1.35; font-weight: 650 !important; }
 .teacher-scope.teaching-academy .teaching-dashboard .dashboard-card-header small { display: block; margin: 4px 0 0 42px; font-size: 12px; line-height: 1.5; color: #64748b; }
 .teaching-academy .academy-panel-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9px; color: #078444; background: #eaf8f1; flex-shrink: 0; font-size: 16px; }
 .teacher-scope.teaching-academy .teaching-dashboard .academy-dashboard-link { flex-shrink: 0; white-space: nowrap; }

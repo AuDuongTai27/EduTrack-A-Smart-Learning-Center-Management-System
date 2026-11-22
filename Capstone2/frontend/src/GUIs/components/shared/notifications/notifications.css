@@ -189,6 +189,12 @@
 .ntf-page .ntf-list-button[aria-pressed=true] {
   background:var(--et-mint)
 }
+.ntf-page .ntf-list-button .ntf-clamp {
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
 .ntf-page label {
   display:grid;
   gap:5px
