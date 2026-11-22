@@ -88,18 +88,11 @@ export function TodayClassesSection({
     container.scrollTop = firstActive.offsetTop - container.offsetTop;
   }, [displayClasses, firstActiveIndex]);
 
-  const todayFormatted = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
-
   return (
     <div className="card dashboard-card teaching-today-card">
       <div className="card-header dashboard-card-header d-flex align-items-center justify-content-between">
         <div>
           <h5 className="mb-0 fw-bold"><i className="bi bi-calendar-week academy-panel-icon" aria-hidden="true" />Today's Classes</h5>
-          <small className="text-muted">{todayFormatted}</small>
         </div>
         <Link
           to="/teaching-assistant/schedule"

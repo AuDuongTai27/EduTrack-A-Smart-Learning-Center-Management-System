@@ -22,11 +22,12 @@ export function ScheduleSessionCard({session: s, topPx, heightPx, isCompact, sta
     title={s.className + ' — ' + s.subject + ' (' + fmtTime(s.startH, s.startM) + '—' + fmtTime(s.endH, s.endM) + ')'}>
     <div className="session-card-time">{fmtTime(s.startH, s.startM)} — {fmtTime(s.endH, s.endM)}</div>
     <div className="session-card-title">{s.className} — {s.subject}</div>
-    {!isCompact && <div className="session-card-footer"><div className="session-card-teacher">
-      {(!s.actual || s.initials) && <div className="session-teacher-avatar" style={{backgroundColor: s.avatarBg}}>{s.initials}</div>}
-      <span>{s.staffLabel ? s.staffLabel + ': ' : ''}{s.teacher}</span></div>
-      <div className="session-card-room">{s.room}</div></div>}
-    {s.actual && <span className="session-card-state">{s.statusLabel}</span>}
+    {!isCompact && <div className="session-card-footer">
+      <div className="session-card-teacher">
+        <span>{s.staffLabel ? s.staffLabel + ': ' : ''}{s.teacher}</span>
+      </div>
+      <div className="session-card-room">{s.room}</div>
+    </div>}
   </div>;
 }
 export default ScheduleSessionCard;

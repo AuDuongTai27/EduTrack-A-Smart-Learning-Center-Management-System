@@ -54,7 +54,6 @@ export function StudentClassesPage() {
         {/* Page Header */}
         <StudentPageHeader
           title="My Classes"
-          subtitle="All classes you are enrolled in this semester"
           breadcrumbs={[
             { label: 'Home', href: '/student/dashboard' },
             { label: 'My Classes' },

@@ -29,8 +29,7 @@ export default function RequestListHeader({
     <>
       <div className="class-list-header d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 border-bottom">
         <div>
-          <h4 className="class-list-title mb-1">Requests List</h4>
-          <small className="text-muted">Track approval status of leave requests, schedule changes, and equipment requests</small>
+          <h4 className="class-list-title mb-0">Requests List</h4>
         </div>
 
         <div className="d-flex align-items-center gap-2 flex-wrap position-relative">
@@ -166,7 +165,7 @@ export default function RequestListHeader({
             onClick={() => setIsModalOpen(true)}
           >
             <i className="bi bi-plus-lg" />
-            <span>Create New Request</span>
+            <span>Create Request</span>
           </button>
         </div>
       </div>

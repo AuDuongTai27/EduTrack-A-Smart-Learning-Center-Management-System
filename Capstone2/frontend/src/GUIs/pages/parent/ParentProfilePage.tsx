@@ -124,10 +124,7 @@ export function ParentProfilePage() {
         {/* Header */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="page-title mb-1">Parent Profile</h1>
-            <p className="page-subtitle text-muted mb-0">
-              Manage contact information and linked student profiles
-            </p>
+            <h1 className="page-title mb-0">Parent Profile</h1>
           </div>
 
           <div className="d-flex align-items-center gap-2">

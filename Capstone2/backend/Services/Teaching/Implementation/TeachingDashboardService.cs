@@ -276,15 +276,28 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     CreatedAt = n.CreatedAt
                 }).ToList();
 
-            // Số buổi học trong các lớp phụ trách chưa được điểm danh (session_date <= today và chưa có bản ghi attendance)
+            // Only count unrecorded sessions currently within the take-attendance window (start time -> end time + 2 hours)
             int pendingAttendanceCount = 0;
             if (classIds.Count > 0)
             {
-                pendingAttendanceCount = await _context.ClassSessions
+                var candidateSessions = await _context.ClassSessions
                     .AsNoTracking()
-                    .Where(cs => classIds.Contains(cs.ClassId) && cs.SessionDate.Date <= today && cs.Status != "cancelled")
+                    .Where(cs => classIds.Contains(cs.ClassId)
+                        && cs.SessionDate.Date >= today.AddDays(-1)
+                        && cs.SessionDate.Date <= today
+                        && cs.Status != "cancelled")
                     .Where(cs => !_context.Attendances.Any(a => a.SessionId == cs.SessionId))
-                    .CountAsync();
+                    .Select(cs => new { cs.SessionDate, cs.StartTime, cs.EndTime, cs.Status })
+                    .ToListAsync();
+
+                pendingAttendanceCount = candidateSessions.Count(s =>
+                {
+                    var sessionStartDateTime = s.SessionDate.Date.Add(s.StartTime);
+                    var sessionEndDateTime = s.SessionDate.Date.Add(s.EndTime);
+                    var attendanceDeadline = sessionEndDateTime.AddHours(2);
+                    bool hasStarted = s.Status == "completed" || s.Status == "in_progress" || vietnamNow >= sessionStartDateTime;
+                    return hasStarted && vietnamNow <= attendanceDeadline;
+                });
             }
 
             var kpis = new TeachingKpiSummaryDto

@@ -3,7 +3,7 @@ import { ScheduleWorkspace } from '../../components/shared/schedule/ScheduleWork
 
 export function StudentSchedulePage() {
   return <main className="main-content"><div className="content-container">
-    <StudentPageHeader title="Schedule" subtitle="Official class sessions under valid enrollments"
+    <StudentPageHeader title="Schedule"
       breadcrumbs={[{label: 'Home', href: '/student/dashboard'}, {label: 'Schedule'}]} />
     <ScheduleWorkspace />
   </div></main>;

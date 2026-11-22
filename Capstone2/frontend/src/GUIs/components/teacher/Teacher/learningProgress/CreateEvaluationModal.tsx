@@ -19,7 +19,6 @@ export default function CreateEvaluationModal({
   onClose,
   studentId,
   studentName,
-  studentCode,
   classId = 1,
   className = "Class 9A1 - Advanced Math",
   evaluatorName = "ThS. Hoàng Quốc Việt",
@@ -30,6 +29,7 @@ export default function CreateEvaluationModal({
   const [rating, setRating] = useState<"excellent" | "good" | "needs_improvement" | "concern">("good");
   const [content, setContent] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string>("");
+  const [contentError, setContentError] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   if (!isOpen) return null;
@@ -51,7 +51,7 @@ export default function CreateEvaluationModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) {
-      alert("Please enter individual evaluation content.");
+      setContentError("Please enter evaluation content.");
       return;
     }
 
@@ -72,6 +72,7 @@ export default function CreateEvaluationModal({
 
       setContent("");
       setSuggestions("");
+      setContentError("");
       onClose();
     } finally {
       setSubmitting(false);
@@ -87,21 +88,21 @@ export default function CreateEvaluationModal({
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
           {/* Modal Header */}
-          <div className="modal-header bg-primary text-white py-3 px-4">
-            <h5 className="modal-title d-flex align-items-center gap-2 fs-6 fw-bold mb-0">
-              <i className="bi bi-pencil-square" />
+          <div className="modal-header bg-white border-bottom py-3 px-4">
+            <h5 className="modal-title d-flex align-items-center gap-2 fs-6 fw-bold text-dark mb-0">
+              <i className="bi bi-pencil-square text-primary" />
               Create Student Evaluation
             </h5>
             <button
               type="button"
-              className="btn-close btn-close-white"
+              className="btn-close"
               onClick={onClose}
               aria-label="Close"
               disabled={submitting}
             />
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="modal-body p-4">
               {/* Student Target Summary Bar */}
               <div className="p-3 bg-light rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 border">
@@ -115,8 +116,7 @@ export default function CreateEvaluationModal({
                   <div>
                     <h6 className="mb-0 fw-bold text-dark">{studentName}</h6>
                     <small className="text-muted">
-                      Student ID: <strong className="text-primary">{studentCode}</strong> &bull; Class:{" "}
-                      <strong>{className}</strong>
+                      Class: <strong className="text-dark">{className}</strong>
                     </small>
                   </div>
                 </div>
@@ -130,13 +130,14 @@ export default function CreateEvaluationModal({
               </div>
 
               <div className="row g-3 mb-3">
-                {/* 1. Loại đánh giá */}
+                {/* Evaluation Aspect */}
                 <div className="col-md-6">
                   <label className="form-label small fw-bold text-dark mb-1">
-                    1. Evaluation Aspect <span className="text-danger">*</span>
+                    Evaluation Aspect <span className="text-danger">*</span>
                   </label>
                   <select
                     className="form-select form-select-sm"
+                    style={{ fontSize: "13.5px" }}
                     value={evaluationType}
                     onChange={(e) => setEvaluationType(e.target.value)}
                   >
@@ -145,18 +146,16 @@ export default function CreateEvaluationModal({
                     <option value="progress">Periodic Progress</option>
                     <option value="parent_note">Notes to Parents</option>
                   </select>
-                  <small className="text-muted" style={{ fontSize: "11px" }}>
-                    Independent evaluation, not dependent on assignment scores.
-                  </small>
                 </div>
 
-                {/* 2. Mức độ / Xếp loại */}
+                {/* Rating Level */}
                 <div className="col-md-6">
                   <label className="form-label small fw-bold text-dark mb-1">
-                    2. Rating Level <span className="text-danger">*</span>
+                    Rating Level <span className="text-danger">*</span>
                   </label>
                   <select
                     className="form-select form-select-sm"
+                    style={{ fontSize: "13.5px" }}
                     value={rating}
                     onChange={(e) => setRating(e.target.value as any)}
                   >
@@ -165,36 +164,39 @@ export default function CreateEvaluationModal({
                     <option value="needs_improvement">Needs Improvement</option>
                     <option value="concern">Needs Attention / Reminder</option>
                   </select>
-                  <small className="text-muted" style={{ fontSize: "11px" }}>
-                    Overall rating level for this period.
-                  </small>
                 </div>
               </div>
 
-              {/* 3. Nội dung nhận xét chi tiết */}
+              {/* Detailed Evaluation Content */}
               <div className="mb-3">
                 <label className="form-label small fw-bold text-dark mb-1">
-                  3. Detailed Evaluation Content <span className="text-danger">*</span>
+                  Detailed Evaluation Content <span className="text-danger">*</span>
                 </label>
                 <textarea
-                  className="form-control form-control-sm"
+                  className={`form-control form-control-sm ${contentError ? "is-invalid" : ""}`}
+                  style={{ fontSize: "13.5px" }}
                   rows={4}
-                  placeholder="Specific notes on concentration, comprehension, class participation, teamwork, or areas for improvement..."
+                  placeholder="Enter notes on focus, participation, and progress..."
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => {
+                    setContent(e.target.value);
+                    if (contentError) setContentError("");
+                  }}
                   required
                 />
+                {contentError && <div className="invalid-feedback">{contentError}</div>}
               </div>
 
-              {/* 4. Đề xuất cải thiện hoặc nhắn nhủ */}
-              <div className="mb-2">
+              {/* Recommendations / Remarks */}
+              <div className="mb-1">
                 <label className="form-label small fw-bold text-dark mb-1">
-                  4. Recommendations / Remarks (Optional)
+                  Recommendations / Remarks (Optional)
                 </label>
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  placeholder="E.g., Need to practice graphing skills, should review Vieta's formulas..."
+                  style={{ fontSize: "13.5px" }}
+                  placeholder="E.g., Review key concepts or practice exercises..."
                   value={suggestions}
                   onChange={(e) => setSuggestions(e.target.value)}
                 />
@@ -202,10 +204,10 @@ export default function CreateEvaluationModal({
             </div>
 
             {/* Modal Footer */}
-            <div className="modal-footer bg-light px-4 py-2.5">
+            <div className="modal-footer bg-light px-4 py-3">
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
+                className="btn btn-outline-secondary btn-sm px-3"
                 onClick={onClose}
                 disabled={submitting}
               >
@@ -213,7 +215,7 @@ export default function CreateEvaluationModal({
               </button>
               <button
                 type="submit"
-                className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 px-3"
+                className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 px-3"
                 disabled={submitting}
               >
                 {submitting ? (

@@ -39,7 +39,6 @@ export function ProgressPageHeader({
   return (
     <StudentPageHeader
       title="Learning Progress"
-      subtitle="Summary of attendance and feedback to date"
       breadcrumbs={[
         { label: 'Home', href: '/student/dashboard' },
         { label: 'Learning Progress' },

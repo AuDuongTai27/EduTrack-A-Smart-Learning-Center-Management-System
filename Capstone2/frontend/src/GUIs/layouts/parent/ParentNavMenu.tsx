@@ -33,6 +33,44 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
     };
   }, [targetStudentId, authUser?.userId]);
 
+  const sections = [
+    {
+      title: 'MAIN',
+      items: [{ to: '/parent/dashboard', icon: 'bi-grid-1x2', label: 'Dashboard' }],
+    },
+    {
+      title: 'ACADEMIC',
+      items: [
+        { to: '/parent/classes', icon: 'bi-collection', label: "Child's Classes" },
+        { to: '/parent/schedule', icon: 'bi-calendar-event', label: 'Schedule' },
+      ],
+    },
+    {
+      title: 'FINANCE',
+      items: [
+        {
+          to: '/parent/tuition',
+          icon: 'bi-credit-card',
+          label: 'Tuition',
+          badge: selectedChild && selectedChild.unpaidAmount > 0 ? 'Due' : null,
+          badgeClass: 'bg-danger text-white',
+        },
+      ],
+    },
+    {
+      title: 'COMMUNICATION',
+      items: [
+        {
+          to: '/parent/notifications',
+          icon: 'bi-bell',
+          label: 'Notifications',
+          badge: unreadCount > 0 ? unreadCount : null,
+        },
+        { to: '/parent/feedback', icon: 'bi-chat-dots', label: 'Feedback & Support' },
+      ],
+    },
+  ];
+
   return (
     <>
       {/* BỘ CHỌN LỌC HỌC SINH ĐẶT TẠI SIDEBAR */}
@@ -40,87 +78,33 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
 
       {/* MENU ĐIỀU HƯỚNG */}
       <nav className="sidebar-nav">
-        <div className="sidebar-nav-title">Parent Menu</div>
-        <ul className="sidebar-nav-list">
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/parent/dashboard"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-grid-1x2"></i></span>
-              <span className="nav-label">Dashboard</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/parent/classes"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-collection"></i></span>
-              <span className="nav-label">Child's Classes</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/parent/schedule"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-calendar-event"></i></span>
-              <span className="nav-label">Schedule</span>
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/parent/tuition"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-credit-card"></i></span>
-              <span className="nav-label">Tuition</span>
-              {selectedChild && selectedChild.unpaidAmount > 0 && (
-                <span className="sidebar-badge bg-danger text-white">Due</span>
-              )}
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/parent/notifications"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-bell"></i></span>
-              <span className="nav-label">Notifications</span>
-              {unreadCount > 0 && <span className="sidebar-badge">{unreadCount}</span>}
-            </NavLink>
-          </li>
-          <li className="sidebar-nav-item">
-            <NavLink
-              to="/parent/feedback"
-              onClick={onLinkClick}
-              className={({ isActive }) =>
-                `sidebar-nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              <span className="nav-icon"><i className="bi bi-chat-dots"></i></span>
-              <span className="nav-label">Feedback & Support</span>
-            </NavLink>
-          </li>
-        </ul>
+        {sections.map((section) => (
+          <React.Fragment key={section.title}>
+            <div className="sidebar-nav-title">{section.title}</div>
+            <ul className="sidebar-nav-list">
+              {section.items.map((item) => (
+                <li className="sidebar-nav-item" key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    onClick={onLinkClick}
+                    className={({ isActive }) =>
+                      `sidebar-nav-link ${isActive ? 'active' : ''}`
+                    }
+                  >
+                    <span className="nav-icon"><i className={`bi ${item.icon}`}></i></span>
+                    <span className="nav-label">{item.label}</span>
+                    {'badge' in item && item.badge !== null && item.badge !== undefined && (
+                      <span className={`sidebar-badge ${'badgeClass' in item && item.badgeClass ? item.badgeClass : ''}`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </React.Fragment>
+        ))}
       </nav>
-
     </>
   );
 }

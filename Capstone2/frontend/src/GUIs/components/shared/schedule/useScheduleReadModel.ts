@@ -14,9 +14,9 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
   const [filters, setFilters] = useState<ScheduleFilters>(emptyScheduleFilters);
   const [sort, setSort] = useState(role === 'teacher' ? 'className:asc' : 'dayOfWeek:asc');
   const [requestedPage, setPage] = useState(1);
-  const [selection, setSelection] = useState<{id: number; key: string; actor: typeof selectedUserKey} | null>(null);
+  const [selection, setSelection] = useState<{id: number; monday: string; actor: typeof selectedUserKey} | null>(null);
   const [retry, setRetry] = useState(0);
-  const [result, setResult] = useState<{key: string; actor: typeof selectedUserKey; sessions: ScheduleSession[]; error: string | null} | null>(null);
+  const [result, setResult] = useState<{monday: string; key: string; actor: typeof selectedUserKey; sessions: ScheduleSession[]; error: string | null} | null>(null);
   const [classResult, setClassResult] = useState<{actor: typeof selectedUserKey; retry: number; classes: ScheduleClassSummary[]; ok: boolean} | null>(null);
   const toExclusive = addScheduleDays(monday, 7);
   const requestKey = monday + '/' + retry;
@@ -30,9 +30,9 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
   useEffect(() => {
     const abort = new AbortController();
     scheduleSessionDAL.getWeek(monday, toExclusive, abort.signal, userIdOverride).then(sessions => {
-      if (!abort.signal.aborted) setResult({key: requestKey, actor: selectedUserKey, sessions, error: null});
+      if (!abort.signal.aborted) setResult({monday, key: requestKey, actor: selectedUserKey, sessions, error: null});
     }).catch((cause: unknown) => {
-      if (!abort.signal.aborted) setResult({key: requestKey, actor: selectedUserKey, sessions: [],
+      if (!abort.signal.aborted) setResult({monday, key: requestKey, actor: selectedUserKey, sessions: [],
         error: cause instanceof Error ? cause.message : 'Failed to load schedule. Please try again.'});
     });
     return () => abort.abort();
@@ -52,7 +52,7 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
     const all = classResult!.classes;
     return lockedClassId ? all.filter(c => c.classId === lockedClassId) : all;
   }, [classesLoaded, classResult, lockedClassId]);
-  const loading = result?.key !== requestKey || result?.actor !== selectedUserKey;
+  const loading = result?.monday !== monday || result?.actor !== selectedUserKey;
   const error = !loading ? result?.error : null;
   const sessions = useMemo(() => {
     if (loading) return [];
@@ -63,7 +63,7 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
     [sessions, monday, toExclusive, filters, sort]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const page = Math.min(requestedPage, pageCount);
-  const selected = selection?.key === requestKey && selection.actor === selectedUserKey ? sessions.find(s => s.sessionId === selection.id) : undefined;
+  const selected = selection?.monday === monday && selection.actor === selectedUserKey ? sessions.find(s => s.sessionId === selection.id) : undefined;
   const updateFilter = (key: keyof ScheduleFilters, value: string) => {setFilters(previous => ({...previous, [key]: value})); setPage(1);};
   const navigate = (date: string) => {setMonday(date); setPage(1); setSelection(null);};
   const handleSort = (field: string) => {
@@ -73,6 +73,6 @@ export function useScheduleReadModel(role: ScheduleRole, userIdOverride?: number
     setPage: (value: number) => {if (Number.isInteger(value)) setPage(Math.max(1, Math.min(value, pageCount)));},
     navigate, loading, error, selected, retry: () => setRetry(value => value + 1),
     clear: () => {setFilters(emptyScheduleFilters()); setPage(1);},
-    open: (session: ScheduleSession) => setSelection({id: session.sessionId, key: requestKey, actor: selectedUserKey}),
+    open: (session: ScheduleSession) => setSelection({id: session.sessionId, monday, actor: selectedUserKey}),
     close: () => setSelection(null)};
 }

@@ -56,18 +56,19 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
     } catch (e) { setActionError(message(e)); }
   }
   function switchTab(next: typeof tab) { if (next === tab) return; if (next === 'sent') { setSent([]); setSentError(null); setSentLoading(true); } setTab(next); setParams({}); setPage(1); setActionError(null); attempted.current = ''; }
+  const dashboardPath = inbox.role === 'teacher' ? '/teacher/dashboard' : inbox.role === 'teaching-assistant' ? '/teaching-assistant/dashboard' : inbox.role === 'center-manager' ? '/center-manager/dashboard' : '/admin-staff/dashboard';
   return <div className="ntf-scope ntf-page">
-    <PageHeader title="Notifications" breadcrumbItems={[{ label: 'Notifications' }]} action={manager && data && <button className="btn btn-primary" onClick={() => setCompose(true)}>Send Notification</button>} />
+    <PageHeader title="Notifications" breadcrumbItems={[{ label: 'Dashboard', path: dashboardPath }, { label: 'Notifications' }]} action={manager && data && <button className="btn btn-primary" onClick={() => setCompose(true)}>Send Notification</button>} />
     {manager && data && <ComposeNotificationModal open={compose} onClose={() => setCompose(false)} onSent={() => { setCompose(false); setSuccess('Notification sent.'); switchTab('sent'); void store.refresh(); }} />}
     {error && <p role="alert" className="alert alert-warning">{error} <button type="button" className="btn btn-sm btn-outline-secondary" onClick={store.refresh}>Retry</button></p>}
     {actionError && <p role="alert" className="alert alert-danger">{actionError}</p>}
     {success && <p role="status" className="alert alert-success">{success}</p>}
-    <div className="ntf-tabs" role="tablist" aria-label="Mailbox">
-      {(['inbox', ...(manager ? ['sent'] : [])] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} type="button"
-        className={`btn ${tab === t ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => switchTab(t as typeof tab)}>
+    {manager && <div className="ntf-tabs" role="tablist" aria-label="Mailbox">
+      {(['inbox', 'sent'] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} type="button"
+        className={`btn ${tab === t ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => switchTab(t)}>
         {t === 'inbox' ? `Inbox (${data?.unreadCount ?? '—'} unread)` : 'Sent'}
       </button>)}
-    </div>
+    </div>}
     <div className="ntf-toolbar">
       <input className="form-control" style={{ maxWidth: 300 }} aria-label="Search notifications" placeholder="Search title, content..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
       <select className="form-select w-auto" aria-label="Notification type" value={type} onChange={e => { setType(e.target.value); setPage(1); }}><option value="all">All Types</option>{Object.entries(notificationTypes).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
@@ -79,19 +80,15 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
         {sentError ? <p role="alert" className="p-3 text-danger">{sentError}</p> : !filtered.length ? <p className="p-3">No notifications.</p>
           : filtered.slice((safePage - 1) * 5, safePage * 5).map(n => <button type="button" key={n.notificationId} className={`ntf-list-button ${tab !== 'sent' && !n.isRead ? 'ntf-unread' : ''}`}
             aria-pressed={selectedId === n.notificationId} onClick={() => { attempted.current = ''; setParams({ notificationId: String(n.notificationId) }); }}>
-            <span className="ntf-type-label">{notificationTypeLabel(n.type)}</span><strong>{n.title}</strong><p className="ntf-clamp my-1">{n.content}</p><small>{notificationTime(n.createdAt)} · {tab === 'sent' ? `${n.recipientCount ?? 0} recipients` : n.senderName || 'No sender information'}</small>
-            {tab !== 'sent' && <small className="d-block">{n.isRead ? 'Read' : 'Unread'}</small>}
+            <span className="ntf-type-label">{notificationTypeLabel(n.type)}</span><strong>{n.title}</strong><p className="ntf-clamp my-1">{n.content}</p><small>{notificationTime(n.createdAt)} · {tab === 'sent' ? `${n.recipientCount ?? 0} recipients` : n.senderName || 'EduTrack System'}</small>
           </button>)}
         {!!filtered.length && <div className="p-3"><Pagination currentPage={safePage} totalItems={filtered.length} entriesPerPage={5} itemLabel="notifications" onPageChange={setPage} /></div>}
       </section>
       <section className="card ntf-detail" aria-label="Notification details">
-        {selected ? <><h4>{selected.title}</h4><p className="text-muted">{selected.senderName || 'No sender information'} · {notificationTime(selected.createdAt)}</p>
+        {selected ? <><h4>{selected.title}</h4><p className="text-muted">{selected.senderName || 'EduTrack System'} · {notificationTime(selected.createdAt)}</p>
           {tab === 'sent' && <p>Scope: {notificationScopeLabel(selected.targetScope ?? '')} {selected.targetRole ? `· ${notificationRoleLabel(selected.targetRole)}` : selected.className ? `· ${selected.className}` : ''} · {selected.recipientCount ?? 0} recipients</p>}
-          <span className="ntf-type-label">{notificationTypeLabel(selected.type)}</span><div className="ntf-body">{selected.content}</div>
-          {selected.readAt && tab !== 'sent' && <small className="d-block mt-3">Read: {notificationTime(selected.readAt)}</small>}
-          <div className="ntf-actions">
-            {tab === 'inbox' && !selected.isRead && <button type="button" className="btn btn-outline-primary" disabled={busy} onClick={() => void act('read', selected.notificationId)}>Mark as Read</button>}
-          </div></> : <p role={rawId ? 'alert' : 'status'}>{rawId ? 'Notification not found in this mailbox or you do not have permission to view it.' : 'Select a notification to view its content.'}</p>}
+          <span className="ntf-type-label">{notificationTypeLabel(selected.type)}</span><div className="ntf-body">{selected.content}</div></>
+          : <p role={rawId ? 'alert' : 'status'}>{rawId ? 'Notification not found in this mailbox or you do not have permission to view it.' : 'Select a notification to view its content.'}</p>}
       </section>
     </div>}
   </div>;

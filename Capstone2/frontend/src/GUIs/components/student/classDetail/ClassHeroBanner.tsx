@@ -23,20 +23,19 @@ export function ClassHeroBanner({
         <span>Back</span>
       </Link>
 
-      {/* Breadcrumbs */}
-      <div className="hero-breadcrumbs et-class-hero-breadcrumbs">
-        <Link to="/student/dashboard">Dashboard</Link>
-        <i className="bi bi-chevron-right fs-xs"></i>
-        <Link to="/student/classes">My Classes</Link>
-        <i className="bi bi-chevron-right fs-xs"></i>
-        <span className="breadcrumb-current" id="breadcrumbClass">{cls.name}</span>
-      </div>
-
       {/* Hero Main Row */}
       <div className="hero-main-row et-class-hero-row">
         <div className="et-class-hero-copy">
           <span className="hero-subject-pill" id="heroSubject">{cls.subject}</span>
           <h1 className="hero-class-title" id="heroTitle">{cls.name}</h1>
+          {/* Breadcrumbs */}
+          <div className="hero-breadcrumbs et-class-hero-breadcrumbs">
+            <Link to="/student/dashboard">Dashboard</Link>
+            <i className="bi bi-chevron-right fs-xs"></i>
+            <Link to="/student/classes">My Classes</Link>
+            <i className="bi bi-chevron-right fs-xs"></i>
+            <span className="breadcrumb-current" id="breadcrumbClass">{cls.name}</span>
+          </div>
         </div>
 
         {/* Quick Stats Chips */}

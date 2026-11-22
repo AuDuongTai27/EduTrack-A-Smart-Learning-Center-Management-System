@@ -77,9 +77,11 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
       case "schedule_change":
         return "Schedule Change";
       case "facility_request":
-        return "Equipment/Room";
+        return "Facility / Equipment";
       case "teaching_support":
-        return "Support";
+        return "Teaching Support";
+      case "other":
+        return "Other";
       default:
         return "Request";
     }
@@ -133,11 +135,6 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
         <table className="table custom-table align-middle mb-0" id="requestsTable">
           <thead className="table-light">
             <tr>
-              <th className="th-checkbox" style={{ width: 40 }}>
-                <div className="form-check m-0">
-                  <input className="form-check-input" type="checkbox" id="selectAllRequests" />
-                </div>
-              </th>
               <th>Request Code</th>
               <th>Request Type</th>
               <th>Request Title</th>
@@ -160,19 +157,16 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                     })
                   : "Just now";
 
-                const isEditable = req.canEdit || (!req.reviewedBy && (req.status || "pending").toLowerCase() === "pending");
-
                 return (
                   <tr key={req.requestId || idx}>
                     <td>
-                      <div className="form-check m-0">
-                        <input className="form-check-input row-checkbox" type="checkbox" />
-                      </div>
-                    </td>
-                    <td>
-                      <span className="class-id-link fw-bold text-primary">
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 fw-bold text-primary text-decoration-none"
+                        onClick={() => setSelectedRequest(req)}
+                      >
                         {req.requestCode || `#${req.requestId}`}
-                      </span>
+                      </button>
                     </td>
                     <td>
                       <span className="badge bg-light text-dark border">
@@ -191,39 +185,20 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                     <td className="text-muted small">{dateStr}</td>
                     <td>{getStatusBadge(req)}</td>
                     <td className="text-end">
-                      <div className="d-inline-flex align-items-center gap-1 justify-content-end">
-                        {isEditable ? (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1"
-                            onClick={() => setEditingRequest(req)}
-                            title="Edit request (Pending Review)"
-                          >
-                            <i className="bi bi-pencil-square" /> Edit
-                          </button>
-                        ) : (
-                          <span
-                            className="badge bg-light text-muted border py-1.5 px-2"
-                            title="The request has been claimed by Management/Staff for review and is locked from editing"
-                          >
-                            <i className="bi bi-lock-fill me-1" /> Locked
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                          onClick={() => setSelectedRequest(req)}
-                        >
-                          <i className="bi bi-eye" /> Details
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                        onClick={() => setSelectedRequest(req)}
+                      >
+                        <i className="bi bi-eye" /> Details
+                      </button>
                     </td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan={8} className="text-center py-4 text-muted">
+                <td colSpan={7} className="text-center py-4 text-muted">
                   <i className="bi bi-inbox fs-3 d-block mb-1" />
                   No matching requests found.
                 </td>
@@ -246,116 +221,117 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
         isOpen={editingRequest !== null}
         request={editingRequest}
         onClose={() => setEditingRequest(null)}
+        onCancel={() => {
+          const req = editingRequest;
+          setEditingRequest(null);
+          if (req) setSelectedRequest(req);
+        }}
         onRequestUpdated={(updated) => {
           setEditingRequest(null);
           onRequestUpdated?.(updated);
         }}
-        userRoleName="Teacher"
       />
 
       {/* Modal view request details */}
       {selectedRequest && (
-        <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow">
-              <div className="modal-header">
-                <h5 className="modal-title d-flex align-items-center gap-2">
-                  <i className="bi bi-file-earmark-text text-primary" />
-                  Request Details: {selectedRequest.requestCode}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setSelectedRequest(null)}
-                />
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <h6 className="fw-bold mb-1">{selectedRequest.title}</h6>
-                  <div className="d-flex align-items-center gap-2 mt-1">
-                    {getStatusBadge(selectedRequest)}
-                    <span className="badge bg-light text-dark border">
-                      {getRequestTypeLabel(selectedRequest.requestType)}
-                    </span>
-                    {getPriorityBadge(selectedRequest.priority)}
-                  </div>
+        <>
+          <div
+            className="modal-backdrop fade show"
+            onClick={() => setSelectedRequest(null)}
+            style={{ zIndex: 1050 }}
+          />
+          <div
+            className="modal fade show d-block"
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            style={{ zIndex: 1055 }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow rounded-3">
+                <div className="modal-header border-bottom py-3 px-4">
+                  <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                    <i className="bi bi-file-earmark-text text-primary fs-5" />
+                    <span>Request Details: {selectedRequest.requestCode || `#${selectedRequest.requestId}`}</span>
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setSelectedRequest(null)}
+                    aria-label="Close"
+                  />
                 </div>
-
-                {/* Processing status hints */}
-                {((selectedRequest.canEdit || (!selectedRequest.reviewedBy && (selectedRequest.status || "pending").toLowerCase() === "pending"))) ? (
-                  <div className="alert alert-info py-2 px-3 small mb-3">
-                    <i className="bi bi-info-circle me-1" /> The request is currently <strong>Pending Review</strong>. You can still edit the request before management claims it.
+                <div className="modal-body p-4">
+                  <div className="mb-3">
+                    <h6 className="fw-bold mb-2">{selectedRequest.title}</h6>
+                    <div className="d-flex align-items-center flex-wrap gap-2">
+                      {getStatusBadge(selectedRequest)}
+                      <span className="badge bg-light text-dark border">
+                        {getRequestTypeLabel(selectedRequest.requestType)}
+                      </span>
+                      {getPriorityBadge(selectedRequest.priority)}
+                    </div>
                   </div>
-                ) : (selectedRequest.status || "pending").toLowerCase() === "pending" && selectedRequest.reviewedBy ? (
-                  <div className="alert alert-warning py-2 px-3 small mb-3">
-                    <i className="bi bi-hourglass-split me-1" /> The request has been received by <strong>{selectedRequest.reviewerName || "Management"}</strong> and is <strong>Pending Approval</strong> (editing locked).
-                  </div>
-                ) : null}
 
-                <div className="p-3 bg-light rounded-3 mb-3 border">
-                  <label className="form-label small fw-bold text-muted mb-1">Detailed Content:</label>
-                  <p className="mb-0 text-dark small" style={{ whiteSpace: "pre-wrap" }}>
-                    {selectedRequest.description || "No detailed content."}
-                  </p>
-                </div>
-
-                <div className="row g-2 mb-3">
-                  <div className="col-6">
-                    <small className="text-muted d-block">Requester:</small>
-                    <strong className="text-dark small">{selectedRequest.requesterName || "Teacher"}</strong>
+                  <div className="p-3 bg-light rounded-3 mb-3 border">
+                    <label className="form-label small fw-bold text-muted mb-1">Detailed Content:</label>
+                    <p className="mb-0 text-dark small" style={{ whiteSpace: "pre-wrap" }}>
+                      {selectedRequest.description || "No detailed content."}
+                    </p>
                   </div>
-                  <div className="col-6">
+
+                  <div className="mb-3">
                     <small className="text-muted d-block">Submitted Date:</small>
-                    <span className="text-dark small">
+                    <span className="text-dark small fw-medium">
                       {selectedRequest.createdAt ? new Date(selectedRequest.createdAt).toLocaleString("en-US") : "N/A"}
                     </span>
                   </div>
-                </div>
 
-                {selectedRequest.reviewedAt && (
-                  <div className="p-3 bg-white rounded-3 border">
-                    <div className="d-flex align-items-center justify-content-between mb-1">
-                      <span className="small fw-bold text-success">
-                        <i className="bi bi-person-check me-1" />
-                        Reviewer: {selectedRequest.reviewerName || "Management Board"}
-                      </span>
-                      <small className="text-muted">
-                        {new Date(selectedRequest.reviewedAt).toLocaleString("en-US")}
-                      </small>
+                  {selectedRequest.reviewedAt && (
+                    <div className="p-3 bg-white rounded-3 border">
+                      <div className="d-flex align-items-center justify-content-between mb-1">
+                        <span className="small fw-bold text-success">
+                          <i className="bi bi-person-check me-1" />
+                          Reviewer: {selectedRequest.reviewerName || "Management Board"}
+                        </span>
+                        <small className="text-muted">
+                          {new Date(selectedRequest.reviewedAt).toLocaleString("en-US")}
+                        </small>
+                      </div>
+                      {selectedRequest.reviewNotes && (
+                        <p className="small mb-0 text-secondary fst-italic">
+                          Feedback: "{selectedRequest.reviewNotes}"
+                        </p>
+                      )}
                     </div>
-                    {selectedRequest.reviewNotes && (
-                      <p className="small mb-0 text-secondary fst-italic">
-                        Feedback: "{selectedRequest.reviewNotes}"
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="modal-footer">
-                {(selectedRequest.canEdit || (!selectedRequest.reviewedBy && (selectedRequest.status || "pending").toLowerCase() === "pending")) && (
+                  )}
+                </div>
+                <div className="modal-footer border-top py-2 px-4 d-flex justify-content-end gap-2 bg-light rounded-bottom-3">
                   <button
                     type="button"
-                    className="btn btn-warning btn-sm me-auto d-inline-flex align-items-center gap-1 text-dark fw-semibold"
-                    onClick={() => {
-                      const req = selectedRequest;
-                      setSelectedRequest(null);
-                      setEditingRequest(req);
-                    }}
+                    className="btn btn-outline-secondary btn-sm px-3"
+                    onClick={() => setSelectedRequest(null)}
                   >
-                    <i className="bi bi-pencil-square" /> Edit This Request
+                    Close
                   </button>
-                )}
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setSelectedRequest(null)}
-                >
-                  Close
-                </button>
+                  {(selectedRequest.canEdit || (!selectedRequest.reviewedBy && (selectedRequest.status || "pending").toLowerCase() === "pending")) && (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm px-3 d-inline-flex align-items-center gap-1"
+                      onClick={() => {
+                        const req = selectedRequest;
+                        setSelectedRequest(null);
+                        setEditingRequest(req);
+                      }}
+                    >
+                      <i className="bi bi-pencil-square" /> Edit Request
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );

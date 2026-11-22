@@ -3,7 +3,6 @@ import PageHeader from "../../../components/Common/PageHeader";
 import {
   RequestListHeader,
   RequestTable,
-  RequestPagination,
 } from "../../../components/teacher/Teacher/request";
 import teachingDAL from "../../../../DAL/teachingDAL";
 import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestDto";

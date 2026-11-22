@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ScheduleRole, ScheduleSession } from '../../../../BLL/models/ScheduleSession';
-import { displayScheduleDate, scheduleStatus } from '../../../../BLL/services/scheduleViewService';
+import { displayScheduleDate } from '../../../../BLL/services/scheduleViewService';
 import { scheduleManagementDAL } from '../../../../DAL/scheduleManagementDAL';
 
 export function ScheduleSessionDetail({
   session,
-  now,
   role = 'student',
   onClose,
   onMutated,
 }: {
   session: ScheduleSession;
-  now: Date;
+  now?: Date;
   role?: ScheduleRole;
   onClose: () => void;
   onMutated?: (targetDate?: string) => void;
@@ -33,17 +32,15 @@ export function ScheduleSessionDetail({
     const dialog = ref.current!;
     const previous = document.activeElement as HTMLElement | null;
     dialog.showModal();
+    dialog.focus({ preventScroll: true });
     return () => { dialog.close(); previous?.focus(); };
   }, []);
 
-  const status = scheduleStatus(session, now);
   const fields = [
     ['Class', session.className], ['Subject', session.subjectName || 'No subject'],
     ['Date', displayScheduleDate(session.sessionDate)], ['Time', `${session.startTime.slice(0, 5)} – ${session.endTime.slice(0, 5)}`],
     ['Teacher', session.teachers.map(p => p.name).join(', ') || 'Unassigned'],
     ['TA', session.teachingAssistants.map(p => p.name).join(', ') || 'Unassigned'], ['Room', session.room || 'Unassigned'],
-    ['Attendance', session.hasAttendance ? 'Attendance recorded (Locked)' : 'No attendance recorded (Editable)'],
-    ...(session.plannedOccurrenceDate ? [['Original planned date', displayScheduleDate(session.plannedOccurrenceDate)]] : []),
   ];
 
   async function handleReschedule(e: FormEvent) {
@@ -87,14 +84,12 @@ export function ScheduleSessionDetail({
     }
   }
 
-  return <dialog ref={ref} className="et-schedule-detail" aria-labelledby="et-session-detail-title" onCancel={onClose}
+  return <dialog ref={ref} tabIndex={-1} className="et-schedule-detail" aria-labelledby="et-session-detail-title" onCancel={onClose}
     onClick={e => {if (e.target === ref.current) onClose();}}>
     <div className="et-schedule-detail-body">
-      <div className="et-schedule-detail-heading"><h2 id="et-session-detail-title">Session Details #{session.sessionId}</h2>
-        <button type="button" className="btn btn-sm btn-outline-secondary" onClick={onClose} aria-label="Close session details">Close</button></div>
-      <p><span className={`et-schedule-badge et-status-${status.key}`}>{status.label}</span></p>
+      <div className="et-schedule-detail-heading"><h2 id="et-session-detail-title">Session Details</h2>
+        <button type="button" className="btn-close" onClick={onClose} aria-label="Close session details" /></div>
       <dl>{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-      <p className="et-schedule-note">When a session is rescheduled or deleted, the attendance session list for Teachers & Teaching Assistants will automatically update accordingly.</p>
 
       {isManager && (
         <section className="border rounded-3 p-3 mt-3 bg-light">

@@ -189,7 +189,7 @@ export default function TeachingAssistantAttendancePage() {
     <>
       {/* Breadcrumb & Page Title */}
       <PageHeader
-        title={`Teaching Assistant Attendance: ${className}`}
+        title={`Attendance: ${className}`}
         breadcrumbItems={[
           { label: "Dashboard", path: "/teaching-assistant/dashboard" },
           { label: "My Classes", path: "/teaching-assistant/classes" },
@@ -278,6 +278,7 @@ export default function TeachingAssistantAttendancePage() {
               students={filteredStudents}
               onStatusChange={handleStatusChange}
               onNoteChange={handleNoteChange}
+              disabled={!canTakeAttendance}
             />
 
             {/* Bottom Actions Bar */}

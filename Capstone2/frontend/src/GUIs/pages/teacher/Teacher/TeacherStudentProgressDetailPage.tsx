@@ -138,10 +138,7 @@ export default function TeacherStudentProgressDetailPage() {
       />
 
       {/* 1. Student Summary Hero Card */}
-      <StudentProgressHeroCard
-        student={detail}
-        onOpenEvaluationModal={() => setShowModal(true)}
-      />
+      <StudentProgressHeroCard student={detail} />
 
       {/* 2. Section: Tất cả bài tập trong môn học */}
       <StudentAssignmentsSection assignments={detail.assignments} />

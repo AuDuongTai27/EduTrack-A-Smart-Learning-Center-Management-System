@@ -278,6 +278,7 @@ export default function TeacherAttendancePage() {
               students={filteredStudents}
               onStatusChange={handleStatusChange}
               onNoteChange={handleNoteChange}
+              disabled={!canTakeAttendance}
             />
 
             {/* Bottom Actions Bar */}

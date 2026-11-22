@@ -15,11 +15,7 @@ export function AttendanceSaveBar({
   isExpired = false,
 }: AttendanceSaveBarProps) {
   return (
-    <div className="p-3 border-top bg-white d-flex align-items-center justify-content-between flex-wrap gap-2 rounded-bottom">
-      <div className="small text-muted">
-        <i className="bi bi-info-circle me-1 text-primary" />
-        Teaching Assistant supports attendance tracking and updates session attendance in the system.
-      </div>
+    <div className="p-3 border-top bg-white d-flex align-items-center justify-content-end flex-wrap gap-2 rounded-bottom">
       <div className="d-flex align-items-center gap-2">
         {!canSave ? (
           <button

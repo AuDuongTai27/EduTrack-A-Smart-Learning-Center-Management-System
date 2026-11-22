@@ -11,16 +11,11 @@ export default function StudentAssignmentsSection({
   return (
     <div className="card border-0 mb-4 shadow-sm rounded-4 overflow-hidden">
       <div className="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div>
-          <h5 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-            <i className="bi bi-journals text-primary" />
-            1. Subject Assignments Summary
-          </h5>
-          <small className="text-muted">
-            Track details of all assignments by week, submission status, scores, and teaching assistant feedback
-          </small>
-        </div>
-        <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill">
+        <h5 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+          <i className="bi bi-journals text-primary" />
+          Subject Assignments Summary
+        </h5>
+        <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill">
           Total: {assignments.length} assignments
         </span>
       </div>
@@ -29,8 +24,8 @@ export default function StudentAssignmentsSection({
         <table className="table custom-table align-middle mb-0">
           <thead className="table-light">
             <tr>
-              <th style={{ width: "26%" }}>Assignment Title &amp; Week</th>
-              <th style={{ width: "16%" }}>Due Date / Submission Date</th>
+              <th style={{ width: "26%" }}>Assignment</th>
+              <th style={{ width: "16%" }}>Due &amp; Submitted</th>
               <th style={{ width: "14%" }}>Status</th>
               <th style={{ width: "12%" }}>Score</th>
               <th style={{ width: "32%" }}>Feedback &amp; Evaluation</th>
@@ -65,9 +60,6 @@ export default function StudentAssignmentsSection({
                 return (
                   <tr key={item.assignmentId}>
                     <td>
-                      <span className="badge bg-light text-secondary border small mb-1 d-inline-block">
-                        {item.weekTitle}
-                      </span>
                       <strong className="d-block text-dark">{item.title}</strong>
                       {item.submissionFileUrl && (
                         <a
@@ -86,12 +78,12 @@ export default function StudentAssignmentsSection({
                         Due: <span className="text-dark fw-medium">{item.dueDate}</span>
                       </small>
                       {item.submittedAt ? (
-                        <small className="text-success d-block mt-0.5">
+                        <small className="text-success d-block mt-1">
                           <i className="bi bi-check2 me-1" />
                           Submitted at: {item.submittedAt}
                         </small>
                       ) : (
-                        <small className="text-muted fst-italic d-block mt-0.5">No submission yet</small>
+                        <small className="text-muted fst-italic d-block mt-1">No submission yet</small>
                       )}
                     </td>
 
@@ -115,8 +107,8 @@ export default function StudentAssignmentsSection({
 
                     <td>
                       {item.teacherFeedback ? (
-                        <div className="p-2 rounded-2 bg-light border small text-dark mb-1">
-                          <strong className="text-primary d-block mb-0.5">
+                        <div className="small text-dark">
+                          <strong className="text-primary d-block mb-1">
                             <i className="bi bi-chat-quote-fill me-1" /> Feedback:
                           </strong>
                           {item.teacherFeedback}
@@ -126,11 +118,8 @@ export default function StudentAssignmentsSection({
                       )}
 
                       {item.aiFeedback && (
-                        <div
-                          className="p-2 rounded-2 border small mt-1"
-                          style={{ backgroundColor: "#F0FDF4", borderColor: "#DCFCE7", color: "#166534" }}
-                        >
-                          <strong className="d-block mb-0.5 text-success">
+                        <div className="small text-success mt-2">
+                          <strong className="d-block mb-1">
                             <i className="bi bi-robot me-1" /> AI Review:
                           </strong>
                           {item.aiFeedback}

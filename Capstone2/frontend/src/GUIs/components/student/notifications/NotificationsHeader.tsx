@@ -39,11 +39,6 @@ export function NotificationsHeader({
   return (
     <StudentPageHeader
       title="Notifications"
-      subtitle={
-        unreadCount > 0
-          ? `You have ${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
-          : 'All notifications read!'
-      }
       breadcrumbs={[
         { label: 'Home', href: '/student/dashboard' },
         { label: 'Notifications' },

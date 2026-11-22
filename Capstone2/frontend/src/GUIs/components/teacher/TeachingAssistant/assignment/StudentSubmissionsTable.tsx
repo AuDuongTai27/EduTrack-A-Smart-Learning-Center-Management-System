@@ -34,14 +34,14 @@ function StudentSubmissionsTable({
     return name.slice(0, 2).toUpperCase();
   };
 
-  const getAvatarClass = (idx: number) => {
-    const classes = [
-      "avatar-initials-indigo",
-      "avatar-initials-emerald",
-      "avatar-initials-amber",
-      "avatar-initials-rose",
+  const getAvatarBg = (idx: number) => {
+    const bgs = [
+      { bg: "#e0e7ff", color: "#3730a3" },
+      { bg: "#dcfce7", color: "#166534" },
+      { bg: "#fef3c7", color: "#92400e" },
+      { bg: "#fee2e2", color: "#991b1b" },
     ];
-    return classes[idx % classes.length];
+    return bgs[idx % bgs.length];
   };
 
   const openGradeModal = (sub: any) => {
@@ -154,18 +154,18 @@ function StudentSubmissionsTable({
           <table className="table custom-table align-middle" id="assignmentTable">
             <thead>
               <tr>
-                <th>Avatar</th>
-                <th>Student Name</th>
+                <th><span style={{ marginLeft: "36px" }}>Student Name</span></th>
                 <th>Submission File</th>
                 <th>Submission Date</th>
                 <th>Score</th>
-                <th>Remarks</th>
+                <th>Feedback</th>
                 <th className="text-end">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredSubmissions.length > 0 ? (
                 filteredSubmissions.map((sub: any, idx: number) => {
+                  const style = getAvatarBg(idx);
                   const hasSubmitted = Boolean(sub.fileUrl && sub.fileUrl !== "#" && sub.submissionId && sub.submissionId > 0);
                   const fileName = hasSubmitted && sub.fileUrl ? sub.fileUrl.split("/").pop() : "";
                   const dateStr = hasSubmitted
@@ -174,16 +174,16 @@ function StudentSubmissionsTable({
 
                   return (
                     <tr key={sub.submissionId || sub.studentId || idx}>
-                      <td>
-                        <div className={`ta-avatar-initials avatar-initials-sm ${getAvatarClass(idx)}`}>
-                          {getInitials(sub.studentName)}
-                        </div>
-                      </td>
                       <td className="fw-semibold text-dark">
-                        {sub.studentName}
-                        {sub.studentCode && (
-                          <small className="text-muted d-block fw-normal">{sub.studentCode}</small>
-                        )}
+                        <div className="d-flex align-items-center gap-2">
+                          <div
+                            className="ta-avatar-initials flex-shrink-0"
+                            style={{ backgroundColor: style.bg, color: style.color }}
+                          >
+                            {getInitials(sub.studentName)}
+                          </div>
+                          <span>{sub.studentName}</span>
+                        </div>
                       </td>
                       <td>
                         {hasSubmitted ? (
@@ -210,11 +210,11 @@ function StudentSubmissionsTable({
                       <td>
                         {hasSubmitted ? (
                           sub.score !== null && sub.score !== undefined ? (
-                            <span className="badge bg-success-subtle text-success fs-6 fw-bold px-2.5 py-1">
+                            <span className="badge bg-success-subtle text-success fs-6 fw-bold px-2 py-1">
                               {sub.score} / 10
                             </span>
                           ) : (
-                            <span className="badge bg-warning-subtle text-warning fw-normal">Pending</span>
+                            <span className="badge bg-warning-subtle text-warning fw-normal">Pending grading</span>
                           )
                         ) : (
                           <span className="badge bg-secondary-subtle text-secondary fw-normal">Not submitted</span>
@@ -241,9 +241,7 @@ function StudentSubmissionsTable({
                             {sub.score !== null && sub.score !== undefined ? "Update Grade" : "Grade"}
                           </button>
                         ) : (
-                          <span className="badge bg-light text-muted border px-2 py-1 small fw-normal">
-                            No submission
-                          </span>
+                          <span className="text-muted small">—</span>
                         )}
                       </td>
                     </tr>
@@ -251,7 +249,7 @@ function StudentSubmissionsTable({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="text-center py-4 text-muted">
+                  <td colSpan={6} className="text-center py-4 text-muted">
                     <i className="bi bi-inbox fs-3 d-block mb-1 text-secondary" />
                     No submissions found matching your search.
                   </td>
@@ -270,7 +268,7 @@ function StudentSubmissionsTable({
               <div className="modal-header">
                 <h5 className="modal-title fw-bold">
                   <i className="bi bi-award-fill me-2 text-warning" />
-                  Evaluate Submission: {selectedSub.studentName}
+                  Grade Submission: {selectedSub.studentName}
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setSelectedSub(null)} />
               </div>
@@ -288,25 +286,23 @@ function StudentSubmissionsTable({
                   )}
 
                   <div className="bg-light p-3 rounded border mb-3">
-                    <div className="d-flex justify-content-between mb-1">
-                      <span className="text-muted small">Student:</span>
-                      <strong className="text-dark small">{selectedSub.studentName} ({selectedSub.studentCode})</strong>
-                    </div>
-                    <div className="d-flex justify-content-between mb-1">
+                    <div className="d-flex justify-content-between align-items-center gap-2 mb-1">
                       <span className="text-muted small">Submitted File:</span>
                       <a
                         href={selectedSub.fileUrl || "#"}
                         target="_blank"
                         rel="noreferrer"
-                        className="small text-primary text-decoration-none fw-medium"
+                        className="small text-primary text-decoration-none fw-medium text-truncate"
+                        style={{ maxWidth: "70%" }}
                       >
-                        <i className="bi bi-download me-1" /> View/Download File
+                        <i className="bi bi-download me-1" />
+                        {selectedSub.fileUrl ? selectedSub.fileUrl.split("/").pop() : "View/Download File"}
                       </a>
                     </div>
                     {selectedSub.aiScore !== null && selectedSub.aiScore !== undefined && (
-                      <div className="d-flex justify-content-between">
+                      <div className="d-flex justify-content-between align-items-center mt-2">
                         <span className="text-muted small">AI Suggested Score:</span>
-                        <span className="badge bg-info-subtle text-info fw-bold">{selectedSub.aiScore} / 10</span>
+                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2 py-1">{selectedSub.aiScore} / 10</span>
                       </div>
                     )}
                   </div>
@@ -331,32 +327,32 @@ function StudentSubmissionsTable({
 
                   <div className="mb-2">
                     <label className="form-label fw-semibold text-dark">
-                      Assistant's Remarks &amp; Feedback
+                      Feedback
                     </label>
                     <textarea
                       className="form-control"
                       rows={3}
                       value={gradeFeedback}
                       onChange={(e) => setGradeFeedback(e.target.value)}
-                      placeholder="Provide helpful feedback or guidance for the student..."
+                      placeholder="Provide helpful feedback, corrections, or encouragement..."
                       disabled={submittingGrade}
                     />
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSelectedSub(null)} disabled={submittingGrade}>
+                  <button type="button" className="btn btn-outline-secondary btn-sm px-3" onClick={() => setSelectedSub(null)} disabled={submittingGrade}>
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1" disabled={submittingGrade}>
+                  <button type="submit" className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 px-3" disabled={submittingGrade}>
                     {submittingGrade ? (
                       <>
                         <span className="spinner-border spinner-border-sm" role="status" />
-                        <span>Saving Grade...</span>
+                        <span>Saving...</span>
                       </>
                     ) : (
                       <>
                         <i className="bi bi-check-lg" />
-                        <span>Save Grade &amp; Remarks</span>
+                        <span>Save Grade</span>
                       </>
                     )}
                   </button>

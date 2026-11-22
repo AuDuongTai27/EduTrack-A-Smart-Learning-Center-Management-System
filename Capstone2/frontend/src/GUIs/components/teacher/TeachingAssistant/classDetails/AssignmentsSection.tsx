@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { AssignmentDto } from "../../../../../BLL/models/AssignmentDto";
 import type { TeachingAssignmentItemDto } from "../../../../../BLL/models/teaching/TeachingAssignmentDto";
-import { MATERIALS_DATA } from "../../../student/classDetail/classDetailData";
 
 export interface AssignmentsSectionProps {
   classId?: string | number;
@@ -39,65 +38,11 @@ function parseDateStrToTime(dateStr?: string): number {
 }
 
 export default function AssignmentsSection({ classId = "1", assignments = [] }: AssignmentsSectionProps) {
-  const numClassId = Number(classId);
-
   // Filter & Search states
   const [filterType, setFilterType] = useState<CourseworkFilterType>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Materials state initialized from existing class materials or defaults
-  const [materials] = useState<MaterialItem[]>(() => {
-    const classMats = MATERIALS_DATA.filter((m) => m.classId === numClassId);
-    if (classMats.length > 0) {
-      return classMats.map((m) => ({
-        id: m.id,
-        fileName: m.fileName,
-        description: m.description,
-        type: m.type,
-        uploadDate: m.uploadDate,
-        sizeMb: m.sizeMb,
-        fileUrl: "/assets/docs/assignment_default.pdf",
-      }));
-    }
-    return [
-      {
-        id: 101,
-        fileName: "Chapter 1: Quadratic Equations & Systems.pdf",
-        description: "Fundamental concepts of quadratic forms and discriminant analysis",
-        type: "PDF",
-        uploadDate: "01/09/2026",
-        sizeMb: 2.4,
-        fileUrl: "/assets/docs/assignment_default.pdf",
-      },
-      {
-        id: 102,
-        fileName: "Lesson 1.1: Solving Quadratic Equations.docx",
-        description: "Factoring methods and standard quadratic formula application",
-        type: "DOC",
-        uploadDate: "05/09/2026",
-        sizeMb: 1.1,
-        fileUrl: "/assets/docs/assignment_default.pdf",
-      },
-      {
-        id: 103,
-        fileName: "Lesson 1.2: Vieta Formulas and Applications.pdf",
-        description: "Relationships between roots and polynomial coefficients",
-        type: "PDF",
-        uploadDate: "10/09/2026",
-        sizeMb: 3.6,
-        fileUrl: "/assets/docs/assignment_default.pdf",
-      },
-      {
-        id: 104,
-        fileName: "EIKARY - K-ary Tree & Vieta Theorem.pdf",
-        description: "Specialized material on polynomial problems and k-ary hierarchical trees",
-        type: "PDF",
-        uploadDate: "20/09/2026",
-        sizeMb: 1.8,
-        fileUrl: "/assets/docs/assignment_default.pdf",
-      },
-    ];
-  });
+  const [materials] = useState<MaterialItem[]>([]);
 
   // Gom chung tất cả Assignments và Materials thành danh sách hợp nhất (Mới nhất hiện lên đầu)
   const unifiedStream = useMemo(() => {
@@ -159,12 +104,12 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       </summary>
 
       {/* 2. Unified Toolbar: Filter Pills (All / Assignments / Materials) & Search Box */}
-      <div className="px-4 py-2.5 border-bottom bg-light bg-opacity-40 d-flex align-items-center justify-content-between flex-wrap gap-2.5">
+      <div className="px-4 py-3 border-bottom bg-light bg-opacity-40 d-flex align-items-center justify-content-between flex-wrap gap-2">
         {/* Filter Pills */}
-        <div className="d-flex align-items-center gap-1.5 flex-wrap">
+        <div className="d-flex align-items-center gap-2 flex-wrap">
           <button
             type="button"
-            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-2 transition-all ${
               filterType === "all"
                 ? "btn-primary shadow-xs"
                 : "btn-outline-secondary bg-white text-secondary border"
@@ -178,7 +123,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
 
           <button
             type="button"
-            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-2 transition-all ${
               filterType === "assignments"
                 ? "btn-primary shadow-xs"
                 : "btn-outline-secondary bg-white text-secondary border"
@@ -192,7 +137,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
 
           <button
             type="button"
-            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-2 transition-all ${
               filterType === "materials"
                 ? "btn-primary shadow-xs"
                 : "btn-outline-secondary bg-white text-secondary border"
@@ -224,7 +169,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       </div>
 
       {/* 3. Stream List (Gom chung mới nhất lên đầu) */}
-      <div className="p-4 bg-white d-flex flex-column gap-2.5">
+      <div className="p-4 bg-white d-flex flex-column gap-3">
         {filteredStream.length > 0 ? (
           filteredStream.map((item) => {
             if (item.kind === "assignment" && item.rawAssignment) {
@@ -259,9 +204,9 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                     </div>
 
                     <div className="min-w-0 flex-grow-1">
-                      <div className="d-flex align-items-center gap-2 flex-wrap mb-0.5">
+                      <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
                         <span
-                          className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-semibold"
+                          className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fw-semibold"
                           style={{ fontSize: "11px" }}
                         >
                           Assignment
@@ -270,15 +215,11 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                           {asg.title}
                         </span>
                       </div>
-                      <div className="d-flex align-items-center gap-3 text-muted small flex-wrap" style={{ fontSize: "12.5px" }}>
+                      <div className="d-flex align-items-center gap-2 text-muted small flex-wrap" style={{ fontSize: "12.5px" }}>
                         <span className="d-inline-flex align-items-center gap-1 text-danger fw-medium">
                           <i className="bi bi-clock" /> Due:{" "}
                           {asg.dueDateFormatted ||
                             (asg.dueDate ? new Date(asg.dueDate).toLocaleDateString("en-US") : "No deadline")}
-                        </span>
-                        <span>&middot;</span>
-                        <span>
-                          Assigned: {asg.createdAt ? new Date(asg.createdAt).toLocaleDateString("en-US") : "08/09/2026"}
                         </span>
                         <span>&middot;</span>
                         <span>Max score: {asg.maxScore ?? "10.0"} pts</span>
@@ -287,10 +228,10 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                   </div>
 
                   {/* Right: Submission Status & Action Buttons */}
-                  <div className="d-flex align-items-center gap-2.5 flex-shrink-0">
+                  <div className="d-flex align-items-center gap-2 flex-shrink-0">
                     {submissionCount > 0 ? (
                       isPendingGrading ? (
-                        <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 rounded-pill fw-medium">
+                        <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 rounded-pill fw-medium">
                           Pending grading ({gradedCount}/{submissionCount})
                         </span>
                       ) : (
@@ -299,20 +240,20 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                             isGradedDone
                               ? "bg-success-subtle text-success border border-success-subtle"
                               : "bg-warning-subtle text-warning-emphasis border border-warning-subtle"
-                          } px-2.5 py-1 rounded-pill fw-medium`}
+                          } px-2 py-1 rounded-pill fw-medium`}
                         >
                           {isGradedDone ? "Graded" : "Pending grading"} ({gradedCount}/{submissionCount})
                         </span>
                       )
                     ) : (
-                      <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 rounded-pill fw-normal">
+                      <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-pill fw-normal">
                         No submissions
                       </span>
                     )}
 
                     <Link
                       to={`/teaching-assistant/classes/${classId}/assignment/${asg.assignmentId || asgId}`}
-                      className="btn btn-sm btn-outline-primary rounded-2 px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1 shadow-xs"
+                      className="btn btn-sm btn-outline-primary rounded-2 px-3 fw-medium d-inline-flex align-items-center gap-1 shadow-xs"
                       style={{ fontSize: "12.5px" }}
                     >
                       <i className="bi bi-eye" />
@@ -349,9 +290,9 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                     </div>
 
                     <div className="min-w-0 flex-grow-1">
-                      <div className="d-flex align-items-center gap-2 flex-wrap mb-0.5">
+                      <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
                         <span
-                          className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 fw-semibold"
+                          className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 fw-semibold"
                           style={{ fontSize: "11px" }}
                         >
                           Material &middot; {mat.type}
@@ -360,7 +301,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                           {mat.fileName}
                         </span>
                       </div>
-                      <div className="d-flex align-items-center gap-3 text-muted small flex-wrap" style={{ fontSize: "12.5px" }}>
+                      <div className="d-flex align-items-center gap-2 text-muted small flex-wrap" style={{ fontSize: "12.5px" }}>
                         {mat.description && (
                           <span className="text-truncate text-secondary" style={{ maxWidth: 450 }}>
                             {mat.description}
@@ -384,7 +325,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
                           alert(`Downloading document: ${mat.fileName}`);
                         }
                       }}
-                      className="btn btn-sm btn-outline-secondary rounded-2 px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1.5 shadow-xs"
+                      className="btn btn-sm btn-outline-secondary rounded-2 px-3 fw-medium d-inline-flex align-items-center gap-2 shadow-xs"
                       style={{ fontSize: "12.5px" }}
                     >
                       <i className="bi bi-download" />

@@ -15,7 +15,7 @@ export function ClassListTable({
       <table className="table custom-table align-middle mb-0" id="classesTable">
         <thead>
           <tr>
-            <th>Class Code &amp; Name</th>
+            <th>Class</th>
             <th>Subject</th>
             <th>Room</th>
             <th>Teaching Assistant (TA)</th>
@@ -32,24 +32,11 @@ export function ClassListTable({
                 cls.status === "Đang học" ||
                 cls.status === "open";
               const taName = item.taName || item.partnerName || "Au Duong Tai";
-              const taInitials =
-                taName
-                  .split(" ")
-                  .map((w: string) => w[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(-2) || "TA";
 
               return (
                 <tr key={cls.classId}>
                   <td>
-                    <Link
-                      to={`/teacher/classes/${cls.classId}`}
-                      className="fw-bold text-dark text-decoration-none"
-                    >
-                      {cls.className}
-                    </Link>
-                    <small className="text-muted d-block">Class code: #{cls.classId}</small>
+                    <span className="fw-bold text-dark">{cls.className}</span>
                   </td>
                   <td>
                     <span className="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill">
@@ -63,20 +50,7 @@ export function ClassListTable({
                     </span>
                   </td>
                   <td>
-                    <div className="d-flex align-items-center gap-2">
-                      <div
-                        className="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center"
-                        style={{
-                          width: "28px",
-                          height: "28px",
-                          fontSize: "12px",
-                          border: "1px solid #dee2e6",
-                        }}
-                      >
-                        {taInitials}
-                      </div>
-                      <span className="small">{taName}</span>
-                    </div>
+                    <span className="small text-dark">{taName}</span>
                   </td>
                   <td>
                     <span

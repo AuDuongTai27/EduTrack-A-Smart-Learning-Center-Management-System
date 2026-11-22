@@ -20,7 +20,6 @@ export function ParentSchedulePage() {
       <div className="content-container">
         <StudentPageHeader
           title={`${selectedChild.name}'s Schedule`}
-          subtitle={`${selectedChild.grade} · Official class sessions from valid enrollments`}
           breadcrumbs={[
             { label: 'Dashboard', href: '/parent/dashboard' },
             { label: 'Schedule' },

@@ -9,8 +9,8 @@ export interface ClassInfoCardProps {
 
 export default function ClassInfoCard({
   classInfo,
-  teacherName = "MSc. Hoang Quoc Viet",
-  taName = "Au Duong Tai",
+  teacherName = "ThS. Hoàng Quốc Việt",
+  taName = "Âu Dương Tài",
 }: ClassInfoCardProps) {
   return (
     <div className="card class-list-card border-0 mb-4">
@@ -26,9 +26,9 @@ export default function ClassInfoCard({
               </div>
               <div>
                 <span className="text-muted small d-block">Class Name</span>
-                <h4 className="fw-bold mb-0 text-dark">
+                <h6 className="fw-bold mb-0 text-dark">
                   {classInfo?.className || "Class I-A"}
-                </h4>
+                </h6>
               </div>
             </div>
           </div>
@@ -42,9 +42,9 @@ export default function ClassInfoCard({
               </div>
               <div>
                 <span className="text-muted small d-block">Subject</span>
-                <h4 className="fw-bold mb-0 text-dark">
+                <h6 className="fw-bold mb-0 text-dark">
                   {classInfo?.subjectName || "Physics"}
-                </h4>
+                </h6>
               </div>
             </div>
           </div>

@@ -127,10 +127,7 @@ export function ParentTuitionPage() {
         {/* 1. Header Dành Cho Phụ Huynh */}
         <div className="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="page-title mb-1">Child's Tuition</h1>
-            <p className="page-subtitle text-muted mb-0">
-              Manage and pay tuition online for student <strong>{selectedChild?.name}</strong> ({selectedChild?.grade})
-            </p>
+            <h1 className="page-title mb-0">Child's Tuition</h1>
           </div>
 
           {selectedChild && (

@@ -56,6 +56,11 @@
   max-width: calc(100% - 210px);
   overflow-wrap: anywhere;
 }
+.student-scope .et-class-hero-copy .et-class-hero-breadcrumbs {
+  max-width: 100%;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
 .student-scope .et-class-hero-row {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto;

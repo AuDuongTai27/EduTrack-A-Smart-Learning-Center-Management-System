@@ -110,8 +110,8 @@ export default function NewRequestModal({
                   </div>
                 )}
 
-                <div className="row g-2 mb-3">
-                  <div className="col-md-7">
+                <div className="row g-3 mb-3">
+                  <div className="col-12 col-md-6">
                     <label htmlFor="requestType" className="form-label fw-semibold text-secondary small">
                       Request Type <span className="text-danger">*</span>
                     </label>
@@ -122,15 +122,15 @@ export default function NewRequestModal({
                       onChange={(e) => setRequestType(e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="leave_request">Leave Request / Session Absence</option>
-                      <option value="schedule_change">Schedule Change / Make-up Session</option>
-                      <option value="facility_request">Classroom / Equipment Request</option>
-                      <option value="teaching_support">Teaching Assistant / Tutoring Request</option>
-                      <option value="other">Other Request</option>
+                      <option value="leave_request">Leave Request / Absence</option>
+                      <option value="schedule_change">Schedule Change</option>
+                      <option value="facility_request">Facility / Equipment</option>
+                      <option value="teaching_support">Teaching Support</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
 
-                  <div className="col-md-5">
+                  <div className="col-12 col-md-6">
                     <label htmlFor="requestPriority" className="form-label fw-semibold text-secondary small">
                       Priority
                     </label>
@@ -156,10 +156,11 @@ export default function NewRequestModal({
                     type="text"
                     id="requestTitle"
                     className="form-control form-control-sm"
-                    placeholder="E.g., Leave request for 08/20 due to family matters..."
+                    placeholder="Enter request title..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     disabled={isSubmitting}
+                    maxLength={250}
                     required
                   />
                 </div>
@@ -172,7 +173,7 @@ export default function NewRequestModal({
                     id="requestDescription"
                     className="form-control form-control-sm"
                     rows={4}
-                    placeholder="Describe specific requests, make-up plans, or support needed..."
+                    placeholder="Enter details and reason..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={isSubmitting}
@@ -184,7 +185,7 @@ export default function NewRequestModal({
               <div className="modal-footer border-top py-2 px-4 d-flex justify-content-end gap-2 bg-light rounded-bottom-3">
                 <button
                   type="button"
-                  className="btn btn-secondary btn-sm px-3"
+                  className="btn btn-outline-secondary btn-sm px-3"
                   onClick={handleClose}
                   disabled={isSubmitting}
                 >

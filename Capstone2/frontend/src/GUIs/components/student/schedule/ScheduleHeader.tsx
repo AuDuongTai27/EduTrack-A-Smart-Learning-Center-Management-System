@@ -55,7 +55,6 @@ export function ScheduleHeader({
         <StudentPageHeader
           className="mb-0"
           title="Schedule"
-          subtitle="Weekly class timetable"
           breadcrumbs={[
             { label: 'Home', href: '/student/dashboard' },
             { label: 'Schedule' },

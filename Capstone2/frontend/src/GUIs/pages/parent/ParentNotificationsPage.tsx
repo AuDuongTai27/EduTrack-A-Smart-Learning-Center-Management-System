@@ -316,9 +316,6 @@ export function ParentNotificationsPage() {
                   </span>
                 )}
               </div>
-              <p className="text-muted small mb-0 mt-1">
-                Receive updates about your child's tuition, schedule, attendance, and academic performance at the center
-              </p>
             </div>
           </div>
 
