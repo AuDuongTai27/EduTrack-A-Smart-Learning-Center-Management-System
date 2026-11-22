@@ -211,7 +211,7 @@ export function FeedbackView({
       <div className="content-container">
         {/* Toast Alert */}
         {toastMessage && (
-          <div className="alert alert-success border-0 rounded-3 shadow-sm d-flex align-items-center gap-3 mb-3.5 p-3">
+          <div className="alert alert-success border-0 rounded-3 shadow-sm d-flex align-items-center gap-3 mb-3 p-3">
             <i className="bi bi-check-circle-fill fs-5 text-success flex-shrink-0" />
             <div className="flex-grow-1 small">
               <strong>Success!</strong> {toastMessage}
@@ -232,12 +232,6 @@ export function FeedbackView({
             { label: 'Home', href: userRole === 'parent' ? '/parent/dashboard' : '/student/dashboard' },
             { label: 'Feedback & Support' },
           ]}
-          actions={
-            <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-medium d-inline-flex align-items-center gap-1.5 shadow-xs">
-              <i className="bi bi-person-circle" />
-              <span>{userName} ({roleLabel})</span>
-            </span>
-          }
         />
 
         {/* Main List Card - Clean unified table card layout */}

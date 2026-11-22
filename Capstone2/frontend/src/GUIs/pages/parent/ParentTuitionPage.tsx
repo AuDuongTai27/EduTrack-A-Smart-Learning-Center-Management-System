@@ -129,12 +129,6 @@ export function ParentTuitionPage() {
           <div>
             <h1 className="page-title mb-0">Child's Tuition</h1>
           </div>
-
-          {selectedChild && (
-            <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-              <i className="bi bi-person-check me-1"></i> Profile: {selectedChild.name}
-            </span>
-          )}
         </div>
 
         {errorMsg && (
@@ -158,10 +152,12 @@ export function ParentTuitionPage() {
             <TuitionBillCard bill={bill} />
 
             {/* 3. Payment CTA Action (DÀNH RIÊNG CHO PHỤ HUYNH CÓ NÚT THANH TOÁN) */}
-            <TuitionPaymentCTA
-              onPayNow={() => setModalOpen(true)}
-              totalUnpaidAmount={totalUnpaid}
-            />
+            {totalUnpaid > 0 && (
+              <TuitionPaymentCTA
+                onPayNow={() => setModalOpen(true)}
+                totalUnpaidAmount={totalUnpaid}
+              />
+            )}
 
             {/* 4. Payment History Section (Lịch sử các giao dịch) */}
             <TuitionHistorySection history={history} />

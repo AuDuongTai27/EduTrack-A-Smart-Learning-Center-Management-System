@@ -100,12 +100,6 @@ export function ClassCourseworkSection({
     window.open(`/api/learning/student/classes/${targetClassId}/materials/download-all`, '_blank');
   };
 
-  const asgCounts = {
-    submitted: assignments.filter((a) => a.status === 'Đã nộp').length,
-    pending: assignments.filter((a) => a.status === 'Chưa nộp').length,
-    overdue: assignments.filter((a) => a.status === 'Quá hạn').length,
-  };
-
   return (
     <details className="card class-list-card border-0 mb-4">
       {/* Master Section Header */}
@@ -122,7 +116,7 @@ export function ClassCourseworkSection({
           {materials.length > 0 && (
             <button
               type="button"
-              className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-2 fw-medium shadow-xs"
+              className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-2 px-3 py-1 rounded-2 fw-medium shadow-xs"
               onClick={(e) => {
                 e.stopPropagation();
                 handleDownloadAllZip();
@@ -140,12 +134,12 @@ export function ClassCourseworkSection({
       </summary>
 
       {/* Toolbar: Filter Pills (All / Assignments / Materials) & Search Input */}
-        <div className="px-4 py-2.5 border-bottom bg-light bg-opacity-40 d-flex align-items-center justify-content-between flex-wrap gap-2.5">
+        <div className="px-4 py-2 border-bottom bg-light bg-opacity-40 d-flex align-items-center justify-content-between flex-wrap gap-2">
           {/* Filter Pills */}
-          <div className="d-flex align-items-center gap-1.5 flex-wrap">
+          <div className="d-flex align-items-center gap-2 flex-wrap">
             <button
               type="button"
-              className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+              className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 transition-all ${
                 filterType === 'all'
                   ? 'btn-primary shadow-xs'
                   : 'btn-outline-secondary bg-white text-secondary border'
@@ -159,7 +153,7 @@ export function ClassCourseworkSection({
 
             <button
               type="button"
-              className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+              className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 transition-all ${
                 filterType === 'assignments'
                   ? 'btn-primary shadow-xs'
                   : 'btn-outline-secondary bg-white text-secondary border'
@@ -173,7 +167,7 @@ export function ClassCourseworkSection({
 
             <button
               type="button"
-              className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+              className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 transition-all ${
                 filterType === 'materials'
                   ? 'btn-primary shadow-xs'
                   : 'btn-outline-secondary bg-white text-secondary border'
@@ -203,25 +197,25 @@ export function ClassCourseworkSection({
         </div>
 
         {/* Content Stream List */}
-        <div className="p-4 bg-white d-flex flex-column gap-2.5">
+        <div className="p-4 bg-white d-flex flex-column gap-2">
           {filteredList.length > 0 ? (
             filteredList.map((item) => {
               if (item.kind === 'assignment' && item.assignment) {
                 const asg = item.assignment;
                 let statusBadge = (
-                  <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 rounded-pill fw-medium d-inline-flex align-items-center gap-1">
+                  <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 rounded-pill fw-medium d-inline-flex align-items-center gap-1">
                     <i className="bi bi-clock" /> Not Submitted
                   </span>
                 );
                 if (asg.status === 'Đã nộp') {
                   statusBadge = (
-                    <span className="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill fw-medium d-inline-flex align-items-center gap-1">
+                    <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill fw-medium d-inline-flex align-items-center gap-1">
                       <i className="bi bi-check-circle-fill" /> Submitted
                     </span>
                   );
                 } else if (asg.status === 'Quá hạn') {
                   statusBadge = (
-                    <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-medium d-inline-flex align-items-center gap-1">
+                    <span className="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill fw-medium d-inline-flex align-items-center gap-1">
                       <i className="bi bi-x-circle-fill" /> Overdue
                     </span>
                   );
@@ -250,10 +244,10 @@ export function ClassCourseworkSection({
                       </div>
 
                       <div className="min-w-0 flex-grow-1">
-                        <div className="d-flex align-items-center gap-2 flex-wrap mb-0.5">
+                        <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
                           {/* Assignment Badge */}
                           <span
-                            className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-semibold"
+                            className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fw-semibold"
                             style={{ fontSize: '11px' }}
                           >
                             Assignment
@@ -271,11 +265,11 @@ export function ClassCourseworkSection({
                     </div>
 
                     {/* Right: Status & Action Button */}
-                    <div className="d-flex align-items-center gap-2.5 flex-shrink-0">
+                    <div className="d-flex align-items-center gap-2 flex-shrink-0">
                       {statusBadge}
                       <Link
                         to={`/student/assignments/${asg.id}`}
-                        className="btn btn-sm btn-outline-primary rounded-2 px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1 shadow-xs"
+                        className="btn btn-sm btn-outline-primary rounded-2 px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 shadow-xs"
                         style={{ fontSize: '12.5px' }}
                       >
                         <span>View Task</span>
@@ -312,10 +306,10 @@ export function ClassCourseworkSection({
                       </div>
 
                       <div className="min-w-0 flex-grow-1">
-                        <div className="d-flex align-items-center gap-2 flex-wrap mb-0.5">
+                        <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
                           {/* Material Badge */}
                           <span
-                            className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 fw-semibold"
+                            className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 fw-semibold"
                             style={{ fontSize: '11px' }}
                           >
                             Material &middot; {mat.type}
@@ -332,7 +326,8 @@ export function ClassCourseworkSection({
                           )}
                           <span>
                             <i className="bi bi-calendar3 opacity-50 me-1" />
-                            {mat.uploadDate} &middot; by {mat.uploadedBy} &middot; {mat.sizeMb} MB
+                            {mat.uploadDate} &middot; by {mat.uploadedBy}
+                            {Number(mat.sizeMb) > 0 ? ` · ${mat.sizeMb} MB` : ''}
                           </span>
                         </div>
                       </div>
@@ -342,7 +337,7 @@ export function ClassCourseworkSection({
                     <div className="d-flex align-items-center gap-2 flex-shrink-0">
                       <button
                         type="button"
-                        className="btn btn-sm btn-outline-secondary rounded-2 px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1.5 shadow-xs"
+                        className="btn btn-sm btn-outline-secondary rounded-2 px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 shadow-xs"
                         onClick={() => onDownload(mat.fileName, mat.fileUrl)}
                         style={{ fontSize: '12.5px' }}
                       >

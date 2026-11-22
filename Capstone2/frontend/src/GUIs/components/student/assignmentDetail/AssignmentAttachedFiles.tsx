@@ -1,5 +1,4 @@
 import React from 'react';
-import { ATTACHED_FILES } from './assignmentDetailData';
 import type { AttachedFileItem } from './assignmentDetailData';
 
 interface AssignmentAttachedFilesProps {
@@ -16,8 +15,8 @@ export function AssignmentAttachedFiles({
   const realFile: AttachedFileItem | null = fileUrl
     ? {
         id: -1,
-        name: fileName ? `${fileName}.pdf` : 'Assignment_Instructions_and_Prompt.pdf',
-        size: '1.2 MB',
+        name: fileName ? `${fileName}.pdf` : 'Assignment_Instructions.pdf',
+        size: 'PDF Document',
         type: 'pdf',
         icon: 'bi-file-earmark-pdf-fill',
         iconBg: '#fee2e2',
@@ -25,36 +24,36 @@ export function AssignmentAttachedFiles({
       }
     : null;
 
-  const filesToDisplay = realFile ? [realFile, ...ATTACHED_FILES] : ATTACHED_FILES;
-
   return (
     <section className="mb-4">
       <h2 className="asg-section-heading">Attached Materials</h2>
       <div className="asg-attached-files-card">
-        {filesToDisplay.map((file: AttachedFileItem) => (
-          <div key={file.id} className="asg-file-item">
+        {realFile ? (
+          <div className="asg-file-item">
             <div
               className="asg-file-icon"
-              style={{ backgroundColor: file.iconBg, color: file.iconColor }}
+              style={{ backgroundColor: realFile.iconBg, color: realFile.iconColor }}
             >
-              <i className={`bi ${file.icon}`}></i>
+              <i className={`bi ${realFile.icon}`}></i>
             </div>
             <div className="asg-file-info">
-              <div className="asg-file-name" title={file.name}>
-                {file.name}
+              <div className="asg-file-name" title={realFile.name}>
+                {realFile.name}
               </div>
-              <div className="asg-file-size">{file.size}</div>
+              <div className="asg-file-size">{realFile.size}</div>
             </div>
             <button
               type="button"
               className="btn-file-download border-0"
-              onClick={() => onDownload(file.name, file.id === -1 ? (fileUrl || undefined) : undefined)}
+              onClick={() => onDownload(realFile.name, fileUrl || undefined)}
             >
               <i className="bi bi-download"></i>
               <span>Download</span>
             </button>
           </div>
-        ))}
+        ) : (
+          <p className="text-muted small mb-0 p-2">No attached materials for this assignment.</p>
+        )}
       </div>
     </section>
   );

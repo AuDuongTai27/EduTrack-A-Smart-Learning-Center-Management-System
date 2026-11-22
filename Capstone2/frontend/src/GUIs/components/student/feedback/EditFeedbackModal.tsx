@@ -85,7 +85,7 @@ export function EditFeedbackModal({
                 id="editFeedbackModalTitle"
                 style={{ fontSize: '17px' }}
               >
-                <i className="bi bi-pencil-square text-warning fs-5" />
+                <i className="bi bi-pencil-square text-primary fs-5" />
                 <span>
                   Edit Feedback: {item.requestCode || `#${item.id}`} ({userRoleName})
                 </span>
@@ -101,16 +101,8 @@ export function EditFeedbackModal({
 
             <form onSubmit={handleSubmit}>
               <div className="modal-body p-4">
-                {/* Information hint */}
-                <div className="alert alert-warning py-2.5 px-3 small mb-3 border-0 rounded-2 bg-warning-subtle text-warning-emphasis d-flex align-items-center gap-2">
-                  <i className="bi bi-info-circle-fill flex-shrink-0" />
-                  <div>
-                    You are editing this request while it is in <strong>Pending Review</strong> status. Once claimed by Staff, editing will be locked.
-                  </div>
-                </div>
-
                 {errorMsg && (
-                  <div className="alert alert-danger py-2.5 px-3 small mb-3 border-0 rounded-2 d-flex align-items-center gap-2" role="alert">
+                  <div className="alert alert-danger py-2 px-3 small mb-3 border-0 rounded-2 d-flex align-items-center gap-2" role="alert">
                     <i className="bi bi-exclamation-triangle-fill flex-shrink-0" />
                     <div>{errorMsg}</div>
                   </div>
@@ -118,14 +110,14 @@ export function EditFeedbackModal({
 
                 {/* Feedback Title */}
                 <div className="mb-3">
-                  <label htmlFor="editFeedbackTitleInput" className="form-label small fw-semibold text-dark mb-1.5">
+                  <label htmlFor="editFeedbackTitleInput" className="form-label small fw-semibold text-dark mb-1">
                     Feedback Title <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     id="editFeedbackTitleInput"
                     className="form-control rounded-2"
-                    placeholder="e.g. Inquiry regarding class schedule, learning materials, facilities..."
+                    placeholder="Enter feedback title..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
@@ -137,7 +129,7 @@ export function EditFeedbackModal({
 
                 {/* Priority */}
                 <div className="mb-3">
-                  <label htmlFor="editFeedbackPrioritySelect" className="form-label small fw-semibold text-dark mb-1.5">
+                  <label htmlFor="editFeedbackPrioritySelect" className="form-label small fw-semibold text-dark mb-1">
                     Priority Level
                   </label>
                   <select
@@ -148,22 +140,22 @@ export function EditFeedbackModal({
                     disabled={isSubmitting}
                     style={{ fontSize: '13.5px' }}
                   >
-                    <option value="low">Low (General inquiry, suggestion)</option>
-                    <option value="medium">Medium (Standard feedback)</option>
-                    <option value="high">High (Urgent issue, immediate assistance)</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
                   </select>
                 </div>
 
                 {/* Description */}
                 <div className="mb-1">
-                  <label htmlFor="editFeedbackDescInput" className="form-label small fw-semibold text-dark mb-1.5">
+                  <label htmlFor="editFeedbackDescInput" className="form-label small fw-semibold text-dark mb-1">
                     Content & Details <span className="text-danger">*</span>
                   </label>
                   <textarea
                     id="editFeedbackDescInput"
                     className="form-control rounded-2"
                     rows={4}
-                    placeholder="Please provide full details..."
+                    placeholder="Enter details and support needed..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     required
@@ -173,10 +165,10 @@ export function EditFeedbackModal({
                 </div>
               </div>
 
-              <div className="modal-footer border-top py-2.5 px-4 bg-light">
+              <div className="modal-footer border-top py-2 px-4 d-flex justify-content-end gap-2 bg-light">
                 <button
                   type="button"
-                  className="btn btn-secondary btn-sm rounded-2 px-3 py-1.5"
+                  className="btn btn-outline-secondary btn-sm rounded-2 px-3 py-1"
                   onClick={handleClose}
                   disabled={isSubmitting}
                   style={{ fontSize: '13px' }}
@@ -185,7 +177,7 @@ export function EditFeedbackModal({
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-warning btn-sm d-inline-flex align-items-center gap-1.5 rounded-2 px-3 py-1.5 text-dark fw-semibold shadow-sm"
+                  className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 rounded-2 px-3 py-1 fw-medium shadow-sm"
                   disabled={!isFormValid || isSubmitting}
                   style={{ fontSize: '13px' }}
                 >

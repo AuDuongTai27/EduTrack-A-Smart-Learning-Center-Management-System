@@ -7,6 +7,10 @@ export interface ClassDetailItem {
   accent: string;
   teacher: string;
   teacherInitials: string;
+  taName?: string;
+  taInitials?: string;
+  taEmail?: string;
+  taPhone?: string;
   schedule: string;
   room: string;
   email: string;

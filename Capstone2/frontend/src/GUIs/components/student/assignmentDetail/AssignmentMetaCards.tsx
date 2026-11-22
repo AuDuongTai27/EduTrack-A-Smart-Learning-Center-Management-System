@@ -31,7 +31,7 @@ export function AssignmentMetaCards({
           </div>
           <div>
             <div className="asg-meta-title">Score</div>
-            <div className="asg-meta-val" id="asgScoreValue">{asg.score || '8.5 / 10'}</div>
+            <div className="asg-meta-val" id="asgScoreValue">{asg.score || 'Pending Grading'}</div>
           </div>
         </div>
       )}

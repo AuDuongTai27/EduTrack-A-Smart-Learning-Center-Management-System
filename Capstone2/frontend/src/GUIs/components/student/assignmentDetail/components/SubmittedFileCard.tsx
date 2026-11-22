@@ -66,7 +66,7 @@ export function SubmittedFileCard({
                   <i className="bi bi-patch-check-fill"></i>
                   Official Evaluation from Teacher
                 </span>
-                <span className="badge bg-success text-white px-3 py-1.5 rounded-pill fs-6">
+                <span className="badge bg-success text-white px-3 py-1 rounded-pill fs-6">
                   {submission.score} / 10 pts
                 </span>
               </div>
@@ -89,7 +89,7 @@ export function SubmittedFileCard({
                   <i className="bi bi-robot"></i>
                   AI Assistant Preliminary Assessment & Score
                 </span>
-                <span className="badge bg-primary text-white px-3 py-1.5 rounded-pill">
+                <span className="badge bg-primary text-white px-3 py-1 rounded-pill">
                   Suggested AI Score: {submission.aiScore} / 10
                 </span>
               </div>

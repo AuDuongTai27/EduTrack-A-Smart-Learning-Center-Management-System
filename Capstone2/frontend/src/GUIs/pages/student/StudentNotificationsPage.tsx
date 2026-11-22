@@ -94,7 +94,6 @@ export function StudentNotificationsPage() {
 
   const [selectedNotification, setSelectedNotification] =
     useState<NotificationItem | null>(null);
-  const [markingRead, setMarkingRead] = useState<boolean>(false);
 
   const loadNotifications = async () => {
     setLoading(true);
@@ -133,26 +132,20 @@ export function StudentNotificationsPage() {
   );
 
   const handleMarkRead = async (id: number, silent = false) => {
-    if (markingRead) return;
-    setMarkingRead(true);
-    try {
-      setReadIds((prev) => {
-        const next = new Set(prev);
-        next.add(id);
-        return next;
-      });
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
-      );
-      setSelectedNotification((prev) =>
-        prev && prev.id === id ? { ...prev, unread: false } : prev
-      );
-      await learningDAL.markNotificationRead(id, DEFAULT_STUDENT_ID);
-      if (!silent) {
-        setSuccessMsg("Notification marked as read.");
-      }
-    } finally {
-      setMarkingRead(false);
+    setReadIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
+    );
+    setSelectedNotification((prev) =>
+      prev && prev.id === id ? { ...prev, unread: false } : prev
+    );
+    await learningDAL.markNotificationRead(id, DEFAULT_STUDENT_ID);
+    if (!silent) {
+      setSuccessMsg("Notification marked as read.");
     }
   };
 
@@ -215,9 +208,6 @@ export function StudentNotificationsPage() {
   const selectedStyle = selectedNotification
     ? getCategoryStyle(selectedNotification.category)
     : null;
-  const selectedIsUnread = selectedNotification
-    ? isItemUnread(selectedNotification)
-    : false;
 
   if (loading && notifications.length === 0) {
     return (
@@ -244,15 +234,6 @@ export function StudentNotificationsPage() {
             <div>
               <div className="d-flex align-items-center gap-2 flex-wrap">
                 <h1 className="h3 fw-bold mb-0 text-dark">Notifications</h1>
-                {unreadCount > 0 ? (
-                  <span className="badge rounded-pill bg-danger px-3 py-1">
-                    {unreadCount} new
-                  </span>
-                ) : (
-                  <span className="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-1">
-                    All read
-                  </span>
-                )}
               </div>
             </div>
           </div>
@@ -295,68 +276,68 @@ export function StudentNotificationsPage() {
 
         {/* Thanh tìm kiếm & Bộ lọc chủ đề thân thiện */}
         <div className="card border-0 shadow-sm rounded-4 mb-4">
-          <div className="card-body p-3 p-md-4">
-            <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
-              {(
-                [
-                  {
-                    key: "all",
-                    label: "All",
-                    icon: "bi-grid-fill",
-                  },
-                  {
-                    key: "unread",
-                    label: `Unread (${unreadCount})`,
-                    icon: "bi-envelope-exclamation-fill",
-                  },
-                  {
-                    key: "class",
-                    label: "Classes & Assignments",
-                    icon: "bi-journal-bookmark-fill",
-                  },
-                  {
-                    key: "payment",
-                    label: "Tuition",
-                    icon: "bi-wallet2",
-                  },
-                  {
-                    key: "system",
-                    label: "System",
-                    icon: "bi-shield-check",
-                  },
-                ] as { key: StudentFilterCategory; label: string; icon: string }[]
-              ).map((tab) => {
-                const active = activeCategory === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => {
-                      setActiveCategory(tab.key);
-                      setCurrentPage(1);
-                    }}
-                    className={`btn btn-sm rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2 fw-semibold ${
-                      active
-                        ? "btn-primary shadow-xs"
-                        : "btn-light border text-secondary"
-                    }`}
-                  >
-                    <i className={`bi ${tab.icon}`} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="card-body p-3">
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+              <div className="d-flex flex-wrap align-items-center gap-2">
+                {(
+                  [
+                    {
+                      key: "all",
+                      label: "All",
+                      icon: "bi-grid-fill",
+                    },
+                    {
+                      key: "unread",
+                      label: `Unread (${unreadCount})`,
+                      icon: "bi-envelope-exclamation-fill",
+                    },
+                    {
+                      key: "class",
+                      label: "Classes & Assignments",
+                      icon: "bi-journal-bookmark-fill",
+                    },
+                    {
+                      key: "payment",
+                      label: "Tuition",
+                      icon: "bi-wallet2",
+                    },
+                    {
+                      key: "system",
+                      label: "System",
+                      icon: "bi-shield-check",
+                    },
+                  ] as { key: StudentFilterCategory; label: string; icon: string }[]
+                ).map((tab) => {
+                  const active = activeCategory === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => {
+                        setActiveCategory(tab.key);
+                        setCurrentPage(1);
+                      }}
+                      className={`btn btn-sm rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2 fw-semibold ${
+                        active
+                          ? "btn-primary shadow-xs"
+                          : "btn-light border text-secondary"
+                      }`}
+                    >
+                      <i className={`bi ${tab.icon}`} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-            <div className="row g-3">
-              <div className="col-12">
-                <div className="input-group">
+              <div style={{ minWidth: 260, maxWidth: 340, flex: "1 1 260px" }}>
+                <div className="input-group input-group-sm">
                   <span className="input-group-text bg-light border-end-0 text-muted">
                     <i className="bi bi-search" />
                   </span>
                   <input
                     className="form-control border-start-0 bg-light"
-                    placeholder="Search by subject, assignment, schedule, or notification content..."
+                    placeholder="Search notifications..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
@@ -375,17 +356,7 @@ export function StudentNotificationsPage() {
           <div className="col-xl-5">
             <div className="card notification-card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
               <div className="notification-card-header d-flex align-items-center justify-content-between p-3 border-bottom bg-white">
-                <div>
-                  <h5 className="mb-0 fw-bold text-dark">Learning Inbox</h5>
-                  <small className="text-muted">
-                    Showing {filteredNotifications.length} notifications
-                  </small>
-                </div>
-                {unreadCount > 0 && (
-                  <span className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle">
-                    {unreadCount} unread
-                  </span>
-                )}
+                <h5 className="mb-0 fw-bold text-dark">Learning Inbox</h5>
               </div>
 
               <div
@@ -489,6 +460,7 @@ export function StudentNotificationsPage() {
                   entriesPerPage={entriesPerPage}
                   itemLabel="notifications"
                   onPageChange={setCurrentPage}
+                  showSummary={false}
                 />
               </div>
             </div>
@@ -522,8 +494,7 @@ export function StudentNotificationsPage() {
                             {selectedNotification.title}
                           </h4>
                           <small className="text-muted">
-                            <i className="bi bi-calendar3 me-1" />
-                            Received: {selectedNotification.timestamp}
+                            {selectedStyle.sender} &middot; {selectedNotification.timestamp}
                           </small>
                         </div>
                       </div>
@@ -551,48 +522,8 @@ export function StudentNotificationsPage() {
                   </div>
 
                   <div className="notification-preview-body p-4 flex-grow-1">
-                    <div className="row g-3 mb-4">
-                      <div className="col-md-4">
-                        <div className="p-3 bg-light rounded-3 h-100">
-                          <small className="d-block text-primary fw-bold mb-1">
-                            Sender
-                          </small>
-                          <strong className="text-dark text-break">
-                            {selectedStyle.sender}
-                          </strong>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="p-3 bg-light rounded-3 h-100">
-                          <small className="d-block text-primary fw-bold mb-1">
-                            Category
-                          </small>
-                          <strong className="text-dark text-break">
-                            {selectedStyle.label}
-                          </strong>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="p-3 bg-light rounded-3 h-100">
-                          <small className="d-block text-primary fw-bold mb-1">
-                            Read Status
-                          </small>
-                          <strong
-                            className={
-                              selectedIsUnread ? "text-primary" : "text-success"
-                            }
-                          >
-                            {selectedIsUnread ? "Unread" : "Read"}
-                          </strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    <h6 className="fw-bold text-dark fs-5 mb-3 border-start border-4 border-primary ps-3">
-                      Notification Content
-                    </h6>
                     <div
-                      className="p-4 bg-light rounded-4 border text-dark text-break mb-3"
+                      className="p-4 bg-light rounded-4 border text-dark text-break"
                       style={{
                         whiteSpace: "pre-line",
                         overflowWrap: "anywhere",
@@ -603,39 +534,6 @@ export function StudentNotificationsPage() {
                     >
                       {selectedNotification.summary}
                     </div>
-
-                    <div className="p-3 rounded-3 bg-primary-subtle bg-opacity-50 border border-primary-subtle d-flex align-items-start gap-2 small text-primary-emphasis">
-                      <i className="bi bi-lightbulb-fill text-primary mt-1" />
-                      <span>{selectedStyle.tip}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 border-top bg-light d-flex justify-content-between align-items-center gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary rounded-pill px-3"
-                      onClick={() => setSelectedNotification(null)}
-                    >
-                      <i className="bi bi-arrow-left me-1" /> Close Details
-                    </button>
-                    {selectedIsUnread ? (
-                      <button
-                        type="button"
-                        className="btn btn-primary rounded-pill px-4"
-                        disabled={markingRead}
-                        onClick={() =>
-                          void handleMarkRead(selectedNotification.id)
-                        }
-                      >
-                        <i className="bi bi-check2-circle me-1" />
-                        {markingRead ? "Updating..." : "Mark as Read"}
-                      </button>
-                    ) : (
-                      <span className="text-success small fw-semibold d-inline-flex align-items-center">
-                        <i className="bi bi-check-circle-fill me-1" />
-                        You have read this notification
-                      </span>
-                    )}
                   </div>
                 </>
               ) : (
