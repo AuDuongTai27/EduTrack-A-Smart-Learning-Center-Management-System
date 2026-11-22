@@ -230,13 +230,26 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                           </div>
                         </div>
 
-                        <div className="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
-                          <span className="small text-muted">
-                            Scheduled: <strong>{c.totalSessions ?? 0}</strong> sessions
-                          </span>
+                        <div className="pt-2 border-top mt-auto">
+                          <div className="d-flex align-items-center justify-content-between mb-2">
+                            <span className="small text-secondary fw-medium text-nowrap">
+                              <i className="bi bi-calendar2-check text-primary me-1" />
+                              Scheduled Sessions
+                            </span>
+                            <span
+                              className={
+                                'badge rounded-pill px-2 py-1 text-nowrap ' +
+                                ((c.totalSessions ?? 0) > 0
+                                  ? 'bg-primary-subtle text-primary border border-primary-subtle'
+                                  : 'bg-light text-secondary border')
+                              }
+                            >
+                              {c.totalSessions ?? 0} sessions
+                            </span>
+                          </div>
                           <button
                             type="button"
-                            className="btn btn-sm btn-primary fw-semibold px-3"
+                            className="btn btn-sm btn-primary fw-semibold w-100 text-nowrap"
                             onClick={() => setSelectedClassId(c.classId)}
                           >
                             <i className="bi bi-calendar3 me-1" />
