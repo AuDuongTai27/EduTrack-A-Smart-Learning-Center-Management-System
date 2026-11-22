@@ -95,7 +95,7 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                 >
                   {classes.map((c) => (
                     <option key={c.classId} value={c.classId}>
-                      #{c.classId} · {c.className}
+                      {c.className}
                     </option>
                   ))}
                 </select>
@@ -122,13 +122,10 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
         <section className="bg-white rounded-4 border shadow-sm p-4 mb-4" aria-label="Select class to view schedule">
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
             <div>
-              <h2 className="h5 fw-bold mb-1">
+              <h2 className="h5 fw-bold mb-0">
                 <i className="bi bi-journal-bookmark-fill text-primary me-2" />
                 Select a class to view & adjust schedule
               </h2>
-              <p className="text-muted small mb-0">
-                Please select a class below to view detailed schedule, reschedule sessions, remove cancelled sessions, or create make-up sessions.
-              </p>
             </div>
             <div className="d-flex flex-wrap align-items-center gap-2">
               <div className="input-group input-group-sm" style={{ minWidth: 240 }}>
@@ -175,7 +172,6 @@ export default function ManagementSchedulePage({role}: {role: 'center-manager' |
                         <div>
                           <div className="d-flex align-items-start justify-content-between gap-2 mb-2">
                             <div>
-                              <span className="badge bg-light text-secondary border me-1">#{c.classId}</span>
                               {c.subjectName && (
                                 <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
                                   {c.subjectName}

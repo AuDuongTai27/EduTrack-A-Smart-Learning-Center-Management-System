@@ -124,13 +124,13 @@ export default function ClassManagementPage({role}: {role: ManagementRole}) {
         <TableToolbar totalItems={filtered.length} totalLabel="Total classes" entriesPerPage={entries} onEntriesPerPageChange={value => {setEntries(value); setCurrentPage(1);}} />
         <div className="table-responsive">
           <table className="table user-table align-middle mb-0 table-hover" aria-label="Class list">
-            <thead className="table-light"><tr><th>No.</th><th>Class Code</th><th>Class Name</th><th>Subject</th><th>Room</th><th>Monthly Tuition</th><th>Duration</th><th>Status</th><th>Grade</th><th className="text-center">Action</th></tr></thead>
+            <thead className="table-light"><tr><th>No.</th><th>Class Name</th><th>Subject</th><th>Room</th><th>Monthly Tuition</th><th>Duration</th><th>Status</th><th>Grade</th><th className="text-center">Action</th></tr></thead>
             <tbody>
-              {classes.loading ? <tr><td colSpan={10} className="text-center py-5 text-muted" role="status"><span className="spinner-border spinner-border-sm me-2" />Loading class list...</td></tr>
-                : classes.error ? <tr><td colSpan={10} className="text-center py-5 text-danger">Failed to load class list. Please try again.</td></tr>
-                  : !visible.length ? <tr><td colSpan={10} className="text-center py-5 text-muted">{classes.data?.length ? "No classes match the filter." : "No classes available."}</td></tr>
+              {classes.loading ? <tr><td colSpan={9} className="text-center py-5 text-muted" role="status"><span className="spinner-border spinner-border-sm me-2" />Loading class list...</td></tr>
+                : classes.error ? <tr><td colSpan={9} className="text-center py-5 text-danger">Failed to load class list. Please try again.</td></tr>
+                  : !visible.length ? <tr><td colSpan={9} className="text-center py-5 text-muted">{classes.data?.length ? "No classes match the filter." : "No classes available."}</td></tr>
                     : visible.map((item, index) => <tr key={item.classId}>
-                      <td>{(page - 1) * entries + index + 1}</td><td><span className="badge bg-light text-primary border font-monospace">#CLS{item.classId}</span></td>
+                      <td>{(page - 1) * entries + index + 1}</td>
                       <td><Link className="fw-bold text-decoration-none" to={`/${role}/classes/${item.classId}`}>{item.className}</Link></td>
                       <td><div className="d-flex flex-wrap gap-1"><SubjectBadge subject={item.subjectName || `Subject #${item.subjectId}`} /></div></td>
                       <td>{item.room || "No room assigned"}</td><td>{formatVND(item.tuitionFee)}</td>

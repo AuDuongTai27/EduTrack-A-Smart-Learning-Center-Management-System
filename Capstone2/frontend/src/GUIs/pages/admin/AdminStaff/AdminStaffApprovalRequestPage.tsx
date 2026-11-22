@@ -599,7 +599,6 @@ export default function AdminStaffApprovalRequestPage() {
             <thead className="table-light">
               <tr>
                 <th>No.</th>
-                <th>Request Code</th>
                 <th>Request Type</th>
                 <th>Related To</th>
                 <th>Request Content</th>
@@ -612,7 +611,7 @@ export default function AdminStaffApprovalRequestPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <div
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
@@ -622,7 +621,7 @@ export default function AdminStaffApprovalRequestPage() {
                 </tr>
               ) : paginatedRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
                     No matching approval requests found.
                   </td>
@@ -643,11 +642,6 @@ export default function AdminStaffApprovalRequestPage() {
                   return (
                     <tr key={req.requestId || idx}>
                       <td>{itemIndex}</td>
-                      <td>
-                        <strong className="text-primary font-monospace">
-                          {req.requestCode || `AR${req.requestId}`}
-                        </strong>
-                      </td>
                       <td>
                         <span className="badge bg-light text-dark border">
                           {formatRequestType(req.requestType)}

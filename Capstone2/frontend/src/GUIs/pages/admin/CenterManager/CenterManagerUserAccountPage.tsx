@@ -467,7 +467,6 @@ export default function CenterManagerUserAccountPage() {
             <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
-                <th className="fw-bold">User Code</th>
                 <th className="fw-bold">Staff Name</th>
                 <th className="fw-bold">Phone Number</th>
                 <th className="fw-bold">Specialties / Dept</th>
@@ -480,14 +479,14 @@ export default function CenterManagerUserAccountPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
                     Loading staff accounts...
                   </td>
                 </tr>
               ) : paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-people fs-2 d-block mb-2 text-secondary" />
                     No matching staff accounts found.
                   </td>
@@ -508,17 +507,9 @@ export default function CenterManagerUserAccountPage() {
                     <tr key={u.userId}>
                       <td>{itemIndex}</td>
                       <td>
-                        <span className="badge bg-light text-dark border font-monospace">
-                          #{u.userCode || `USR${u.userId}`}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <UserAvatar name={u.fullName} />
-                          <div>
-                            <h6 className="mb-0 fw-bold text-dark">{u.fullName}</h6>
-                            <small className="text-muted">{u.email || "No email"}</small>
-                          </div>
+                        <div>
+                          <h6 className="mb-0 fw-bold text-dark">{u.fullName}</h6>
+                          <small className="text-muted">{u.email || "No email"}</small>
                         </div>
                       </td>
                       <td>{u.phone || "—"}</td>
