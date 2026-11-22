@@ -683,7 +683,6 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
             <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
-                <th className="fw-bold">Code</th>
                 <th className="fw-bold">{activeTab === "students" ? "Student" : "Parent"}</th>
                 {activeTab === "students" && <th className="fw-bold">Class / Grade</th>}
                 <th className="fw-bold">Phone Number</th>
@@ -697,14 +696,14 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5 text-muted">
+                  <td colSpan={7} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
                     Loading {activeTab === "students" ? "students" : "parents"} list...
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5 text-muted">
+                  <td colSpan={7} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
                     No {activeTab === "students" ? "students" : "parents"} found matching filters.
                   </td>
@@ -721,17 +720,9 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                     <tr key={item.userId}>
                       <td>{itemIndex}</td>
                       <td>
-                        <span className="badge bg-light text-primary border font-monospace">
-                          #{item.userCode || (activeTab === "students" ? `STU${item.userId}` : `PAR${item.userId}`)}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <UserAvatar name={item.fullName} />
-                          <div>
-                            <h6 className="mb-0 fw-bold text-dark">{item.fullName}</h6>
-                            <small className="text-muted">{item.email || "—"}</small>
-                          </div>
+                        <div>
+                          <h6 className="mb-0 fw-bold text-dark">{item.fullName}</h6>
+                          <small className="text-muted">{item.email || "—"}</small>
                         </div>
                       </td>
                       {activeTab === "students" && (
@@ -748,12 +739,8 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                           linkedParents.length > 0 ? (
                             <div>
                               {linkedParents.map((lp) => (
-                                <div key={lp.parentId} className="d-flex align-items-center gap-1 mb-1">
-                                  <span className="badge bg-info-subtle text-info border">
-                                    {lp.relationship || "Parent"}
-                                  </span>
-                                  <span className="fw-semibold text-dark small">{lp.parentName}</span>
-                                  <small className="text-muted">({lp.parentPhone || "—"})</small>
+                                <div key={lp.parentId} className="fw-semibold text-dark small mb-1">
+                                  {lp.parentName}
                                 </div>
                               ))}
                             </div>
@@ -765,11 +752,11 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                           )
                         ) : (
                           linkedStudents.length > 0 ? (
-                            <div className="d-flex flex-wrap gap-1">
+                            <div>
                               {linkedStudents.map((ls) => (
-                                <span key={ls.studentId} className="badge bg-light text-dark border">
-                                  🎓 {ls.studentName} ({ls.relationship || "Child"})
-                                </span>
+                                <div key={ls.studentId} className="fw-semibold text-dark small mb-1">
+                                  {ls.studentName}
+                                </div>
                               ))}
                             </div>
                           ) : (

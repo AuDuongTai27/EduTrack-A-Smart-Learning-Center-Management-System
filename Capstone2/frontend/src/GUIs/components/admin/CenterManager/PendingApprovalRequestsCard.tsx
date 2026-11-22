@@ -20,7 +20,7 @@ export default function PendingApprovalRequestsCard({ requests, loading, error, 
       : requests.length === 0 ? <div className="p-4 text-center cm-approval-empty"><img src={approvalIllustration} alt="" aria-hidden="true" /><p className="mt-2 mb-1">No pending approval requests.</p><small className="text-muted">Admin Staff requests awaiting your review will appear here.</small></div>
       : <ul className="cm-pending-list">{requests.slice(0, 5).map(request => <li key={request.requestId}>
         <div className="cm-request-copy">
-          <small className="text-muted">{request.requestCode} · {requestTypeLabel(request.requestType)}</small>
+          <small className="text-muted">{requestTypeLabel(request.requestType)}</small>
           <strong className="cm-request-title">{request.title?.trim() || request.reason?.trim() || requestTypeLabel(request.requestType)}</strong>
           <small className="text-muted">{request.requesterName || 'Name unavailable'} · Admin Staff</small>
           <small className="text-muted">Submitted: <time dateTime={request.createdAt}>{Number.isNaN(Date.parse(request.createdAt)) ? 'Date unavailable' : new Date(request.createdAt).toLocaleDateString('en-GB')}</time></small>

@@ -411,7 +411,6 @@ export default function AdminStaffFeedbackPage() {
             <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
-                <th className="fw-bold">Request Code</th>
                 <th className="fw-bold">Type</th>
                 <th className="fw-bold">Related Student / Class</th>
                 <th className="fw-bold">Content Summary</th>
@@ -424,7 +423,7 @@ export default function AdminStaffFeedbackPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <div
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
@@ -434,7 +433,7 @@ export default function AdminStaffFeedbackPage() {
                 </tr>
               ) : paginatedRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
                     No requests or feedback match the filters.
                   </td>
@@ -447,12 +446,6 @@ export default function AdminStaffFeedbackPage() {
                   return (
                     <tr key={req.requestId || idx}>
                       <td>{itemIndex}</td>
-                      <td>
-                        <strong className="text-primary font-monospace">
-                          {req.requestCode ||
-                            `AR${String(req.requestId).padStart(4, "0")}`}
-                        </strong>
-                      </td>
                       <td>
                         <span className="badge bg-light text-dark border">
                           {formatRequestType(req.requestType)}

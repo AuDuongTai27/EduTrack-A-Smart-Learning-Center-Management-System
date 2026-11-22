@@ -106,9 +106,6 @@ export function ScheduleSessionDetail({
             <>
               {error && <div className="alert alert-danger py-2 small mb-2" role="alert">{error}</div>}
               <form onSubmit={handleReschedule}>
-                <p className="small text-muted mb-2">
-                  If the teacher is busy or needs to switch to a makeup session on <strong>any date/time</strong>, select a new date and time below (the session from the old date will automatically move to the new date):
-                </p>
                 <div className="row g-2">
                   <div className="col-12 col-sm-6">
                     <label className="form-label small fw-semibold mb-1">New session date (any)</label>
