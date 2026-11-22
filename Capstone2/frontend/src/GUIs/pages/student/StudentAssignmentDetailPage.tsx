@@ -114,11 +114,13 @@ export function StudentAssignmentDetailPage() {
 
       if (savedSub.score !== null && savedSub.score !== undefined) {
         setAsg((prev) => (prev ? { ...prev, score: `${savedSub.score} / 10 (Graded by Teacher)` } : prev));
+        showToast('Assignment submitted successfully!');
       } else if (savedSub.aiScore !== null && savedSub.aiScore !== undefined) {
         setAsg((prev) => (prev ? { ...prev, score: `${savedSub.aiScore} / 10 (AI Preliminary Grading)` } : prev));
+        showToast('Assignment submitted successfully! AI has provided preliminary grading.');
+      } else {
+        showToast('Assignment submitted successfully!');
       }
-
-      showToast('Assignment submitted successfully! AI has provided preliminary grading.');
     } catch (err) {
       console.warn('Không kết nối được Backend khi nộp bài, cập nhật local state:', err);
       setSubmittedFileName(name);

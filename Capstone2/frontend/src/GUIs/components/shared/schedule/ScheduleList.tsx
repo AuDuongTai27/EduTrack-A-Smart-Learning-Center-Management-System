@@ -8,9 +8,18 @@ export function ScheduleList({sessions, now, role, page, pageSize, onPage, onOpe
   sessions: ScheduleSession[]; now: Date; role: ScheduleRole; page: number; pageSize: number;
   onPage: (page: number) => void; onOpen: (session: ScheduleSession) => void;
 }) {
-  const Pagination = role === 'teaching-assistant' ? TaPagination : ScheduleListPagination;
   return <>
     <ScheduleTable sessions={sessions.slice((page - 1) * pageSize, page * pageSize)} now={now} role={role} onOpen={onOpen} />
-    <Pagination totalItems={sessions.length} currentPage={page} rowsPerPage={pageSize} onPageChange={onPage} />
+    {role === 'teaching-assistant' ? (
+      <TaPagination totalItems={sessions.length} currentPage={page} rowsPerPage={pageSize} onPageChange={onPage} />
+    ) : (
+      <ScheduleListPagination
+        totalItems={sessions.length}
+        currentPage={page}
+        rowsPerPage={pageSize}
+        onPageChange={onPage}
+        showSummary={role !== 'student'}
+      />
+    )}
   </>;
 }

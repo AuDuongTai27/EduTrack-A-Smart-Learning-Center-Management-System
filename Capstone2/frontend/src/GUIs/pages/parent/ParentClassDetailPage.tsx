@@ -6,7 +6,9 @@ import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import type { ClassSessionAttendanceItemApiDto } from '../../../api/learningApi';
 import { ClassHeroDecoration } from '../../components/Common/ClassHeroDecoration';
+import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
 import { ClassEvaluationsSection } from '../../components/student/classDetail/ClassEvaluationsSection';
+import type { ClassDetailItem } from '../../components/student/classDetail/classDetailData';
 import type { ProgressFeedback } from '../../components/student/progress/progressData';
 
 export function ParentClassDetailPage() {
@@ -16,6 +18,7 @@ export function ParentClassDetailPage() {
   const classId = parseInt(paramId || '1', 10);
 
   const [cls, setCls] = useState<ChildClassItem | undefined>(undefined);
+  const [detailCls, setDetailCls] = useState<ClassDetailItem | null>(null);
   const [sessions, setSessions] = useState<ClassSessionAttendanceItemApiDto[]>([]);
   const [feedbacks, setFeedbacks] = useState<ProgressFeedback[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -29,6 +32,7 @@ export function ParentClassDetailPage() {
       try {
         const detailVm = await learningDAL.getStudentClassDetail(classId, studentId);
         if (isMounted && detailVm) {
+          setDetailCls(detailVm.cls);
           setCls({
             id: detailVm.cls.id,
             name: detailVm.cls.name,
@@ -74,18 +78,19 @@ export function ParentClassDetailPage() {
     }
   }, [cls]);
 
-  // Feedbacks học tập từ Backend (fallback ghi chú giáo viên nếu chưa có nhận xét)
+  // Feedbacks học tập từ Backend (fallback ghi chú giáo viên nếu có nhận xét thực sự)
   const displayFeedbacks: ProgressFeedback[] = useMemo(() => {
     if (feedbacks.length > 0) return feedbacks;
-    if (cls?.notes) {
+    const note = cls?.notes?.trim();
+    if (cls && note && !note.toLowerCase().includes('chưa có nhận xét') && !note.toLowerCase().includes('no teacher evaluation')) {
       return [
         {
           assignmentTitle: `Periodic Evaluation - ${cls.name}`,
-          quote: cls.notes,
+          quote: note,
           teacherName: cls.teacher || 'Lead Teacher',
           statusType: 'dat',
           statusIcon: 'bi-check2-all',
-          statusLabel: 'Praise',
+          statusLabel: 'Teacher Note',
           category: 'evaluation',
         },
       ];
@@ -125,9 +130,15 @@ export function ParentClassDetailPage() {
   const attendedCount = presentSessions.length + lateSessions.length;
   const actualAttended = sessions.length > 0 ? attendedCount : (cls.attendedLessons || 0);
   const totalLessons = cls.totalLessons || sessions.length || 0;
-  const attendanceRate = conductedSessions.length > 0
+  const hasConducted = conductedSessions.length > 0;
+  const attendanceRate = hasConducted
     ? Math.round((attendedCount / conductedSessions.length) * 100)
-    : 100;
+    : null;
+  const unmarkedCount = Math.max(0, conductedSessions.length - presentSessions.length - lateSessions.length - absentSessions.length);
+  const barTotal = conductedSessions.length || 1;
+  const presentPct = (presentSessions.length / barTotal) * 100;
+  const latePct = (lateSessions.length / barTotal) * 100;
+  const absentPct = (absentSessions.length / barTotal) * 100;
 
   return (
     <main className="main-content">
@@ -150,7 +161,7 @@ export function ParentClassDetailPage() {
             {/* Back Button */}
             <Link
               to="/parent/classes"
-              className="btn btn-sm text-white rounded-pill px-3 py-1.5 mb-3 d-inline-flex align-items-center gap-2"
+              className="btn btn-sm text-white rounded-pill px-3 py-1 mb-3 d-inline-flex align-items-center gap-2"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.18)',
                 border: '1px solid rgba(255, 255, 255, 0.35)',
@@ -165,12 +176,12 @@ export function ParentClassDetailPage() {
             {/* Hero Main Info */}
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2 et-class-hero-row">
               <div className="et-class-hero-copy">
-                <span className="badge bg-white text-success fw-bold px-3 py-1.5 rounded-pill mb-2 shadow-xs">
+                <span className="badge bg-white text-success fw-bold px-3 py-1 rounded-pill mb-2 shadow-xs">
                   {cls.subject}
                 </span>
                 <h1 className="h3 fw-bold mb-2 text-white">{cls.name}</h1>
                 {/* Breadcrumbs */}
-                <div className="d-flex align-items-center gap-2 small text-white-50 mb-2 et-class-hero-breadcrumbs">
+                <div className="d-flex align-items-center gap-2 small mb-2 et-class-hero-breadcrumbs" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>
                   <Link to="/parent/dashboard" className="text-white text-decoration-none opacity-75">
                     Dashboard
                   </Link>
@@ -181,9 +192,7 @@ export function ParentClassDetailPage() {
                   <i className="bi bi-chevron-right fs-xs"></i>
                   <span className="fw-semibold text-white">{cls.name}</span>
                 </div>
-                <p className="mb-0 text-white-50 small">
-                  <span>Student: <strong className="text-white">{selectedChild.name}</strong> ({selectedChild.grade})</span>
-                  <span className="mx-2">·</span>
+                <p className="mb-0 small" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>
                   <span>Teacher: <strong className="text-white">{cls.teacher}</strong></span>
                   <span className="mx-2">·</span>
                   <span>Schedule: <strong className="text-white">{cls.schedule}</strong></span>
@@ -199,7 +208,7 @@ export function ParentClassDetailPage() {
                   <div className="h4 fw-bold mb-0 text-white">
                     {actualAttended}/{totalLessons}
                   </div>
-                  <div className="small text-white-50">Sessions Attended</div>
+                  <div className="small" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>Sessions Attended</div>
                 </div>
                 <div
                   className="et-class-hero-summary-divider"
@@ -212,21 +221,43 @@ export function ParentClassDetailPage() {
                 <div className="text-center et-class-hero-summary-item">
                   <i className="bi bi-person-check et-class-hero-summary-icon" aria-hidden="true" />
                   <div
-                    className={`h4 fw-bold mb-0 ${attendanceRate >= 90
+                    className={`h4 fw-bold mb-0 ${attendanceRate === null || attendanceRate >= 90
                       ? 'text-white'
                       : attendanceRate >= 70
                         ? 'text-warning'
                         : 'text-danger'
                       }`}
                   >
-                    {attendanceRate}%
+                    {attendanceRate !== null ? `${attendanceRate}%` : '—'}
                   </div>
-                  <div className="small text-white-50">Attendance Rate</div>
+                  <div className="small" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>Attendance Rate</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Class Info Card (Teacher, TA, Schedule, Room, Description) */}
+        <ClassInfoCard
+          cls={
+            detailCls || {
+              id: cls.id,
+              name: cls.name,
+              subject: cls.subject,
+              subjectClass: cls.subjectClass,
+              grad: '',
+              accent: '',
+              teacher: cls.teacher,
+              teacherInitials: cls.teacherInitials,
+              schedule: cls.schedule,
+              room: cls.room,
+              email: '',
+              phone: '',
+              description: '',
+              studentCount: 0,
+            }
+          }
+        />
 
         {/* SECTION 1: ATTENDANCE & ABSENCE TRACKING (Chỉ hiển thị nghỉ/trễ, mặc định đóng) */}
         <details className="card class-list-card border-0 mb-4">
@@ -236,46 +267,70 @@ export function ParentClassDetailPage() {
               <h4 className="class-list-title mb-0">
                 Attendance &amp; Absence Tracking
               </h4>
-              {exceptionSessions.length > 0 ? (
-                <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5 small">
-                  {exceptionSessions.length} {exceptionSessions.length === 1 ? 'incident' : 'incidents'}
-                </span>
-              ) : (
-                <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 small">
-                  Full Attendance
-                </span>
-              )}
             </div>
 
             <i className="bi bi-chevron-down details-chevron text-muted" />
           </summary>
 
           <div className="p-4">
-            {/* Quick Summary Strip */}
-            <div className="row g-2 mb-3">
-              <div className="col-sm-3 col-6">
-                <div className="p-2.5 rounded-3 bg-light border text-center">
-                  <div className="small text-muted">Total Conducted</div>
-                  <div className="fw-bold text-dark fs-5">{conductedSessions.length}</div>
+            {/* Compact Segmented Attendance Bar & Legend */}
+            <div className="mb-3 pb-3 border-bottom">
+              <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 small">
+                <span className="text-muted">
+                  Conducted Sessions: <strong className="text-dark">{conductedSessions.length}</strong>
+                </span>
+                <div className="d-flex align-items-center flex-wrap gap-3">
+                  <span className="d-inline-flex align-items-center gap-1 text-secondary">
+                    <span className="rounded-circle bg-success d-inline-block" style={{ width: 8, height: 8 }} />
+                    Present: <strong className="text-dark">{presentSessions.length}</strong>
+                  </span>
+                  <span className="d-inline-flex align-items-center gap-1 text-secondary">
+                    <span className="rounded-circle bg-warning d-inline-block" style={{ width: 8, height: 8 }} />
+                    Late: <strong className="text-dark">{lateSessions.length}</strong>
+                  </span>
+                  <span className="d-inline-flex align-items-center gap-1 text-secondary">
+                    <span className="rounded-circle bg-danger d-inline-block" style={{ width: 8, height: 8 }} />
+                    Absent: <strong className="text-dark">{absentSessions.length}</strong>
+                  </span>
+                  {unmarkedCount > 0 && (
+                    <span className="d-inline-flex align-items-center gap-1 text-secondary">
+                      <span className="rounded-circle bg-secondary bg-opacity-50 d-inline-block" style={{ width: 8, height: 8 }} />
+                      Unmarked: <strong className="text-dark">{unmarkedCount}</strong>
+                    </span>
+                  )}
                 </div>
               </div>
-              <div className="col-sm-3 col-6">
-                <div className="p-2.5 rounded-3 bg-success-subtle border border-success-subtle text-center">
-                  <div className="small text-success fw-medium">Present</div>
-                  <div className="fw-bold text-success fs-5">{presentSessions.length}</div>
-                </div>
-              </div>
-              <div className="col-sm-3 col-6">
-                <div className="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle text-center">
-                  <div className="small text-danger fw-medium">Absent</div>
-                  <div className="fw-bold text-danger fs-5">{absentSessions.length}</div>
-                </div>
-              </div>
-              <div className="col-sm-3 col-6">
-                <div className="p-2.5 rounded-3 bg-warning-subtle border border-warning-subtle text-center">
-                  <div className="small text-warning-emphasis fw-medium">Late</div>
-                  <div className="fw-bold text-warning-emphasis fs-5">{lateSessions.length}</div>
-                </div>
+              <div className="progress rounded-pill" style={{ height: '8px', backgroundColor: '#E2E8F0' }}>
+                {presentPct > 0 && (
+                  <div
+                    className="progress-bar bg-success"
+                    role="progressbar"
+                    style={{ width: `${presentPct}%` }}
+                    aria-valuenow={presentSessions.length}
+                    aria-valuemin={0}
+                    aria-valuemax={conductedSessions.length}
+                  />
+                )}
+                {latePct > 0 && (
+                  <div
+                    className="progress-bar bg-warning"
+                    role="progressbar"
+                    style={{ width: `${latePct}%` }}
+                    aria-valuenow={lateSessions.length}
+                    aria-valuemin={0}
+                    aria-valuemax={conductedSessions.length}
+                  />
+                )}
+                {absentPct > 0 && (
+                  <div
+                    className="progress-bar bg-danger"
+                    role="progressbar"
+                    style={{ width: `${absentPct}%` }}
+                    aria-valuenow={absentSessions.length}
+                    aria-valuemin={0}
+                    aria-valuemax={conductedSessions.length}
+                  />
+                )}
               </div>
             </div>
 
@@ -307,11 +362,11 @@ export function ParentClassDetailPage() {
                         <td className="small text-muted">{ses.date}</td>
                         <td>
                           {ses.status === 'absent' ? (
-                            <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                            <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1">
                               <i className="bi bi-x-circle-fill me-1"></i> Absent
                             </span>
                           ) : (
-                            <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
+                            <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1">
                               <i className="bi bi-clock-history me-1"></i> Late
                             </span>
                           )}

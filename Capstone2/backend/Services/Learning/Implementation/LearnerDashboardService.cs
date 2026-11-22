@@ -253,6 +253,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Include(c => c.Subject)
                 .Include(c => c.TeacherClasses)
                     .ThenInclude(tc => tc.Teacher)
+                .Include(c => c.TaClasses)
+                    .ThenInclude(tac => tac.Ta)
                 .Include(c => c.StudentClasses)
                 .Include(c => c.ClassSchedules).ThenInclude(s => s.Versions)
                 .Include(c => c.ContentUnits)
@@ -276,6 +278,16 @@ namespace EduTrack.API.Services.Learning.Implementation
             string teacherInitials = GetInitials(teacherName);
             string teacherEmail = mainTeacher?.Email ?? "contact@edutrack.edu.vn";
             string teacherPhone = mainTeacher?.Phone ?? "0901234567";
+
+            var mainTa = cls.TaClasses
+                .Where(tac => tac.Status == "active")
+                .OrderBy(tac => tac.TaId)
+                .FirstOrDefault()?.Ta;
+
+            string taName = mainTa?.FullName ?? string.Empty;
+            string taInitials = string.IsNullOrEmpty(taName) ? string.Empty : GetInitials(taName);
+            string taEmail = mainTa?.Email ?? string.Empty;
+            string taPhone = mainTa?.Phone ?? string.Empty;
 
             int activeStudents = cls.StudentClasses.Count(sc => sc.Status != "dropped");
 
@@ -395,6 +407,10 @@ namespace EduTrack.API.Services.Learning.Implementation
                 TeacherInitials = teacherInitials,
                 TeacherEmail = teacherEmail,
                 TeacherPhone = teacherPhone,
+                TaName = taName,
+                TaInitials = taInitials,
+                TaEmail = taEmail,
+                TaPhone = taPhone,
                 Materials = materials,
                 Assignments = assignments,
                 Sessions = sessions

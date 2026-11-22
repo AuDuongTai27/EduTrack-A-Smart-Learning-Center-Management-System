@@ -28,12 +28,6 @@ export function ParentDashboardPage() {
           <div>
             <h1 className="page-title mb-0">Learning Dashboard</h1>
           </div>
-
-          <div className="d-flex align-items-center gap-2">
-            <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-              <i className="bi bi-person-badge me-1"></i> {selectedChild.name} · {selectedChild.grade}
-            </span>
-          </div>
         </div>
 
         {/* 2. Welcome Banner Thân thiện cho Phụ Huynh */}

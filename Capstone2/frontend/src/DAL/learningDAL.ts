@@ -632,6 +632,10 @@ export const learningDAL = {
           accent: theme.accent,
           teacher: apiData.teacherName || 'Chưa phân công',
           teacherInitials: apiData.teacherInitials || 'GV',
+          taName: apiData.taName || '',
+          taInitials: apiData.taInitials || '',
+          taEmail: apiData.taEmail || '',
+          taPhone: apiData.taPhone || '',
           schedule: apiData.schedule || 'Chưa xếp lịch',
           room: apiData.room || 'Chưa xếp phòng',
           email: apiData.teacherEmail || '',
@@ -677,14 +681,20 @@ export const learningDAL = {
           console.warn('[learningDAL] Không tải được feedbacks từ tiến độ:', fbErr);
         }
 
-        if (apiData.latestTeacherNote && !feedbacks.some((f) => f.quote === apiData.latestTeacherNote)) {
+        const rawNote = apiData.latestTeacherNote?.trim();
+        const isEmptyNote =
+          !rawNote ||
+          rawNote.toLowerCase().includes('chưa có nhận xét') ||
+          rawNote.toLowerCase().includes('no teacher evaluation');
+
+        if (!isEmptyNote && !feedbacks.some((f) => f.quote === rawNote)) {
           feedbacks.unshift({
             assignmentTitle: `[Periodic Evaluation] ${apiData.className}`,
-            quote: apiData.latestTeacherNote,
+            quote: rawNote,
             teacherName: apiData.teacherName || 'Lead Teacher',
             statusType: 'dat',
             statusIcon: 'bi-check2-all',
-            statusLabel: 'Praise',
+            statusLabel: 'Teacher Note',
             category: 'evaluation',
           });
         }
@@ -696,7 +706,7 @@ export const learningDAL = {
           sessions: apiData.sessions || [],
           attendedLessons: apiData.attendedLessons ?? 0,
           totalLessons: apiData.totalLessons ?? 0,
-          latestTeacherNote: apiData.latestTeacherNote || 'Chưa có nhận xét từ giáo viên.',
+          latestTeacherNote: isEmptyNote ? '' : rawNote,
           feedbacks,
           source: 'api',
         };

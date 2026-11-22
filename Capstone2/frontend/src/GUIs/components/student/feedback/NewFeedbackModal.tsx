@@ -98,16 +98,8 @@ export function NewFeedbackModal({
 
             <form onSubmit={handleSubmit}>
               <div className="modal-body p-4">
-                {/* Information hint */}
-                <div className="alert alert-info py-2.5 px-3 small mb-3 border-0 rounded-2 bg-info-subtle text-info-emphasis d-flex align-items-center gap-2">
-                  <i className="bi bi-info-circle-fill flex-shrink-0" />
-                  <div>
-                    Your feedback and inquiries will be sent directly to Learning Center Staff for review and assistance.
-                  </div>
-                </div>
-
                 {errorMsg && (
-                  <div className="alert alert-danger py-2.5 px-3 small mb-3 border-0 rounded-2 d-flex align-items-center gap-2" role="alert">
+                  <div className="alert alert-danger py-2 px-3 small mb-3 border-0 rounded-2 d-flex align-items-center gap-2" role="alert">
                     <i className="bi bi-exclamation-triangle-fill flex-shrink-0" />
                     <div>{errorMsg}</div>
                   </div>
@@ -115,14 +107,14 @@ export function NewFeedbackModal({
 
                 {/* Feedback Title */}
                 <div className="mb-3">
-                  <label htmlFor="feedbackTitleInput" className="form-label small fw-semibold text-dark mb-1.5">
+                  <label htmlFor="feedbackTitleInput" className="form-label small fw-semibold text-dark mb-1">
                     Feedback Title <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     id="feedbackTitleInput"
                     className="form-control rounded-2"
-                    placeholder="e.g. Inquiry regarding class schedule, learning materials, facilities..."
+                    placeholder="Enter feedback title..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
@@ -134,7 +126,7 @@ export function NewFeedbackModal({
 
                 {/* Priority */}
                 <div className="mb-3">
-                  <label htmlFor="feedbackPrioritySelect" className="form-label small fw-semibold text-dark mb-1.5">
+                  <label htmlFor="feedbackPrioritySelect" className="form-label small fw-semibold text-dark mb-1">
                     Priority Level
                   </label>
                   <select
@@ -145,38 +137,35 @@ export function NewFeedbackModal({
                     disabled={isSubmitting}
                     style={{ fontSize: '13.5px' }}
                   >
-                    <option value="low">Low (General inquiry, suggestion)</option>
-                    <option value="medium">Medium (Standard feedback)</option>
-                    <option value="high">High (Urgent issue, immediate assistance)</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
                   </select>
                 </div>
 
                 {/* Description */}
                 <div className="mb-1">
-                  <label htmlFor="feedbackDescInput" className="form-label small fw-semibold text-dark mb-1.5">
+                  <label htmlFor="feedbackDescInput" className="form-label small fw-semibold text-dark mb-1">
                     Content & Details <span className="text-danger">*</span>
                   </label>
                   <textarea
                     id="feedbackDescInput"
                     className="form-control rounded-2"
                     rows={4}
-                    placeholder="Please provide full details so Staff can assist you promptly..."
+                    placeholder="Enter details and support needed..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     required
                     disabled={isSubmitting}
                     style={{ fontSize: '13.5px', lineHeight: 1.5 }}
                   />
-                  <div className="form-text small text-muted mt-1" style={{ fontSize: '12px' }}>
-                    Be specific about your questions, dates, subjects, or classrooms.
-                  </div>
                 </div>
               </div>
 
-              <div className="modal-footer border-top py-2.5 px-4 bg-light">
+              <div className="modal-footer border-top py-2 px-4 d-flex justify-content-end gap-2 bg-light">
                 <button
                   type="button"
-                  className="btn btn-secondary btn-sm rounded-2 px-3 py-1.5"
+                  className="btn btn-outline-secondary btn-sm rounded-2 px-3 py-1"
                   onClick={handleClose}
                   disabled={isSubmitting}
                   style={{ fontSize: '13px' }}
@@ -185,7 +174,7 @@ export function NewFeedbackModal({
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1.5 rounded-2 px-3 py-1.5 fw-medium shadow-sm"
+                  className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 rounded-2 px-3 py-1 fw-medium shadow-sm"
                   disabled={!isFormValid || isSubmitting}
                   style={{ fontSize: '13px' }}
                 >

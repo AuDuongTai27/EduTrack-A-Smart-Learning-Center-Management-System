@@ -47,6 +47,10 @@ export interface StudentClassDetailApiDto {
   teacherInitials: string;
   teacherEmail: string;
   teacherPhone: string;
+  taName?: string;
+  taInitials?: string;
+  taEmail?: string;
+  taPhone?: string;
   materials: ClassMaterialItemApiDto[];
   assignments: ClassAssignmentItemApiDto[];
   sessions: ClassSessionAttendanceItemApiDto[];

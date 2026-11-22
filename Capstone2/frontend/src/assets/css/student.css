@@ -181,47 +181,28 @@
 
 
 .app-container {
-
   display: flex;
-
   height: 100vh;
-
+  height: 100dvh;
   width: 100%;
-
   overflow: hidden;
-
   background-color: var(--et-bg);
-
 }
 
-
-
 /* Desktop Sidebar (240px) */
-
 .sidebar {
-
   width: var(--et-sidebar-width);
-
   min-width: var(--et-sidebar-width);
-
   background-color: var(--et-white);
-
   border-right: 1px solid var(--et-border);
-
   display: flex;
-
   flex-direction: column;
-
   height: 100vh;
-
+  height: 100dvh;
   position: sticky;
-
   top: 0;
-
   z-index: 1020;
-
   transition: transform 0.25s ease-in-out;
-
 }
 
 
@@ -541,19 +522,13 @@
 /* Main Content Wrapper */
 
 .main-wrapper {
-
   flex: 1;
-
   display: flex;
-
   flex-direction: column;
-
   height: 100vh;
-
+  height: 100dvh;
   overflow: hidden;
-
   background-color: var(--et-bg);
-
 }
 
 
@@ -609,23 +584,18 @@
 
 
 .content-container {
-
   width: 100%;
-
   max-width: 100%;
   margin: 0;
-  padding: 32px clamp(24px, 2.5vw, 48px) 60px;
+  padding: 32px clamp(24px, 2.5vw, 48px) 28px;
   box-sizing: border-box;
 }
 
-
-
 .content-container.class-detail-container {
-
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 0 clamp(24px, 2.5vw, 48px) 60px;
+  padding: 0 clamp(24px, 2.5vw, 48px) 28px;
   box-sizing: border-box;
 }
 
@@ -1729,29 +1699,19 @@
 
 
 .teacher-profile-header {
-
   display: flex;
-
-  align-items: flex-start;
-
+  align-items: center;
   gap: 28px;
-
   flex-wrap: wrap;
-
 }
 
-
-
 .teacher-profile-info {
-
   display: flex;
-
   align-items: center;
-
   gap: 14px;
-
-  min-width: 220px;
-
+  width: 270px;
+  max-width: 100%;
+  flex-shrink: 0;
 }
 
 
@@ -1813,13 +1773,21 @@
 
 
 .teacher-contacts {
-
-  display: flex;
-
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(150px, auto);
   gap: 24px;
+  flex: 1;
+  align-items: center;
+}
 
-  flex-wrap: wrap;
-
+@media (max-width: 767.98px) {
+  .teacher-profile-info {
+    width: 100%;
+  }
+  .teacher-contacts {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 

@@ -9,7 +9,6 @@ export interface ClassEvaluationsSectionProps {
 
 export function ClassEvaluationsSection({
   feedbacks = [],
-  classNameTitle,
 }: ClassEvaluationsSectionProps) {
   const [filterType, setFilterType] = useState<ProgressFeedbackFilter>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -34,22 +33,43 @@ export function ClassEvaluationsSection({
     });
   }, [feedbacks, filterType, searchTerm]);
 
+  const normalizeStatusLabel = (label: string, statusType: string) => {
+    const l = (label || '').trim().toLowerCase();
+    if (l === 'chưa nộp' || l === 'chua nop') return 'Not Submitted';
+    if (l === 'đã nộp' || l === 'da nop') return 'Submitted';
+    if (l === 'quá hạn' || l === 'qua han') return 'Overdue';
+    if (l === 'đạt' || l === 'dat') return 'Passed';
+    if (l === 'khen ngợi' || l === 'khen ngoi') return 'Praise';
+    if (l === 'cần lưu ý' || l === 'can luu y') return 'Needs Attention';
+    if (l === 'chưa đạt' || l === 'chua dat') return 'Not Passed';
+    if (l === 'tiến bộ tốt' || l === 'tien bo tot') return 'Good Progress';
+    if (!label) {
+      if (statusType === 'canluuy') return 'Needs Attention';
+      if (statusType === 'chuadat') return 'Not Passed';
+      return 'Passed';
+    }
+    return label;
+  };
+
   const renderStatusBadge = (statusLabel: string, statusType: string) => {
+    const displayLabel = normalizeStatusLabel(statusLabel, statusType);
+    const l = displayLabel.toLowerCase();
+
     let badgeClass = 'bg-success-subtle text-success border-success-subtle';
     let iconClass = 'bi-check-circle-fill';
 
-    if (statusType === 'canluuy') {
-      badgeClass = 'bg-warning-subtle text-warning border-warning-subtle';
+    if (statusType === 'canluuy' || l === 'not submitted' || l === 'needs attention') {
+      badgeClass = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
       iconClass = 'bi-exclamation-triangle-fill';
-    } else if (statusType === 'chuadat') {
+    } else if (statusType === 'chuadat' || l === 'overdue' || l === 'not passed') {
       badgeClass = 'bg-danger-subtle text-danger border-danger-subtle';
       iconClass = 'bi-x-circle-fill';
     }
 
     return (
-      <span className={`badge ${badgeClass} border px-2.5 py-1 rounded-2 fw-semibold d-inline-flex align-items-center gap-1`}>
+      <span className={`badge ${badgeClass} border px-2 py-1 rounded-2 fw-semibold d-inline-flex align-items-center gap-1`}>
         <i className={`bi ${iconClass}`} style={{ fontSize: '11px' }} />
-        <span>{statusLabel}</span>
+        <span>{displayLabel}</span>
       </span>
     );
   };
@@ -70,12 +90,12 @@ export function ClassEvaluationsSection({
       </summary>
 
       {/* 2. Toolbar: Filter Pills & Search Box */}
-      <div className="px-4 py-2.5 border-bottom bg-light bg-opacity-40 d-flex align-items-center justify-content-between flex-wrap gap-2.5">
+      <div className="px-4 py-2 border-bottom bg-light bg-opacity-40 d-flex align-items-center justify-content-between flex-wrap gap-2">
         {/* Filter Pills */}
-        <div className="d-flex align-items-center gap-1.5 flex-wrap">
+        <div className="d-flex align-items-center gap-2 flex-wrap">
           <button
             type="button"
-            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 transition-all ${
               filterType === 'all'
                 ? 'btn-primary shadow-xs'
                 : 'btn-outline-secondary bg-white text-secondary border'
@@ -89,7 +109,7 @@ export function ClassEvaluationsSection({
 
           <button
             type="button"
-            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 transition-all ${
               filterType === 'evaluation'
                 ? 'btn-primary shadow-xs'
                 : 'btn-outline-secondary bg-white text-secondary border'
@@ -103,7 +123,7 @@ export function ClassEvaluationsSection({
 
           <button
             type="button"
-            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1.5 transition-all ${
+            className={`btn btn-sm rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 transition-all ${
               filterType === 'assignment'
                 ? 'btn-primary shadow-xs'
                 : 'btn-outline-secondary bg-white text-secondary border'
@@ -142,14 +162,18 @@ export function ClassEvaluationsSection({
             const cleanTitle = item.assignmentTitle
               .replace(/\[Đánh giá định kỳ\]/gi, '')
               .replace(/\[Đánh giá tổng kết\]/gi, '')
+              .replace(/\[Đánh giá\]/gi, '')
+              .replace(/\[Bài tập\]/gi, '')
               .replace(/\[Periodic Evaluation\]/gi, '')
+              .replace(/\[Final Evaluation\]/gi, '')
               .replace(/\[Evaluation\]/gi, '')
+              .replace(/\[Assignment\]/gi, '')
               .trim();
 
             return (
               <div
                 key={idx}
-                className="p-3.5 rounded-3 border bg-white shadow-xs d-flex flex-column gap-2"
+                className="p-3 rounded-3 border bg-white shadow-xs d-flex flex-column gap-2"
                 style={{
                   borderLeft: isEval ? '4px solid #F59E0B' : '4px solid #2563EB',
                 }}
@@ -160,7 +184,7 @@ export function ClassEvaluationsSection({
                     {/* Thống nhất Icon theo yêu cầu: Đánh giá bình thường vs Đánh giá theo bài tập */}
                     {isEval ? (
                       <span
-                        className="badge rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1.5"
+                        className="badge rounded-pill px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1"
                         style={{
                           backgroundColor: '#FEF3C7',
                           color: '#92400E',
@@ -173,7 +197,7 @@ export function ClassEvaluationsSection({
                       </span>
                     ) : (
                       <span
-                        className="badge rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1.5"
+                        className="badge rounded-pill px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1"
                         style={{
                           backgroundColor: '#EFF6FF',
                           color: '#2563EB',
@@ -197,7 +221,7 @@ export function ClassEvaluationsSection({
 
                 {/* Quote Block */}
                 <div
-                  className="p-3 rounded-2 text-dark bg-light bg-opacity-70 d-flex align-items-start gap-2.5 my-1"
+                  className="p-3 rounded-2 text-dark bg-light bg-opacity-70 d-flex align-items-start gap-2 my-1"
                   style={{ fontSize: '13.5px', lineHeight: 1.6 }}
                 >
                   <i className="bi bi-quote fs-4 text-primary opacity-50 flex-shrink-0" style={{ marginTop: '-4px' }} />

@@ -31,10 +31,6 @@ export function ParentClassesPage() {
           <div>
             <h1 className="page-title mb-0">Child's Classes</h1>
           </div>
-
-          <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold">
-            {selectedChild.grade} · {classes.length} {classes.length === 1 ? 'subject' : 'subjects'}
-          </span>
         </div>
 
         {/* 1. Active Classes Section */}

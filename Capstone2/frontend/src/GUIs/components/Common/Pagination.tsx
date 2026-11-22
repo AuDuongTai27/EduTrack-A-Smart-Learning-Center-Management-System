@@ -6,6 +6,7 @@ interface PaginationProps {
   entriesPerPage: number;
   itemLabel: string;
   onPageChange: (page: number) => void;
+  showSummary?: boolean;
 }
 
 export default function Pagination({
@@ -14,20 +15,27 @@ export default function Pagination({
   entriesPerPage,
   itemLabel,
   onPageChange,
+  showSummary = true,
 }: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(totalItems / entriesPerPage));
   const safePage = Math.max(1, Math.min(currentPage, totalPages));
 
   return (
-    <div className="user-table-footer d-flex align-items-center justify-content-between flex-wrap gap-3">
-      <span className="text-muted small">
-        {totalItems === 0
-          ? `Showing 0 ${itemLabel}`
-          : `Showing ${(safePage - 1) * entriesPerPage + 1} to ${Math.min(
-              safePage * entriesPerPage,
-              totalItems
-            )} of ${totalItems} ${itemLabel}`}
-      </span>
+    <div
+      className={`user-table-footer d-flex align-items-center ${
+        showSummary ? "justify-content-between" : "justify-content-end"
+      } flex-wrap gap-3`}
+    >
+      {showSummary && (
+        <span className="text-muted small">
+          {totalItems === 0
+            ? `Showing 0 ${itemLabel}`
+            : `Showing ${(safePage - 1) * entriesPerPage + 1} to ${Math.min(
+                safePage * entriesPerPage,
+                totalItems
+              )} of ${totalItems} ${itemLabel}`}
+        </span>
+      )}
 
       <nav aria-label="Pagination">
         <div className="d-flex align-items-center gap-2">

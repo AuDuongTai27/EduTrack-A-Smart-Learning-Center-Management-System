@@ -21,6 +21,11 @@ namespace EduTrack.API.Models.DTOs.Learning
         public string TeacherEmail { get; set; } = string.Empty;
         public string TeacherPhone { get; set; } = string.Empty;
 
+        public string TaName { get; set; } = string.Empty;
+        public string TaInitials { get; set; } = string.Empty;
+        public string TaEmail { get; set; } = string.Empty;
+        public string TaPhone { get; set; } = string.Empty;
+
         public List<ClassMaterialItemDto> Materials { get; set; } = new List<ClassMaterialItemDto>();
         public List<ClassAssignmentItemDto> Assignments { get; set; } = new List<ClassAssignmentItemDto>();
         public List<ClassSessionAttendanceItemDto> Sessions { get; set; } = new List<ClassSessionAttendanceItemDto>();
