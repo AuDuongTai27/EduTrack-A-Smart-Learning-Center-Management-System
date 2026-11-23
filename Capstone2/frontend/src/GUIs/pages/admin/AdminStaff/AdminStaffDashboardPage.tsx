@@ -219,7 +219,6 @@ export default function AdminStaffDashboardPage() {
             <thead>
               <tr>
                 <th>No.</th>
-                <th>Request Code</th>
                 <th>Request Type</th>
                 <th>Title / Subject</th>
                 <th>Submitted Date</th>
@@ -231,7 +230,6 @@ export default function AdminStaffDashboardPage() {
             <tbody>
               {recentRequests.length > 0 ? (
                 recentRequests.map((req, idx) => {
-                  const reqCode = req.requestCode || `#${req.requestId}`;
                   const reqDate = formatDate(req.createdAt);
                   const displayType = formatRequestType(req.requestType);
                   const targetLabel = req.studentName
@@ -242,11 +240,6 @@ export default function AdminStaffDashboardPage() {
                   return (
                     <tr key={req.requestId || idx}>
                       <td>{idx + 1}</td>
-                      <td>
-                        <span className="badge bg-light text-primary border font-monospace">
-                          {reqCode}
-                        </span>
-                      </td>
                       <td>
                         <span className="badge bg-secondary-subtle text-secondary-emphasis">
                           {displayType}
@@ -284,7 +277,7 @@ export default function AdminStaffDashboardPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className={`text-center py-3 ${dashboard?.requests.error ? "text-danger" : "text-muted"}`}
+                  <td colSpan={7} className={`text-center py-3 ${dashboard?.requests.error ? "text-danger" : "text-muted"}`}
                     role={dashboard?.requests.error ? "alert" : "status"}>
                     {sectionText(dashboard?.requests, "No requests submitted yet.")}
                   </td>

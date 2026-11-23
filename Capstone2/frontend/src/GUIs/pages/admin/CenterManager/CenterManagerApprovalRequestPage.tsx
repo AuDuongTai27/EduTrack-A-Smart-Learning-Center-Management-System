@@ -386,7 +386,6 @@ export default function CenterManagerApprovalRequestPage() {
             <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
-                <th className="fw-bold">Request Code</th>
                 <th className="fw-bold">Type</th>
                 <th className="fw-bold">Related Student / Target</th>
                 <th className="fw-bold">Content Summary</th>
@@ -399,7 +398,7 @@ export default function CenterManagerApprovalRequestPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <div
                       className="spinner-border spinner-border-sm text-primary me-2"
                       role="status"
@@ -409,7 +408,7 @@ export default function CenterManagerApprovalRequestPage() {
                 </tr>
               ) : paginatedRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted">
+                  <td colSpan={8} className="text-center py-5 text-muted">
                     <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary" />
                     No matching requests found from Admin Staff.
                   </td>
@@ -422,11 +421,6 @@ export default function CenterManagerApprovalRequestPage() {
                   return (
                     <tr key={req.requestId || idx}>
                       <td>{itemIndex}</td>
-                      <td>
-                        <strong className="text-primary font-monospace">
-                          {req.requestCode || `AR${req.requestId}`}
-                        </strong>
-                      </td>
                       <td>
                         <span className="badge bg-light text-dark border">
                           {formatRequestType(req.requestType)}

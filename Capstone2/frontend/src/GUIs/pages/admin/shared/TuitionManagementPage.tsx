@@ -4,11 +4,12 @@ import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
 import Pagination from "../../../components/Common/Pagination";
 import TableToolbar from "../../../components/Common/TableToolbar";
-import UserAvatar from "../../../components/Common/UserAvatar";
 import TuitionOverview from "../../../components/Common/TuitionOverview";
 import MoneyInput from "../../../components/Common/MoneyInput";
 import tuitionDAL from "../../../../DAL/tuitionDAL";
 import managementDAL from "../../../../DAL/managementDAL";
+import parentStudentDAL from "../../../../DAL/parentStudentDAL";
+import type { ParentStudentDto } from "../../../../api/parentStudentApi";
 import GenerateTuitionModal from "../../../components/management/GenerateTuitionModal";
 import { filterTuitionInvoices } from "../../../../BLL/services/tuitionFilterService";
 import classDAL from "../../../../DAL/classDAL";
@@ -34,6 +35,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
   const { rows: tuitions, payments, now, collectionLabel, invoiceReady, paymentReady, balanceReady, loading, error: paymentDataWarning, refresh, upsertInvoice } = useTuitionData();
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [classes, setClasses] = useState<ClassDto[]>([]);
+  const [parentLinks, setParentLinks] = useState<ParentStudentDto[]>([]);
 
   // Filters state
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -93,6 +95,11 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
         setSelectedClass(previous => previous === "All" || classRes.data.some(c => String(c.classId) === previous) ? previous : "All");
       }
     }).catch(cause => { if (active) setLookupError(cause instanceof Error ? cause.message : "Failed to load classes."); });
+    parentStudentDAL.getAllLinks().then(linksRes => {
+      if (active && Array.isArray(linksRes.data)) {
+        setParentLinks(linksRes.data);
+      }
+    }).catch(() => {});
     const focus = () => setLookupRevision(value => value + 1);
     window.addEventListener("focus", focus);
     return () => { active = false; window.removeEventListener("focus", focus); };
@@ -244,6 +251,17 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
 
   const metrics = useMemo(() => balanceReady ? calculateTuitionMetrics(filteredTuitions, payments.data!, now) : null, [filteredTuitions, payments.data, balanceReady, now]);
   const invoiceScopeReady = invoiceReady && (selectedStatus === "All" || paymentReady) && !lookupError;
+
+  const studentParentsMap = useMemo(() => {
+    const map = new Map<number, string[]>();
+    parentLinks.forEach((link) => {
+      if (!link.studentId || !link.parentName) return;
+      const arr = map.get(link.studentId) || [];
+      if (!arr.includes(link.parentName)) arr.push(link.parentName);
+      map.set(link.studentId, arr);
+    });
+    return map;
+  }, [parentLinks]);
 
   // Paginated list
   const paginatedTuitions = useMemo(() => {
@@ -426,8 +444,8 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
             <thead className="table-light">
               <tr>
                 <th className="fw-bold">No.</th>
-                <th className="fw-bold">Invoice Code</th>
                 <th className="fw-bold">Student Name</th>
+                <th className="fw-bold">Parent Name</th>
                 <th className="fw-bold">Class</th>
                 <th className="fw-bold">Amount Due</th>
                 <th className="fw-bold">Due Date</th>
@@ -465,27 +483,28 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                         year: "numeric",
                       })
                     : "—";
+                  const parentNames = t.studentId ? studentParentsMap.get(t.studentId) || [] : [];
 
                   return (
                     <tr key={t.tuitionId || t.invoiceId || idx}>
                       <td>{itemIndex}</td>
                       <td>
-                        <strong className="text-primary font-monospace">
-                          {t.invoiceCode || `INV-${t.invoiceId}`}
-                        </strong>
+                        <div className="fw-semibold text-dark small">
+                          {t.studentName}
+                        </div>
                       </td>
                       <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <UserAvatar name={t.studentName || "Student"} />
+                        {parentNames.length > 0 ? (
                           <div>
-                            <h6 className="mb-0 fw-bold text-dark">
-                              {t.studentName}
-                            </h6>
-                            <small className="text-muted">
-                              {t.studentCode || `STU${t.studentId}`}
-                            </small>
+                            {parentNames.map((pName, pIdx) => (
+                              <div key={pIdx} className="fw-semibold text-dark small mb-1">
+                                {pName}
+                              </div>
+                            ))}
                           </div>
-                        </div>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
                       </td>
                       <td>
                         <SubjectBadge subject={t.className || "Class"} />

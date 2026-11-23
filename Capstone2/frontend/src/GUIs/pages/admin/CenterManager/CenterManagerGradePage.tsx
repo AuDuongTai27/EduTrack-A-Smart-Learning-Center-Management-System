@@ -75,12 +75,12 @@ export default function CenterManagerGradePage() {
       </div></div>
       <TableToolbar totalItems={filtered.length} totalLabel="Total grades" entriesPerPage={entries} onEntriesPerPageChange={value => {setEntries(value); setCurrentPage(1);}} />
       <div className="table-responsive"><table className="table user-table align-middle mb-0 table-hover" aria-label="Grade list">
-        <thead className="table-light"><tr><th>No.</th><th>Grade Code</th><th>Grade Name</th><th className="text-center">Total Classes</th><th>Status</th><th className="text-center">Action</th></tr></thead>
-        <tbody>{loading ? <tr><td colSpan={6} className="text-center py-5 text-muted" role="status">Loading grades...</td></tr>
-          : error ? <tr><td colSpan={6} className="text-center py-5 text-danger">Failed to load grades.</td></tr>
-            : !visible.length ? <tr><td colSpan={6} className="text-center py-5 text-muted">{items.length ? "No matching grades found." : "No grades available."}</td></tr>
+        <thead className="table-light"><tr><th>No.</th><th>Grade Name</th><th className="text-center">Total Classes</th><th>Status</th><th className="text-center">Action</th></tr></thead>
+        <tbody>{loading ? <tr><td colSpan={5} className="text-center py-5 text-muted" role="status">Loading grades...</td></tr>
+          : error ? <tr><td colSpan={5} className="text-center py-5 text-danger">Failed to load grades.</td></tr>
+            : !visible.length ? <tr><td colSpan={5} className="text-center py-5 text-muted">{items.length ? "No matching grades found." : "No grades available."}</td></tr>
               : visible.map((item, index) => <tr key={item.gradeId}>
-                <td>{(page - 1) * entries + index + 1}</td><td><span className="badge bg-light text-primary border font-monospace">#GR{item.gradeId}</span></td>
+                <td>{(page - 1) * entries + index + 1}</td>
                 <td className="fw-bold text-dark text-break">{item.gradeName}</td>
                 <td className="text-center"><Link to={`/center-manager/classes?gradeId=${item.gradeId}`} className="badge bg-secondary-subtle text-secondary text-decoration-none px-3 py-2" aria-label={`View classes for ${item.gradeName}`}>{item.totalClasses} classes</Link></td>
                 <td><DotStatusBadge status={item.status || "active"} /></td>

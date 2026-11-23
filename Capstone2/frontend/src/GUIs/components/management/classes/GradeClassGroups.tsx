@@ -26,7 +26,7 @@ export default function GradeClassGroups({items, role, onEdit, onDelete}: Props)
               <Link className="fw-bold text-decoration-none text-break" to={`/${role}/classes/${item.classId}`}>{item.className}</Link>
               <DotStatusBadge status={item.status} />
             </div>
-            <div className="small text-muted text-break">#CLS{item.classId} · {item.subjectName || `Subject #${item.subjectId}`}</div>
+            <div className="small text-muted text-break">{item.subjectName || `Subject #${item.subjectId}`}</div>
             <div className="small mt-2">{item.room || "Unassigned Room"} · {formatVND(item.tuitionFee)}/month</div>
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
               <Link className="btn btn-sm btn-outline-primary" to={`/${role}/classes/${item.classId}`}>Class Details</Link>

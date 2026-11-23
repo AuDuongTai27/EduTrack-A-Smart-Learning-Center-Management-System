@@ -2,7 +2,7 @@ import { TopbarNotificationPopover } from './TopbarNotificationPopover';
 import { TopbarNotificationContent } from './TopbarNotificationContent';
 import { announceTopbarPanel, useTopbarDismiss as useDismiss } from '../../../hooks/useTopbarDismiss';
 import { useId, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useNotificationInbox, clearNotificationInbox } from '../../../hooks/useNotificationInbox';
 import { useSelectedUser } from '../../../hooks/useSelectedUser';
 import { authApi } from '../../../../api/authApi';
@@ -56,7 +56,6 @@ export function AdminAccountDropdown({ centerManager = false, adminStaff = false
   const [open, setOpen] = useState(false); const [imageError, setImageError] = useState(false);
   const root = useRef<HTMLDivElement>(null); const trigger = useRef<HTMLButtonElement>(null); const id = useId();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
   useDismiss(open, () => setOpen(false), root, trigger);
   const initials = (centerManager || adminStaff) ? '' : identity?.fullName.split(' ').filter(Boolean).slice(-2).map(w => w[0]).join('') || '?';
   return <div ref={root} className="ntf-scope ntf-anchor">
@@ -67,9 +66,8 @@ export function AdminAccountDropdown({ centerManager = false, adminStaff = false
       <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
     </button>
     {open && <div className="ntf-popover ntf-account-menu" id={id} role="region" aria-label="Account information">
-      {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'No email'}</p><small>{identity.userCode} · {identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
+      {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'No email'}</p><small>{identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
         : <p>{error || 'No account available to select.'}</p>}
-      <label className="d-block mt-2">Data Account<select className="form-select" value={identity?.userId ?? ''} onChange={e => { if (pathname.endsWith('/notifications')) navigate({ search: '' }, { replace: true }); clearNotificationInbox(); selection.select(Number(e.target.value)); }}><option value="" disabled>Select account</option>{selection.users.map(u => <option key={u.userId} value={u.userId}>{u.fullName} ({u.userCode})</option>)}</select></label>
       <button type="button" className="btn btn-outline-danger mt-3 w-100" onClick={() => { setOpen(false); clearNotificationInbox(); authApi.logout(); navigate('/'); }}>Logout</button>
     </div>}
   </div>;
