@@ -31,9 +31,9 @@
 }
 
 .btn-week-today {
-  border: 1px solid var(--et-border-light, #E2E8F0);
+  border: 1px solid var(--et-primary, #078444);
   background: #fff;
-  color: var(--et-slate, #334155);
+  color: var(--et-primary, #078444);
   font-size: 12.5px;
   font-weight: 600;
   padding: 6px 14px;
@@ -43,9 +43,18 @@
   line-height: 1.4;
 }
 
-.btn-week-today:hover {
-  background: #F1F5F9;
-  color: var(--et-dark, #0F172A);
+.btn-week-today:hover:not(:disabled) {
+  background: var(--et-primary, #078444);
+  color: #fff;
+}
+
+.btn-week-today.is-current,
+.btn-week-today:disabled {
+  background: var(--et-mint, #ECFDF5);
+  border-color: #A7F3D0;
+  color: var(--et-primary, #078444);
+  opacity: 0.8;
+  cursor: default;
 }
 
 .week-nav-group {

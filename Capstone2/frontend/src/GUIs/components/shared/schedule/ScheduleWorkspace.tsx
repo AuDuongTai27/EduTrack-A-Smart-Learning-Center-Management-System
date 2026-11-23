@@ -113,13 +113,23 @@ export function ScheduleWorkspace({
     }
   }
 
+  const isCurrentWeek = model.monday === currentMonday;
+
   function handleToday() {
+    if (isCurrentWeek) return;
     model.navigate(currentMonday);
   }
 
   const weekControls = (
     <div className="week-navigator-controls d-flex align-items-center flex-wrap gap-2">
-      <button type="button" className="btn-week-today" id="btnWeekToday" onClick={handleToday}>
+      <button
+        type="button"
+        className={`btn-week-today ${isCurrentWeek ? 'is-current' : ''}`}
+        id="btnWeekToday"
+        onClick={handleToday}
+        disabled={isCurrentWeek}
+        title={isCurrentWeek ? 'Currently viewing this week' : 'Jump to current week'}
+      >
         Today
       </button>
       <select

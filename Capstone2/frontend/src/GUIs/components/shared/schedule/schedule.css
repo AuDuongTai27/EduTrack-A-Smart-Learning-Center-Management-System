@@ -33,8 +33,10 @@
 :where(.schedule-official) .custom-table th, :where(.schedule-official) .custom-table td { padding:14px 16px; white-space:nowrap; border-bottom:1px solid #e2e8f0; }
 :where(.schedule-official) .custom-table th { background:#f8fafc; }
 .schedule-official .schedule-class-link { border:0; background:transparent; padding:0; cursor:pointer; }
-.schedule-official .custom-table th, .schedule-official .custom-table td { padding:12px 10px; }
-.schedule-official .schedule-row-staff { max-width:150px; white-space:normal; }
+.schedule-official .custom-table th, .schedule-official .custom-table td { padding:13px 14px; }
+.schedule-official .custom-table th:first-child, .schedule-official .custom-table td:first-child { padding-left:24px; }
+.schedule-official .custom-table th:last-child, .schedule-official .custom-table td:last-child { padding-right:24px; text-align:right; }
+.schedule-official .schedule-row-staff { max-width:280px; white-space:normal; }
 .schedule-official .schedule-class-link { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .schedule-official .ta-avatar-initials { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; font-size:11px; }
 .schedule-official .class-list-header { padding:18px 20px; }
