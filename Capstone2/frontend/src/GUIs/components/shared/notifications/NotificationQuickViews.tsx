@@ -5,7 +5,7 @@ import { useId, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNotificationInbox, clearNotificationInbox } from '../../../hooks/useNotificationInbox';
 import { useSelectedUser } from '../../../hooks/useSelectedUser';
-import { authApi } from '../../../../api/authApi';
+import { authApi, getAuthUser, getStaffWorkspaces, switchActiveWorkspace } from '../../../../api/authApi';
 import { notificationTime } from '../../../../BLL/services/notificationInbox';
 import { notificationRoleLabel, notificationTypeLabel } from '../../../../BLL/services/notificationPresentation';
 import './notifications.css';
@@ -68,6 +68,46 @@ export function AdminAccountDropdown({ centerManager = false, adminStaff = false
     {open && <div className="ntf-popover ntf-account-menu" id={id} role="region" aria-label="Account information">
       {identity ? <div><strong>{identity.fullName}</strong><p>{identity.email || 'No email'}</p><small>{identity.roles?.map(notificationRoleLabel).join(', ')}</small></div>
         : <p>{error || 'No account available to select.'}</p>}
+      {(() => {
+        const effectiveRoles = identity?.roles?.length ? identity.roles : getAuthUser()?.roles;
+        const workspaces = getStaffWorkspaces(effectiveRoles);
+        const currentKey = centerManager ? 'center_manager' : adminStaff ? 'admin_staff' : 'teaching';
+        if (workspaces.length < 2) return null;
+        return (
+          <div className="mt-3 pt-2 border-top">
+            <small className="text-muted fw-semibold d-block mb-1" style={{ fontSize: '11.5px' }}>
+              Switch Workspace
+            </small>
+            <div className="d-flex flex-column gap-1">
+              {workspaces.map((ws) => {
+                const isCurrent = ws.key === currentKey;
+                return (
+                  <button
+                    key={ws.key}
+                    type="button"
+                    disabled={isCurrent}
+                    className={`btn btn-sm d-flex align-items-center justify-content-between text-start ${
+                      isCurrent ? 'btn-primary fw-semibold' : 'btn-outline-secondary'
+                    }`}
+                    onClick={() => {
+                      setOpen(false);
+                      switchActiveWorkspace(ws.role, ws.path);
+                      navigate(ws.path);
+                    }}
+                  >
+                    <span>{ws.label}</span>
+                    {isCurrent ? (
+                      <span className="badge bg-white text-primary">Active</span>
+                    ) : (
+                      <i className="bi bi-box-arrow-up-right small" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
       <button type="button" className="btn btn-outline-danger mt-3 w-100" onClick={() => { setOpen(false); clearNotificationInbox(); authApi.logout(); navigate('/'); }}>Logout</button>
     </div>}
   </div>;

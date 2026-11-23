@@ -50,76 +50,35 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 }
             }
 
-            // Lấy danh sách lớp kèm đầy đủ schedules, subject, studentClasses, teacher/ta
-            List<Class> assignedClasses;
-            if (isTa)
-            {
-                assignedClasses = await _context.TaClasses
-                    .AsNoTracking()
-                    .Where(tac => tac.TaId == userId && tac.Status == "active")
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.Subject)
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.StudentClasses)
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.TeacherClasses)
-                            .ThenInclude(tc => tc.Teacher)
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.TaClasses)
-                            .ThenInclude(tac => tac.Ta)
-                    .Select(tac => tac.Class)
-                    .Where(c => c != null)
-                    .ToListAsync();
-            }
-            else
-            {
-                assignedClasses = await _context.TeacherClasses
-                    .AsNoTracking()
-                    .Where(tc => tc.TeacherId == userId && tc.Status == "active")
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.Subject)
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.StudentClasses)
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.TeacherClasses)
-                            .ThenInclude(tc => tc.Teacher)
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.TaClasses)
-                            .ThenInclude(tac => tac.Ta)
-                    .Select(tc => tc.Class)
-                    .Where(c => c != null)
-                    .ToListAsync();
-            }
+            // Lấy tất cả các lớp mà nhân sự này tham gia (cả vai trò Teacher lẫn vai trò TA)
+            var teacherClassesList = await _context.TeacherClasses
+                .AsNoTracking()
+                .Where(tc => tc.TeacherId == userId && tc.Status == "active")
+                .Include(tc => tc.Class).ThenInclude(c => c.Subject)
+                .Include(tc => tc.Class).ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
+                .Include(tc => tc.Class).ThenInclude(c => c.StudentClasses)
+                .Include(tc => tc.Class).ThenInclude(c => c.TeacherClasses).ThenInclude(tc => tc.Teacher)
+                .Include(tc => tc.Class).ThenInclude(c => c.TaClasses).ThenInclude(tac => tac.Ta)
+                .Select(tc => tc.Class)
+                .Where(c => c != null)
+                .ToListAsync();
 
-            // Fallback nếu chưa có lớp được gán theo role chính
-            if (assignedClasses.Count == 0)
-            {
-                var fallbackTeacher = await _context.TeacherClasses
-                    .AsNoTracking()
-                    .Where(tc => tc.TeacherId == userId && tc.Status == "active")
-                    .Include(tc => tc.Class).ThenInclude(c => c.Subject)
-                    .Include(tc => tc.Class).ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
-                    .Include(tc => tc.Class).ThenInclude(c => c.StudentClasses)
-                    .Include(tc => tc.Class).ThenInclude(c => c.TeacherClasses).ThenInclude(tc => tc.Teacher)
-                    .Include(tc => tc.Class).ThenInclude(c => c.TaClasses).ThenInclude(tac => tac.Ta)
-                    .Select(tc => tc.Class).Where(c => c != null).ToListAsync();
+            var taClassesList = await _context.TaClasses
+                .AsNoTracking()
+                .Where(tac => tac.TaId == userId && tac.Status == "active")
+                .Include(tac => tac.Class).ThenInclude(c => c.Subject)
+                .Include(tac => tac.Class).ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
+                .Include(tac => tac.Class).ThenInclude(c => c.StudentClasses)
+                .Include(tac => tac.Class).ThenInclude(c => c.TeacherClasses).ThenInclude(tc => tc.Teacher)
+                .Include(tac => tac.Class).ThenInclude(c => c.TaClasses).ThenInclude(tac => tac.Ta)
+                .Select(tac => tac.Class)
+                .Where(c => c != null)
+                .ToListAsync();
 
-                var fallbackTa = await _context.TaClasses
-                    .AsNoTracking()
-                    .Where(tac => tac.TaId == userId && tac.Status == "active")
-                    .Include(tac => tac.Class).ThenInclude(c => c.Subject)
-                    .Include(tac => tac.Class).ThenInclude(c => c.ClassSchedules).ThenInclude(s => s.Versions)
-                    .Include(tac => tac.Class).ThenInclude(c => c.StudentClasses)
-                    .Include(tac => tac.Class).ThenInclude(c => c.TeacherClasses).ThenInclude(tc => tc.Teacher)
-                    .Include(tac => tac.Class).ThenInclude(c => c.TaClasses).ThenInclude(tac => tac.Ta)
-                    .Select(tac => tac.Class).Where(c => c != null).ToListAsync();
-
-                assignedClasses = fallbackTeacher.Concat(fallbackTa).DistinctBy(c => c.ClassId).ToList();
-            }
+            var assignedClasses = teacherClassesList
+                .Concat(taClassesList)
+                .DistinctBy(c => c.ClassId)
+                .ToList();
 
             var scheduleList = new List<TeachingScheduleItemDto>();
 

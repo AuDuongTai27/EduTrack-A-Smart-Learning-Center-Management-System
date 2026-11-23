@@ -27,6 +27,8 @@ namespace EduTrack.API.Models.DTOs.Management
         [Required(ErrorMessage = "Role là bắt buộc")]
         public string Role { get; set; } = "teacher";
 
+        public System.Collections.Generic.List<string>? Roles { get; set; }
+
         [StringLength(100)]
         public string? Specialty { get; set; }
 

@@ -200,6 +200,64 @@ export function resolveActiveUserId(role: string, fallbackId: number): number {
   return fallbackId;
 }
 
+export interface StaffWorkspaceOption {
+  key: 'center_manager' | 'admin_staff' | 'teaching';
+  role: string;
+  label: string;
+  path: string;
+}
+
+export function getStaffWorkspaces(roles?: string[] | null): StaffWorkspaceOption[] {
+  const normalized = Array.from(
+    new Set(
+      (roles || []).map((r) => {
+        const clean = (r || '').trim().toLowerCase();
+        return clean === 'ta' ? 'teaching_assistant' : clean;
+      })
+    )
+  );
+  const workspaces: StaffWorkspaceOption[] = [];
+  if (normalized.includes('center_manager')) {
+    workspaces.push({
+      key: 'center_manager',
+      role: 'center_manager',
+      label: 'Center Manager',
+      path: '/center-manager/dashboard',
+    });
+  }
+  if (normalized.includes('admin_staff')) {
+    workspaces.push({
+      key: 'admin_staff',
+      role: 'admin_staff',
+      label: 'Admin Staff',
+      path: '/admin-staff/dashboard',
+    });
+  }
+  const hasTeacher = normalized.includes('teacher');
+  const hasTa = normalized.includes('teaching_assistant');
+  if (hasTeacher || hasTa) {
+    workspaces.push({
+      key: 'teaching',
+      role: hasTeacher ? 'teacher' : 'teaching_assistant',
+      label: hasTeacher && hasTa ? 'Teacher / TA' : hasTeacher ? 'Teacher' : 'Teaching Assistant',
+      path: hasTeacher ? '/teacher/dashboard' : '/teaching-assistant/dashboard',
+    });
+  }
+  return workspaces;
+}
+
+export function switchActiveWorkspace(targetRole: string, targetPath: string): void {
+  const authUser = getAuthUser();
+  const token = getAuthToken();
+  if (authUser && token) {
+    saveAuthSession(token, {
+      ...authUser,
+      primaryRole: targetRole,
+      redirectPath: targetPath,
+    });
+  }
+}
+
 export const authApi = {
   async login(identifier: string, password: string): Promise<LoginResponseDto> {
     const response = await fetch(`${BASE_URL}/auth/login`, {

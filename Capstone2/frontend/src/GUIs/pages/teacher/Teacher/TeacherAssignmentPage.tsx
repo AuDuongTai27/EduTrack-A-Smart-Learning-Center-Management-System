@@ -105,6 +105,7 @@ export default function TeacherAssignmentPage() {
           <AssignmentOverviewCard
             assignment={assignment}
             className={className}
+            readOnly={classInfo?.myRoleInClass === "teaching_assistant"}
             onAssignmentUpdated={(updated) => setAssignment(updated)}
             onAssignmentDeleted={() => navigate(`/teacher/classes/${targetClassId}`)}
           />

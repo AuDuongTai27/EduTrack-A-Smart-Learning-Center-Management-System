@@ -38,6 +38,7 @@ export const managementDAL = {
     email?: string;
     phone?: string;
     role: string;
+    roles?: string[];
     specialty?: string;
     subjectGrades?: UserSubjectGradeInputDto[];
     subjectIds?: number[];
@@ -55,6 +56,7 @@ export const managementDAL = {
       email?: string;
       phone?: string;
       role?: string;
+      roles?: string[];
       specialty?: string;
       subjectGrades?: UserSubjectGradeInputDto[];
       subjectIds?: number[];

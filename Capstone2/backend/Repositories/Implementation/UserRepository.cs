@@ -59,10 +59,17 @@ namespace EduTrack.API.Repositories.Implementation
             string roleName,
             IReadOnlyCollection<int>? subjectIds = null,
             IReadOnlyCollection<int>? gradeIds = null,
-            IReadOnlyCollection<(int SubjectId, IReadOnlyCollection<int> GradeIds)>? subjectGrades = null)
+            IReadOnlyCollection<(int SubjectId, IReadOnlyCollection<int> GradeIds)>? subjectGrades = null,
+            IReadOnlyCollection<string>? roleNames = null)
         {
-            var normalizedRole = roleName.Trim().ToLower();
-            var isTeachingStaff = normalizedRole == "teacher" || normalizedRole == "teaching_assistant" || normalizedRole == "ta";
+            var normalizedRoles = (roleNames != null && roleNames.Count > 0 ? roleNames : new[] { roleName })
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => r.Trim().ToLower() == "ta" ? "teaching_assistant" : r.Trim().ToLower())
+                .Distinct()
+                .ToList();
+            if (normalizedRoles.Count == 0) normalizedRoles.Add("teacher");
+
+            var isTeachingStaff = normalizedRoles.Any(r => r == "teacher" || r == "teaching_assistant" || r == "ta");
 
             if (isTeachingStaff)
             {
@@ -163,15 +170,19 @@ namespace EduTrack.API.Repositories.Implementation
             await _dbSet.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == normalizedRole);
-            if (role != null)
+            var dbRoles = await _context.Roles
+                .Where(r => normalizedRoles.Contains(r.RoleName.ToLower()))
+                .ToListAsync();
+            if (dbRoles.Count > 0)
             {
-                var userRole = new UserRole
+                foreach (var role in dbRoles)
                 {
-                    UserId = user.UserId,
-                    RoleId = role.RoleId
-                };
-                await _context.UserRoles.AddAsync(userRole);
+                    await _context.UserRoles.AddAsync(new UserRole
+                    {
+                        UserId = user.UserId,
+                        RoleId = role.RoleId
+                    });
+                }
                 await _context.SaveChangesAsync();
             }
 
@@ -234,7 +245,8 @@ namespace EduTrack.API.Repositories.Implementation
             IReadOnlyCollection<int>? gradeIds = null,
             bool gradesSpecified = false,
             IReadOnlyCollection<(int SubjectId, IReadOnlyCollection<int> GradeIds)>? subjectGrades = null,
-            bool subjectGradesSpecified = false)
+            bool subjectGradesSpecified = false,
+            IReadOnlyCollection<string>? roleNames = null)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             var existing = await _dbSet
@@ -247,7 +259,25 @@ namespace EduTrack.API.Repositories.Implementation
 
             if (existing == null) return null;
 
-            var isStudent = existing.UserRoles.Any(ur => ur.Role.RoleName == "student") || roleName == "student";
+            var requestedRoles = (roleNames != null && roleNames.Count > 0
+                ? roleNames
+                : !string.IsNullOrWhiteSpace(roleName)
+                    ? new[] { roleName }
+                    : System.Array.Empty<string>())
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => r.Trim().ToLower() == "ta" ? "teaching_assistant" : r.Trim().ToLower())
+                .Distinct()
+                .ToList();
+
+            var effectiveRoles = requestedRoles.Count > 0
+                ? requestedRoles
+                : existing.UserRoles
+                    .Select(ur => ur.Role?.RoleName?.ToLower())
+                    .Where(r => !string.IsNullOrWhiteSpace(r))
+                    .Select(r => r!)
+                    .ToList();
+
+            var isStudent = existing.UserRoles.Any(ur => ur.Role.RoleName == "student") || effectiveRoles.Contains("student");
             if (gradeSpecified)
             {
                 if (!isStudent && updatedUser.GradeId != null)
@@ -259,10 +289,7 @@ namespace EduTrack.API.Repositories.Implementation
                 existing.GradeId = updatedUser.GradeId;
             }
 
-            var effectiveRole = !string.IsNullOrWhiteSpace(roleName)
-                ? roleName.Trim().ToLower()
-                : existing.UserRoles.Select(ur => ur.Role?.RoleName?.ToLower()).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r)) ?? "";
-            var isTeachingStaff = effectiveRole == "teacher" || effectiveRole == "teaching_assistant" || effectiveRole == "ta";
+            var isTeachingStaff = effectiveRoles.Any(r => r == "teacher" || r == "teaching_assistant" || r == "ta");
 
             existing.FullName = updatedUser.FullName;
             existing.Email = updatedUser.Email;
@@ -404,18 +431,24 @@ namespace EduTrack.API.Repositories.Implementation
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(roleName))
+            if (requestedRoles.Count > 0)
             {
-                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
-                if (role != null)
+                var dbRoles = await _context.Roles
+                    .Where(r => requestedRoles.Contains(r.RoleName.ToLower()))
+                    .ToListAsync();
+                if (dbRoles.Count > 0)
                 {
                     _context.UserRoles.RemoveRange(existing.UserRoles);
-                    existing.UserRoles.Add(new UserRole
+                    existing.UserRoles.Clear();
+                    foreach (var role in dbRoles)
                     {
-                        UserId = existing.UserId,
-                        RoleId = role.RoleId,
-                        Role = role
-                    });
+                        existing.UserRoles.Add(new UserRole
+                        {
+                            UserId = existing.UserId,
+                            RoleId = role.RoleId,
+                            Role = role
+                        });
+                    }
                 }
             }
 

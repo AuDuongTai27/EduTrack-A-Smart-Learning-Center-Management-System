@@ -25,7 +25,17 @@ namespace EduTrack.API.Services.Management.Implementation
 
         public async Task<UserDto> CreateUserAsync(CreateUserDto dto)
         {
-            var role = string.IsNullOrWhiteSpace(dto.Role) ? "teacher" : dto.Role.Trim().ToLower();
+            var resolvedRoles = (dto.Roles != null && dto.Roles.Count > 0 ? dto.Roles : new List<string> { dto.Role })
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => r.Trim().ToLower() == "ta" ? "teaching_assistant" : r.Trim().ToLower())
+                .Distinct()
+                .ToList();
+            if (resolvedRoles.Count == 0) resolvedRoles.Add("teacher");
+
+            var role = resolvedRoles.Contains("center_manager") ? "center_manager"
+                : resolvedRoles.Contains("admin_staff") ? "admin_staff"
+                : resolvedRoles.Contains("teacher") ? "teacher"
+                : resolvedRoles[0];
             var prefix = role switch
             {
                 "center_manager" => "MGR",
@@ -46,7 +56,7 @@ namespace EduTrack.API.Services.Management.Implementation
             var subjectGradePairs = dto.SubjectGrades?
                 .Select(sg => (sg.SubjectId, (IReadOnlyCollection<int>)(sg.GradeIds ?? new List<int>())))
                 .ToList();
-            var created = await _userRepository.CreateUserWithRoleAsync(user, role, dto.SubjectIds, dto.GradeIds, subjectGradePairs);
+            var created = await _userRepository.CreateUserWithRoleAsync(user, role, dto.SubjectIds, dto.GradeIds, subjectGradePairs, resolvedRoles);
             return MapUserToDto(created);
         }
 
@@ -101,6 +111,11 @@ namespace EduTrack.API.Services.Management.Implementation
             var subjectGradePairs = dto.SubjectGrades?
                 .Select(sg => (sg.SubjectId, (IReadOnlyCollection<int>)(sg.GradeIds ?? new List<int>())))
                 .ToList();
+            var resolvedRoles = dto.Roles?
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => r.Trim().ToLower() == "ta" ? "teaching_assistant" : r.Trim().ToLower())
+                .Distinct()
+                .ToList();
 
             var result = await _userRepository.UpdateUserWithRoleAsync(
                 id,
@@ -112,7 +127,8 @@ namespace EduTrack.API.Services.Management.Implementation
                 dto.GradeIds,
                 dto.GradesSpecified,
                 subjectGradePairs,
-                dto.SubjectGradesSpecified);
+                dto.SubjectGradesSpecified,
+                resolvedRoles);
             return result == null ? null : MapUserToDto(result);
         }
 

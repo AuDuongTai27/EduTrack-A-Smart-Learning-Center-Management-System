@@ -8,6 +8,7 @@ export interface AssignmentsSectionProps {
   classId?: string | number;
   assignments?: (AssignmentDto | TeachingAssignmentItemDto | any)[];
   onAssignmentDeleted?: (deletedId: number) => void;
+  readOnly?: boolean;
 }
 
 export interface MaterialItem {
@@ -43,6 +44,7 @@ export default function AssignmentsSection({
   classId = "1",
   assignments = [],
   onAssignmentDeleted,
+  readOnly = false,
 }: AssignmentsSectionProps) {
   // Filter & Search states
   const [filterType, setFilterType] = useState<CourseworkFilterType>("all");
@@ -155,26 +157,28 @@ export default function AssignmentsSection({
 
           {/* Action buttons + Toggle Chevron */}
           <div className="d-flex align-items-center gap-3 flex-wrap">
-            <div
-              className="d-flex align-items-center gap-2 flex-wrap"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                className="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center gap-2 shadow-xs rounded-2"
-                style={{ height: "36px", fontSize: "13px", fontWeight: 500, padding: "0 14px" }}
-                onClick={() => setShowUploadModal(true)}
+            {!readOnly && (
+              <div
+                className="d-flex align-items-center gap-2 flex-wrap"
+                onClick={(e) => e.stopPropagation()}
               >
-                <i className="bi bi-cloud-upload" /> Add Material
-              </button>
-              <Link
-                to={`/teacher/classes/${classId}/assignment/new-assignment`}
-                className="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-2 shadow-sm text-decoration-none rounded-2"
-                style={{ height: "36px", fontSize: "13px", fontWeight: 500, padding: "0 14px" }}
-              >
-                <i className="bi bi-plus-lg" /> Add Assignment
-              </Link>
-            </div>
+                <button
+                  type="button"
+                  className="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center gap-2 shadow-xs rounded-2"
+                  style={{ height: "36px", fontSize: "13px", fontWeight: 500, padding: "0 14px" }}
+                  onClick={() => setShowUploadModal(true)}
+                >
+                  <i className="bi bi-cloud-upload" /> Add Material
+                </button>
+                <Link
+                  to={`/teacher/classes/${classId}/assignment/new-assignment`}
+                  className="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-2 shadow-sm text-decoration-none rounded-2"
+                  style={{ height: "36px", fontSize: "13px", fontWeight: 500, padding: "0 14px" }}
+                >
+                  <i className="bi bi-plus-lg" /> Add Assignment
+                </Link>
+              </div>
+            )}
 
             <i className="bi bi-chevron-down details-chevron text-muted" />
           </div>
@@ -337,19 +341,21 @@ export default function AssignmentsSection({
                         style={{ fontSize: "12.5px" }}
                       >
                         <i className="bi bi-eye" />
-                        <span>Grade</span>
+                        <span>{readOnly ? "View" : "Grade"}</span>
                       </Link>
 
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger rounded-2 px-2 shadow-xs"
-                        style={{ fontSize: "12.5px" }}
-                        disabled={deletingId === asg.assignmentId}
-                        onClick={() => handleDelete(asg.assignmentId, asg.title)}
-                        title="Delete assignment"
-                      >
-                        <i className="bi bi-trash" />
-                      </button>
+                      {!readOnly && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-danger rounded-2 px-2 shadow-xs"
+                          style={{ fontSize: "12.5px" }}
+                          disabled={deletingId === asg.assignmentId}
+                          onClick={() => handleDelete(asg.assignmentId, asg.title)}
+                          title="Delete assignment"
+                        >
+                          <i className="bi bi-trash" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

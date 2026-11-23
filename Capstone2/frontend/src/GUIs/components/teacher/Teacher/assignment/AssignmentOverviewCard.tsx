@@ -6,6 +6,7 @@ import teachingDAL from "../../../../../DAL/teachingDAL";
 export interface AssignmentOverviewCardProps {
   assignment?: AssignmentDto | TeachingAssignmentItemDto | any | null;
   className?: string;
+  readOnly?: boolean;
   onAssignmentUpdated?: (updated: TeachingAssignmentItemDto) => void;
   onAssignmentDeleted?: () => void;
 }
@@ -13,6 +14,7 @@ export interface AssignmentOverviewCardProps {
 function AssignmentOverviewCard({
   assignment,
   className,
+  readOnly = false,
   onAssignmentUpdated,
   onAssignmentDeleted,
 }: AssignmentOverviewCardProps) {
@@ -147,24 +149,26 @@ function AssignmentOverviewCard({
                 </span>
               </div>
             </div>
-            <div className="d-flex align-items-center gap-2 flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowEditModal(true)}
-                className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-2 px-3"
-              >
-                <i className="bi bi-pencil" /> Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(true)}
-                className="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center rounded-2 px-2"
-                title="Delete assignment"
-                aria-label="Delete assignment"
-              >
-                <i className="bi bi-trash" />
-              </button>
-            </div>
+            {!readOnly && (
+              <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(true)}
+                  className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-2 px-3"
+                >
+                  <i className="bi bi-pencil" /> Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center rounded-2 px-2"
+                  title="Delete assignment"
+                  aria-label="Delete assignment"
+                >
+                  <i className="bi bi-trash" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Attachments Section */}

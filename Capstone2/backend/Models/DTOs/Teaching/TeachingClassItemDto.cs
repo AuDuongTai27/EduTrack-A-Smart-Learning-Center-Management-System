@@ -22,6 +22,7 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public string? TaName { get; set; }
         public string? PartnerName { get; set; }
         public string? ScheduleSummary { get; set; }
+        public string MyRoleInClass { get; set; } = "teacher";
     }
 
     /// <summary>

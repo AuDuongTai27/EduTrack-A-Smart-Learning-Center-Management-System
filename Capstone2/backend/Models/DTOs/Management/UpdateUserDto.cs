@@ -29,6 +29,8 @@ namespace EduTrack.API.Models.DTOs.Management
 
         public string? Role { get; set; }
 
+        public System.Collections.Generic.List<string>? Roles { get; set; }
+
         [StringLength(100)]
         public string? Specialty { get; set; }
 

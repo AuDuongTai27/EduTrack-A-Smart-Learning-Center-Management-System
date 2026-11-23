@@ -21,9 +21,29 @@ import type { GradeDto } from "../../../../BLL/models/GradeDto";
 
 const INTERNAL_STAFF_ROLES = ["center_manager", "admin_staff", "teacher", "teaching_assistant"];
 
+const STAFF_ROLE_OPTIONS: { value: string; label: string }[] = [
+  { value: "teacher", label: "Teacher" },
+  { value: "teaching_assistant", label: "Teaching Assistant" },
+  { value: "admin_staff", label: "Admin Staff" },
+  { value: "center_manager", label: "Center Manager" },
+];
+
 function isTeachingRole(role?: string | null): boolean {
   const normalized = (role || "").toLowerCase();
   return normalized === "teacher" || normalized === "teaching_assistant" || normalized === "ta";
+}
+
+function hasAnyTeachingRole(roles?: string[] | null): boolean {
+  return (roles || []).some((r) => isTeachingRole(r));
+}
+
+function toggleRoleSelection(currentRoles: string[], targetRole: string): string[] {
+  const normalized = targetRole === "ta" ? "teaching_assistant" : targetRole;
+  if (currentRoles.includes(normalized)) {
+    if (currentRoles.length <= 1) return currentRoles; // Keep at least 1 role
+    return currentRoles.filter((r) => r !== normalized);
+  }
+  return [...currentRoles, normalized];
 }
 
 export default function CenterManagerUserAccountPage() {
@@ -53,6 +73,7 @@ export default function CenterManagerUserAccountPage() {
     phone: "",
     email: "",
     role: "teacher",
+    roles: ["teacher"] as string[],
     specialty: "",
     subjectGrades: [] as UserSubjectGradeInputDto[],
     gender: "male",
@@ -67,6 +88,7 @@ export default function CenterManagerUserAccountPage() {
     phone: "",
     email: "",
     role: "teacher",
+    roles: ["teacher"] as string[],
     specialty: "",
     subjectGrades: [] as UserSubjectGradeInputDto[],
     gender: "male",
@@ -274,7 +296,8 @@ export default function CenterManagerUserAccountPage() {
     e.preventDefault();
     if (!addForm.fullName.trim()) return;
 
-    const teaching = isTeachingRole(addForm.role);
+    const selectedRoles = addForm.roles.length > 0 ? addForm.roles : [addForm.role];
+    const teaching = hasAnyTeachingRole(selectedRoles);
     if (teaching && addForm.subjectGrades.length > 0 && grades.length > 0) {
       const missingGradeGroup = addForm.subjectGrades.find((g) => g.gradeIds.length === 0);
       if (missingGradeGroup) {
@@ -304,7 +327,8 @@ export default function CenterManagerUserAccountPage() {
         fullName: addForm.fullName.trim(),
         phone: addForm.phone.trim() || undefined,
         email: addForm.email.trim() || undefined,
-        role: addForm.role,
+        role: selectedRoles[0],
+        roles: selectedRoles,
         specialty: resolvedSpecialty,
         subjectGrades: teaching ? addForm.subjectGrades : [],
         subjectIds: teaching ? chosenSubjectIds : [],
@@ -319,6 +343,7 @@ export default function CenterManagerUserAccountPage() {
         phone: "",
         email: "",
         role: "teacher",
+        roles: ["teacher"],
         specialty: "",
         subjectGrades: [],
         gender: "male",
@@ -334,7 +359,15 @@ export default function CenterManagerUserAccountPage() {
 
   // Open Edit Modal
   const handleOpenEditModal = (u: UserDto) => {
-    const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : "teacher";
+    const normalizedRoles =
+      u.roles && u.roles.length > 0
+        ? Array.from(
+            new Set(
+              u.roles.map((r) => (r.toLowerCase() === "ta" ? "teaching_assistant" : r.toLowerCase())),
+            ),
+          )
+        : ["teacher"];
+    const primaryRole = normalizedRoles[0] || "teacher";
     const existingGroups = getUserSpecialtyGroups(u);
     const initialSubjectGrades: UserSubjectGradeInputDto[] = existingGroups
       .filter((g) => g.subjectId > 0)
@@ -350,6 +383,7 @@ export default function CenterManagerUserAccountPage() {
       phone: u.phone || "",
       email: u.email || "",
       role: primaryRole,
+      roles: normalizedRoles,
       specialty: u.specialty || "",
       subjectGrades: initialSubjectGrades,
       gender: u.gender || "male",
@@ -364,7 +398,8 @@ export default function CenterManagerUserAccountPage() {
     e.preventDefault();
     if (!editForm.fullName.trim()) return;
 
-    const teaching = isTeachingRole(editForm.role);
+    const selectedRoles = editForm.roles.length > 0 ? editForm.roles : [editForm.role];
+    const teaching = hasAnyTeachingRole(selectedRoles);
     if (teaching && editForm.subjectGrades.length > 0 && grades.length > 0) {
       const missingGradeGroup = editForm.subjectGrades.find((g) => g.gradeIds.length === 0);
       if (missingGradeGroup) {
@@ -394,7 +429,8 @@ export default function CenterManagerUserAccountPage() {
         fullName: editForm.fullName.trim(),
         phone: editForm.phone.trim() || undefined,
         email: editForm.email.trim() || undefined,
-        role: editForm.role,
+        role: selectedRoles[0],
+        roles: selectedRoles,
         specialty: resolvedSpecialty,
         subjectGrades: teaching ? editForm.subjectGrades : [],
         subjectIds: teaching ? chosenSubjectIds : [],
@@ -597,8 +633,8 @@ export default function CenterManagerUserAccountPage() {
               ) : (
                 paginatedUsers.map((u, idx) => {
                   const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
-                  const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : "user";
-                  const teaching = isTeachingRole(primaryRole);
+                  const userRoles = u.roles && u.roles.length > 0 ? u.roles : ["user"];
+                  const teaching = hasAnyTeachingRole(userRoles);
                   const specialtyGroups = getUserSpecialtyGroups(u);
                   const visibleGroups = specialtyGroups.slice(0, 3);
                   const extraGroupCount = specialtyGroups.length > 3 ? specialtyGroups.length - 3 : 0;
@@ -679,7 +715,11 @@ export default function CenterManagerUserAccountPage() {
                         )}
                       </td>
                       <td>
-                        <RoleBadge role={primaryRole} />
+                        <div className="d-flex flex-wrap gap-1">
+                          {userRoles.map((r) => (
+                            <RoleBadge key={r} role={r} />
+                          ))}
+                        </div>
                       </td>
                       <td>
                         <DotStatusBadge status={u.status || "active"} />
@@ -757,18 +797,40 @@ export default function CenterManagerUserAccountPage() {
                         required
                       />
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-bold">System Role <span className="text-danger">*</span></label>
-                      <select
-                        className="form-select"
-                        value={addForm.role}
-                        onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
-                      >
-                        <option value="teacher">Teacher</option>
-                        <option value="teaching_assistant">Teaching Assistant</option>
-                        <option value="admin_staff">Admin Staff</option>
-                        <option value="center_manager">Center Manager</option>
-                      </select>
+                    <div className="col-12">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <label className="form-label fw-bold mb-0">
+                          System Roles (Chọn 1 hoặc nhiều vai trò) <span className="text-danger">*</span>
+                        </label>
+                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
+                          {addForm.roles.length} role{addForm.roles.length === 1 ? "" : "s"} selected
+                        </span>
+                      </div>
+                      <div className="p-2.5 bg-light rounded-3 border d-flex flex-wrap gap-2">
+                        {STAFF_ROLE_OPTIONS.map((opt) => {
+                          const checked = addForm.roles.includes(opt.value);
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                checked ? "btn-primary shadow-sm" : "btn-outline-secondary bg-white"
+                              }`}
+                              onClick={() => {
+                                const nextRoles = toggleRoleSelection(addForm.roles, opt.value);
+                                setAddForm({
+                                  ...addForm,
+                                  roles: nextRoles,
+                                  role: nextRoles[0] || "teacher",
+                                });
+                              }}
+                            >
+                              <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-plus-circle"}`} />
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                     <div className="col-md-6">
                       <label className="form-label fw-bold">Phone Number</label>
@@ -802,7 +864,7 @@ export default function CenterManagerUserAccountPage() {
                         <option value="other">Other</option>
                       </select>
                     </div>
-                    {isTeachingRole(addForm.role) ? (
+                    {hasAnyTeachingRole(addForm.roles) ? (
                       <>
                         <div className="col-12">
                           <div className="d-flex justify-content-between align-items-center mb-2">
@@ -1027,18 +1089,40 @@ export default function CenterManagerUserAccountPage() {
                         required
                       />
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-bold">System Role <span className="text-danger">*</span></label>
-                      <select
-                        className="form-select"
-                        value={editForm.role}
-                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                      >
-                        <option value="teacher">Teacher</option>
-                        <option value="teaching_assistant">Teaching Assistant</option>
-                        <option value="admin_staff">Admin Staff</option>
-                        <option value="center_manager">Center Manager</option>
-                      </select>
+                    <div className="col-12">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <label className="form-label fw-bold mb-0">
+                          System Roles (Chọn 1 hoặc nhiều vai trò) <span className="text-danger">*</span>
+                        </label>
+                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
+                          {editForm.roles.length} role{editForm.roles.length === 1 ? "" : "s"} selected
+                        </span>
+                      </div>
+                      <div className="p-2.5 bg-light rounded-3 border d-flex flex-wrap gap-2">
+                        {STAFF_ROLE_OPTIONS.map((opt) => {
+                          const checked = editForm.roles.includes(opt.value);
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                checked ? "btn-primary shadow-sm" : "btn-outline-secondary bg-white"
+                              }`}
+                              onClick={() => {
+                                const nextRoles = toggleRoleSelection(editForm.roles, opt.value);
+                                setEditForm({
+                                  ...editForm,
+                                  roles: nextRoles,
+                                  role: nextRoles[0] || "teacher",
+                                });
+                              }}
+                            >
+                              <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-plus-circle"}`} />
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                     <div className="col-md-6">
                       <label className="form-label fw-bold">Phone Number</label>
@@ -1070,7 +1154,7 @@ export default function CenterManagerUserAccountPage() {
                         <option value="locked">Locked</option>
                       </select>
                     </div>
-                    {isTeachingRole(editForm.role) ? (
+                    {hasAnyTeachingRole(editForm.roles) ? (
                       <>
                         <div className="col-12">
                           <div className="d-flex justify-content-between align-items-center mb-2">
@@ -1392,8 +1476,13 @@ export default function CenterManagerUserAccountPage() {
                       <UserAvatar name={selectedUser.fullName} />
                       <div className="flex-grow-1">
                         <h4 className="fw-bold mb-1 text-dark">{selectedUser.fullName}</h4>
-                        <div className="d-flex align-items-center gap-2">
-                          <RoleBadge role={selectedUser.roles?.[0] || "user"} />
+                        <div className="d-flex flex-wrap align-items-center gap-2">
+                          {(selectedUser.roles && selectedUser.roles.length > 0
+                            ? selectedUser.roles
+                            : ["user"]
+                          ).map((r) => (
+                            <RoleBadge key={r} role={r} />
+                          ))}
                           <DotStatusBadge status={selectedUser.status || "active"} />
                         </div>
                       </div>
@@ -1415,11 +1504,11 @@ export default function CenterManagerUserAccountPage() {
                       <div className="col-12">
                         <div className="p-3 bg-light rounded-3 h-100">
                           <small className="text-muted d-block mb-2">
-                            {isTeachingRole(selectedUser.roles?.[0])
+                            {hasAnyTeachingRole(selectedUser.roles)
                               ? "Specialties & Grade Levels"
                               : "Department / Function"}
                           </small>
-                          {isTeachingRole(selectedUser.roles?.[0]) ? (
+                          {hasAnyTeachingRole(selectedUser.roles) ? (
                             getUserSpecialtyGroups(selectedUser).length > 0 ? (
                               <div className="d-flex flex-column gap-2">
                                 {getUserSpecialtyGroups(selectedUser).map((group) => (

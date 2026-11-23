@@ -24,20 +24,23 @@ export default function ClassStaffAssignments({item, teachers, assistants, onSav
   const savingRef = useRef(false);
   const mounted = useRef(false);
   const selectedAssignments = kind === "teachers" ? teachers.data : assistants.data;
+  const combinedAssignments = selectedAssignments
+    ? [...selectedAssignments, ...((kind === "teachers" ? assistants.data : teachers.data) ?? [])]
+    : null;
   useEffect(() => {mounted.current = true; return () => {mounted.current = false;};}, []);
   useEffect(() => {
     if (!kind) return;
     let active = true;
     setCandidates({data: null, loading: true, error: null}); setUserId(""); setError(null);
-    if (!selectedAssignments) {
+    if (!combinedAssignments) {
       setCandidates({data: null, loading: false, error: "Could not load current assignments. Please reload class details."});
       return;
     }
-    void classStaffDAL.getCandidates(kind, selectedAssignments).then(data => {
+    void classStaffDAL.getCandidates(kind, combinedAssignments).then(data => {
       if (active) setCandidates({data, loading: false, error: null});
     }).catch(cause => {if (active) setCandidates({data: null, loading: false, error: classError(cause)});});
     return () => {active = false;};
-  }, [kind, retry, selectedAssignments]);
+  }, [kind, retry, selectedAssignments, teachers.data, assistants.data]);
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
