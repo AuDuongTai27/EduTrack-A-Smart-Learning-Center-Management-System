@@ -34,6 +34,19 @@ namespace EduTrack.API.Models.EF
                             CONSTRAINT `FK_user_grades_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
                             CONSTRAINT `FK_user_grades_grades_grade_id` FOREIGN KEY (`grade_id`) REFERENCES `grades` (`grade_id`) ON DELETE CASCADE
                         ) CHARACTER SET=utf8mb4;");
+
+                    await context.Database.ExecuteSqlRawAsync(@"
+                        CREATE TABLE IF NOT EXISTS `user_subject_grades` (
+                            `user_id` int NOT NULL,
+                            `subject_id` int NOT NULL,
+                            `grade_id` int NOT NULL,
+                            PRIMARY KEY (`user_id`, `subject_id`, `grade_id`),
+                            KEY `IX_user_subject_grades_subject_id` (`subject_id`),
+                            KEY `IX_user_subject_grades_grade_id` (`grade_id`),
+                            CONSTRAINT `FK_user_subject_grades_users_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+                            CONSTRAINT `FK_user_subject_grades_subjects_subject_id` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`subject_id`) ON DELETE CASCADE,
+                            CONSTRAINT `FK_user_subject_grades_grades_grade_id` FOREIGN KEY (`grade_id`) REFERENCES `grades` (`grade_id`) ON DELETE CASCADE
+                        ) CHARACTER SET=utf8mb4;");
                 }
                 catch
                 {
@@ -324,6 +337,54 @@ namespace EduTrack.API.Models.EF
                 if (seedUserGrades.Count > 0)
                 {
                     await context.UserGrades.AddRangeAsync(seedUserGrades);
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            if (!await context.UserSubjectGrades.AnyAsync())
+            {
+                var existingUserIds = await context.Users.Select(u => u.UserId).ToListAsync();
+                var existingSubjectIds = await context.Subjects.Select(s => s.SubjectId).ToListAsync();
+                var existingGradeIds = await context.Grades.Select(g => g.GradeId).ToListAsync();
+                var seedPairs = new List<UserSubjectGrade>();
+
+                void AddPair(int uid, int sid, int gid)
+                {
+                    if (existingUserIds.Contains(uid) && existingSubjectIds.Contains(sid) && existingGradeIds.Contains(gid)
+                        && !seedPairs.Any(p => p.UserId == uid && p.SubjectId == sid && p.GradeId == gid))
+                    {
+                        seedPairs.Add(new UserSubjectGrade { UserId = uid, SubjectId = sid, GradeId = gid });
+                    }
+                }
+
+                // TC001: Mathematics (Khối 9, Khối 10)
+                AddPair(3, 1, 9);
+                AddPair(3, 1, 10);
+
+                // TC002: Physics (Khối 9, Khối 11)
+                AddPair(4, 2, 9);
+                AddPair(4, 2, 11);
+
+                // TA001: Mathematics (Khối 8, Khối 9) & Physics (Khối 9, Khối 10)
+                AddPair(5, 1, 8);
+                AddPair(5, 1, 9);
+                AddPair(5, 2, 9);
+                AddPair(5, 2, 10);
+
+                // Migrate any other existing users from user_subjects x user_grades
+                var existingUs = await context.UserSubjects.ToListAsync();
+                var existingUg = await context.UserGrades.ToListAsync();
+                foreach (var us in existingUs.Where(x => x.UserId != 3 && x.UserId != 4 && x.UserId != 5))
+                {
+                    foreach (var ug in existingUg.Where(x => x.UserId == us.UserId))
+                    {
+                        AddPair(us.UserId, us.SubjectId, ug.GradeId);
+                    }
+                }
+
+                if (seedPairs.Count > 0)
+                {
+                    await context.UserSubjectGrades.AddRangeAsync(seedPairs);
                     await context.SaveChangesAsync();
                 }
             }

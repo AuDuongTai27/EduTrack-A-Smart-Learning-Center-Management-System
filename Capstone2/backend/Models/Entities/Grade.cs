@@ -21,4 +21,5 @@ public class Grade
 
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
     public virtual ICollection<UserGrade> UserGrades { get; set; } = new List<UserGrade>();
+    public virtual ICollection<UserSubjectGrade> UserSubjectGrades { get; set; } = new List<UserSubjectGrade>();
 }

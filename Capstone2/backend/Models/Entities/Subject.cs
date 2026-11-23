@@ -33,5 +33,6 @@ namespace EduTrack.API.Models.Entities
         // Navigation Properties
         public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
         public virtual ICollection<UserSubject> UserSubjects { get; set; } = new List<UserSubject>();
+        public virtual ICollection<UserSubjectGrade> UserSubjectGrades { get; set; } = new List<UserSubjectGrade>();
     }
 }

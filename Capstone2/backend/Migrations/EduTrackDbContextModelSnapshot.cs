@@ -1475,6 +1475,29 @@ namespace EduTrack.API.Migrations
                     b.ToTable("user_subjects");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserSubjectGrade", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int")
+                        .HasColumnName("subject_id");
+
+                    b.Property<int>("GradeId")
+                        .HasColumnType("int")
+                        .HasColumnName("grade_id");
+
+                    b.HasKey("UserId", "SubjectId", "GradeId");
+
+                    b.HasIndex("GradeId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("user_subject_grades");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.AiEvaluation", b =>
                 {
                     b.HasOne("EduTrack.API.Models.Entities.User", "Requester")
@@ -1984,6 +2007,33 @@ namespace EduTrack.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EduTrack.API.Models.Entities.UserSubjectGrade", b =>
+                {
+                    b.HasOne("EduTrack.API.Models.Entities.Grade", "Grade")
+                        .WithMany("UserSubjectGrades")
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.Subject", "Subject")
+                        .WithMany("UserSubjectGrades")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EduTrack.API.Models.Entities.User", "User")
+                        .WithMany("UserSubjectGrades")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Grade");
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EduTrack.API.Models.Entities.Assignment", b =>
                 {
                     b.Navigation("Submissions");
@@ -2043,6 +2093,8 @@ namespace EduTrack.API.Migrations
                     b.Navigation("Classes");
 
                     b.Navigation("UserGrades");
+
+                    b.Navigation("UserSubjectGrades");
                 });
 
             modelBuilder.Entity("EduTrack.API.Models.Entities.Notification", b =>
@@ -2058,6 +2110,8 @@ namespace EduTrack.API.Migrations
             modelBuilder.Entity("EduTrack.API.Models.Entities.Subject", b =>
                 {
                     b.Navigation("Classes");
+
+                    b.Navigation("UserSubjectGrades");
 
                     b.Navigation("UserSubjects");
                 });
@@ -2119,6 +2173,8 @@ namespace EduTrack.API.Migrations
                     b.Navigation("UserGrades");
 
                     b.Navigation("UserRoles");
+
+                    b.Navigation("UserSubjectGrades");
 
                     b.Navigation("UserSubjects");
 

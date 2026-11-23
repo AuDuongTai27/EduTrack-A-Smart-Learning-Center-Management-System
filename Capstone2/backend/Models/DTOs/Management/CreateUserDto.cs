@@ -2,6 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EduTrack.API.Models.DTOs.Management
 {
+    public class UserSubjectGradeInputDto
+    {
+        public int SubjectId { get; set; }
+        public System.Collections.Generic.List<int> GradeIds { get; set; } = new();
+    }
+
     public class CreateUserDto
     {
         [StringLength(20, ErrorMessage = "UserCode không được vượt quá 20 ký tự")]
@@ -23,6 +29,8 @@ namespace EduTrack.API.Models.DTOs.Management
 
         [StringLength(100)]
         public string? Specialty { get; set; }
+
+        public System.Collections.Generic.List<UserSubjectGradeInputDto>? SubjectGrades { get; set; }
 
         public System.Collections.Generic.List<int>? SubjectIds { get; set; }
 

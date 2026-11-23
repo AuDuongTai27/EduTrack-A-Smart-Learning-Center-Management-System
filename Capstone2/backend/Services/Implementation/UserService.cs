@@ -43,6 +43,56 @@ namespace EduTrack.API.Services.Implementation
                 .Select(ug => ug.Grade)
                 .ToList() ?? new List<Grade>();
 
+            var subjectGrades = (u.UserSubjectGrades ?? Enumerable.Empty<UserSubjectGrade>())
+                .Where(usg => usg.Subject != null)
+                .GroupBy(usg => new { usg.SubjectId, usg.Subject.SubjectName })
+                .OrderBy(g => g.Key.SubjectId)
+                .Select(g =>
+                {
+                    var grades = g.Where(x => x.Grade != null)
+                                  .Select(x => x.Grade)
+                                  .GroupBy(gr => gr.GradeId)
+                                  .Select(gr => gr.First())
+                                  .OrderBy(gr => gr.GradeId)
+                                  .ToList();
+                    return new UserSpecialtyGroupDto
+                    {
+                        SubjectId = g.Key.SubjectId,
+                        SubjectName = g.Key.SubjectName,
+                        GradeIds = grades.Select(gr => gr.GradeId).ToList(),
+                        GradeNames = grades.Select(gr => gr.GradeName).ToList()
+                    };
+                })
+                .ToList();
+
+            if (subjectGrades.Count == 0 && orderedSubjects.Count > 0)
+            {
+                subjectGrades = orderedSubjects.Select(s => new UserSpecialtyGroupDto
+                {
+                    SubjectId = s.SubjectId,
+                    SubjectName = s.SubjectName,
+                    GradeIds = orderedGrades.Select(gr => gr.GradeId).ToList(),
+                    GradeNames = orderedGrades.Select(gr => gr.GradeName).ToList()
+                }).ToList();
+            }
+
+            var finalSubjectIds = orderedSubjects.Count > 0
+                ? orderedSubjects.Select(s => s.SubjectId).ToList()
+                : subjectGrades.Select(sg => sg.SubjectId).ToList();
+            var finalSubjectNames = orderedSubjects.Count > 0
+                ? orderedSubjects.Select(s => s.SubjectName).ToList()
+                : subjectGrades.Select(sg => sg.SubjectName).ToList();
+            var finalGradeIds = orderedGrades.Count > 0
+                ? orderedGrades.Select(g => g.GradeId).ToList()
+                : subjectGrades.SelectMany(sg => sg.GradeIds).Distinct().OrderBy(id => id).ToList();
+            var finalGradeNames = orderedGrades.Count > 0
+                ? orderedGrades.Select(g => g.GradeName).ToList()
+                : subjectGrades.SelectMany(sg => sg.GradeIds.Zip(sg.GradeNames, (id, name) => new { id, name }))
+                    .GroupBy(x => x.id)
+                    .OrderBy(g => g.Key)
+                    .Select(g => g.First().name)
+                    .ToList();
+
             return new UserDto
             {
                 UserId = u.UserId,
@@ -56,10 +106,11 @@ namespace EduTrack.API.Services.Implementation
                 Specialty = u.Specialty,
                 GradeId = u.GradeId,
                 GradeName = u.Grade?.GradeName,
-                SubjectIds = orderedSubjects.Select(s => s.SubjectId).ToList(),
-                SubjectNames = orderedSubjects.Select(s => s.SubjectName).ToList(),
-                GradeIds = orderedGrades.Select(g => g.GradeId).ToList(),
-                GradeNames = orderedGrades.Select(g => g.GradeName).ToList(),
+                SubjectGrades = subjectGrades,
+                SubjectIds = finalSubjectIds,
+                SubjectNames = finalSubjectNames,
+                GradeIds = finalGradeIds,
+                GradeNames = finalGradeNames,
                 EnrolledSince = u.EnrolledSince,
                 Status = u.Status,
                 CreatedAt = u.CreatedAt,

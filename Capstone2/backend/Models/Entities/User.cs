@@ -73,6 +73,7 @@ namespace EduTrack.API.Models.Entities
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         public virtual ICollection<UserSubject> UserSubjects { get; set; } = new List<UserSubject>();
         public virtual ICollection<UserGrade> UserGrades { get; set; } = new List<UserGrade>();
+        public virtual ICollection<UserSubjectGrade> UserSubjectGrades { get; set; } = new List<UserSubjectGrade>();
         public virtual ICollection<ParentStudent> ParentLinks { get; set; } = new List<ParentStudent>();
         public virtual ICollection<ParentStudent> StudentLinks { get; set; } = new List<ParentStudent>();
         public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();

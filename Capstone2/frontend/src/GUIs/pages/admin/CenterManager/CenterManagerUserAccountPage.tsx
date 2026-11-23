@@ -11,7 +11,11 @@ import userDAL from "../../../../DAL/userDAL";
 import managementDAL from "../../../../DAL/managementDAL";
 import subjectDAL from "../../../../DAL/subjectDAL";
 import { gradeApi } from "../../../../api/gradeApi";
-import type { UserDto } from "../../../../BLL/models/UserDto";
+import type {
+  UserDto,
+  UserSpecialtyGroupDto,
+  UserSubjectGradeInputDto,
+} from "../../../../BLL/models/UserDto";
 import type { SubjectDto } from "../../../../BLL/models/SubjectDto";
 import type { GradeDto } from "../../../../BLL/models/GradeDto";
 
@@ -50,8 +54,7 @@ export default function CenterManagerUserAccountPage() {
     email: "",
     role: "teacher",
     specialty: "",
-    subjectIds: [] as number[],
-    gradeIds: [] as number[],
+    subjectGrades: [] as UserSubjectGradeInputDto[],
     gender: "male",
   });
 
@@ -65,8 +68,7 @@ export default function CenterManagerUserAccountPage() {
     email: "",
     role: "teacher",
     specialty: "",
-    subjectIds: [] as number[],
-    gradeIds: [] as number[],
+    subjectGrades: [] as UserSubjectGradeInputDto[],
     gender: "male",
     status: "active",
   });
@@ -111,31 +113,104 @@ export default function CenterManagerUserAccountPage() {
     };
   }, []);
 
-  const getUserSubjectNames = (u: UserDto): string[] => {
-    if (u.subjectNames && u.subjectNames.length > 0) return u.subjectNames;
-    if (u.subjectIds && u.subjectIds.length > 0 && subjects.length > 0) {
-      const mapped = subjects.filter((s) => u.subjectIds!.includes(s.subjectId)).map((s) => s.subjectName);
-      if (mapped.length > 0) return mapped;
+  const getUserSpecialtyGroups = (u: UserDto): UserSpecialtyGroupDto[] => {
+    if (u.subjectGrades && u.subjectGrades.length > 0) {
+      return u.subjectGrades.map((sg) => {
+        const resolvedSubjName =
+          sg.subjectName ||
+          subjects.find((s) => s.subjectId === sg.subjectId)?.subjectName ||
+          `Subject #${sg.subjectId}`;
+        const resolvedGradeNames =
+          sg.gradeNames && sg.gradeNames.length > 0
+            ? sg.gradeNames
+            : (sg.gradeIds || [])
+                .map((gid) => grades.find((g) => g.gradeId === gid)?.gradeName)
+                .filter((name): name is string => Boolean(name));
+        return {
+          subjectId: sg.subjectId,
+          subjectName: resolvedSubjName,
+          gradeIds: sg.gradeIds || [],
+          gradeNames: resolvedGradeNames,
+        };
+      });
     }
+
+    const fallbackGradeIds = u.gradeIds || [];
+    const fallbackGradeNames =
+      u.gradeNames && u.gradeNames.length > 0
+        ? u.gradeNames
+        : grades.filter((g) => fallbackGradeIds.includes(g.gradeId)).map((g) => g.gradeName);
+
+    if (u.subjectIds && u.subjectIds.length > 0) {
+      return u.subjectIds.map((sid, idx) => ({
+        subjectId: sid,
+        subjectName:
+          u.subjectNames?.[idx] ||
+          subjects.find((s) => s.subjectId === sid)?.subjectName ||
+          `Subject #${sid}`,
+        gradeIds: fallbackGradeIds,
+        gradeNames: fallbackGradeNames,
+      }));
+    }
+
     if (u.specialty && u.specialty.trim()) {
-      return u.specialty
+      const tokens = u.specialty
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
+      return tokens.map((token, idx) => {
+        const matched = subjects.find(
+          (s) =>
+            s.subjectName.toLowerCase() === token.toLowerCase() ||
+            s.subjectCode.toLowerCase() === token.toLowerCase(),
+        );
+        return {
+          subjectId: matched?.subjectId ?? -(idx + 1),
+          subjectName: matched?.subjectName ?? token,
+          gradeIds: fallbackGradeIds,
+          gradeNames: fallbackGradeNames,
+        };
+      });
     }
+
     return [];
   };
 
-  const getUserGradeNames = (u: UserDto): string[] => {
-    if (u.gradeNames && u.gradeNames.length > 0) return u.gradeNames;
-    if (u.gradeIds && u.gradeIds.length > 0 && grades.length > 0) {
-      return grades.filter((g) => u.gradeIds!.includes(g.gradeId)).map((g) => g.gradeName);
+  const toggleSubjectInGroups = (
+    groups: UserSubjectGradeInputDto[],
+    subjectId: number,
+  ): UserSubjectGradeInputDto[] => {
+    const exists = groups.some((g) => g.subjectId === subjectId);
+    if (exists) {
+      return groups.filter((g) => g.subjectId !== subjectId);
     }
-    return [];
+    return [...groups, { subjectId, gradeIds: [] }];
   };
 
-  const toggleIdInList = (list: number[], id: number): number[] =>
-    list.includes(id) ? list.filter((item) => item !== id) : [...list, id];
+  const toggleGradeInSubjectGroup = (
+    groups: UserSubjectGradeInputDto[],
+    subjectId: number,
+    gradeId: number,
+  ): UserSubjectGradeInputDto[] => {
+    return groups.map((g) => {
+      if (g.subjectId !== subjectId) return g;
+      const hasGrade = g.gradeIds.includes(gradeId);
+      return {
+        ...g,
+        gradeIds: hasGrade
+          ? g.gradeIds.filter((id) => id !== gradeId)
+          : [...g.gradeIds, gradeId].sort((a, b) => a - b),
+      };
+    });
+  };
+
+  const setGradesForSubjectGroup = (
+    groups: UserSubjectGradeInputDto[],
+    subjectId: number,
+    gradeIds: number[],
+  ): UserSubjectGradeInputDto[] => {
+    return groups.map((g) => (g.subjectId === subjectId ? { ...g, gradeIds: [...gradeIds] } : g));
+  };
 
   // Filter & Search logic
   const filteredUsers = useMemo(() => {
@@ -200,8 +275,23 @@ export default function CenterManagerUserAccountPage() {
     if (!addForm.fullName.trim()) return;
 
     const teaching = isTeachingRole(addForm.role);
+    if (teaching && addForm.subjectGrades.length > 0 && grades.length > 0) {
+      const missingGradeGroup = addForm.subjectGrades.find((g) => g.gradeIds.length === 0);
+      if (missingGradeGroup) {
+        const subjName =
+          subjects.find((s) => s.subjectId === missingGradeGroup.subjectId)?.subjectName ||
+          `Subject #${missingGradeGroup.subjectId}`;
+        setActionErrorMsg(`Please select at least one grade level for "${subjName}".`);
+        return;
+      }
+    }
+
+    const chosenSubjectIds = addForm.subjectGrades.map((g) => g.subjectId);
+    const chosenGradeIds = Array.from(
+      new Set(addForm.subjectGrades.flatMap((g) => g.gradeIds)),
+    ).sort((a, b) => a - b);
     const chosenSubjectNames = subjects
-      .filter((s) => addForm.subjectIds.includes(s.subjectId))
+      .filter((s) => chosenSubjectIds.includes(s.subjectId))
       .map((s) => s.subjectName);
     const resolvedSpecialty = teaching
       ? chosenSubjectNames.join(", ") || addForm.specialty.trim() || undefined
@@ -216,8 +306,9 @@ export default function CenterManagerUserAccountPage() {
         email: addForm.email.trim() || undefined,
         role: addForm.role,
         specialty: resolvedSpecialty,
-        subjectIds: teaching ? addForm.subjectIds : [],
-        gradeIds: teaching ? addForm.gradeIds : [],
+        subjectGrades: teaching ? addForm.subjectGrades : [],
+        subjectIds: teaching ? chosenSubjectIds : [],
+        gradeIds: teaching ? chosenGradeIds : [],
         gender: addForm.gender,
       });
 
@@ -229,8 +320,7 @@ export default function CenterManagerUserAccountPage() {
         email: "",
         role: "teacher",
         specialty: "",
-        subjectIds: [],
-        gradeIds: [],
+        subjectGrades: [],
         gender: "male",
       });
       setActionSuccessMsg(`Created new account: "${res.data.fullName}" (${res.data.userCode}) successfully!`);
@@ -245,14 +335,13 @@ export default function CenterManagerUserAccountPage() {
   // Open Edit Modal
   const handleOpenEditModal = (u: UserDto) => {
     const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : "teacher";
-    let initialSubjectIds = u.subjectIds && u.subjectIds.length > 0 ? [...u.subjectIds] : [];
-    if (initialSubjectIds.length === 0 && isTeachingRole(primaryRole) && u.specialty) {
-      const tokens = u.specialty.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
-      initialSubjectIds = subjects
-        .filter((s) => tokens.includes(s.subjectName.toLowerCase()) || tokens.includes(s.subjectCode.toLowerCase()))
-        .map((s) => s.subjectId);
-    }
-    const initialGradeIds = u.gradeIds && u.gradeIds.length > 0 ? [...u.gradeIds] : [];
+    const existingGroups = getUserSpecialtyGroups(u);
+    const initialSubjectGrades: UserSubjectGradeInputDto[] = existingGroups
+      .filter((g) => g.subjectId > 0)
+      .map((g) => ({
+        subjectId: g.subjectId,
+        gradeIds: [...g.gradeIds],
+      }));
 
     setEditForm({
       userId: u.userId,
@@ -262,8 +351,7 @@ export default function CenterManagerUserAccountPage() {
       email: u.email || "",
       role: primaryRole,
       specialty: u.specialty || "",
-      subjectIds: initialSubjectIds,
-      gradeIds: initialGradeIds,
+      subjectGrades: initialSubjectGrades,
       gender: u.gender || "male",
       status: u.status || "active",
     });
@@ -277,8 +365,23 @@ export default function CenterManagerUserAccountPage() {
     if (!editForm.fullName.trim()) return;
 
     const teaching = isTeachingRole(editForm.role);
+    if (teaching && editForm.subjectGrades.length > 0 && grades.length > 0) {
+      const missingGradeGroup = editForm.subjectGrades.find((g) => g.gradeIds.length === 0);
+      if (missingGradeGroup) {
+        const subjName =
+          subjects.find((s) => s.subjectId === missingGradeGroup.subjectId)?.subjectName ||
+          `Subject #${missingGradeGroup.subjectId}`;
+        setActionErrorMsg(`Please select at least one grade level for "${subjName}".`);
+        return;
+      }
+    }
+
+    const chosenSubjectIds = editForm.subjectGrades.map((g) => g.subjectId);
+    const chosenGradeIds = Array.from(
+      new Set(editForm.subjectGrades.flatMap((g) => g.gradeIds)),
+    ).sort((a, b) => a - b);
     const chosenSubjectNames = subjects
-      .filter((s) => editForm.subjectIds.includes(s.subjectId))
+      .filter((s) => chosenSubjectIds.includes(s.subjectId))
       .map((s) => s.subjectName);
     const resolvedSpecialty = teaching
       ? chosenSubjectNames.join(", ") || editForm.specialty.trim() || undefined
@@ -293,8 +396,9 @@ export default function CenterManagerUserAccountPage() {
         email: editForm.email.trim() || undefined,
         role: editForm.role,
         specialty: resolvedSpecialty,
-        subjectIds: teaching ? editForm.subjectIds : [],
-        gradeIds: teaching ? editForm.gradeIds : [],
+        subjectGrades: teaching ? editForm.subjectGrades : [],
+        subjectIds: teaching ? chosenSubjectIds : [],
+        gradeIds: teaching ? chosenGradeIds : [],
         gender: editForm.gender,
         status: editForm.status,
       });
@@ -469,8 +573,7 @@ export default function CenterManagerUserAccountPage() {
                 <th className="fw-bold">No.</th>
                 <th className="fw-bold">Staff Name</th>
                 <th className="fw-bold">Phone Number</th>
-                <th className="fw-bold">Specialties / Dept</th>
-                <th className="fw-bold">Grade Levels</th>
+                <th className="fw-bold">Specialties &amp; Grades</th>
                 <th className="fw-bold">Role</th>
                 <th className="fw-bold">Status</th>
                 <th className="text-center fw-bold">Actions</th>
@@ -479,14 +582,14 @@ export default function CenterManagerUserAccountPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5 text-muted">
+                  <td colSpan={7} className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
                     Loading staff accounts...
                   </td>
                 </tr>
               ) : paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5 text-muted">
+                  <td colSpan={7} className="text-center py-5 text-muted">
                     <i className="bi bi-people fs-2 d-block mb-2 text-secondary" />
                     No matching staff accounts found.
                   </td>
@@ -496,12 +599,16 @@ export default function CenterManagerUserAccountPage() {
                   const itemIndex = (currentPage - 1) * entriesPerPage + idx + 1;
                   const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : "user";
                   const teaching = isTeachingRole(primaryRole);
-                  const subjectList = getUserSubjectNames(u);
-                  const gradeList = getUserGradeNames(u);
-                  const visibleSubjects = subjectList.slice(0, 2);
-                  const extraSubjectCount = subjectList.length > 2 ? subjectList.length - 2 : 0;
-                  const visibleGrades = gradeList.slice(0, 2);
-                  const extraGradeCount = gradeList.length > 2 ? gradeList.length - 2 : 0;
+                  const specialtyGroups = getUserSpecialtyGroups(u);
+                  const visibleGroups = specialtyGroups.slice(0, 3);
+                  const extraGroupCount = specialtyGroups.length > 3 ? specialtyGroups.length - 3 : 0;
+                  const fullSummaryTooltip = specialtyGroups
+                    .map((g) =>
+                      g.gradeNames.length > 0
+                        ? `${g.subjectName}: ${g.gradeNames.join(", ")}`
+                        : g.subjectName,
+                    )
+                    .join(" | ");
 
                   return (
                     <tr key={u.userId}>
@@ -515,18 +622,53 @@ export default function CenterManagerUserAccountPage() {
                       <td>{u.phone || "—"}</td>
                       <td>
                         {teaching ? (
-                          subjectList.length > 0 ? (
-                            <div className="d-flex flex-wrap align-items-center gap-1" title={subjectList.join(", ")}>
-                              {visibleSubjects.map((subj) => (
-                                <SubjectBadge key={subj} subject={subj} />
-                              ))}
-                              {extraSubjectCount > 0 && (
-                                <span
-                                  className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fw-semibold"
-                                  title={`All specialties: ${subjectList.join(", ")}`}
-                                >
-                                  +{extraSubjectCount}
-                                </span>
+                          specialtyGroups.length > 0 ? (
+                            <div className="d-flex flex-column gap-1" title={fullSummaryTooltip}>
+                              {visibleGroups.map((group) => {
+                                const visibleGrades = group.gradeNames.slice(0, 3);
+                                const extraGrades =
+                                  group.gradeNames.length > 3 ? group.gradeNames.length - 3 : 0;
+                                return (
+                                  <div
+                                    key={group.subjectId}
+                                    className="d-flex flex-wrap align-items-center gap-1"
+                                  >
+                                    <SubjectBadge subject={group.subjectName} />
+                                    {visibleGrades.length > 0 ? (
+                                      <>
+                                        <span className="text-muted small">:</span>
+                                        {visibleGrades.map((gr) => (
+                                          <span
+                                            key={gr}
+                                            className="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-semibold"
+                                          >
+                                            {gr}
+                                          </span>
+                                        ))}
+                                        {extraGrades > 0 && (
+                                          <span
+                                            className="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border fw-semibold"
+                                            title={`${group.subjectName}: ${group.gradeNames.join(", ")}`}
+                                          >
+                                            +{extraGrades}
+                                          </span>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className="text-muted small fst-italic">(No grades)</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                              {extraGroupCount > 0 && (
+                                <div>
+                                  <span
+                                    className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle fw-semibold"
+                                    title={fullSummaryTooltip}
+                                  >
+                                    +{extraGroupCount} more subject{extraGroupCount > 1 ? "s" : ""}
+                                  </span>
+                                </div>
                               )}
                             </div>
                           ) : (
@@ -534,34 +676,6 @@ export default function CenterManagerUserAccountPage() {
                           )
                         ) : (
                           <SubjectBadge subject={u.specialty || "General"} />
-                        )}
-                      </td>
-                      <td>
-                        {teaching ? (
-                          gradeList.length > 0 ? (
-                            <div className="d-flex flex-wrap align-items-center gap-1" title={gradeList.join(", ")}>
-                              {visibleGrades.map((gr) => (
-                                <span
-                                  key={gr}
-                                  className="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-semibold"
-                                >
-                                  {gr}
-                                </span>
-                              ))}
-                              {extraGradeCount > 0 && (
-                                <span
-                                  className="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border fw-semibold"
-                                  title={`All grade levels: ${gradeList.join(", ")}`}
-                                >
-                                  +{extraGradeCount}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted small">—</span>
-                          )
-                        ) : (
-                          <span className="text-muted small">—</span>
                         )}
                       </td>
                       <td>
@@ -694,16 +808,18 @@ export default function CenterManagerUserAccountPage() {
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <label className="form-label fw-bold mb-0">
                               <i className="bi bi-journal-bookmark-fill text-primary me-1" />
-                              Specialties / Subjects (Chọn 1 hoặc nhiều chuyên môn)
+                              1. Select Specialties / Subjects (Chọn 1 hoặc nhiều môn chuyên môn)
                             </label>
                             <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
-                              {addForm.subjectIds.length} selected
+                              {addForm.subjectGrades.length} subject{addForm.subjectGrades.length === 1 ? "" : "s"} selected
                             </span>
                           </div>
                           {subjects.length > 0 ? (
                             <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
                               {subjects.map((subj) => {
-                                const checked = addForm.subjectIds.includes(subj.subjectId);
+                                const checked = addForm.subjectGrades.some(
+                                  (g) => g.subjectId === subj.subjectId,
+                                );
                                 return (
                                   <button
                                     key={subj.subjectId}
@@ -714,7 +830,10 @@ export default function CenterManagerUserAccountPage() {
                                     onClick={() =>
                                       setAddForm({
                                         ...addForm,
-                                        subjectIds: toggleIdInList(addForm.subjectIds, subj.subjectId),
+                                        subjectGrades: toggleSubjectInGroups(
+                                          addForm.subjectGrades,
+                                          subj.subjectId,
+                                        ),
                                       })
                                     }
                                   >
@@ -735,41 +854,99 @@ export default function CenterManagerUserAccountPage() {
                           )}
                         </div>
                         <div className="col-12">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <label className="form-label fw-bold mb-0">
-                              <i className="bi bi-mortarboard-fill text-info me-1" />
-                              Grade Levels (Chọn 1 hoặc nhiều khối lớp phụ trách)
-                            </label>
-                            <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">
-                              {addForm.gradeIds.length} selected
-                            </span>
-                          </div>
-                          {grades.length > 0 ? (
-                            <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
-                              {grades.map((gr) => {
-                                const checked = addForm.gradeIds.includes(gr.gradeId);
+                          <label className="form-label fw-bold mb-2">
+                            <i className="bi bi-mortarboard-fill text-info me-1" />
+                            2. Assign Grade Levels per Subject (Chọn khối lớp phụ trách riêng cho từng môn)
+                          </label>
+                          {addForm.subjectGrades.length === 0 ? (
+                            <div className="p-3 bg-light rounded-3 border text-muted small">
+                              <i className="bi bi-info-circle me-1" />
+                              Please select at least one subject above to assign grade levels for each subject.
+                            </div>
+                          ) : (
+                            <div className="d-flex flex-column gap-3">
+                              {addForm.subjectGrades.map((group) => {
+                                const subj = subjects.find((s) => s.subjectId === group.subjectId);
+                                const subjName = subj?.subjectName || `Subject #${group.subjectId}`;
+                                const allGradeIds = grades.map((gr) => gr.gradeId);
+                                const allSelected =
+                                  allGradeIds.length > 0 &&
+                                  allGradeIds.every((id) => group.gradeIds.includes(id));
+
                                 return (
-                                  <button
-                                    key={gr.gradeId}
-                                    type="button"
-                                    className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
-                                      checked ? "btn-info text-white shadow-sm" : "btn-outline-secondary bg-white"
-                                    }`}
-                                    onClick={() =>
-                                      setAddForm({
-                                        ...addForm,
-                                        gradeIds: toggleIdInList(addForm.gradeIds, gr.gradeId),
-                                      })
-                                    }
+                                  <div
+                                    key={group.subjectId}
+                                    className="p-3 bg-light rounded-3 border"
                                   >
-                                    <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-circle"}`} />
-                                    {gr.gradeName}
-                                  </button>
+                                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                                      <div className="d-flex align-items-center gap-2">
+                                        <SubjectBadge subject={subjName} />
+                                        <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                                          {group.gradeIds.length} grade{group.gradeIds.length === 1 ? "" : "s"}
+                                        </span>
+                                      </div>
+                                      <div className="d-flex align-items-center gap-2">
+                                        {grades.length > 0 && (
+                                          <button
+                                            type="button"
+                                            className="btn btn-sm btn-link text-decoration-none p-0 small"
+                                            onClick={() =>
+                                              setAddForm({
+                                                ...addForm,
+                                                subjectGrades: setGradesForSubjectGroup(
+                                                  addForm.subjectGrades,
+                                                  group.subjectId,
+                                                  allSelected ? [] : allGradeIds,
+                                                ),
+                                              })
+                                            }
+                                          >
+                                            {allSelected ? "Clear all" : "Select all grades"}
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {grades.length > 0 ? (
+                                      <div className="d-flex flex-wrap gap-2">
+                                        {grades.map((gr) => {
+                                          const checked = group.gradeIds.includes(gr.gradeId);
+                                          return (
+                                            <button
+                                              key={gr.gradeId}
+                                              type="button"
+                                              className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                                checked
+                                                  ? "btn-info text-white shadow-sm"
+                                                  : "btn-outline-secondary bg-white"
+                                              }`}
+                                              onClick={() =>
+                                                setAddForm({
+                                                  ...addForm,
+                                                  subjectGrades: toggleGradeInSubjectGroup(
+                                                    addForm.subjectGrades,
+                                                    group.subjectId,
+                                                    gr.gradeId,
+                                                  ),
+                                                })
+                                              }
+                                            >
+                                              <i
+                                                className={`bi ${
+                                                  checked ? "bi-check-circle-fill" : "bi-circle"
+                                                }`}
+                                              />
+                                              {gr.gradeName}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : (
+                                      <div className="text-muted small">No grade levels available.</div>
+                                    )}
+                                  </div>
                                 );
                               })}
                             </div>
-                          ) : (
-                            <div className="text-muted small">No grade levels available.</div>
                           )}
                         </div>
                       </>
@@ -783,6 +960,14 @@ export default function CenterManagerUserAccountPage() {
                           value={addForm.specialty}
                           onChange={(e) => setAddForm({ ...addForm, specialty: e.target.value })}
                         />
+                      </div>
+                    )}
+                    {actionErrorMsg && (
+                      <div className="col-12">
+                        <div className="alert alert-danger py-2 mb-0 small" role="alert">
+                          <i className="bi bi-exclamation-triangle-fill me-1" />
+                          {actionErrorMsg}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -891,16 +1076,18 @@ export default function CenterManagerUserAccountPage() {
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <label className="form-label fw-bold mb-0">
                               <i className="bi bi-journal-bookmark-fill text-primary me-1" />
-                              Specialties / Subjects (Chọn 1 hoặc nhiều chuyên môn)
+                              1. Select Specialties / Subjects (Chọn 1 hoặc nhiều môn chuyên môn)
                             </label>
                             <span className="badge bg-primary-subtle text-primary border border-primary-subtle">
-                              {editForm.subjectIds.length} selected
+                              {editForm.subjectGrades.length} subject{editForm.subjectGrades.length === 1 ? "" : "s"} selected
                             </span>
                           </div>
                           {subjects.length > 0 ? (
                             <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
                               {subjects.map((subj) => {
-                                const checked = editForm.subjectIds.includes(subj.subjectId);
+                                const checked = editForm.subjectGrades.some(
+                                  (g) => g.subjectId === subj.subjectId,
+                                );
                                 return (
                                   <button
                                     key={subj.subjectId}
@@ -911,7 +1098,10 @@ export default function CenterManagerUserAccountPage() {
                                     onClick={() =>
                                       setEditForm({
                                         ...editForm,
-                                        subjectIds: toggleIdInList(editForm.subjectIds, subj.subjectId),
+                                        subjectGrades: toggleSubjectInGroups(
+                                          editForm.subjectGrades,
+                                          subj.subjectId,
+                                        ),
                                       })
                                     }
                                   >
@@ -931,41 +1121,99 @@ export default function CenterManagerUserAccountPage() {
                           )}
                         </div>
                         <div className="col-12">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <label className="form-label fw-bold mb-0">
-                              <i className="bi bi-mortarboard-fill text-info me-1" />
-                              Grade Levels (Chọn 1 hoặc nhiều khối lớp phụ trách)
-                            </label>
-                            <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">
-                              {editForm.gradeIds.length} selected
-                            </span>
-                          </div>
-                          {grades.length > 0 ? (
-                            <div className="p-3 bg-light rounded-3 border d-flex flex-wrap gap-2">
-                              {grades.map((gr) => {
-                                const checked = editForm.gradeIds.includes(gr.gradeId);
+                          <label className="form-label fw-bold mb-2">
+                            <i className="bi bi-mortarboard-fill text-info me-1" />
+                            2. Assign Grade Levels per Subject (Chọn khối lớp phụ trách riêng cho từng môn)
+                          </label>
+                          {editForm.subjectGrades.length === 0 ? (
+                            <div className="p-3 bg-light rounded-3 border text-muted small">
+                              <i className="bi bi-info-circle me-1" />
+                              Please select at least one subject above to assign grade levels for each subject.
+                            </div>
+                          ) : (
+                            <div className="d-flex flex-column gap-3">
+                              {editForm.subjectGrades.map((group) => {
+                                const subj = subjects.find((s) => s.subjectId === group.subjectId);
+                                const subjName = subj?.subjectName || `Subject #${group.subjectId}`;
+                                const allGradeIds = grades.map((gr) => gr.gradeId);
+                                const allSelected =
+                                  allGradeIds.length > 0 &&
+                                  allGradeIds.every((id) => group.gradeIds.includes(id));
+
                                 return (
-                                  <button
-                                    key={gr.gradeId}
-                                    type="button"
-                                    className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
-                                      checked ? "btn-info text-white shadow-sm" : "btn-outline-secondary bg-white"
-                                    }`}
-                                    onClick={() =>
-                                      setEditForm({
-                                        ...editForm,
-                                        gradeIds: toggleIdInList(editForm.gradeIds, gr.gradeId),
-                                      })
-                                    }
+                                  <div
+                                    key={group.subjectId}
+                                    className="p-3 bg-light rounded-3 border"
                                   >
-                                    <i className={`bi ${checked ? "bi-check-circle-fill" : "bi-circle"}`} />
-                                    {gr.gradeName}
-                                  </button>
+                                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                                      <div className="d-flex align-items-center gap-2">
+                                        <SubjectBadge subject={subjName} />
+                                        <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                                          {group.gradeIds.length} grade{group.gradeIds.length === 1 ? "" : "s"}
+                                        </span>
+                                      </div>
+                                      <div className="d-flex align-items-center gap-2">
+                                        {grades.length > 0 && (
+                                          <button
+                                            type="button"
+                                            className="btn btn-sm btn-link text-decoration-none p-0 small"
+                                            onClick={() =>
+                                              setEditForm({
+                                                ...editForm,
+                                                subjectGrades: setGradesForSubjectGroup(
+                                                  editForm.subjectGrades,
+                                                  group.subjectId,
+                                                  allSelected ? [] : allGradeIds,
+                                                ),
+                                              })
+                                            }
+                                          >
+                                            {allSelected ? "Clear all" : "Select all grades"}
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {grades.length > 0 ? (
+                                      <div className="d-flex flex-wrap gap-2">
+                                        {grades.map((gr) => {
+                                          const checked = group.gradeIds.includes(gr.gradeId);
+                                          return (
+                                            <button
+                                              key={gr.gradeId}
+                                              type="button"
+                                              className={`btn btn-sm d-inline-flex align-items-center gap-1 fw-semibold ${
+                                                checked
+                                                  ? "btn-info text-white shadow-sm"
+                                                  : "btn-outline-secondary bg-white"
+                                              }`}
+                                              onClick={() =>
+                                                setEditForm({
+                                                  ...editForm,
+                                                  subjectGrades: toggleGradeInSubjectGroup(
+                                                    editForm.subjectGrades,
+                                                    group.subjectId,
+                                                    gr.gradeId,
+                                                  ),
+                                                })
+                                              }
+                                            >
+                                              <i
+                                                className={`bi ${
+                                                  checked ? "bi-check-circle-fill" : "bi-circle"
+                                                }`}
+                                              />
+                                              {gr.gradeName}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : (
+                                      <div className="text-muted small">No grade levels available.</div>
+                                    )}
+                                  </div>
                                 );
                               })}
                             </div>
-                          ) : (
-                            <div className="text-muted small">No grade levels available.</div>
                           )}
                         </div>
                       </>
@@ -978,6 +1226,14 @@ export default function CenterManagerUserAccountPage() {
                           value={editForm.specialty}
                           onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
                         />
+                      </div>
+                    )}
+                    {actionErrorMsg && (
+                      <div className="col-12">
+                        <div className="alert alert-danger py-2 mb-0 small" role="alert">
+                          <i className="bi bi-exclamation-triangle-fill me-1" />
+                          {actionErrorMsg}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1156,16 +1412,36 @@ export default function CenterManagerUserAccountPage() {
                           <strong className="text-dark">{selectedUser.phone || "—"}</strong>
                         </div>
                       </div>
-                      <div className="col-md-6">
+                      <div className="col-12">
                         <div className="p-3 bg-light rounded-3 h-100">
                           <small className="text-muted d-block mb-2">
-                            {isTeachingRole(selectedUser.roles?.[0]) ? "Specialties (Subjects)" : "Department / Function"}
+                            {isTeachingRole(selectedUser.roles?.[0])
+                              ? "Specialties & Grade Levels"
+                              : "Department / Function"}
                           </small>
                           {isTeachingRole(selectedUser.roles?.[0]) ? (
-                            getUserSubjectNames(selectedUser).length > 0 ? (
-                              <div className="d-flex flex-wrap gap-1">
-                                {getUserSubjectNames(selectedUser).map((subj) => (
-                                  <SubjectBadge key={subj} subject={subj} />
+                            getUserSpecialtyGroups(selectedUser).length > 0 ? (
+                              <div className="d-flex flex-column gap-2">
+                                {getUserSpecialtyGroups(selectedUser).map((group) => (
+                                  <div
+                                    key={group.subjectId}
+                                    className="d-flex flex-wrap align-items-center gap-1"
+                                  >
+                                    <SubjectBadge subject={group.subjectName} />
+                                    <span className="text-muted small">:</span>
+                                    {group.gradeNames.length > 0 ? (
+                                      group.gradeNames.map((gr) => (
+                                        <span
+                                          key={gr}
+                                          className="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-semibold"
+                                        >
+                                          {gr}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      <span className="text-muted small fst-italic">No grades assigned</span>
+                                    )}
+                                  </div>
                                 ))}
                               </div>
                             ) : (
@@ -1173,25 +1449,6 @@ export default function CenterManagerUserAccountPage() {
                             )
                           ) : (
                             <strong className="text-dark">{selectedUser.specialty || "General"}</strong>
-                          )}
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="p-3 bg-light rounded-3 h-100">
-                          <small className="text-muted d-block mb-2">Grade Levels</small>
-                          {isTeachingRole(selectedUser.roles?.[0]) && getUserGradeNames(selectedUser).length > 0 ? (
-                            <div className="d-flex flex-wrap gap-1">
-                              {getUserGradeNames(selectedUser).map((gr) => (
-                                <span
-                                  key={gr}
-                                  className="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-semibold"
-                                >
-                                  {gr}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <strong className="text-dark">—</strong>
                           )}
                         </div>
                       </div>
