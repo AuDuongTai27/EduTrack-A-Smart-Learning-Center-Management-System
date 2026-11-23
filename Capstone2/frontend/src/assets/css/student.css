@@ -622,16 +622,6 @@
 
 
 
-.content-container.profile-container .profile-view-card,
-
-.content-container.profile-container .profile-edit-card {
-
-  max-width: 880px;
-
-}
-
-
-
 .content-container.schedule-container .schedule-calendar-card {
 
   height: 640px;
@@ -6600,15 +6590,20 @@
 
 
 .profile-hero-banner {
-
-  height: 144px;
-
+  height: 96px;
   position: relative;
-
   background: var(--et-brand-banner);
-
   overflow: hidden;
+}
 
+.profile-hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 44%;
+  background: url('../illustrations/academy-banner-waves.svg') bottom / 100% 100% no-repeat;
+  pointer-events: none;
+  opacity: 0.9;
 }
 
 
@@ -6634,67 +6629,23 @@
 
 
 .profile-hero-banner .decor-circle-2 {
-
   position: absolute;
-
   right: 96px;
-
   top: 16px;
-
   width: 80px;
-
   height: 80px;
-
   border-radius: 50%;
-
   background: rgba(255, 255, 255, 0.06);
-
 }
-
-
-
-.profile-edit-badge-pill {
-
-  position: absolute;
-
-  top: 16px;
-
-  right: 20px;
-
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 6px;
-
-  padding: 6px 14px;
-
-  border-radius: 99px;
-
-  background: rgba(255, 255, 255, 0.2);
-
-  backdrop-filter: blur(6px);
-
-  color: #fff;
-
-  font-size: 11.5px;
-
-  font-weight: 700;
-
-  border: 1px solid rgba(255, 255, 255, 0.3);
-
-}
-
-
 
 .profile-identity-section {
-
-  padding: 0 32px 12px;
-
+  padding: 0 32px 16px;
   position: relative;
+  margin-top: -48px;
+}
 
-  margin-top: -56px;
-
+.profile-identity-info {
+  padding-top: 60px;
 }
 
 
@@ -6714,21 +6665,13 @@
 
 
 .profile-avatar-img {
-
   width: 96px;
-
   height: 96px;
-
   border-radius: 20px;
-
-  object-fit: cover;
-
   border: 4px solid #fff;
-
-  background-color: #E2E8F0;
-
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
-
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), 0 0 0 1px #E2E8F0;
+  object-fit: cover;
+  background: #fff;
 }
 
 
@@ -6899,18 +6842,64 @@
 
 
 
-.profile-info-row {
+.profile-section-box {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 20px 24px;
+}
 
+.profile-section-title {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--et-muted);
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+}
 
-  align-items: flex-start;
-
+.profile-section-list {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
+}
 
+.profile-section-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
   padding: 16px 32px;
-
   border-top: 1px solid var(--et-border-subtle);
+}
 
+.profile-info-row-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 767.98px) {
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-identity-info {
+    padding-top: 8px;
+  }
 }
 
 
@@ -7052,9 +7041,7 @@
 
 
 .form-field-group {
-
-  margin-bottom: 20px;
-
+  margin-bottom: 0;
 }
 
 
@@ -7088,21 +7075,18 @@
 
 
 .input-icon-wrap i {
-
   position: absolute;
-
   left: 14px;
-
   top: 50%;
-
   transform: translateY(-50%);
-
-  color: #CBD5E1;
-
+  color: #94A3B8;
   font-size: 15px;
-
   pointer-events: none;
+  transition: color 0.15s ease;
+}
 
+.input-icon-wrap:focus-within i {
+  color: var(--et-primary);
 }
 
 
@@ -7172,45 +7156,25 @@
 
 
 .btn-save-profile {
-
   display: inline-flex;
-
   align-items: center;
-
   gap: 8px;
-
-  padding: 11px 24px;
-
-  border-radius: 12px;
-
+  padding: 10px 22px;
+  border-radius: 10px;
   font-size: 13.5px;
-
   font-weight: 700;
-
   color: #fff;
-
-  background: var(--et-teal-gradient);
-
+  background: var(--et-primary);
   border: none;
-
   cursor: pointer;
-
-  box-shadow: 0 2px 8px rgba(14, 165, 166, 0.25);
-
+  box-shadow: 0 2px 8px rgba(7, 132, 68, 0.2);
   font-family: var(--font-body);
-
-  transition: opacity 0.15s ease, transform 0.15s ease;
-
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
-
-
 .btn-save-profile:hover {
-
-  opacity: 0.92;
-
+  background: var(--et-primary-hover);
   transform: translateY(-1px);
-
 }
 
 

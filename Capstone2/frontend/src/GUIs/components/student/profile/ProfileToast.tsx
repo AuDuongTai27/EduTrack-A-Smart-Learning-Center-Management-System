@@ -6,7 +6,7 @@ interface ProfileToastProps {
 
 export function ProfileToast({ show }: ProfileToastProps) {
   return (
-    <div className={`profile-toast-box ${show ? 'show' : ''}`} id="profileToast">
+    <div className={`profile-toast-box ${show ? 'show' : ''}`} id="profileToast" role="status" aria-live="polite">
       <div className="toast-icon-circle">
         <i className="bi bi-check-lg"></i>
       </div>
