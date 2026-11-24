@@ -12,6 +12,8 @@ export function StudentProfilePage() {
   const [formData, setFormData] = useState<StudentProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState<boolean>(false);
 
   useEffect(() => {
@@ -44,28 +46,33 @@ export function StudentProfilePage() {
   const handleStartEdit = () => {
     if (!profile) return;
     setFormData(profile);
+    setSaveError(null);
     setIsEditing(true);
   };
 
   const handleSave = async () => {
-    if (!formData) return;
+    if (!formData || isSaving) return;
+    setIsSaving(true);
+    setSaveError(null);
     try {
       const updated = await learningDAL.updateStudentProfile(formData, DEFAULT_STUDENT_ID);
       setProfile(updated);
       setFormData(updated);
+      setIsEditing(false);
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3200);
     } catch (err) {
-      console.warn('Không kết nối được Backend khi lưu hồ sơ học sinh, cập nhật tạm trên UI:', err);
-      setProfile(formData);
+      setSaveError(err instanceof Error ? err.message : 'Failed to save profile changes. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-    setIsEditing(false);
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-    }, 3200);
   };
 
   const handleCancel = () => {
     setFormData(profile);
+    setSaveError(null);
     setIsEditing(false);
   };
 
@@ -83,7 +90,7 @@ export function StudentProfilePage() {
     <main className="main-content">
       <div className="content-container profile-container">
         {/* 1. Breadcrumbs & Header Row */}
-        <ProfileHeader isEditing={isEditing} onEdit={handleStartEdit} />
+        <ProfileHeader isEditing={isEditing} />
 
         {/* 2 & 3. View / Edit Card */}
         {isEditing ? (
@@ -92,31 +99,12 @@ export function StudentProfilePage() {
             onChange={setFormData}
             onSave={handleSave}
             onCancel={handleCancel}
+            isSaving={isSaving}
+            saveError={saveError}
           />
         ) : (
-          <ProfileViewCard data={profile} />
+          <ProfileViewCard data={profile} onEdit={handleStartEdit} />
         )}
-
-        {/* 4. Mode Status Badge */}
-        <div className="d-flex justify-content-center mt-4">
-          {isEditing ? (
-            <span
-              className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]"
-              id="profileModeBadge"
-            >
-              <i className="bi bi-pencil-fill me-1"></i>
-              <span>Edit Mode</span>
-            </span>
-          ) : (
-            <span
-              className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]"
-              id="profileModeBadge"
-            >
-              <i className="bi bi-check-circle-fill me-1"></i>
-              <span>View Mode</span>
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Success Toast */}

@@ -75,7 +75,7 @@ export function LearnerTopbar({ role, onOpenMenu, accountDetail, selectedChildId
               {detail !== subtitle && <span>{detail}</span>}
             </div>
             <Link to={`/${role}/profile`} onClick={() => setOpenKey(null)}>
-              <i className="bi bi-person-gear" aria-hidden="true" /> Edit Profile
+              <i className="bi bi-person" aria-hidden="true" /> Profile
             </Link>
             <button type="button" className="learner-account-logout" onClick={() => {
               setOpenKey(null);
