@@ -14,6 +14,7 @@ export interface TeachingClassItemDto {
   taName?: string;
   partnerName?: string;
   scheduleSummary?: string;
+  myRoleInClass?: "teacher" | "teaching_assistant" | string;
 }
 
 export interface TeachingClassStudentItemDto {

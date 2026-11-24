@@ -105,6 +105,7 @@ export default function TeacherAssignmentPage() {
           <AssignmentOverviewCard
             assignment={assignment}
             className={className}
+            readOnly={classInfo?.myRoleInClass === "teaching_assistant"}
             onAssignmentUpdated={(updated) => setAssignment(updated)}
             onAssignmentDeleted={() => navigate(`/teacher/classes/${targetClassId}`)}
           />
@@ -113,7 +114,21 @@ export default function TeacherAssignmentPage() {
           <StudentSubmissionsTable
             assignmentId={numAssignmentId}
             submissions={submissions}
+            hasRubric={Boolean(assignment?.answerKeyFileUrl)}
+            rubricFileName={
+              assignment?.answerKeyFileUrl
+                ? assignment.answerKeyFileUrl.split("/").pop()
+                : undefined
+            }
+            readOnly={classInfo?.myRoleInClass === "teaching_assistant"}
             onSubmissionGraded={handleSubmissionGraded}
+            onAiEvaluated={(subId, aiScore, aiFeedback) => {
+              setSubmissions((prev) =>
+                prev.map((s) =>
+                  s.submissionId === subId ? { ...s, aiScore, aiFeedback } : s
+                )
+              );
+            }}
           />
         </>
       )}

@@ -1,3 +1,15 @@
+export interface UserSpecialtyGroupDto {
+  subjectId: number;
+  subjectName: string;
+  gradeIds: number[];
+  gradeNames: string[];
+}
+
+export interface UserSubjectGradeInputDto {
+  subjectId: number;
+  gradeIds: number[];
+}
+
 export interface UserDto {
   userId: number;
   userCode: string;
@@ -10,6 +22,7 @@ export interface UserDto {
   specialty?: string | null;
   gradeId?: number | null;
   gradeName?: string | null;
+  subjectGrades?: UserSpecialtyGroupDto[];
   subjectIds?: number[];
   subjectNames?: string[];
   gradeIds?: number[];

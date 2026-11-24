@@ -5,6 +5,8 @@ export interface CreateTeachingAssignmentRequest {
   dueDate: string;
   assignmentType?: string;
   fileUrl?: string;
+  answerKeyFileUrl?: string;
+  answerKeyText?: string;
   maxScore?: number;
   createdBy?: number;
   isAiGradingEnabled?: boolean;
@@ -16,8 +18,25 @@ export interface UpdateTeachingAssignmentRequest {
   dueDate?: string;
   assignmentType?: string;
   fileUrl?: string;
+  answerKeyFileUrl?: string;
+  answerKeyText?: string;
   maxScore?: number;
   isAiGradingEnabled?: boolean;
+}
+
+export interface UpdateAssignmentRubricRequest {
+  answerKeyFileUrl: string;
+  answerKeyText?: string;
+  requestedBy?: number;
+}
+
+export interface AiGradeSubmissionResponse {
+  evaluationId: number;
+  submissionId: number;
+  assignmentId: number;
+  aiScore: number;
+  aiFeedback: string;
+  evaluatedAt: string;
 }
 
 export interface TeachingAssignmentItemDto {
@@ -29,6 +48,8 @@ export interface TeachingAssignmentItemDto {
   title: string;
   description?: string;
   fileUrl?: string;
+  answerKeyFileUrl?: string | null;
+  answerKeyText?: string | null;
   dueDate: string;
   dueDateFormatted: string;
   maxScore: number;
@@ -54,6 +75,7 @@ export interface TeachingSubmissionItemDto {
   score?: number | null;
   feedback?: string | null;
   aiScore?: number | null;
+  aiFeedback?: string | null;
   status: 'submitted' | 'graded' | string;
   gradedBy?: number | null;
   graderName?: string | null;

@@ -16,6 +16,8 @@ namespace EduTrack.API.Services.Learning.Interfaces
         Task<StudentProgressOverviewDto?> GetStudentProgressAsync(int studentId);
         Task<StudentTuitionOverviewDto?> GetStudentTuitionOverviewAsync(int studentId);
         Task<StudentTuitionOverviewDto> PayStudentTuitionAsync(PayStudentTuitionRequestDto request);
+        Task<CreateVnPayPaymentResponseDto> CreateVnPayPaymentUrlAsync(CreateVnPayPaymentRequestDto request, string clientIpAddress);
+        Task<VerifyVnPayReturnResponseDto> VerifyAndProcessVnPayReturnAsync(VerifyVnPayReturnRequestDto request);
         Task<StudentTuitionOverviewDto?> ResetDemoUnpaidTuitionAsync(int studentId);
         Task<List<LearnerFeedbackItemDto>> GetLearnerFeedbacksAsync(int userId, int? studentId = null);
         Task<LearnerFeedbackItemDto> CreateLearnerFeedbackAsync(CreateLearnerFeedbackRequestDto request);

@@ -1,4 +1,4 @@
-import type { UserDto } from "../BLL/models/UserDto";
+import type { UserDto, UserSubjectGradeInputDto } from "../BLL/models/UserDto";
 import type { ClassDto } from "../BLL/models/ClassDto";
 import type { SubjectDto } from "../BLL/models/SubjectDto";
 import type { TuitionDto, PaymentDto } from "../BLL/models/TuitionDto";
@@ -122,7 +122,9 @@ export const managementApi = {
     email?: string;
     phone?: string;
     role: string;
+    roles?: string[];
     specialty?: string;
+    subjectGrades?: UserSubjectGradeInputDto[];
     subjectIds?: number[];
     gradeIds?: number[];
     gender?: string;
@@ -148,7 +150,9 @@ export const managementApi = {
       email?: string;
       phone?: string;
       role?: string;
+      roles?: string[];
       specialty?: string;
+      subjectGrades?: UserSubjectGradeInputDto[];
       subjectIds?: number[];
       gradeIds?: number[];
       gradeId?: number | null;

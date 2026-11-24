@@ -21,6 +21,7 @@ namespace EduTrack.API.Models.EF
         public virtual DbSet<UserRole> UserRoles { get; set; } = null!;
         public virtual DbSet<UserSubject> UserSubjects { get; set; } = null!;
         public virtual DbSet<UserGrade> UserGrades { get; set; } = null!;
+        public virtual DbSet<UserSubjectGrade> UserSubjectGrades { get; set; } = null!;
         public virtual DbSet<ParentStudent> ParentStudents { get; set; } = null!;
         public virtual DbSet<Subject> Subjects { get; set; } = null!;
         public virtual DbSet<Class> Classes { get; set; } = null!;
@@ -156,6 +157,26 @@ namespace EduTrack.API.Models.EF
                 entity.HasOne(ug => ug.Grade)
                     .WithMany(g => g.UserGrades)
                     .HasForeignKey(ug => ug.GradeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<UserSubjectGrade>(entity =>
+            {
+                entity.HasKey(usg => new { usg.UserId, usg.SubjectId, usg.GradeId });
+
+                entity.HasOne(usg => usg.User)
+                    .WithMany(u => u.UserSubjectGrades)
+                    .HasForeignKey(usg => usg.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(usg => usg.Subject)
+                    .WithMany(s => s.UserSubjectGrades)
+                    .HasForeignKey(usg => usg.SubjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(usg => usg.Grade)
+                    .WithMany(g => g.UserSubjectGrades)
+                    .HasForeignKey(usg => usg.GradeId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using EduTrack.API.Models.DTOs.Teaching;
 using EduTrack.API.Models.EF;
 using EduTrack.API.Models.Entities;
@@ -13,10 +16,17 @@ namespace EduTrack.API.Services.Teaching.Implementation
     public class TeachingAssignmentService : ITeachingAssignmentService
     {
         private readonly EduTrackDbContext _context;
+        private readonly IConfiguration? _configuration;
+        private readonly IWebHostEnvironment? _env;
 
-        public TeachingAssignmentService(EduTrackDbContext context)
+        public TeachingAssignmentService(
+            EduTrackDbContext context,
+            IConfiguration? configuration = null,
+            IWebHostEnvironment? env = null)
         {
             _context = context;
+            _configuration = configuration;
+            _env = env;
         }
 
         public async Task<TeachingAssignmentItemDto> CreateAssignmentAsync(CreateTeachingAssignmentRequestDto request)
@@ -47,6 +57,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 DueDate = request.DueDate != default ? request.DueDate : DateTime.UtcNow.AddDays(7),
                 MaxScore = request.MaxScore > 0 ? request.MaxScore : 10.00m,
                 FileUrl = !string.IsNullOrWhiteSpace(request.FileUrl) ? request.FileUrl.Trim() : "/assets/docs/assignment_default.pdf",
+                AnswerKeyFileUrl = !string.IsNullOrWhiteSpace(request.AnswerKeyFileUrl) ? request.AnswerKeyFileUrl.Trim() : null,
+                AnswerKeyText = !string.IsNullOrWhiteSpace(request.AnswerKeyText) ? request.AnswerKeyText.Trim() : null,
                 CreatedBy = request.CreatedBy,
                 IsAiGradingEnabled = request.IsAiGradingEnabled
             };
@@ -83,6 +95,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     Title = a.Title,
                     Description = a.Description,
                     FileUrl = a.FileUrl,
+                    AnswerKeyFileUrl = NormalizeFileUrl(a.AnswerKeyFileUrl, "teaching"),
+                    AnswerKeyText = a.AnswerKeyText,
                     DueDate = a.DueDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                     DueDateFormatted = a.DueDate.ToString("dd/MM/yyyy HH:mm"),
                     MaxScore = a.MaxScore,
@@ -123,6 +137,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 Title = a.Title,
                 Description = a.Description,
                 FileUrl = NormalizeFileUrl(a.FileUrl, "teaching"),
+                AnswerKeyFileUrl = NormalizeFileUrl(a.AnswerKeyFileUrl, "teaching"),
+                AnswerKeyText = a.AnswerKeyText,
                 DueDate = a.DueDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                 DueDateFormatted = a.DueDate.ToString("dd/MM/yyyy HH:mm"),
                 MaxScore = a.MaxScore,
@@ -163,6 +179,20 @@ namespace EduTrack.API.Services.Teaching.Implementation
             if (!string.IsNullOrWhiteSpace(request.FileUrl))
             {
                 assignment.FileUrl = request.FileUrl.Trim();
+            }
+
+            if (request.AnswerKeyFileUrl != null)
+            {
+                assignment.AnswerKeyFileUrl = string.IsNullOrWhiteSpace(request.AnswerKeyFileUrl)
+                    ? null
+                    : request.AnswerKeyFileUrl.Trim();
+            }
+
+            if (request.AnswerKeyText != null)
+            {
+                assignment.AnswerKeyText = string.IsNullOrWhiteSpace(request.AnswerKeyText)
+                    ? null
+                    : request.AnswerKeyText.Trim();
             }
 
             if (request.MaxScore.HasValue && request.MaxScore.Value > 0)
@@ -238,6 +268,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .Where(s => s.AssignmentId == assignmentId)
                 .Include(s => s.Student)
                 .Include(s => s.Grader)
+                .Include(s => s.AiEvaluations)
                 .ToListAsync();
 
             var result = new List<TeachingSubmissionItemDto>();
@@ -265,6 +296,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Score = sub.Score,
                         Feedback = sub.Feedback,
                         AiScore = sub.AiScore,
+                        AiFeedback = ExtractAiFeedbackText(sub),
                         Status = sub.Status,
                         GradedBy = sub.GradedBy,
                         GraderName = sub.Grader?.FullName ?? (sub.Score.HasValue ? "ThS. Hoàng Quốc Việt" : null)
@@ -287,6 +319,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                         Score = null,
                         Feedback = null,
                         AiScore = null,
+                        AiFeedback = null,
                         Status = "not_submitted",
                         GradedBy = null,
                         GraderName = null
@@ -311,6 +344,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                     Score = sub.Score,
                     Feedback = sub.Feedback,
                     AiScore = sub.AiScore,
+                    AiFeedback = ExtractAiFeedbackText(sub),
                     Status = sub.Status,
                     GradedBy = sub.GradedBy,
                     GraderName = sub.Grader?.FullName
@@ -320,11 +354,205 @@ namespace EduTrack.API.Services.Teaching.Implementation
             return result;
         }
 
+        private static string? ExtractAiFeedbackText(Submission sub)
+        {
+            var latestEval = sub.AiEvaluations?
+                .OrderByDescending(e => e.EvaluationId)
+                .FirstOrDefault(e => !string.IsNullOrWhiteSpace(e.AiFeedback));
+            if (!string.IsNullOrWhiteSpace(latestEval?.AiFeedback))
+            {
+                return latestEval.AiFeedback;
+            }
+
+            if (!string.IsNullOrWhiteSpace(sub.AiFeedbackJson))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(sub.AiFeedbackJson);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.TryGetProperty("aiFeedback", out var fbEl) &&
+                        fbEl.ValueKind == JsonValueKind.String)
+                    {
+                        return fbEl.GetString();
+                    }
+                }
+                catch
+                {
+                    return sub.AiFeedbackJson;
+                }
+            }
+
+            return null;
+        }
+
+        private async Task EnsureTeacherPermissionForAiAndRubricAsync(int classId, int userId)
+        {
+            if (userId <= 0)
+            {
+                throw new UnauthorizedAccessException("Không xác định được tài khoản Giáo viên thực hiện thao tác.");
+            }
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("Tài khoản không tồn tại.");
+            }
+
+            var roles = user.UserRoles
+                .Select(ur => ur.Role?.RoleName?.ToLowerInvariant())
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .ToHashSet();
+
+            bool isManager = roles.Contains("center_manager") || roles.Contains("admin_staff");
+            if (isManager) return;
+
+            bool hasTeacherRole = roles.Contains("teacher");
+            if (!hasTeacherRole)
+            {
+                throw new UnauthorizedAccessException(
+                    "Chỉ Giáo viên chính (Teacher) mới được phép gắn Rubric và sử dụng AI chấm điểm. Trợ giảng (TA) chỉ có quyền chấm điểm và sửa điểm thủ công.");
+            }
+
+            bool isAssignedTeacherInClass = await _context.TeacherClasses
+                .AsNoTracking()
+                .AnyAsync(tc => tc.ClassId == classId && tc.TeacherId == userId && tc.Status == "active");
+
+            bool isAssignedTaInClass = await _context.TaClasses
+                .AsNoTracking()
+                .AnyAsync(tac => tac.ClassId == classId && tac.TaId == userId && tac.Status == "active");
+
+            if (isAssignedTaInClass && !isAssignedTeacherInClass)
+            {
+                throw new UnauthorizedAccessException(
+                    "Trong lớp học này bạn đang giữ vai trò Trợ giảng (TA) nên không được sử dụng AI chấm điểm hay sửa Rubric. Bạn vẫn có thể chấm bài và sửa điểm thủ công.");
+            }
+        }
+
+        public async Task<TeachingAssignmentItemDto> UpdateAssignmentRubricAsync(int assignmentId, UpdateAssignmentRubricRequestDto request)
+        {
+            var assignment = await _context.Assignments.FindAsync(assignmentId);
+            if (assignment == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy bài tập có ID = {assignmentId}.");
+            }
+
+            await EnsureTeacherPermissionForAiAndRubricAsync(assignment.ClassId, request.RequestedBy);
+
+            if (string.IsNullOrWhiteSpace(request.AnswerKeyFileUrl))
+            {
+                throw new ArgumentException("Vui lòng chọn file Rubric / Đáp án (PDF hoặc Word) hợp lệ.");
+            }
+
+            assignment.AnswerKeyFileUrl = request.AnswerKeyFileUrl.Trim();
+            if (request.AnswerKeyText != null)
+            {
+                assignment.AnswerKeyText = string.IsNullOrWhiteSpace(request.AnswerKeyText)
+                    ? null
+                    : request.AnswerKeyText.Trim();
+            }
+            assignment.IsAiGradingEnabled = true;
+
+            await _context.SaveChangesAsync();
+            return await MapToDtoAsync(assignment);
+        }
+
+        public async Task<AiGradeSubmissionResponseDto> AiEvaluateSubmissionAsync(int assignmentId, int submissionId, int requestedByUserId)
+        {
+            var assignment = await _context.Assignments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy bài tập có ID = {assignmentId}.");
+            }
+
+            await EnsureTeacherPermissionForAiAndRubricAsync(assignment.ClassId, requestedByUserId);
+
+            if (string.IsNullOrWhiteSpace(assignment.AnswerKeyFileUrl))
+            {
+                throw new InvalidOperationException(
+                    "Bài tập này chưa có file Rubric / Đáp án (PDF hoặc Word). Vui lòng bấm 'Add Rubric' trên bài tập trước khi sử dụng AI chấm điểm.");
+            }
+
+            var submission = await _context.Submissions
+                .Include(s => s.Student)
+                .FirstOrDefaultAsync(s => s.SubmissionId == submissionId && s.AssignmentId == assignmentId);
+
+            if (submission == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy bài nộp ID = {submissionId} của bài tập này.");
+            }
+
+            if (string.IsNullOrWhiteSpace(submission.FileUrl) || submission.FileUrl == "#")
+            {
+                throw new InvalidOperationException("Học sinh này chưa nộp file bài làm nên không thể dùng AI chấm điểm.");
+            }
+
+            if (_configuration == null)
+            {
+                throw new InvalidOperationException("Chưa tải được cấu hình hệ thống cho dịch vụ AI.");
+            }
+
+            var studentName = submission.Student?.FullName ?? $"Student #{submission.StudentId}";
+
+            var (aiScore, aiFeedback, rawJson) = await TeachingAiGradingHelper.CallOpenAiGradingAsync(
+                _configuration,
+                _env,
+                assignment.Title,
+                assignment.Description,
+                assignment.MaxScore > 0 ? assignment.MaxScore : 10m,
+                assignment.FileUrl,
+                assignment.AnswerKeyFileUrl,
+                assignment.AnswerKeyText,
+                studentName,
+                submission.FileUrl);
+
+            // Human-in-the-loop: Chỉ cập nhật ai_score và ai_feedback_json (bản nháp của AI), KHÔNG ghi vào score chính thức cho đến khi Teacher bấm Confirm!
+            submission.AiScore = aiScore;
+            submission.AiFeedbackJson = JsonSerializer.Serialize(new
+            {
+                aiScore,
+                aiFeedback,
+                evaluatedAt = DateTime.UtcNow.ToString("o")
+            });
+
+            var evalEntity = new AiEvaluation
+            {
+                SubmissionId = submission.SubmissionId,
+                RequestedBy = requestedByUserId > 0 ? requestedByUserId : 3,
+                AiScore = aiScore,
+                AiFeedback = aiFeedback,
+                RawResponse = rawJson,
+                Status = "completed",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.AiEvaluations.Add(evalEntity);
+            await _context.SaveChangesAsync();
+
+            return new AiGradeSubmissionResponseDto
+            {
+                EvaluationId = evalEntity.EvaluationId,
+                SubmissionId = submission.SubmissionId,
+                AssignmentId = assignment.AssignmentId,
+                AiScore = aiScore,
+                AiFeedback = aiFeedback,
+                EvaluatedAt = evalEntity.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+            };
+        }
+
         public async Task<TeachingSubmissionItemDto> GradeSubmissionAsync(int assignmentId, int submissionId, GradeTeachingSubmissionRequestDto request)
         {
             var sub = await _context.Submissions
                 .Include(s => s.Student)
                 .Include(s => s.Grader)
+                .Include(s => s.AiEvaluations)
                 .FirstOrDefaultAsync(s => s.SubmissionId == submissionId && s.AssignmentId == assignmentId);
 
             if (sub == null)
@@ -354,6 +582,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 Score = sub.Score,
                 Feedback = sub.Feedback,
                 AiScore = sub.AiScore,
+                AiFeedback = ExtractAiFeedbackText(sub),
                 Status = sub.Status,
                 GradedBy = sub.GradedBy,
                 GraderName = grader?.FullName ?? "ThS. Hoàng Quốc Việt"
@@ -375,6 +604,8 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 Title = a.Title,
                 Description = a.Description,
                 FileUrl = NormalizeFileUrl(a.FileUrl, "teaching"),
+                AnswerKeyFileUrl = NormalizeFileUrl(a.AnswerKeyFileUrl, "teaching"),
+                AnswerKeyText = a.AnswerKeyText,
                 DueDate = a.DueDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                 DueDateFormatted = a.DueDate.ToString("dd/MM/yyyy HH:mm"),
                 MaxScore = a.MaxScore,

@@ -5,7 +5,7 @@ import CenterManagerTopbarAvatar from '../../components/admin/CenterManager/Cent
 import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {useSelectedUser} from '../../hooks/useSelectedUser';
-import { authApi } from '../../../api/authApi';
+import { authApi, getAuthUser, getStaffWorkspaces, switchActiveWorkspace } from '../../../api/authApi';
 
 export function TeacherTopBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -107,6 +107,46 @@ export function TeacherTopBar() {
                   </Link>
                 </div>
               </div>
+
+              {(() => {
+                const effectiveRoles = teacher?.roles?.length ? teacher.roles : getAuthUser()?.roles;
+                const workspaces = getStaffWorkspaces(effectiveRoles);
+                if (workspaces.length < 2) return null;
+                return (
+                  <div className="px-3 py-2 border-bottom">
+                    <small className="text-muted fw-semibold d-block mb-1" style={{ fontSize: "11.5px" }}>
+                      Switch Workspace
+                    </small>
+                    <div className="d-flex flex-column gap-1">
+                      {workspaces.map((ws) => {
+                        const isCurrent = ws.key === "teaching";
+                        return (
+                          <button
+                            key={ws.key}
+                            type="button"
+                            disabled={isCurrent}
+                            className={`btn btn-sm d-flex align-items-center justify-content-between text-start ${
+                              isCurrent ? "btn-primary fw-semibold" : "btn-outline-secondary"
+                            }`}
+                            onClick={() => {
+                              setIsDropdownOpen(false);
+                              switchActiveWorkspace(ws.role, ws.path);
+                              navigate(ws.path);
+                            }}
+                          >
+                            <span>{ws.label}</span>
+                            {isCurrent ? (
+                              <span className="badge bg-white text-primary">Active</span>
+                            ) : (
+                              <i className="bi bi-box-arrow-up-right small" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Nút Đăng xuất */}
               <div className="pt-1">

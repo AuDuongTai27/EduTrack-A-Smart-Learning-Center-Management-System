@@ -110,6 +110,7 @@ export default function TeacherClassDetailsPage() {
                     <AssignmentsSection
                         classId={targetClassId}
                         assignments={assignments}
+                        readOnly={classInfo?.myRoleInClass === "teaching_assistant"}
                         onAssignmentDeleted={(delId) => setAssignments((prev) => prev.filter((a: any) => a.assignmentId !== delId))}
                     />
                 </>

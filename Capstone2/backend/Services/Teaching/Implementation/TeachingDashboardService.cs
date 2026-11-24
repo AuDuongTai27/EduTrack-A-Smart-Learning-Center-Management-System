@@ -69,62 +69,33 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 Role = isTa ? "teaching_assistant" : "teacher"
             };
 
-            // Lấy danh sách lớp phụ trách dựa trên vai trò
-            List<Class> assignedClasses;
-            if (isTa)
-            {
-                assignedClasses = await _context.TaClasses
-                    .AsNoTracking()
-                    .Where(tac => tac.TaId == userId && tac.Status == "active")
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.Subject)
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.ClassSchedules)
-                    .Select(tac => tac.Class)
-                    .Where(c => c != null)
-                    .ToListAsync();
-            }
-            else
-            {
-                assignedClasses = await _context.TeacherClasses
-                    .AsNoTracking()
-                    .Where(tc => tc.TeacherId == userId && tc.Status == "active")
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.Subject)
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.ClassSchedules)
-                    .Select(tc => tc.Class)
-                    .Where(c => c != null)
-                    .ToListAsync();
-            }
+            // Lấy tất cả các lớp mà nhân sự này tham gia (cả vai trò Teacher lẫn vai trò TA)
+            var teacherClassesList = await _context.TeacherClasses
+                .AsNoTracking()
+                .Where(tc => tc.TeacherId == userId && tc.Status == "active")
+                .Include(tc => tc.Class)
+                    .ThenInclude(c => c.Subject)
+                .Include(tc => tc.Class)
+                    .ThenInclude(c => c.ClassSchedules)
+                .Select(tc => tc.Class)
+                .Where(c => c != null)
+                .ToListAsync();
 
-            // Fallback: nếu chưa có lớp được gán theo bảng vai trò chính, kiểm tra chéo bảng còn lại
-            if (assignedClasses.Count == 0)
-            {
-                var fallbackTeacherClasses = await _context.TeacherClasses
-                    .AsNoTracking()
-                    .Where(tc => tc.TeacherId == userId && tc.Status == "active")
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.Subject)
-                    .Include(tc => tc.Class)
-                        .ThenInclude(c => c.ClassSchedules)
-                    .Select(tc => tc.Class)
-                    .Where(c => c != null)
-                    .ToListAsync();
+            var taClassesList = await _context.TaClasses
+                .AsNoTracking()
+                .Where(tac => tac.TaId == userId && tac.Status == "active")
+                .Include(tac => tac.Class)
+                    .ThenInclude(c => c.Subject)
+                .Include(tac => tac.Class)
+                    .ThenInclude(c => c.ClassSchedules)
+                .Select(tac => tac.Class)
+                .Where(c => c != null)
+                .ToListAsync();
 
-                var fallbackTaClasses = await _context.TaClasses
-                    .AsNoTracking()
-                    .Where(tac => tac.TaId == userId && tac.Status == "active")
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.Subject)
-                    .Include(tac => tac.Class)
-                        .ThenInclude(c => c.ClassSchedules)
-                    .Select(tac => tac.Class)
-                    .Where(c => c != null)
-                    .ToListAsync();
-
-                assignedClasses = fallbackTeacherClasses.Concat(fallbackTaClasses).DistinctBy(c => c.ClassId).ToList();
-            }
+            var assignedClasses = teacherClassesList
+                .Concat(taClassesList)
+                .DistinctBy(c => c.ClassId)
+                .ToList();
 
             var classIds = assignedClasses.Select(c => c.ClassId).ToList();
 

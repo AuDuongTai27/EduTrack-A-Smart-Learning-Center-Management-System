@@ -7,7 +7,13 @@ export function useSelectedUser() {
   const { pathname } = useLocation();
   const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
   const pathRole = pathname.split('/')[1]?.replaceAll('-', '_') || '';
-  const role = authUser?.primaryRole || pathRole;
+  const userRoles = (authUser?.roles || []).map((r) =>
+    r.toLowerCase() === 'ta' ? 'teaching_assistant' : r.toLowerCase()
+  );
+  const role =
+    pathRole && userRoles.includes(pathRole)
+      ? pathRole
+      : authUser?.primaryRole || pathRole;
   const state = useSyncExternalStore(subscribeSelection, () => getSelection(role));
   useEffect(() => {
     void loadSelection(role);

@@ -6,13 +6,21 @@ import teachingDAL, { DEFAULT_TEACHER_ID } from "../../../../../DAL/teachingDAL"
 export interface StudentSubmissionsTableProps {
   assignmentId?: number;
   submissions?: (TeachingSubmissionItemDto | SubmissionDto | any)[];
+  hasRubric?: boolean;
+  rubricFileName?: string;
+  readOnly?: boolean;
   onSubmissionGraded?: (updated: TeachingSubmissionItemDto) => void;
+  onAiEvaluated?: (submissionId: number, aiScore: number, aiFeedback: string) => void;
 }
 
 function StudentSubmissionsTable({
   assignmentId = 1,
   submissions = [],
+  hasRubric = false,
+  rubricFileName,
+  readOnly = false,
   onSubmissionGraded,
+  onAiEvaluated,
 }: StudentSubmissionsTableProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -24,6 +32,11 @@ function StudentSubmissionsTable({
   const [submittingGrade, setSubmittingGrade] = useState<boolean>(false);
   const [gradeError, setGradeError] = useState<string | null>(null);
   const [gradeSuccess, setGradeSuccess] = useState<string | null>(null);
+
+  // AI Grading Assistant State (Human-in-the-loop, Teacher only)
+  const [aiLoading, setAiLoading] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiResult, setAiResult] = useState<{ aiScore: number; aiFeedback: string } | null>(null);
 
   const getInitials = (name?: string) => {
     if (!name) return "ST";
@@ -50,6 +63,44 @@ function StudentSubmissionsTable({
     setGradeFeedback(sub.feedback || "");
     setGradeError(null);
     setGradeSuccess(null);
+    setAiError(null);
+    if (sub.aiScore !== null && sub.aiScore !== undefined) {
+      setAiResult({
+        aiScore: Number(sub.aiScore),
+        aiFeedback: sub.aiFeedback || "AI evaluated this submission based on the assignment rubric.",
+      });
+    } else {
+      setAiResult(null);
+    }
+  };
+
+  const handleRunAiGrading = async () => {
+    if (!selectedSub || !selectedSub.submissionId || readOnly || !hasRubric) return;
+    try {
+      setAiLoading(true);
+      setAiError(null);
+      const res = await teachingDAL.aiGradeSubmission(assignmentId, selectedSub.submissionId);
+      setAiResult({
+        aiScore: res.aiScore,
+        aiFeedback: res.aiFeedback,
+      });
+      // Pre-fill form fields for Teacher to review and confirm (Human-in-the-loop)
+      setGradeScore(res.aiScore);
+      setGradeFeedback(res.aiFeedback);
+      setSelectedSub((prev: any) =>
+        prev ? { ...prev, aiScore: res.aiScore, aiFeedback: res.aiFeedback } : prev
+      );
+      if (onAiEvaluated) {
+        onAiEvaluated(selectedSub.submissionId, res.aiScore, res.aiFeedback);
+      }
+    } catch (err: any) {
+      setAiError(
+        err?.message ||
+          "Could not complete AI grading at this time. You can continue grading manually below."
+      );
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleSaveGrade = async (e: React.FormEvent) => {
@@ -215,7 +266,21 @@ function StudentSubmissionsTable({
                               {sub.score} / 10
                             </span>
                           ) : (
-                            <span className="badge bg-warning-subtle text-warning fw-normal">Pending grading</span>
+                            <div className="d-flex flex-column align-items-start gap-1">
+                              <span className="badge bg-warning-subtle text-warning fw-normal">
+                                Pending grading
+                              </span>
+                              {!readOnly && sub.aiScore !== null && sub.aiScore !== undefined && (
+                                <span
+                                  className="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold"
+                                  style={{ fontSize: "11px" }}
+                                  title="AI estimated score — waiting for Teacher confirmation"
+                                >
+                                  <i className="bi bi-stars me-1" />
+                                  AI Est: {sub.aiScore}/10
+                                </span>
+                              )}
+                            </div>
                           )
                         ) : (
                           <span className="badge bg-secondary-subtle text-secondary fw-normal">Not submitted</span>
@@ -287,7 +352,7 @@ function StudentSubmissionsTable({
                   )}
 
                   <div className="bg-light p-3 rounded border mb-3">
-                    <div className="d-flex justify-content-between align-items-center gap-2 mb-1">
+                    <div className="d-flex justify-content-between align-items-center gap-2">
                       <span className="text-muted small">Submitted File:</span>
                       <a
                         href={selectedSub.fileUrl || "#"}
@@ -300,17 +365,88 @@ function StudentSubmissionsTable({
                         {selectedSub.fileUrl ? selectedSub.fileUrl.split("/").pop() : "View/Download File"}
                       </a>
                     </div>
-                    {selectedSub.aiScore !== null && selectedSub.aiScore !== undefined && (
-                      <div className="d-flex justify-content-between align-items-center mt-2">
-                        <span className="text-muted small">AI Suggested Score:</span>
-                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2 py-1">{selectedSub.aiScore} / 10</span>
-                      </div>
-                    )}
                   </div>
+
+                  {/* AI Grading Assistant Section (Strictly Teacher Only — Hidden for TA) */}
+                  {!readOnly && (
+                    <div className="p-3 rounded-3 border mb-3" style={{ backgroundColor: "#F8FAFC", borderColor: "#CBD5E1" }}>
+                      <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                          <div className="fw-bold text-dark small d-flex align-items-center gap-1">
+                            <i className="bi bi-stars text-primary" />
+                            <span>AI Grading Assistant (Human-in-the-Loop)</span>
+                          </div>
+                          <small className="text-muted d-block">
+                            {hasRubric
+                              ? `Evaluates submission against Rubric (${rubricFileName || "Answer Key"})`
+                              : "Add a Rubric (PDF/Word/Image) to this assignment first to unlock AI grading"}
+                          </small>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-xs"
+                          disabled={!hasRubric || aiLoading || submittingGrade}
+                          onClick={handleRunAiGrading}
+                        >
+                          {aiLoading ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm" role="status" />
+                              <span>Analyzing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-stars" />
+                              <span>{aiResult ? "Re-run AI Assist" : "AI Assist Grade"}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {aiError && (
+                        <div className="alert alert-warning py-2 px-3 small mt-2 mb-0" role="alert">
+                          <i className="bi bi-exclamation-circle-fill me-1" />
+                          {aiError}
+                        </div>
+                      )}
+
+                      {aiResult && (
+                        <div className="mt-3 pt-2 border-top">
+                          <div className="d-flex align-items-center justify-content-between mb-1">
+                            <span className="small fw-semibold text-primary">
+                              AI Estimated Score (Draft):
+                            </span>
+                            <span className="badge bg-primary text-white fw-bold px-2 py-1">
+                              {aiResult.aiScore} / 10
+                            </span>
+                          </div>
+                          <div className="small text-dark bg-white p-2 rounded border mb-2" style={{ whiteSpace: "pre-line", maxHeight: 150, overflowY: "auto" }}>
+                            {aiResult.aiFeedback}
+                          </div>
+                          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <small className="text-muted fst-italic" style={{ fontSize: "11.5px" }}>
+                              Review the AI suggestion &amp; student work, adjust below if needed, then confirm.
+                            </small>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-primary py-0 px-2"
+                              style={{ fontSize: "12px" }}
+                              onClick={() => {
+                                setGradeScore(aiResult.aiScore);
+                                setGradeFeedback(aiResult.aiFeedback);
+                              }}
+                            >
+                              Apply AI Suggestion
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="mb-3">
                     <label className="form-label fw-semibold text-dark">
-                      Score (out of 10) <span className="text-danger">*</span>
+                      {!readOnly && aiResult ? "Confirmed Official Score (out of 10)" : "Score (out of 10)"}{" "}
+                      <span className="text-danger">*</span>
                     </label>
                     <input
                       type="number"
@@ -328,7 +464,7 @@ function StudentSubmissionsTable({
 
                   <div className="mb-2">
                     <label className="form-label fw-semibold text-dark">
-                      Feedback
+                      {!readOnly && aiResult ? "Confirmed Official Feedback" : "Feedback"}
                     </label>
                     <textarea
                       className="form-control"
@@ -353,7 +489,7 @@ function StudentSubmissionsTable({
                     ) : (
                       <>
                         <i className="bi bi-check-lg" />
-                        <span>Save Grade</span>
+                        <span>{!readOnly && aiResult ? "Confirm & Save Grade" : "Save Grade"}</span>
                       </>
                     )}
                   </button>

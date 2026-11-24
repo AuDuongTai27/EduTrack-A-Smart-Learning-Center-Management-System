@@ -10,6 +10,10 @@ export interface ClassListTableProps {
 export function ClassListTable({
   classes = [],
 }: ClassListTableProps) {
+  const hasMixedClassRoles =
+    classes.some((c: any) => c.myRoleInClass === "teaching_assistant") &&
+    classes.some((c: any) => !c.myRoleInClass || c.myRoleInClass === "teacher");
+
   return (
     <div className="table-responsive-container">
       <table className="table custom-table align-middle mb-0" id="classesTable">
@@ -32,11 +36,26 @@ export function ClassListTable({
                 cls.status === "Đang học" ||
                 cls.status === "open";
               const taName = item.taName || item.partnerName || "Au Duong Tai";
+              const isTaRoleInClass = item.myRoleInClass === "teaching_assistant";
 
               return (
                 <tr key={cls.classId}>
                   <td>
-                    <span className="fw-bold text-dark">{cls.className}</span>
+                    <div className="d-flex align-items-center flex-wrap gap-2">
+                      <span className="fw-bold text-dark">{cls.className}</span>
+                      {(isTaRoleInClass || hasMixedClassRoles) && (
+                        <span
+                          className={`badge rounded-pill border fw-semibold ${
+                            isTaRoleInClass
+                              ? "bg-info-subtle text-info-emphasis border-info-subtle"
+                              : "bg-primary-subtle text-primary border-primary-subtle"
+                          }`}
+                          style={{ fontSize: "11px" }}
+                        >
+                          {isTaRoleInClass ? "TA" : "Teacher"}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <span className="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill">

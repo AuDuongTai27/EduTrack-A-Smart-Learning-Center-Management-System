@@ -29,6 +29,10 @@ namespace EduTrack.API.Repositories.Implementation
                     .ThenInclude(us => us.Subject)
                 .Include(u => u.UserGrades)
                     .ThenInclude(ug => ug.Grade)
+                .Include(u => u.UserSubjectGrades)
+                    .ThenInclude(usg => usg.Subject)
+                .Include(u => u.UserSubjectGrades)
+                    .ThenInclude(usg => usg.Grade)
                 .ToListAsync();
         }
 
@@ -43,6 +47,10 @@ namespace EduTrack.API.Repositories.Implementation
                     .ThenInclude(us => us.Subject)
                 .Include(u => u.UserGrades)
                     .ThenInclude(ug => ug.Grade)
+                .Include(u => u.UserSubjectGrades)
+                    .ThenInclude(usg => usg.Subject)
+                .Include(u => u.UserSubjectGrades)
+                    .ThenInclude(usg => usg.Grade)
                 .FirstOrDefaultAsync(u => u.UserId == id);
         }
 
@@ -50,56 +58,131 @@ namespace EduTrack.API.Repositories.Implementation
             User user,
             string roleName,
             IReadOnlyCollection<int>? subjectIds = null,
-            IReadOnlyCollection<int>? gradeIds = null)
+            IReadOnlyCollection<int>? gradeIds = null,
+            IReadOnlyCollection<(int SubjectId, IReadOnlyCollection<int> GradeIds)>? subjectGrades = null,
+            IReadOnlyCollection<string>? roleNames = null)
         {
-            var normalizedRole = roleName.Trim().ToLower();
-            var isTeachingStaff = normalizedRole == "teacher" || normalizedRole == "teaching_assistant" || normalizedRole == "ta";
+            var normalizedRoles = (roleNames != null && roleNames.Count > 0 ? roleNames : new[] { roleName })
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => r.Trim().ToLower() == "ta" ? "teaching_assistant" : r.Trim().ToLower())
+                .Distinct()
+                .ToList();
+            if (normalizedRoles.Count == 0) normalizedRoles.Add("teacher");
+
+            var isTeachingStaff = normalizedRoles.Any(r => r == "teacher" || r == "teaching_assistant" || r == "ta");
 
             if (isTeachingStaff)
             {
-                var distinctSubjectIds = (subjectIds ?? System.Array.Empty<int>()).Where(id => id > 0).Distinct().OrderBy(id => id).ToList();
-                var validSubjects = distinctSubjectIds.Count > 0
-                    ? await _context.Subjects.Where(s => distinctSubjectIds.Contains(s.SubjectId)).OrderBy(s => s.SubjectId).ToListAsync()
-                    : new List<Subject>();
-                if (validSubjects.Count != distinctSubjectIds.Count)
-                    throw new System.ArgumentException("Một hoặc nhiều chuyên môn đã chọn không tồn tại. Vui lòng tải lại danh mục.");
-
-                foreach (var s in validSubjects)
+                if (subjectGrades != null && subjectGrades.Count > 0)
                 {
-                    user.UserSubjects.Add(new UserSubject { SubjectId = s.SubjectId });
+                    var normalizedGroups = subjectGrades
+                        .Where(g => g.SubjectId > 0)
+                        .GroupBy(g => g.SubjectId)
+                        .Select(g => (
+                            SubjectId: g.Key,
+                            GradeIds: g.SelectMany(x => x.GradeIds ?? System.Array.Empty<int>()).Where(gid => gid > 0).Distinct().OrderBy(gid => gid).ToList()
+                        ))
+                        .OrderBy(g => g.SubjectId)
+                        .ToList();
+
+                    var distinctSubjectIds = normalizedGroups.Select(g => g.SubjectId).ToList();
+                    var validSubjects = distinctSubjectIds.Count > 0
+                        ? await _context.Subjects.Where(s => distinctSubjectIds.Contains(s.SubjectId)).OrderBy(s => s.SubjectId).ToListAsync()
+                        : new List<Subject>();
+                    if (validSubjects.Count != distinctSubjectIds.Count)
+                        throw new System.ArgumentException("Một hoặc nhiều chuyên môn đã chọn không tồn tại. Vui lòng tải lại danh mục.");
+
+                    var distinctGradeIds = normalizedGroups.SelectMany(g => g.GradeIds).Distinct().OrderBy(gid => gid).ToList();
+                    var validGrades = distinctGradeIds.Count > 0
+                        ? await _context.Grades.Where(g => distinctGradeIds.Contains(g.GradeId)).OrderBy(g => g.GradeId).ToListAsync()
+                        : new List<Grade>();
+                    if (validGrades.Count != distinctGradeIds.Count)
+                        throw new System.ArgumentException("Một hoặc nhiều khối lớp đã chọn không tồn tại. Vui lòng tải lại danh mục.");
+
+                    foreach (var s in validSubjects)
+                    {
+                        user.UserSubjects.Add(new UserSubject { SubjectId = s.SubjectId });
+                    }
+                    foreach (var g in validGrades)
+                    {
+                        user.UserGrades.Add(new UserGrade { GradeId = g.GradeId });
+                    }
+                    foreach (var group in normalizedGroups)
+                    {
+                        foreach (var gid in group.GradeIds)
+                        {
+                            user.UserSubjectGrades.Add(new UserSubjectGrade
+                            {
+                                SubjectId = group.SubjectId,
+                                GradeId = gid
+                            });
+                        }
+                    }
+
+                    if (validSubjects.Count > 0)
+                    {
+                        var joined = string.Join(", ", validSubjects.Select(s => s.SubjectName));
+                        user.Specialty = joined.Length > 100 ? joined[..100] : joined;
+                    }
                 }
-
-                var distinctGradeIds = (gradeIds ?? System.Array.Empty<int>()).Where(id => id > 0).Distinct().OrderBy(id => id).ToList();
-                var validGrades = distinctGradeIds.Count > 0
-                    ? await _context.Grades.Where(g => distinctGradeIds.Contains(g.GradeId)).OrderBy(g => g.GradeId).ToListAsync()
-                    : new List<Grade>();
-                if (validGrades.Count != distinctGradeIds.Count)
-                    throw new System.ArgumentException("Một hoặc nhiều khối lớp đã chọn không tồn tại. Vui lòng tải lại danh mục.");
-
-                foreach (var g in validGrades)
+                else
                 {
-                    user.UserGrades.Add(new UserGrade { GradeId = g.GradeId });
-                }
+                    var distinctSubjectIds = (subjectIds ?? System.Array.Empty<int>()).Where(id => id > 0).Distinct().OrderBy(id => id).ToList();
+                    var validSubjects = distinctSubjectIds.Count > 0
+                        ? await _context.Subjects.Where(s => distinctSubjectIds.Contains(s.SubjectId)).OrderBy(s => s.SubjectId).ToListAsync()
+                        : new List<Subject>();
+                    if (validSubjects.Count != distinctSubjectIds.Count)
+                        throw new System.ArgumentException("Một hoặc nhiều chuyên môn đã chọn không tồn tại. Vui lòng tải lại danh mục.");
 
-                if (validSubjects.Count > 0)
-                {
-                    var joined = string.Join(", ", validSubjects.Select(s => s.SubjectName));
-                    user.Specialty = joined.Length > 100 ? joined[..100] : joined;
+                    foreach (var s in validSubjects)
+                    {
+                        user.UserSubjects.Add(new UserSubject { SubjectId = s.SubjectId });
+                    }
+
+                    var distinctGradeIds = (gradeIds ?? System.Array.Empty<int>()).Where(id => id > 0).Distinct().OrderBy(id => id).ToList();
+                    var validGrades = distinctGradeIds.Count > 0
+                        ? await _context.Grades.Where(g => distinctGradeIds.Contains(g.GradeId)).OrderBy(g => g.GradeId).ToListAsync()
+                        : new List<Grade>();
+                    if (validGrades.Count != distinctGradeIds.Count)
+                        throw new System.ArgumentException("Một hoặc nhiều khối lớp đã chọn không tồn tại. Vui lòng tải lại danh mục.");
+
+                    foreach (var g in validGrades)
+                    {
+                        user.UserGrades.Add(new UserGrade { GradeId = g.GradeId });
+                    }
+
+                    foreach (var s in validSubjects)
+                    {
+                        foreach (var g in validGrades)
+                        {
+                            user.UserSubjectGrades.Add(new UserSubjectGrade { SubjectId = s.SubjectId, GradeId = g.GradeId });
+                        }
+                    }
+
+                    if (validSubjects.Count > 0)
+                    {
+                        var joined = string.Join(", ", validSubjects.Select(s => s.SubjectName));
+                        user.Specialty = joined.Length > 100 ? joined[..100] : joined;
+                    }
                 }
             }
 
             await _dbSet.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == normalizedRole);
-            if (role != null)
+            var dbRoles = await _context.Roles
+                .Where(r => normalizedRoles.Contains(r.RoleName.ToLower()))
+                .ToListAsync();
+            if (dbRoles.Count > 0)
             {
-                var userRole = new UserRole
+                foreach (var role in dbRoles)
                 {
-                    UserId = user.UserId,
-                    RoleId = role.RoleId
-                };
-                await _context.UserRoles.AddAsync(userRole);
+                    await _context.UserRoles.AddAsync(new UserRole
+                    {
+                        UserId = user.UserId,
+                        RoleId = role.RoleId
+                    });
+                }
                 await _context.SaveChangesAsync();
             }
 
@@ -160,7 +243,10 @@ namespace EduTrack.API.Repositories.Implementation
             IReadOnlyCollection<int>? subjectIds = null,
             bool subjectsSpecified = false,
             IReadOnlyCollection<int>? gradeIds = null,
-            bool gradesSpecified = false)
+            bool gradesSpecified = false,
+            IReadOnlyCollection<(int SubjectId, IReadOnlyCollection<int> GradeIds)>? subjectGrades = null,
+            bool subjectGradesSpecified = false,
+            IReadOnlyCollection<string>? roleNames = null)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             var existing = await _dbSet
@@ -168,11 +254,30 @@ namespace EduTrack.API.Repositories.Implementation
                     .ThenInclude(ur => ur.Role)
                 .Include(u => u.UserSubjects)
                 .Include(u => u.UserGrades)
+                .Include(u => u.UserSubjectGrades)
                 .FirstOrDefaultAsync(u => u.UserId == id);
 
             if (existing == null) return null;
 
-            var isStudent = existing.UserRoles.Any(ur => ur.Role.RoleName == "student") || roleName == "student";
+            var requestedRoles = (roleNames != null && roleNames.Count > 0
+                ? roleNames
+                : !string.IsNullOrWhiteSpace(roleName)
+                    ? new[] { roleName }
+                    : System.Array.Empty<string>())
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => r.Trim().ToLower() == "ta" ? "teaching_assistant" : r.Trim().ToLower())
+                .Distinct()
+                .ToList();
+
+            var effectiveRoles = requestedRoles.Count > 0
+                ? requestedRoles
+                : existing.UserRoles
+                    .Select(ur => ur.Role?.RoleName?.ToLower())
+                    .Where(r => !string.IsNullOrWhiteSpace(r))
+                    .Select(r => r!)
+                    .ToList();
+
+            var isStudent = existing.UserRoles.Any(ur => ur.Role.RoleName == "student") || effectiveRoles.Contains("student");
             if (gradeSpecified)
             {
                 if (!isStudent && updatedUser.GradeId != null)
@@ -184,10 +289,7 @@ namespace EduTrack.API.Repositories.Implementation
                 existing.GradeId = updatedUser.GradeId;
             }
 
-            var effectiveRole = !string.IsNullOrWhiteSpace(roleName)
-                ? roleName.Trim().ToLower()
-                : existing.UserRoles.Select(ur => ur.Role?.RoleName?.ToLower()).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r)) ?? "";
-            var isTeachingStaff = effectiveRole == "teacher" || effectiveRole == "teaching_assistant" || effectiveRole == "ta";
+            var isTeachingStaff = effectiveRoles.Any(r => r == "teacher" || r == "teaching_assistant" || r == "ta");
 
             existing.FullName = updatedUser.FullName;
             existing.Email = updatedUser.Email;
@@ -197,6 +299,11 @@ namespace EduTrack.API.Repositories.Implementation
 
             if (!isTeachingStaff)
             {
+                if (existing.UserSubjectGrades.Count > 0)
+                {
+                    _context.UserSubjectGrades.RemoveRange(existing.UserSubjectGrades);
+                    existing.UserSubjectGrades.Clear();
+                }
                 if (existing.UserSubjects.Count > 0)
                 {
                     _context.UserSubjects.RemoveRange(existing.UserSubjects);
@@ -208,6 +315,70 @@ namespace EduTrack.API.Repositories.Implementation
                     existing.UserGrades.Clear();
                 }
                 if (!isStudent) existing.Specialty = updatedUser.Specialty;
+            }
+            else if (subjectGradesSpecified)
+            {
+                var normalizedGroups = (subjectGrades ?? System.Array.Empty<(int SubjectId, IReadOnlyCollection<int> GradeIds)>())
+                    .Where(g => g.SubjectId > 0)
+                    .GroupBy(g => g.SubjectId)
+                    .Select(g => (
+                        SubjectId: g.Key,
+                        GradeIds: g.SelectMany(x => x.GradeIds ?? System.Array.Empty<int>()).Where(gid => gid > 0).Distinct().OrderBy(gid => gid).ToList()
+                    ))
+                    .OrderBy(g => g.SubjectId)
+                    .ToList();
+
+                var distinctSubjectIds = normalizedGroups.Select(g => g.SubjectId).ToList();
+                var validSubjects = distinctSubjectIds.Count > 0
+                    ? await _context.Subjects.Where(s => distinctSubjectIds.Contains(s.SubjectId)).OrderBy(s => s.SubjectId).ToListAsync()
+                    : new List<Subject>();
+                if (validSubjects.Count != distinctSubjectIds.Count)
+                    throw new ArgumentException("Một hoặc nhiều chuyên môn đã chọn không tồn tại. Vui lòng tải lại danh mục.");
+
+                var distinctGradeIds = normalizedGroups.SelectMany(g => g.GradeIds).Distinct().OrderBy(gid => gid).ToList();
+                var validGrades = distinctGradeIds.Count > 0
+                    ? await _context.Grades.Where(g => distinctGradeIds.Contains(g.GradeId)).OrderBy(g => g.GradeId).ToListAsync()
+                    : new List<Grade>();
+                if (validGrades.Count != distinctGradeIds.Count)
+                    throw new ArgumentException("Một hoặc nhiều khối lớp đã chọn không tồn tại. Vui lòng tải lại danh mục.");
+
+                _context.UserSubjectGrades.RemoveRange(existing.UserSubjectGrades);
+                existing.UserSubjectGrades.Clear();
+                _context.UserSubjects.RemoveRange(existing.UserSubjects);
+                existing.UserSubjects.Clear();
+                _context.UserGrades.RemoveRange(existing.UserGrades);
+                existing.UserGrades.Clear();
+
+                foreach (var s in validSubjects)
+                {
+                    existing.UserSubjects.Add(new UserSubject { UserId = existing.UserId, SubjectId = s.SubjectId });
+                }
+                foreach (var g in validGrades)
+                {
+                    existing.UserGrades.Add(new UserGrade { UserId = existing.UserId, GradeId = g.GradeId });
+                }
+                foreach (var group in normalizedGroups)
+                {
+                    foreach (var gid in group.GradeIds)
+                    {
+                        existing.UserSubjectGrades.Add(new UserSubjectGrade
+                        {
+                            UserId = existing.UserId,
+                            SubjectId = group.SubjectId,
+                            GradeId = gid
+                        });
+                    }
+                }
+
+                if (validSubjects.Count > 0)
+                {
+                    var joined = string.Join(", ", validSubjects.Select(s => s.SubjectName));
+                    existing.Specialty = joined.Length > 100 ? joined[..100] : joined;
+                }
+                else
+                {
+                    existing.Specialty = updatedUser.Specialty;
+                }
             }
             else
             {
@@ -260,18 +431,24 @@ namespace EduTrack.API.Repositories.Implementation
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(roleName))
+            if (requestedRoles.Count > 0)
             {
-                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
-                if (role != null)
+                var dbRoles = await _context.Roles
+                    .Where(r => requestedRoles.Contains(r.RoleName.ToLower()))
+                    .ToListAsync();
+                if (dbRoles.Count > 0)
                 {
                     _context.UserRoles.RemoveRange(existing.UserRoles);
-                    existing.UserRoles.Add(new UserRole
+                    existing.UserRoles.Clear();
+                    foreach (var role in dbRoles)
                     {
-                        UserId = existing.UserId,
-                        RoleId = role.RoleId,
-                        Role = role
-                    });
+                        existing.UserRoles.Add(new UserRole
+                        {
+                            UserId = existing.UserId,
+                            RoleId = role.RoleId,
+                            Role = role
+                        });
+                    }
                 }
             }
 
@@ -304,8 +481,10 @@ namespace EduTrack.API.Repositories.Implementation
             await _context.Entry(user).Collection(u => u.UserRoles).LoadAsync();
             await _context.Entry(user).Collection(u => u.UserSubjects).LoadAsync();
             await _context.Entry(user).Collection(u => u.UserGrades).LoadAsync();
+            await _context.Entry(user).Collection(u => u.UserSubjectGrades).LoadAsync();
 
             _context.UserRoles.RemoveRange(user.UserRoles);
+            _context.UserSubjectGrades.RemoveRange(user.UserSubjectGrades);
             _context.UserSubjects.RemoveRange(user.UserSubjects);
             _context.UserGrades.RemoveRange(user.UserGrades);
             _dbSet.Remove(user);
