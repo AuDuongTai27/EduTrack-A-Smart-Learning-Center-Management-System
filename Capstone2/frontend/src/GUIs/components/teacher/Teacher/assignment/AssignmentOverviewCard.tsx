@@ -40,6 +40,14 @@ function AssignmentOverviewCard({
   const [editMaxScore, setEditMaxScore] = useState<number>(10);
   const [uploadingEditFile, setUploadingEditFile] = useState<boolean>(false);
 
+  // Rubric modal states (Teacher only)
+  const [showRubricModal, setShowRubricModal] = useState<boolean>(false);
+  const [rubricFileUrl, setRubricFileUrl] = useState<string>("");
+  const [rubricNotes, setRubricNotes] = useState<string>("");
+  const [uploadingRubricFile, setUploadingRubricFile] = useState<boolean>(false);
+  const [savingRubric, setSavingRubric] = useState<boolean>(false);
+  const [rubricError, setRubricError] = useState<string | null>(null);
+
   const handleEditFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -71,8 +79,52 @@ function AssignmentOverviewCard({
       }
       setEditFileUrl(assignment.fileUrl || "/assets/docs/assignment_default.pdf");
       setEditMaxScore(assignment.maxScore ?? 10);
+      setRubricFileUrl(assignment.answerKeyFileUrl || "");
+      setRubricNotes(assignment.answerKeyText || "");
     }
   }, [assignment]);
+
+  const handleRubricFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      try {
+        setUploadingRubricFile(true);
+        setRubricError(null);
+        const res = await teachingDAL.uploadFile(file);
+        setRubricFileUrl(res.fileUrl);
+      } catch (err: any) {
+        setRubricError(err?.message || "Failed to upload Rubric file to server.");
+      } finally {
+        setUploadingRubricFile(false);
+      }
+    }
+  };
+
+  const handleSaveRubric = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assignment?.assignmentId) return;
+    if (!rubricFileUrl.trim()) {
+      setRubricError("Please upload a Rubric / Answer Key file (PDF, Word, or Image) before saving.");
+      return;
+    }
+
+    try {
+      setSavingRubric(true);
+      setRubricError(null);
+      const updated = await teachingDAL.updateAssignmentRubric(assignment.assignmentId, {
+        answerKeyFileUrl: rubricFileUrl.trim(),
+        answerKeyText: rubricNotes.trim() || undefined,
+      });
+      setShowRubricModal(false);
+      if (onAssignmentUpdated) {
+        onAssignmentUpdated(updated);
+      }
+    } catch (err: any) {
+      setRubricError(err?.message || "Failed to save Rubric.");
+    } finally {
+      setSavingRubric(false);
+    }
+  };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,39 +223,214 @@ function AssignmentOverviewCard({
             )}
           </div>
 
-          {/* Attachments Section */}
+          {/* Attachments & AI Rubric Section */}
           <div className="border-top pt-3 mt-3">
-            <div className="mb-2">
-              <span className="text-muted fw-bold meta-label-xs uppercase">ATTACHMENTS (1)</span>
-            </div>
-            <div className="d-flex align-items-center gap-3 flex-wrap">
-              <div className="attachment-chip bg-white border rounded p-2 px-3 d-inline-flex align-items-center gap-2">
-                <i className="bi bi-file-earmark-pdf-fill text-danger fs-5" />
-                <div>
-                  <a
-                    href={assignment?.fileUrl || "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-decoration-none text-dark fw-semibold small d-block mb-0"
-                  >
-                    {assignment?.fileUrl ? assignment.fileUrl.split("/").pop() : "assignment1.pdf"}
-                  </a>
-                  <small className="text-muted meta-label-xs">Reference Document</small>
+            <div className="row g-3 align-items-stretch">
+              <div className={readOnly ? "col-12" : "col-lg-6"}>
+                <div className="mb-2">
+                  <span className="text-muted fw-bold meta-label-xs uppercase">ASSIGNMENT QUESTION FILE</span>
                 </div>
-                <a
-                  href={assignment?.fileUrl || "#"}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-sm btn-link text-secondary p-0 ms-2"
-                  title="Download / View"
-                >
-                  <i className="bi bi-download" />
-                </a>
+                <div className="d-flex align-items-center gap-3 flex-wrap">
+                  <div className="attachment-chip bg-white border rounded p-2 px-3 d-inline-flex align-items-center gap-2">
+                    <i className="bi bi-file-earmark-pdf-fill text-danger fs-5" />
+                    <div>
+                      <a
+                        href={assignment?.fileUrl || "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-decoration-none text-dark fw-semibold small d-block mb-0"
+                      >
+                        {assignment?.fileUrl ? assignment.fileUrl.split("/").pop() : "assignment1.pdf"}
+                      </a>
+                      <small className="text-muted meta-label-xs">Question Document</small>
+                    </div>
+                    <a
+                      href={assignment?.fileUrl || "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-sm btn-link text-secondary p-0 ms-2"
+                      title="Download / View"
+                    >
+                      <i className="bi bi-download" />
+                    </a>
+                  </div>
+                </div>
               </div>
+
+              {!readOnly && (
+                <div className="col-lg-6">
+                  <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                    <span className="text-muted fw-bold meta-label-xs uppercase">
+                      <i className="bi bi-stars text-primary me-1" />
+                      AI GRADING RUBRIC / ANSWER KEY (PDF / WORD / IMAGE)
+                    </span>
+                    {assignment?.answerKeyFileUrl ? (
+                      <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                        <i className="bi bi-check-circle-fill me-1" />
+                        AI Grading Ready
+                      </span>
+                    ) : (
+                      <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1">
+                        <i className="bi bi-lock-fill me-1" />
+                        Rubric Required for AI Grading
+                      </span>
+                    )}
+                  </div>
+
+                  {assignment?.answerKeyFileUrl ? (
+                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 bg-light border rounded p-2 px-3">
+                      <div className="d-flex align-items-center gap-2 min-w-0">
+                        <i className="bi bi-file-earmark-check-fill text-success fs-5 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <a
+                            href={assignment.answerKeyFileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-decoration-none text-dark fw-semibold small d-block text-truncate"
+                          >
+                            {assignment.answerKeyFileUrl.split("/").pop()}
+                          </a>
+                          <small className="text-muted meta-label-xs d-block text-truncate">
+                            {assignment.answerKeyText
+                              ? `Note: ${assignment.answerKeyText}`
+                              : "Solution & Grading Rubric"}
+                          </small>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                        onClick={() => {
+                          setRubricError(null);
+                          setRubricFileUrl(assignment.answerKeyFileUrl || "");
+                          setRubricNotes(assignment.answerKeyText || "");
+                          setShowRubricModal(true);
+                        }}
+                      >
+                        <i className="bi bi-upload" />
+                        Update Rubric
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 bg-light border border-dashed rounded p-2 px-3">
+                      <small className="text-muted">
+                        Upload the solution &amp; grading rubric (PDF, Word, or PNG/JPG) to unlock AI-assisted grading.
+                      </small>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-xs"
+                        onClick={() => {
+                          setRubricError(null);
+                          setRubricFileUrl("");
+                          setRubricNotes("");
+                          setShowRubricModal(true);
+                        }}
+                      >
+                        <i className="bi bi-file-earmark-plus" />
+                        Add Rubric
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Add / Update Rubric Modal (Teacher Only) */}
+      {showRubricModal && !readOnly && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom">
+                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                  <i className="bi bi-stars text-primary" />
+                  <span>{assignment?.answerKeyFileUrl ? "Update AI Grading Rubric" : "Add AI Grading Rubric"}</span>
+                </h5>
+                <button type="button" className="btn-close" onClick={() => setShowRubricModal(false)} />
+              </div>
+              <form onSubmit={handleSaveRubric}>
+                <div className="modal-body p-4">
+                  {rubricError && (
+                    <div className="alert alert-danger py-2 small mb-3">
+                      <i className="bi bi-exclamation-triangle-fill me-1" /> {rubricError}
+                    </div>
+                  )}
+                  <div className="alert alert-info py-2 px-3 small mb-3">
+                    <i className="bi bi-lightbulb-fill me-1" />
+                    <strong>Tip:</strong> Upload a PDF, Word, or Image (<code>.pdf</code>, <code>.docx</code>, <code>.doc</code>, <code>.png</code>, <code>.jpg</code>) containing the final answers and solution steps so AI can accurately evaluate student methods and partial credit.
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold text-dark">
+                      Rubric / Answer Key File (PDF, Word, or Image) <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="file"
+                      className="form-control"
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,image/png,image/jpeg"
+                      onChange={handleRubricFileUpload}
+                      disabled={savingRubric || uploadingRubricFile}
+                    />
+                    {uploadingRubricFile && (
+                      <div className="small text-primary mt-1">
+                        <span className="spinner-border spinner-border-sm me-1" role="status" />
+                        Uploading Rubric file...
+                      </div>
+                    )}
+                    {rubricFileUrl && !uploadingRubricFile && (
+                      <div className="small text-success fw-medium mt-1">
+                        <i className="bi bi-check-circle-fill me-1" />
+                        Attached: {rubricFileUrl.split("/").pop()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label fw-semibold text-dark">
+                      Additional Grading Notes for AI (Optional)
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={3}
+                      placeholder="e.g. Award 50% partial credit if the method is right but final calculation is off; deduct 0.25 pts for missing units..."
+                      value={rubricNotes}
+                      onChange={(e) => setRubricNotes(e.target.value)}
+                      disabled={savingRubric || uploadingRubricFile}
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm px-3"
+                    onClick={() => setShowRubricModal(false)}
+                    disabled={savingRubric || uploadingRubricFile}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-sm px-3 d-inline-flex align-items-center gap-1"
+                    disabled={savingRubric || uploadingRubricFile || !rubricFileUrl}
+                  >
+                    {savingRubric ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-lg" />
+                        <span>Save Rubric &amp; Enable AI</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Assignment Modal */}
       {showEditModal && (

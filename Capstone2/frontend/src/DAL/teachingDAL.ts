@@ -17,6 +17,8 @@ import {
   type UpdateSingleAttendancePayload,
   type CreateTeachingAssignmentRequest,
   type UpdateTeachingAssignmentRequest,
+  type UpdateAssignmentRubricRequest,
+  type AiGradeSubmissionResponse,
   type TeachingAssignmentItemDto,
   type TeachingSubmissionItemDto,
   type GradeTeachingSubmissionRequest,
@@ -40,6 +42,8 @@ export type {
   UpdateSingleAttendancePayload,
   CreateTeachingAssignmentRequest,
   UpdateTeachingAssignmentRequest,
+  UpdateAssignmentRubricRequest,
+  AiGradeSubmissionResponse,
   TeachingAssignmentItemDto,
   TeachingSubmissionItemDto,
   GradeTeachingSubmissionRequest,
@@ -1022,6 +1026,34 @@ export const teachingDAL = {
       console.warn(`🟡 [teachingDAL] Lỗi khi chấm điểm bài nộp #${submissionId}:`, err?.message);
       throw err;
     }
+  },
+
+  /**
+   * Đính kèm hoặc cập nhật file Rubric / Đáp án (PDF / Word) cho bài tập (Chỉ dành cho Teacher)
+   */
+  async updateAssignmentRubric(
+    id: number,
+    payload: UpdateAssignmentRubricRequest
+  ): Promise<TeachingAssignmentItemDto> {
+    return await teachingApi.updateAssignmentRubric(id, {
+      ...payload,
+      requestedBy: resolveTeachingUserId(payload.requestedBy),
+    });
+  },
+
+  /**
+   * Nhờ AI phân tích bài nộp của học sinh dựa trên file Rubric (Human-in-the-loop, chỉ dành cho Teacher)
+   */
+  async aiGradeSubmission(
+    assignmentId: number,
+    submissionId: number,
+    requestedBy?: number
+  ): Promise<AiGradeSubmissionResponse> {
+    return await teachingApi.aiGradeSubmission(
+      assignmentId,
+      submissionId,
+      resolveTeachingUserId(requestedBy)
+    );
   },
 
   /**

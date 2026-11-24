@@ -21,6 +21,8 @@ import type {
 import type {
   CreateTeachingAssignmentRequest,
   UpdateTeachingAssignmentRequest,
+  UpdateAssignmentRubricRequest,
+  AiGradeSubmissionResponse,
   TeachingAssignmentItemDto,
   TeachingSubmissionItemDto,
   GradeTeachingSubmissionRequest,
@@ -683,6 +685,67 @@ export const teachingApi = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || `HTTP ${res.status} while grading submission #${submissionId}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * PUT /api/teaching/assignments/{id}/rubric
+   * Đính kèm hoặc cập nhật file Rubric / Đáp án (PDF / Word) cho bài tập (Chỉ dành cho Teacher)
+   */
+  async updateAssignmentRubric(
+    id: number,
+    payload: UpdateAssignmentRubricRequest
+  ): Promise<TeachingAssignmentItemDto> {
+    const finalPayload: UpdateAssignmentRubricRequest = {
+      ...payload,
+      requestedBy: payload.requestedBy ? resolveTeachingUser(payload.requestedBy) : resolveTeachingUser(3),
+    };
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments/${id}/rubric`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(finalPayload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status} while updating rubric for assignment #${id}`);
+    }
+
+    const json = await res.json();
+    return json?.data ?? json;
+  },
+
+  /**
+   * POST /api/teaching/assignments/{id}/submissions/{submissionId}/ai-grade
+   * Nhờ AI hỗ trợ chấm điểm và nhận xét bài nộp dựa trên Rubric (Human-in-the-loop, chỉ dành cho Teacher)
+   */
+  async aiGradeSubmission(
+    id: number,
+    submissionId: number,
+    requestedBy: number = 3
+  ): Promise<AiGradeSubmissionResponse> {
+    const uid = resolveTeachingUser(requestedBy);
+    const res = await fetch(`${API_BASE_URL}/teaching/assignments/${id}/submissions/${submissionId}/ai-grade`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ requestedBy: uid }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(
+        err.message ||
+          'Dịch vụ AI tạm thời không khả dụng hoặc đã hết hạn mức. Vui lòng thử lại sau hoặc chấm điểm thủ công.'
+      );
     }
 
     const json = await res.json();

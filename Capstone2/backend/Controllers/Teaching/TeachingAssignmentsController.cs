@@ -252,5 +252,91 @@ namespace EduTrack.API.Controllers.Teaching
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Đính kèm hoặc cập nhật file Rubric / Đáp án (PDF / Word) cho bài tập (Chỉ dành cho Teacher)
+        /// PUT /api/teaching/assignments/{id}/rubric
+        /// </summary>
+        [HttpPut("{id:int}/rubric")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
+        public async Task<IActionResult> UpdateAssignmentRubric(int id, [FromBody] UpdateAssignmentRubricRequestDto request)
+        {
+            if (id <= 0 || request == null || string.IsNullOrWhiteSpace(request.AnswerKeyFileUrl))
+            {
+                return BadRequest(new { success = false, message = "Vui lòng chọn file Rubric / Đáp án (PDF hoặc Word) hợp lệ." });
+            }
+
+            request.RequestedBy = JwtAuthHelper.ResolveEffectiveUserId(
+                User,
+                request.RequestedBy > 0 ? request.RequestedBy : 3,
+                JwtAuthHelper.RoleTeacher,
+                JwtAuthHelper.RoleTeachingAssistant);
+
+            try
+            {
+                var updated = await _assignmentService!.UpdateAssignmentRubricAsync(id, request);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đã lưu file Rubric / Đáp án thành công! Tính năng AI chấm điểm đã được kích hoạt.",
+                    data = updated
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Nhờ AI phân tích bài nộp của học sinh dựa trên file Rubric của bài tập (Human-in-the-loop, chỉ dành cho Teacher)
+        /// POST /api/teaching/assignments/{id}/submissions/{submissionId}/ai-grade
+        /// </summary>
+        [HttpPost("{id:int}/submissions/{submissionId:int}/ai-grade")]
+        [Authorize(Roles = JwtAuthHelper.RolesTeaching)]
+        public async Task<IActionResult> AiEvaluateSubmission(int id, int submissionId, [FromBody] AiGradeSubmissionRequestDto? request)
+        {
+            if (id <= 0 || submissionId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Mã bài tập hoặc mã bài nộp không hợp lệ." });
+            }
+
+            var requestedBy = JwtAuthHelper.ResolveEffectiveUserId(
+                User,
+                request != null && request.RequestedBy > 0 ? request.RequestedBy : 3,
+                JwtAuthHelper.RoleTeacher,
+                JwtAuthHelper.RoleTeachingAssistant);
+
+            try
+            {
+                var evaluation = await _assignmentService!.AiEvaluateSubmissionAsync(id, submissionId, requestedBy);
+                return Ok(new
+                {
+                    success = true,
+                    message = "AI đã phân tích bài nộp và đưa ra gợi ý điểm số kèm nhận xét. Vui lòng xem xét và xác nhận điểm!",
+                    data = evaluation
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

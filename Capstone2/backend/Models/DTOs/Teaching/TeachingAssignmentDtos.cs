@@ -14,6 +14,8 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public DateTime DueDate { get; set; } = DateTime.UtcNow.AddDays(7);
         public string? AssignmentType { get; set; } = "Written Assignment";
         public string? FileUrl { get; set; }
+        public string? AnswerKeyFileUrl { get; set; }
+        public string? AnswerKeyText { get; set; }
         public decimal MaxScore { get; set; } = 10.00m;
         public int CreatedBy { get; set; } = 3; // Mặc định ThS. Hoàng Quốc Việt (TC001)
         public bool IsAiGradingEnabled { get; set; } = true;
@@ -29,8 +31,20 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public DateTime? DueDate { get; set; }
         public string? AssignmentType { get; set; }
         public string? FileUrl { get; set; }
+        public string? AnswerKeyFileUrl { get; set; }
+        public string? AnswerKeyText { get; set; }
         public decimal? MaxScore { get; set; }
         public bool? IsAiGradingEnabled { get; set; }
+    }
+
+    /// <summary>
+    /// DTO cập nhật riêng file Rubric / Đáp án cho bài tập
+    /// </summary>
+    public class UpdateAssignmentRubricRequestDto
+    {
+        public string AnswerKeyFileUrl { get; set; } = string.Empty;
+        public string? AnswerKeyText { get; set; }
+        public int RequestedBy { get; set; } = 3;
     }
 
     /// <summary>
@@ -44,6 +58,8 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string? FileUrl { get; set; }
+        public string? AnswerKeyFileUrl { get; set; }
+        public string? AnswerKeyText { get; set; }
         public string DueDate { get; set; } = string.Empty;
         public string DueDateFormatted { get; set; } = string.Empty;
         public decimal MaxScore { get; set; } = 10.00m;
@@ -74,6 +90,7 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public decimal? Score { get; set; }
         public string? Feedback { get; set; }
         public decimal? AiScore { get; set; }
+        public string? AiFeedback { get; set; }
         public string Status { get; set; } = "submitted";
         public int? GradedBy { get; set; }
         public string? GraderName { get; set; }
@@ -87,5 +104,23 @@ namespace EduTrack.API.Models.DTOs.Teaching
         public decimal Score { get; set; }
         public string? Feedback { get; set; }
         public int GradedBy { get; set; } = 3;
+    }
+
+    /// <summary>
+    /// DTO yêu cầu và kết quả AI hỗ trợ chấm bài nộp (Human-in-the-loop)
+    /// </summary>
+    public class AiGradeSubmissionRequestDto
+    {
+        public int RequestedBy { get; set; } = 3;
+    }
+
+    public class AiGradeSubmissionResponseDto
+    {
+        public int EvaluationId { get; set; }
+        public int SubmissionId { get; set; }
+        public int AssignmentId { get; set; }
+        public decimal AiScore { get; set; }
+        public string AiFeedback { get; set; } = string.Empty;
+        public string EvaluatedAt { get; set; } = string.Empty;
     }
 }

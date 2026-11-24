@@ -40,5 +40,15 @@ namespace EduTrack.API.Services.Teaching.Interfaces
         /// Chấm điểm và gửi nhận xét cho bài nộp học sinh
         /// </summary>
         Task<TeachingSubmissionItemDto> GradeSubmissionAsync(int assignmentId, int submissionId, GradeTeachingSubmissionRequestDto request);
+
+        /// <summary>
+        /// Cập nhật file Rubric / Đáp án & Cách giải cho bài tập (Chỉ dành cho Teacher)
+        /// </summary>
+        Task<TeachingAssignmentItemDto> UpdateAssignmentRubricAsync(int assignmentId, UpdateAssignmentRubricRequestDto request);
+
+        /// <summary>
+        /// Yêu cầu AI phân tích bài nộp dựa trên Rubric của bài tập và trả về điểm ước lượng + nhận xét (Human-in-the-loop, chỉ dành cho Teacher)
+        /// </summary>
+        Task<AiGradeSubmissionResponseDto> AiEvaluateSubmissionAsync(int assignmentId, int submissionId, int requestedByUserId);
     }
 }

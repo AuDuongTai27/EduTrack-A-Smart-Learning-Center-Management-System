@@ -345,7 +345,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                         DueDate = a.DueDate.ToString("dd/MM/yyyy"),
                         Status = statusText,
                         Score = sub?.Score,
-                        AiScore = sub?.AiScore,
+                        AiScore = null,
                         MaxScore = a.MaxScore
                     };
                 })
@@ -436,11 +436,7 @@ namespace EduTrack.API.Services.Learning.Implementation
 
             if (sub != null)
             {
-                var latestAiEval = sub.AiEvaluations
-                    .OrderByDescending(e => e.CreatedAt)
-                    .FirstOrDefault();
-
-                subDto = MapSubmissionToDto(sub, latestAiEval?.AiFeedback);
+                subDto = MapSubmissionToDto(sub);
             }
 
             return new StudentAssignmentDetailDto
@@ -482,31 +478,23 @@ namespace EduTrack.API.Services.Learning.Implementation
                 .Include(s => s.AiEvaluations)
                 .FirstOrDefaultAsync(s => s.AssignmentId == request.AssignmentId && s.StudentId == request.StudentId);
 
-            decimal? aiSuggestedScore = null;
-            string? aiFeedbackJson = null;
-            string? aiSummary = null;
-
-            if (assignment.IsAiGradingEnabled)
-            {
-                aiSuggestedScore = 9.0m;
-                aiSummary = $"AI Đánh giá tự động cho bài làm '{cleanFileName}': Lập luận rõ ràng, bám sát đáp án mẫu ({assignment.Title}). Đề xuất điểm: 9.0 / {assignment.MaxScore:0.##}.";
-                aiFeedbackJson = $"{{\"suggestedScore\": 9.0, \"summary\": \"{aiSummary}\"}}";
-            }
-
+            // Human-in-the-loop: Học sinh nộp bài KHÔNG tự động kích hoạt AI chấm điểm.
+            // AI chỉ chạy khi Giáo viên chủ động bấm nút "AI Assist Grade", và điểm chỉ hiển thị
+            // cho học sinh/phụ huynh sau khi Giáo viên xác nhận (Confirm & Save Grade).
             if (existingSubmission != null)
             {
                 existingSubmission.FileUrl = fileUrl;
                 existingSubmission.SubmittedAt = DateTime.UtcNow;
                 existingSubmission.Status = existingSubmission.Score.HasValue ? "graded" : "submitted";
 
-                if (assignment.IsAiGradingEnabled && !existingSubmission.Score.HasValue)
+                if (!existingSubmission.Score.HasValue)
                 {
-                    existingSubmission.AiScore = aiSuggestedScore;
-                    existingSubmission.AiFeedbackJson = aiFeedbackJson;
+                    existingSubmission.AiScore = null;
+                    existingSubmission.AiFeedbackJson = null;
                 }
 
                 await _context.SaveChangesAsync();
-                return MapSubmissionToDto(existingSubmission, aiSummary);
+                return MapSubmissionToDto(existingSubmission);
             }
 
             var newSubmission = new Submission
@@ -517,8 +505,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                 SubmittedAt = DateTime.UtcNow,
                 Score = null,
                 Feedback = null,
-                AiScore = aiSuggestedScore,
-                AiFeedbackJson = aiFeedbackJson,
+                AiScore = null,
+                AiFeedbackJson = null,
                 Status = "submitted",
                 GradedBy = null
             };
@@ -526,23 +514,7 @@ namespace EduTrack.API.Services.Learning.Implementation
             _context.Submissions.Add(newSubmission);
             await _context.SaveChangesAsync();
 
-            if (assignment.IsAiGradingEnabled && aiSuggestedScore.HasValue)
-            {
-                var aiEval = new AiEvaluation
-                {
-                    SubmissionId = newSubmission.SubmissionId,
-                    RequestedBy = assignment.CreatedBy > 0 ? assignment.CreatedBy : request.StudentId,
-                    AiScore = aiSuggestedScore,
-                    AiFeedback = aiSummary,
-                    RawResponse = aiFeedbackJson,
-                    Status = "SUCCESS",
-                    CreatedAt = DateTime.UtcNow
-                };
-                _context.AiEvaluations.Add(aiEval);
-                await _context.SaveChangesAsync();
-            }
-
-            return MapSubmissionToDto(newSubmission, aiSummary);
+            return MapSubmissionToDto(newSubmission);
         }
 
         public async Task<bool> DeleteSubmissionAsync(int assignmentId, int studentId)
@@ -731,29 +703,29 @@ namespace EduTrack.API.Services.Learning.Implementation
                     var sub = asg.Submissions.FirstOrDefault(s => s.StudentId == studentId);
                     if (sub != null)
                     {
-                        decimal? displayScore = sub.Score ?? sub.AiScore;
-                        string statusType = "dat";
-                        string statusIcon = "bi-check2-all";
-                        string statusLabel = displayScore.HasValue ? $"Đạt ({displayScore:0.#}/10)" : "Đã nộp";
+                        decimal? displayScore = sub.Score;
+                        string statusType = displayScore.HasValue ? "dat" : "chuacham";
+                        string statusIcon = displayScore.HasValue ? "bi-check2-all" : "bi-hourglass-split";
+                        string statusLabel = displayScore.HasValue ? $"Đạt ({displayScore:0.#}/{asg.MaxScore:0.#})" : "Đã nộp - Chờ chấm";
 
                         if (displayScore.HasValue && displayScore.Value < 5.0m)
                         {
                             statusType = "chuadat";
                             statusIcon = "bi-x-circle-fill";
-                            statusLabel = $"Chưa đạt ({displayScore:0.#}/10)";
+                            statusLabel = $"Chưa đạt ({displayScore:0.#}/{asg.MaxScore:0.#})";
                         }
                         else if (displayScore.HasValue && displayScore.Value < 7.5m)
                         {
                             statusType = "canluuy";
                             statusIcon = "bi-exclamation-triangle-fill";
-                            statusLabel = $"Cần lưu ý ({displayScore:0.#}/10)";
+                            statusLabel = $"Cần lưu ý ({displayScore:0.#}/{asg.MaxScore:0.#})";
                         }
 
                         string quote = !string.IsNullOrWhiteSpace(sub.Feedback)
                             ? sub.Feedback
-                            : sub.AiScore.HasValue
-                                ? $"Trợ lý AI đánh giá bài nộp đạt {sub.AiScore:0.#}/{asg.MaxScore:0.#} điểm. Các bước giải rõ ràng và đúng trọng tâm."
-                                : "Đã nộp bài đúng hạn, đang chờ giáo viên chấm điểm.";
+                            : displayScore.HasValue
+                                ? $"Giáo viên đã chấm điểm bài nộp: {displayScore:0.#}/{asg.MaxScore:0.#} điểm."
+                                : "Đã nộp bài, đang chờ giáo viên chấm điểm.";
 
                         feedbacks.Add(new StudentProgressFeedbackDto
                         {
@@ -1676,7 +1648,7 @@ namespace EduTrack.API.Services.Learning.Implementation
             return url;
         }
 
-        private static StudentSubmissionDetailDto MapSubmissionToDto(Submission sub, string? aiSummaryFallback)
+        private static StudentSubmissionDetailDto MapSubmissionToDto(Submission sub)
         {
             string fileUrl = NormalizeFileUrl(sub.FileUrl, "submissions");
             string fileName = "Bai_nop_hoc_sinh.pdf";
@@ -1712,12 +1684,10 @@ namespace EduTrack.API.Services.Learning.Implementation
                 SubmittedAt = submittedAtStr,
                 Score = sub.Score,
                 Feedback = sub.Feedback,
-                AiScore = sub.AiScore,
-                AiFeedbackJson = sub.AiFeedbackJson,
-                AiSummary = aiSummaryFallback ?? (sub.AiScore.HasValue
-                    ? $"AI chấm sơ bộ: {sub.AiScore:0.##}/10 — Bài làm đầy đủ các bước biến đổi và đúng phương pháp."
-                    : null),
-                Status = sub.Status
+                AiScore = null,
+                AiFeedbackJson = null,
+                AiSummary = null,
+                Status = sub.Score.HasValue ? "graded" : "submitted"
             };
         }
 
