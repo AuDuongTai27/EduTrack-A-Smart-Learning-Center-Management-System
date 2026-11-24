@@ -12,6 +12,7 @@ import type {
   UpdateLearnerProfilePayload,
   ParentChildOverviewApiDto,
   TuitionInvoiceItemApiDto,
+  CreateVnPayPaymentResponseApiDto,
 } from '../BLL/models/learning';
 import {
   INITIAL_PROFILE,
@@ -898,6 +899,77 @@ export const learningDAL = {
       window.dispatchEvent(new CustomEvent('notifications-updated'));
     }
     return mapApiTuitionToViewModel(apiData);
+  },
+
+  /**
+   * Tạo URL thanh toán học phí trực tuyến qua cổng VNPay Sandbox
+   */
+  async createVnPayPaymentUrl(
+    studentId = DEFAULT_STUDENT_ID,
+    parentId = DEFAULT_PARENT_ID,
+    invoiceIds?: number[],
+    returnUrl?: string
+  ): Promise<CreateVnPayPaymentResponseApiDto> {
+    const targetStudentId = resolveStudentId(studentId);
+    const targetParentId = resolveParentId(parentId);
+    const defaultReturnUrl =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}`
+        : undefined;
+    return await learningApi.createVnPayPaymentUrl({
+      studentId: targetStudentId,
+      parentId: targetParentId,
+      invoiceIds,
+      returnUrl: returnUrl || defaultReturnUrl,
+    });
+  },
+
+  /**
+   * Xác thực kết quả trả về từ cổng VNPay Sandbox và cập nhật dữ liệu học phí
+   */
+  async verifyVnPayReturn(
+    queryParams: Record<string, string>,
+    studentId = DEFAULT_STUDENT_ID,
+    parentId = DEFAULT_PARENT_ID
+  ): Promise<{
+    isSuccess: boolean;
+    alreadyProcessed: boolean;
+    responseCode: string;
+    transactionNo: string;
+    txnRef: string;
+    bankCode: string;
+    amountPaid: number;
+    message: string;
+    tuitionVm?: StudentTuitionViewModel;
+  }> {
+    const targetStudentId = resolveStudentId(studentId);
+    const targetParentId = resolveParentId(parentId);
+    const rawQueryString =
+      typeof window !== 'undefined' ? window.location.search : undefined;
+    const res = await learningApi.verifyVnPayReturn({
+      studentId: targetStudentId,
+      parentId: targetParentId,
+      rawQueryString,
+      queryParams,
+    });
+
+    if (res.isSuccess && typeof window !== 'undefined') {
+      try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* ignore */ }
+      window.dispatchEvent(new StorageEvent('storage', { key: 'edutrack-notifications-invalidated' }));
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    }
+
+    return {
+      isSuccess: res.isSuccess,
+      alreadyProcessed: res.alreadyProcessed,
+      responseCode: res.responseCode,
+      transactionNo: res.transactionNo,
+      txnRef: res.txnRef,
+      bankCode: res.bankCode,
+      amountPaid: res.amountPaid,
+      message: res.message,
+      tuitionVm: res.tuitionOverview ? mapApiTuitionToViewModel(res.tuitionOverview) : undefined,
+    };
   },
 
   /**

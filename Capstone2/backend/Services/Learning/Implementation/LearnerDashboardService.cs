@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using EduTrack.API.Models.DTOs.Learning;
 using EduTrack.API.Models.EF;
 using EduTrack.API.Models.Entities;
@@ -15,10 +16,12 @@ namespace EduTrack.API.Services.Learning.Implementation
     public class LearnerDashboardService : ILearnerDashboardService
     {
         private readonly EduTrackDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public LearnerDashboardService(EduTrackDbContext context)
+        public LearnerDashboardService(EduTrackDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<StudentDashboardDto?> GetStudentDashboardAsync(int studentId)
@@ -940,12 +943,19 @@ namespace EduTrack.API.Services.Learning.Implementation
             }
 
             var nowUtc = DateTime.UtcNow;
+            string normalizedMethod = string.IsNullOrWhiteSpace(request.PaymentMethod)
+                ? "bank_transfer"
+                : request.PaymentMethod.Trim().ToLowerInvariant();
+            string defaultPrefix = normalizedMethod == "vnpay" ? "VNPAY" : "CK";
             string baseTxCode = !string.IsNullOrWhiteSpace(request.TransactionCode)
                 ? request.TransactionCode.Trim()
-                : $"CK{nowUtc:yyyyMMddHHmmss}";
+                : $"{defaultPrefix}{nowUtc:yyyyMMddHHmmss}";
 
             decimal totalPaidNow = 0m;
             var paidClassNames = new List<string>();
+            string notePrefix = normalizedMethod == "vnpay"
+                ? "Phụ huynh thanh toán trực tuyến qua cổng VNPay"
+                : "Phụ huynh chuyển khoản trực tuyến";
 
             foreach (var item in payableInvoices)
             {
@@ -960,12 +970,12 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Amount = item.Remaining,
                     AdditionalChargeAmount = 0m,
                     AdditionalChargeNote = null,
-                    PaymentMethod = "bank_transfer",
+                    PaymentMethod = normalizedMethod,
                     TransactionCode = txCode.Length > 100 ? txCode.Substring(0, 100) : txCode,
                     PaidAt = nowUtc,
                     PaidByUserId = payerId,
                     RecordedBy = null,
-                    Note = $"Phụ huynh chuyển khoản trực tuyến ({inv.Class?.ClassName ?? $"Lớp #{inv.ClassId}"} - T{inv.PeriodMonth}/{inv.PeriodYear})"
+                    Note = $"{notePrefix} ({inv.Class?.ClassName ?? $"Lớp #{inv.ClassId}"} - T{inv.PeriodMonth}/{inv.PeriodYear})"
                 };
 
                 _context.Payments.Add(payment);
@@ -983,7 +993,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 UserId = student.UserId,
                 ClassId = payableInvoices[0].Invoice.ClassId,
                 Title = $"Xác nhận thanh toán học phí thành công ({student.FullName})",
-                Content = $"Hệ thống EduTrack đã ghi nhận khoản chuyển khoản học phí {totalPaidNow:N0} đ cho học sinh {student.FullName} ({string.Join(", ", paidClassNames)}). Mã tham chiếu: {baseTxCode}.",
+                Content = $"Hệ thống EduTrack đã ghi nhận khoản thanh toán học phí {totalPaidNow:N0} đ cho học sinh {student.FullName} ({string.Join(", ", paidClassNames)}). Mã tham chiếu: {baseTxCode}.",
                 Type = "tuition",
                 TargetScope = "user",
                 TargetRole = "parent",
@@ -1003,6 +1013,259 @@ namespace EduTrack.API.Services.Learning.Implementation
 
             return await GetStudentTuitionOverviewAsync(request.StudentId)
                 ?? throw new InvalidOperationException("Không thể tải lại thông tin học phí sau khi thanh toán.");
+        }
+
+        public async Task<CreateVnPayPaymentResponseDto> CreateVnPayPaymentUrlAsync(
+            CreateVnPayPaymentRequestDto request,
+            string clientIpAddress)
+        {
+            if (request == null || request.StudentId <= 0)
+            {
+                throw new ArgumentException("Thông tin học sinh cần thanh toán VNPay không hợp lệ.");
+            }
+
+            string tmnCode = (_configuration["VNPay:TmnCode"] ?? string.Empty).Trim();
+            string hashSecret = (_configuration["VNPay:HashSecret"] ?? string.Empty).Trim();
+            string paymentUrl = (_configuration["VNPay:PaymentUrl"] ?? "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html").Trim();
+            string returnUrl = !string.IsNullOrWhiteSpace(request.ReturnUrl)
+                ? request.ReturnUrl.Trim()
+                : (_configuration["VNPay:ReturnUrl"] ?? "http://localhost:5173/parent/tuition").Trim();
+
+            if (string.IsNullOrWhiteSpace(tmnCode) || string.IsNullOrWhiteSpace(hashSecret))
+            {
+                throw new InvalidOperationException("Chưa cấu hình đầy đủ thông tin kết nối VNPay Sandbox (TmnCode / HashSecret) trong hệ thống.");
+            }
+
+            var student = await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == request.StudentId)
+                ?? throw new InvalidOperationException($"Không tìm thấy học sinh ID = {request.StudentId}.");
+
+            int payerId = request.ParentId > 0 ? request.ParentId : 9;
+
+            var invoicesQuery = _context.TuitionInvoices
+                .AsNoTracking()
+                .Include(i => i.Payments)
+                .Where(i => i.StudentId == request.StudentId);
+
+            if (request.InvoiceIds is { Count: > 0 })
+            {
+                invoicesQuery = invoicesQuery.Where(i => request.InvoiceIds.Contains(i.InvoiceId));
+            }
+
+            var invoices = await invoicesQuery.ToListAsync();
+            var nowOffset = DateTimeOffset.UtcNow;
+            var payableInvoices = invoices
+                .Select(inv =>
+                {
+                    decimal paid = inv.Payments.Sum(p => p.Amount);
+                    decimal remaining = Math.Max(0m, inv.AmountDue - paid);
+                    string status = EduTrack.API.Services.Management.TuitionPolicy.ResolveStatus(
+                        inv.AmountDue, paid, inv.DueDate, nowOffset, inv.Status);
+                    return new { Invoice = inv, Remaining = remaining, Status = status };
+                })
+                .Where(x => x.Remaining > 0 && x.Status != "paid")
+                .OrderBy(x => x.Invoice.InvoiceId)
+                .ToList();
+
+            if (payableInvoices.Count == 0)
+            {
+                throw new InvalidOperationException("Học sinh hiện không còn khoản học phí nào chưa thanh toán.");
+            }
+
+            decimal totalAmount = payableInvoices.Sum(x => x.Remaining);
+            var selectedInvoiceIds = payableInvoices.Select(x => x.Invoice.InvoiceId).ToList();
+            string invoiceIdsJoined = string.Join("-", selectedInvoiceIds);
+
+            // Tạo mã tham chiếu giao dịch vnp_TxnRef chứa StudentId, ParentId và danh sách InvoiceIds
+            var vnNow = DateTime.UtcNow.AddHours(7);
+            string txnRef = $"EDU_{request.StudentId}_{payerId}_{invoiceIdsJoined}_{vnNow:yyyyMMddHHmmss}";
+            if (txnRef.Length > 95)
+            {
+                txnRef = $"EDU_{request.StudentId}_{payerId}_ALL_{vnNow:yyyyMMddHHmmss}";
+            }
+
+            long vnpAmount = (long)Math.Round(totalAmount * 100m, MidpointRounding.AwayFromZero);
+            string ipAddr = string.IsNullOrWhiteSpace(clientIpAddress) || clientIpAddress == "::1"
+                ? "127.0.0.1"
+                : clientIpAddress;
+
+            var vnpParams = VnPayHelper.CreateSortedParameters();
+            vnpParams["vnp_Version"] = _configuration["VNPay:Version"] ?? "2.1.0";
+            vnpParams["vnp_Command"] = _configuration["VNPay:Command"] ?? "pay";
+            vnpParams["vnp_TmnCode"] = tmnCode;
+            vnpParams["vnp_Amount"] = vnpAmount.ToString();
+            vnpParams["vnp_CreateDate"] = vnNow.ToString("yyyyMMddHHmmss");
+            vnpParams["vnp_CurrCode"] = _configuration["VNPay:CurrCode"] ?? "VND";
+            vnpParams["vnp_IpAddr"] = ipAddr;
+            vnpParams["vnp_Locale"] = _configuration["VNPay:Locale"] ?? "vn";
+            vnpParams["vnp_OrderInfo"] = $"ThanhToanHocPhiEduTrack_HS{student.UserId}_{selectedInvoiceIds.Count}Ky";
+            vnpParams["vnp_OrderType"] = "other";
+            vnpParams["vnp_ReturnUrl"] = returnUrl;
+            vnpParams["vnp_TxnRef"] = txnRef;
+            vnpParams["vnp_ExpireDate"] = vnNow.AddMinutes(15).ToString("yyyyMMddHHmmss");
+
+            string fullUrl = VnPayHelper.CreatePaymentUrl(paymentUrl, hashSecret, vnpParams);
+
+            return new CreateVnPayPaymentResponseDto
+            {
+                PaymentUrl = fullUrl,
+                TxnRef = txnRef,
+                TotalAmount = totalAmount,
+                InvoiceIds = selectedInvoiceIds
+            };
+        }
+
+        public async Task<VerifyVnPayReturnResponseDto> VerifyAndProcessVnPayReturnAsync(VerifyVnPayReturnRequestDto request)
+        {
+            if (request == null || request.QueryParams == null || request.QueryParams.Count == 0)
+            {
+                throw new ArgumentException("Không tìm thấy dữ liệu phản hồi từ cổng VNPay.");
+            }
+
+            string hashSecret = (_configuration["VNPay:HashSecret"] ?? string.Empty).Trim();
+            request.QueryParams.TryGetValue("vnp_SecureHash", out string? inputHash);
+            request.QueryParams.TryGetValue("vnp_ResponseCode", out string? responseCode);
+            request.QueryParams.TryGetValue("vnp_TransactionStatus", out string? transactionStatus);
+            request.QueryParams.TryGetValue("vnp_TransactionNo", out string? transactionNo);
+            request.QueryParams.TryGetValue("vnp_TxnRef", out string? txnRef);
+            request.QueryParams.TryGetValue("vnp_BankCode", out string? bankCode);
+            request.QueryParams.TryGetValue("vnp_Amount", out string? rawAmount);
+
+            bool isValidSignature =
+                VnPayHelper.ValidateSignature(request.QueryParams, inputHash ?? string.Empty, hashSecret) ||
+                VnPayHelper.ValidateRawQueryString(request.RawQueryString, inputHash ?? string.Empty, hashSecret);
+            if (!isValidSignature)
+            {
+                return new VerifyVnPayReturnResponseDto
+                {
+                    IsSuccess = false,
+                    ResponseCode = "97",
+                    TxnRef = txnRef ?? string.Empty,
+                    Message = "Chữ ký bảo mật VNPay (vnp_SecureHash) không hợp lệ. Giao dịch bị từ chối để đảm bảo an toàn."
+                };
+            }
+
+            // Bóc tách StudentId, ParentId và danh sách InvoiceIds từ vnp_TxnRef: EDU_{studentId}_{parentId}_{inv1-inv2}_{timestamp}
+            int parsedStudentId = request.StudentId > 0 ? request.StudentId : 6;
+            int parsedParentId = request.ParentId > 0 ? request.ParentId : 9;
+            List<int>? parsedInvoiceIds = null;
+
+            if (!string.IsNullOrWhiteSpace(txnRef))
+            {
+                var parts = txnRef.Split('_', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 5 && string.Equals(parts[0], "EDU", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(parts[1], out int sid) && sid > 0) parsedStudentId = sid;
+                    if (int.TryParse(parts[2], out int pid) && pid > 0) parsedParentId = pid;
+
+                    string invPart = parts[3];
+                    if (!string.Equals(invPart, "ALL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var ids = invPart.Split('-', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s => int.TryParse(s, out int id) ? id : 0)
+                            .Where(id => id > 0)
+                            .ToList();
+                        if (ids.Count > 0)
+                        {
+                            parsedInvoiceIds = ids;
+                        }
+                    }
+                }
+            }
+
+            decimal amountPaid = 0m;
+            if (long.TryParse(rawAmount, out long vnpAmountLong) && vnpAmountLong > 0)
+            {
+                amountPaid = vnpAmountLong / 100m;
+            }
+
+            string code = (responseCode ?? string.Empty).Trim();
+            string txStatus = string.IsNullOrWhiteSpace(transactionStatus) ? code : transactionStatus.Trim();
+
+            if (code != "00" || txStatus != "00")
+            {
+                var currentOverview = await GetStudentTuitionOverviewAsync(parsedStudentId);
+                return new VerifyVnPayReturnResponseDto
+                {
+                    IsSuccess = false,
+                    ResponseCode = code,
+                    TransactionNo = transactionNo ?? string.Empty,
+                    TxnRef = txnRef ?? string.Empty,
+                    BankCode = bankCode ?? string.Empty,
+                    AmountPaid = amountPaid,
+                    Message = VnPayHelper.MapResponseCodeMessage(code),
+                    TuitionOverview = currentOverview
+                };
+            }
+
+            string cleanTxNo = !string.IsNullOrWhiteSpace(transactionNo) && transactionNo != "0"
+                ? transactionNo.Trim()
+                : (txnRef ?? DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
+            string vnpayTransactionCode = $"VNPAY-{cleanTxNo}";
+
+            // Kiểm tra Idempotency: nếu giao dịch VNPay này đã được xử lý trước đó (VD: F5 trang) thì không gạch nợ trùng
+            bool alreadyExists = await _context.Payments
+                .AsNoTracking()
+                .AnyAsync(p => p.TransactionCode != null && p.TransactionCode.StartsWith(vnpayTransactionCode));
+
+            if (alreadyExists)
+            {
+                var existingOverview = await GetStudentTuitionOverviewAsync(parsedStudentId);
+                return new VerifyVnPayReturnResponseDto
+                {
+                    IsSuccess = true,
+                    AlreadyProcessed = true,
+                    ResponseCode = "00",
+                    TransactionNo = cleanTxNo,
+                    TxnRef = txnRef ?? string.Empty,
+                    BankCode = bankCode ?? string.Empty,
+                    AmountPaid = amountPaid,
+                    Message = $"Giao dịch VNPay #{cleanTxNo} đã được ghi nhận thành công.",
+                    TuitionOverview = existingOverview
+                };
+            }
+
+            try
+            {
+                var updatedOverview = await PayStudentTuitionAsync(new PayStudentTuitionRequestDto
+                {
+                    StudentId = parsedStudentId,
+                    ParentId = parsedParentId,
+                    PaymentMethod = "vnpay",
+                    TransactionCode = vnpayTransactionCode,
+                    InvoiceIds = parsedInvoiceIds
+                });
+
+                return new VerifyVnPayReturnResponseDto
+                {
+                    IsSuccess = true,
+                    AlreadyProcessed = false,
+                    ResponseCode = "00",
+                    TransactionNo = cleanTxNo,
+                    TxnRef = txnRef ?? string.Empty,
+                    BankCode = bankCode ?? string.Empty,
+                    AmountPaid = amountPaid,
+                    Message = $"Thanh toán học phí qua VNPay thành công (Mã GD: {vnpayTransactionCode})!",
+                    TuitionOverview = updatedOverview
+                };
+            }
+            catch (InvalidOperationException)
+            {
+                // Trường hợp các hóa đơn đã được gạch nợ hết ngay trước đó
+                var latestOverview = await GetStudentTuitionOverviewAsync(parsedStudentId);
+                return new VerifyVnPayReturnResponseDto
+                {
+                    IsSuccess = true,
+                    AlreadyProcessed = true,
+                    ResponseCode = "00",
+                    TransactionNo = cleanTxNo,
+                    TxnRef = txnRef ?? string.Empty,
+                    BankCode = bankCode ?? string.Empty,
+                    AmountPaid = amountPaid,
+                    Message = $"Giao dịch VNPay #{cleanTxNo} đã hoàn tất.",
+                    TuitionOverview = latestOverview
+                };
+            }
         }
 
         public Task<StudentTuitionOverviewDto?> ResetDemoUnpaidTuitionAsync(int studentId) =>

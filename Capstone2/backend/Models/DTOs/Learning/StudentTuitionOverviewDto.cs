@@ -47,4 +47,41 @@ namespace EduTrack.API.Models.DTOs.Learning
         public string? TransactionCode { get; set; }
         public List<int>? InvoiceIds { get; set; }
     }
+
+    public class CreateVnPayPaymentRequestDto
+    {
+        public int StudentId { get; set; } = 6;
+        public int ParentId { get; set; } = 9;
+        public List<int>? InvoiceIds { get; set; }
+        public string? ReturnUrl { get; set; }
+    }
+
+    public class CreateVnPayPaymentResponseDto
+    {
+        public string PaymentUrl { get; set; } = string.Empty;
+        public string TxnRef { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
+        public List<int> InvoiceIds { get; set; } = new List<int>();
+    }
+
+    public class VerifyVnPayReturnRequestDto
+    {
+        public int StudentId { get; set; }
+        public int ParentId { get; set; }
+        public string? RawQueryString { get; set; }
+        public Dictionary<string, string> QueryParams { get; set; } = new Dictionary<string, string>();
+    }
+
+    public class VerifyVnPayReturnResponseDto
+    {
+        public bool IsSuccess { get; set; }
+        public bool AlreadyProcessed { get; set; }
+        public string ResponseCode { get; set; } = string.Empty;
+        public string TransactionNo { get; set; } = string.Empty;
+        public string TxnRef { get; set; } = string.Empty;
+        public string BankCode { get; set; } = string.Empty;
+        public decimal AmountPaid { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public StudentTuitionOverviewDto? TuitionOverview { get; set; }
+    }
 }

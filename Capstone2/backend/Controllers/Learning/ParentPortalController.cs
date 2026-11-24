@@ -105,6 +105,79 @@ namespace EduTrack.API.Controllers.Learning
         }
 
         /// <summary>
+        /// Khởi tạo đường dẫn thanh toán học phí trực tuyến qua cổng VNPay Sandbox (Ký số HMAC-SHA512)
+        /// </summary>
+        [HttpPost("payments/vnpay/create-url")]
+        public async Task<IActionResult> CreateVnPayPaymentUrl([FromBody] CreateVnPayPaymentRequestDto request)
+        {
+            if (request == null || request.StudentId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Thông tin khởi tạo thanh toán VNPay không hợp lệ." });
+            }
+
+            if (User.IsInRole(JwtAuthHelper.RoleParent) && !JwtAuthHelper.IsManagementUser(User))
+            {
+                request.ParentId = JwtAuthHelper.ResolveEffectiveUserId(User, request.ParentId, JwtAuthHelper.RoleParent);
+            }
+
+            try
+            {
+                string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var result = await _dashboardService.CreateVnPayPaymentUrlAsync(request, clientIp);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đã tạo đường dẫn thanh toán VNPay Sandbox thành công.",
+                    data = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Xác thực chữ ký VNPay Return URL (HMAC-SHA512) và tự động gạch nợ hóa đơn học phí khi vnp_ResponseCode = '00'
+        /// </summary>
+        [HttpPost("payments/vnpay/verify-return")]
+        public async Task<IActionResult> VerifyVnPayReturn([FromBody] VerifyVnPayReturnRequestDto request)
+        {
+            if (request == null || request.QueryParams == null || request.QueryParams.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "Không có dữ liệu phản hồi VNPay cần xác thực." });
+            }
+
+            if (User.IsInRole(JwtAuthHelper.RoleParent) && !JwtAuthHelper.IsManagementUser(User))
+            {
+                request.ParentId = JwtAuthHelper.ResolveEffectiveUserId(User, request.ParentId, JwtAuthHelper.RoleParent);
+            }
+
+            try
+            {
+                var result = await _dashboardService.VerifyAndProcessVnPayReturnAsync(request);
+                return Ok(new
+                {
+                    success = result.IsSuccess,
+                    message = result.Message,
+                    data = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Lỗi xử lý kết quả thanh toán VNPay: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
         /// Khôi phục lại hóa đơn kỳ hiện tại về trạng thái 'unpaid' (Phục vụ Demo thanh toán nhiều lần)
         /// </summary>
         [HttpPost("tuition/{studentId:int}/reset-demo")]

@@ -40,3 +40,37 @@ export interface PayStudentTuitionPayload {
   invoiceIds?: number[];
 }
 
+export interface CreateVnPayPaymentPayload {
+  studentId: number;
+  parentId: number;
+  invoiceIds?: number[];
+  returnUrl?: string;
+}
+
+export interface CreateVnPayPaymentResponseApiDto {
+  paymentUrl: string;
+  txnRef: string;
+  totalAmount: number;
+  invoiceIds: number[];
+}
+
+export interface VerifyVnPayReturnPayload {
+  studentId: number;
+  parentId: number;
+  rawQueryString?: string;
+  queryParams: Record<string, string>;
+}
+
+export interface VerifyVnPayReturnResponseApiDto {
+  isSuccess: boolean;
+  alreadyProcessed: boolean;
+  responseCode: string;
+  transactionNo: string;
+  txnRef: string;
+  bankCode: string;
+  amountPaid: number;
+  message: string;
+  tuitionOverview?: StudentTuitionOverviewApiDto | null;
+}
+
+

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
 import { TuitionBillCard } from '../../components/student/tuition/TuitionBillCard';
@@ -15,12 +16,15 @@ import type {
 
 export function ParentTuitionPage() {
   const { selectedChild, loading: parentLoading, updateChildUnpaidAmount } = useParent();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const processedVnPayRef = useRef<string | null>(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [bill, setBill] = useState<TuitionBill | null>(null);
   const [history, setHistory] = useState<TuitionHistoryItem[]>([]);
   const [totalUnpaid, setTotalUnpaid] = useState<number>(0);
   const [unpaidInvoices, setUnpaidInvoices] = useState<TuitionInvoiceItemApiDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [verifyingVnPay, setVerifyingVnPay] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -30,8 +34,70 @@ export function ParentTuitionPage() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3500);
+    }, 4500);
   };
+
+  // Xử lý callback khi VNPay Sandbox redirect quay về /parent/tuition?vnp_Amount=...&vnp_ResponseCode=...
+  useEffect(() => {
+    const vnpResponseCode = searchParams.get('vnp_ResponseCode');
+    const vnpTxnRef = searchParams.get('vnp_TxnRef');
+    const vnpSecureHash = searchParams.get('vnp_SecureHash');
+
+    if (!vnpResponseCode || !vnpTxnRef || !vnpSecureHash) {
+      return;
+    }
+
+    const callbackKey = `${vnpTxnRef}_${vnpResponseCode}`;
+    if (processedVnPayRef.current === callbackKey) {
+      return;
+    }
+    processedVnPayRef.current = callbackKey;
+
+    const queryParamsObj: Record<string, string> = {};
+    searchParams.forEach((value, key) => {
+      if (key.startsWith('vnp_')) {
+        queryParamsObj[key] = value;
+      }
+    });
+
+    async function processVnPayCallback() {
+      setVerifyingVnPay(true);
+      setErrorMsg(null);
+      try {
+        const result = await learningDAL.verifyVnPayReturn(
+          queryParamsObj,
+          studentId,
+          DEFAULT_PARENT_ID
+        );
+
+        if (result.tuitionVm) {
+          setBill(result.tuitionVm.bill);
+          setHistory(result.tuitionVm.history);
+          setTotalUnpaid(result.tuitionVm.totalUnpaidAmount);
+          setUnpaidInvoices(result.tuitionVm.unpaidInvoices || []);
+          updateChildUnpaidAmount(result.tuitionVm.studentId, result.tuitionVm.totalUnpaidAmount);
+        }
+
+        if (result.isSuccess) {
+          showToast(result.message || 'VNPay online tuition payment completed successfully!');
+        } else {
+          setErrorMsg(result.message || 'VNPay payment was cancelled or failed.');
+        }
+      } catch (err) {
+        setErrorMsg(
+          err instanceof Error
+            ? err.message
+            : 'Failed to verify VNPay payment response from the server.'
+        );
+      } finally {
+        setVerifyingVnPay(false);
+        // Xóa các tham số vnp_* trên thanh địa chỉ để tránh xử lý lại khi F5
+        setSearchParams({}, { replace: true });
+      }
+    }
+
+    processVnPayCallback();
+  }, [searchParams, setSearchParams, studentId, updateChildUnpaidAmount]);
 
   useEffect(() => {
     let isMounted = true;
@@ -67,33 +133,35 @@ export function ParentTuitionPage() {
     };
   }, [studentId]);
 
-  const handleConfirmPayment = async (transactionCode?: string, selectedInvoiceIds?: number[]) => {
+  const handlePayWithVnPay = async (selectedInvoiceIds?: number[]) => {
     setErrorMsg(null);
     try {
-      const updatedVm = await learningDAL.payStudentTuition(
+      const returnUrl = `${window.location.origin}${window.location.pathname}`;
+      const vnpRes = await learningDAL.createVnPayPaymentUrl(
         studentId,
-        'bank_transfer',
         DEFAULT_PARENT_ID,
-        transactionCode,
-        selectedInvoiceIds
+        selectedInvoiceIds,
+        returnUrl
       );
-      setBill(updatedVm.bill);
-      setHistory(updatedVm.history);
-      setTotalUnpaid(updatedVm.totalUnpaidAmount);
-      setUnpaidInvoices(updatedVm.unpaidInvoices || []);
-      updateChildUnpaidAmount(studentId, updatedVm.totalUnpaidAmount);
-      showToast(`Tuition payment recorded for student ${selectedChild?.name || ''}!`);
+      if (!vnpRes?.paymentUrl) {
+        throw new Error('Could not generate VNPay Sandbox payment URL.');
+      }
+      window.location.href = vnpRes.paymentUrl;
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Tuition payment failed.');
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to initiate VNPay Sandbox payment.');
       throw err;
     }
   };
 
-  if (parentLoading || (loading && !bill)) {
+  if (parentLoading || verifyingVnPay || (loading && !bill)) {
     return (
       <LearnerPageLoader
-        title="Loading tuition information..."
-        message="The system is checking current term invoices and child's tuition payment history."
+        title={verifyingVnPay ? 'Verifying VNPay payment...' : 'Loading tuition information...'}
+        message={
+          verifyingVnPay
+            ? 'Checking VNPay digital signature and updating your child’s tuition invoice status.'
+            : "The system is checking current term invoices and child's tuition payment history."
+        }
         containerClassName="tuition-container"
       />
     );
@@ -162,7 +230,7 @@ export function ParentTuitionPage() {
             {/* 4. Payment History Section (Lịch sử các giao dịch) */}
             <TuitionHistorySection history={history} />
 
-            {/* Payment Modal (Chuyển khoản ngân hàng trực tiếp) */}
+            {/* Payment Modal (Thanh toán trực tuyến qua cổng VNPay Sandbox) */}
             <TuitionPaymentModal
               isOpen={modalOpen}
               onClose={() => setModalOpen(false)}
@@ -170,7 +238,7 @@ export function ParentTuitionPage() {
               period={bill.period}
               totalAmountText={bill.totalAmount}
               unpaidInvoices={unpaidInvoices}
-              onConfirmPayment={handleConfirmPayment}
+              onPayWithVnPay={handlePayWithVnPay}
             />
           </>
         )}

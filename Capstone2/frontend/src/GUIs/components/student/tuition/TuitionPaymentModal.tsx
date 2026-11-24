@@ -8,7 +8,7 @@ interface TuitionPaymentModalProps {
   period?: string;
   totalAmountText?: string;
   unpaidInvoices?: TuitionInvoiceItemApiDto[];
-  onConfirmPayment?: (transactionCode?: string, selectedInvoiceIds?: number[]) => Promise<void> | void;
+  onPayWithVnPay?: (selectedInvoiceIds?: number[]) => Promise<void> | void;
 }
 
 export function TuitionPaymentModal({
@@ -18,10 +18,9 @@ export function TuitionPaymentModal({
   period = 'October 2026 Term',
   totalAmountText = '0 VND',
   unpaidInvoices = [],
-  onConfirmPayment,
+  onPayWithVnPay,
 }: TuitionPaymentModalProps) {
   const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<number[]>([]);
-  const [transactionCode, setTransactionCode] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   // Khởi tạo các kỳ được chọn khi mở modal
@@ -32,7 +31,6 @@ export function TuitionPaymentModal({
       } else {
         setSelectedInvoiceIds([]);
       }
-      setTransactionCode('');
     }
   }, [isOpen, unpaidInvoices]);
 
@@ -72,20 +70,14 @@ export function TuitionPaymentModal({
     }
   };
 
-  const transferNote = `EDUTRACK HP ${studentName.toUpperCase()}`;
-
   const handleConfirm = async () => {
     if (hasMultipleInvoices && selectedInvoiceIds.length === 0) return;
     setIsProcessing(true);
     try {
-      if (onConfirmPayment) {
-        await onConfirmPayment(
-          transactionCode.trim() || undefined,
-          hasMultipleInvoices ? selectedInvoiceIds : undefined
-        );
+      const targetIds = hasMultipleInvoices ? selectedInvoiceIds : undefined;
+      if (onPayWithVnPay) {
+        await onPayWithVnPay(targetIds);
       }
-      setTransactionCode('');
-      onClose();
     } finally {
       setIsProcessing(false);
     }
@@ -112,7 +104,7 @@ export function TuitionPaymentModal({
             <div className="modal-header payment-modal-header border-0">
               <div>
                 <h5 className="modal-title fw-bold" id="paymentModalLabel">
-                  Tuition Bank Transfer
+                  VNPay Online Tuition Payment
                 </h5>
                 <p className="mb-0 text-white-50 small">
                   {period} &middot; Student {studentName}
@@ -209,49 +201,41 @@ export function TuitionPaymentModal({
                 </span>
               </div>
 
-              {/* Thông tin tài khoản trung tâm */}
-              <div className="p-3 rounded-3 border border-primary-subtle bg-primary-subtle bg-opacity-25 mb-3">
-                <div className="d-flex align-items-center gap-2 mb-2 text-primary fw-bold small text-uppercase">
-                  <i className="bi bi-bank2 fs-6" />
-                  <span>Center Tuition Bank Account Details</span>
+              <div className="p-3 rounded-3 border border-primary-subtle bg-primary-subtle bg-opacity-25 mb-2">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <div className="d-flex align-items-center gap-2 text-primary fw-bold small text-uppercase">
+                    <i className="bi bi-shield-check fs-6" />
+                    <span>VNPay Payment Gateway (Sandbox)</span>
+                  </div>
+                  <span className="badge bg-primary text-white">v2.1.0</span>
                 </div>
-                <div className="small d-grid gap-2 text-dark">
-                  <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Bank:</span>
-                    <strong className="text-end">Vietcombank (HCMC Branch)</strong>
+                <p className="small text-dark mb-2">
+                  You will be redirected to <strong>VNPay Sandbox Gateway</strong> to complete the online payment. After authentication, the system will automatically return and mark your invoices as paid.
+                </p>
+                <div className="p-2.5 rounded-2 bg-white border small text-dark" style={{ padding: '10px 12px' }}>
+                  <div className="fw-bold text-secondary mb-1" style={{ fontSize: '11.5px' }}>
+                    <i className="bi bi-credit-card me-1 text-primary" />
+                    VNPay Sandbox Test Card Credentials:
                   </div>
-                  <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Account Number:</span>
-                    <strong className="font-monospace text-primary">1029 3847 56</strong>
-                  </div>
-                  <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Account Holder:</span>
-                    <strong className="text-end">TRUNG TAM DAO TAO EDUTRACK</strong>
-                  </div>
-                  <div className="d-flex justify-content-between gap-2">
-                    <span className="text-muted">Transfer Memo:</span>
-                    <strong className="font-monospace text-end">{transferNote}</strong>
+                  <div className="d-grid gap-1" style={{ fontSize: '12px' }}>
+                    <div className="d-flex justify-content-between">
+                      <span className="text-muted">Bank:</span>
+                      <strong className="font-monospace">NCB (Ngân hàng Quốc Dân)</strong>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                      <span className="text-muted">Card Number:</span>
+                      <strong className="font-monospace text-primary">9704198526191432198</strong>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                      <span className="text-muted">Card Holder:</span>
+                      <strong className="font-monospace">NGUYEN VAN A</strong>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                      <span className="text-muted">Issue Date / OTP:</span>
+                      <strong className="font-monospace">07/15 &middot; OTP: 123456</strong>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="mb-2">
-                <label htmlFor="txCodeInput" className="form-label small fw-bold text-dark mb-1">
-                  Bank Transaction Code (Optional)
-                </label>
-                <input
-                  id="txCodeInput"
-                  type="text"
-                  className="form-control"
-                  placeholder="e.g. FT26314981234 (Leave blank for system auto-reference)"
-                  value={transactionCode}
-                  onChange={(e) => setTransactionCode(e.target.value)}
-                  maxLength={80}
-                  disabled={isProcessing}
-                />
-                <small className="text-muted d-block mt-1">
-                  Payment will be recorded directly to invoice and transaction history in the system.
-                </small>
               </div>
             </div>
 
@@ -270,8 +254,14 @@ export function TuitionPaymentModal({
                 onClick={handleConfirm}
                 disabled={isProcessing || (hasMultipleInvoices && selectedInvoiceIds.length === 0)}
               >
-                {isProcessing && <span className="spinner-border spinner-border-sm"></span>}
-                <span>{isProcessing ? 'Processing...' : 'Confirm Bank Transfer'}</span>
+                {isProcessing ? (
+                  <span className="spinner-border spinner-border-sm"></span>
+                ) : (
+                  <i className="bi bi-box-arrow-up-right" />
+                )}
+                <span>
+                  {isProcessing ? 'Redirecting to VNPay...' : 'Proceed to VNPay Sandbox'}
+                </span>
               </button>
             </div>
           </div>

@@ -13,6 +13,10 @@ import type {
   StudentProgressOverviewApiDto,
   StudentTuitionOverviewApiDto,
   PayStudentTuitionPayload,
+  CreateVnPayPaymentPayload,
+  CreateVnPayPaymentResponseApiDto,
+  VerifyVnPayReturnPayload,
+  VerifyVnPayReturnResponseApiDto,
   LearnerFeedbackItemApiDto,
   CreateLearnerFeedbackPayload,
   UpdateLearnerFeedbackPayload,
@@ -177,6 +181,52 @@ export const learningApi = {
     const json = await response.json().catch(() => null);
     if (!response.ok) {
       throw new Error(json?.message || `HTTP ${response.status} while paying tuition`);
+    }
+    return json?.data ?? json;
+  },
+
+  /**
+   * Khởi tạo đường dẫn thanh toán học phí qua cổng VNPay Sandbox (POST /api/learning/parent/payments/vnpay/create-url)
+   */
+  async createVnPayPaymentUrl(
+    payload: CreateVnPayPaymentPayload
+  ): Promise<CreateVnPayPaymentResponseApiDto> {
+    const finalPayload: CreateVnPayPaymentPayload = {
+      ...payload,
+      studentId: resolveStudent(payload.studentId),
+      parentId: payload.parentId ? resolveParent(payload.parentId) : payload.parentId,
+    };
+    const response = await fetch(`${API_BASE_URL}/learning/parent/payments/vnpay/create-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify(finalPayload),
+    });
+    const json = await response.json().catch(() => null);
+    if (!response.ok || json?.success === false) {
+      throw new Error(json?.message || `HTTP ${response.status} while creating VNPay payment URL`);
+    }
+    return json?.data ?? json;
+  },
+
+  /**
+   * Xác thực kết quả phản hồi từ cổng VNPay Sandbox và gạch nợ hóa đơn (POST /api/learning/parent/payments/vnpay/verify-return)
+   */
+  async verifyVnPayReturn(
+    payload: VerifyVnPayReturnPayload
+  ): Promise<VerifyVnPayReturnResponseApiDto> {
+    const finalPayload: VerifyVnPayReturnPayload = {
+      ...payload,
+      studentId: resolveStudent(payload.studentId),
+      parentId: payload.parentId ? resolveParent(payload.parentId) : payload.parentId,
+    };
+    const response = await fetch(`${API_BASE_URL}/learning/parent/payments/vnpay/verify-return`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify(finalPayload),
+    });
+    const json = await response.json().catch(() => null);
+    if (!response.ok && !json?.data) {
+      throw new Error(json?.message || `HTTP ${response.status} while verifying VNPay payment`);
     }
     return json?.data ?? json;
   },
