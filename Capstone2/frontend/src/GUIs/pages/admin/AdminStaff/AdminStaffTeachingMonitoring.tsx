@@ -2,7 +2,6 @@ import ModalIcon from '../../../components/Common/ModalIcon';
 import ModalSurface from '../../../components/Common/ModalSurface';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
-import SubjectBadge from "../../../components/Common/SubjectBadge";
 import {
   teachingMonitoringApi,
   type TeachingMonitoringData,
@@ -178,11 +177,8 @@ export default function AdminStaffTeachingMonitoring() {
                   {!loading && !error && rows.map((row, idx) => (
                     <tr key={row.teacherClassId}>
                       <td>{idx + 1}</td>
-                      <td><strong className="text-dark d-block">{row.teacherName}</strong>
-                        <small className="text-muted">ID: #{row.teacherId}</small></td>
-                      <td><div className="d-flex align-items-center gap-2">
-                        {row.subjectName !== "No subject" && <SubjectBadge subject={row.subjectName} />}
-                        <span>{row.className}</span></div></td>
+                      <td><strong className="text-dark d-block">{row.teacherName}</strong></td>
+                      <td><span>{row.className}</span></td>
                       <td>{row.scheduled} sessions</td>
                       <td><span className="fw-semibold text-primary">{row.completed} sessions</span></td>
                       <td><strong>{row.attendanceRate}</strong>
