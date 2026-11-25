@@ -2,9 +2,11 @@ import { BrandIcon } from "../../components/Common/BrandIcon";
 import CenterSchoolIcon from "../../components/admin/CenterManager/CenterSchoolIcon";
 import { NavLink } from "react-router-dom";
 import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
+import { useSidebarToggle } from "../../hooks/useSidebarToggle";
 
 export default function CenterManagerSidebar() {
   const { centerName, loading: settingsLoading, error: settingsError } = useCenterSettings();
+  const { collapsed, toggleSidebar } = useSidebarToggle();
   const displayCenterName = centerName || (settingsLoading ? "Loading..." : settingsError ? "Failed to load center name" : "Center name not configured");
   return (
     <aside className="sidebar" id="sidebar">
@@ -19,9 +21,12 @@ export default function CenterManagerSidebar() {
           className="sidebar-collapse-btn"
           id="sidebarCollapseBtn"
           type="button"
-          aria-label="Toggle sidebar"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <i className="bi bi-list" />
+          <i className={`bi ${collapsed ? "bi-layout-sidebar-inset" : "bi-list"}`} />
         </button>
       </div>
       <div className="center-box">
@@ -46,9 +51,6 @@ export default function CenterManagerSidebar() {
         </div>
         <div className="nav-section">
           <div className="nav-heading">MANAGEMENT</div>
-          <NavLink className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} to="/center-manager/schedule">
-            <i className="bi bi-calendar-week" /><span>Schedule</span>
-          </NavLink>
           <NavLink
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             to="/center-manager/user-accounts"
@@ -80,6 +82,9 @@ export default function CenterManagerSidebar() {
           >
             <i className="bi bi-collection-fill" />
             <span>Classes</span>
+          </NavLink>
+          <NavLink className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} to="/center-manager/schedule">
+            <i className="bi bi-calendar-week" /><span>Schedule</span>
           </NavLink>
         </div>
         <div className="nav-section">

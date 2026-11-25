@@ -216,6 +216,28 @@
   :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav::after { display: none; }
 }
 body.sidebar-collapsed :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-nav::after { display: none; }
+body.sidebar-collapsed :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-header {
+  justify-content: center;
+  padding: 0 8px;
+}
+body.sidebar-collapsed :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-header .brand {
+  display: none;
+}
+body.sidebar-collapsed :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-collapse-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #eaf8f1;
+  color: #078444;
+  border: 1px solid #cce7d8;
+}
+body.sidebar-collapsed :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar-collapse-btn:hover {
+  background: #d8f2e4;
+  color: #05643c;
+}
 @media (prefers-reduced-motion: reduce) {
   :is(.cm-academy, .staff-academy, .teaching-academy) .sidebar { transition: none; }
 }

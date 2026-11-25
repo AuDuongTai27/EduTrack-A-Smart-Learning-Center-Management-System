@@ -12,8 +12,8 @@ export function studentGradeLabel(student: Pick<UserDto, "gradeId" | "gradeName"
   return `Invalid grade (#${student.gradeId})`;
 }
 
-export function legacyStudentGradeNote(student: Pick<UserDto, "gradeId" | "specialty">): string | null {
-  return student.gradeId == null && student.specialty ? `Legacy data: ${student.specialty}` : null;
+export function legacyStudentGradeNote(_student: Pick<UserDto, "gradeId" | "specialty">): string | null {
+  return null;
 }
 
 export function matchesStudentGrade(student: Pick<UserDto, "gradeId">, filter: string, grades: GradeDto[]): boolean {

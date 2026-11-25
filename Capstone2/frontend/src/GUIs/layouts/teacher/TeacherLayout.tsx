@@ -5,6 +5,7 @@ import { CenterSettingsProvider } from "../../../contexts/CenterSettingsContext"
 import { Outlet } from "react-router-dom";
 import { TeacherTopBar } from "./TeacherTopBar";
 import TeacherSidebar from "./TeacherSidebar";
+import { closeMobileSidebar } from "../../hooks/useSidebarToggle";
 
 export default function TeacherLayout() {
   return (
@@ -24,7 +25,7 @@ export default function TeacherLayout() {
           </main>
         </div>
       </div>
-      <div className="sidebar-overlay" id="sidebarOverlay" />
+      <div className="sidebar-overlay" id="sidebarOverlay" onClick={closeMobileSidebar} />
     </div></CenterSettingsProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { announceTopbarPanel, useTopbarDismiss } from '../../hooks/useTopbarDismiss';
+import { toggleMobileSidebar } from '../../hooks/useSidebarToggle';
 import '../../../assets/css/simplified-topbar.css';
 import { NotificationBellDropdown } from '../../components/shared/notifications/NotificationQuickViews';
 import CenterManagerTopbarAvatar from '../../components/admin/CenterManager/CenterManagerTopbarAvatar';
@@ -33,6 +34,7 @@ export function TeachingAssistantTopBar() {
           className="mobile-menu-btn"
           id="mobileMenuBtn"
           type="button"
+          onClick={toggleMobileSidebar}
           aria-label="Open menu"
         >
           <i className="bi bi-list" />
