@@ -1,3 +1,5 @@
+import ModalIcon from '../Common/ModalIcon';
+import ModalSurface from '../Common/ModalSurface';
 import React, { useState } from "react";
 import { teachingDAL } from "../../../DAL/teachingDAL";
 
@@ -82,10 +84,10 @@ export function ChangePasswordModal({
       style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1055 }}
     >
       <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content shadow border-0 rounded-3">
+        <ModalSurface className="modal-content shadow border-0 rounded-3">
           <div className="modal-header bg-light border-bottom py-3">
             <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-              <i className="bi bi-shield-lock-fill text-primary" />
+              <ModalIcon name="shield" />
               Change Account Password
             </h5>
             <button
@@ -227,7 +229,7 @@ export function ChangePasswordModal({
               </button>
             </div>
           </form>
-        </div>
+        </ModalSurface>
       </div>
     </div>
   );

@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import { useEffect, useRef, useState } from "react";
 import type { ManagedGradeDto } from "../../../../BLL/models/GradeDto";
 import { gradeManagementApi } from "../../../../api/gradeManagementApi";
@@ -36,8 +38,8 @@ export default function GradeFormModal({id, onClose, onSaved}: {
     finally {busy.current = false; if (mounted.current) setSaving(false);}
   };
   return <div className="modal show d-block" role="dialog" aria-modal="true" aria-labelledby="grade-form-title" style={{backgroundColor: "rgba(0,0,0,0.5)"}}>
-    <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div className="modal-content border-0 shadow-lg">
-      <div className="modal-header bg-primary text-white"><h5 id="grade-form-title" className="modal-title fw-bold">{id === undefined ? "Add Grade" : "Edit Grade"}</h5>
+    <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><ModalSurface className="modal-content border-0 shadow-lg">
+      <div className="modal-header bg-primary text-white"><ModalIcon name="grade" /><h5 id="grade-form-title" className="modal-title fw-bold">{id === undefined ? "Add Grade" : "Edit Grade"}</h5>
         <button type="button" className="btn-close btn-close-white" aria-label="Close" disabled={saving} onClick={onClose} /></div>
       <form onSubmit={submit} noValidate>
         <div className="modal-body p-4">
@@ -54,6 +56,6 @@ export default function GradeFormModal({id, onClose, onSaved}: {
         <div className="modal-footer bg-light"><button type="button" className="btn btn-outline-secondary" disabled={saving} onClick={onClose}>Cancel</button>
           <button type="submit" className="btn btn-primary" disabled={loading || saving || (id !== undefined && !!error && !name)}>{saving ? "Saving..." : "Save Grade"}</button></div>
       </form>
-    </div></div>
+    </ModalSurface></div>
   </div>;
 }

@@ -1,3 +1,5 @@
+import ModalIcon from '../../../Common/ModalIcon';
+import ModalSurface from '../../../Common/ModalSurface';
 import { useState, useEffect } from "react";
 import type { AssignmentDto } from "../../../../../BLL/models/AssignmentDto";
 import type { TeachingAssignmentItemDto } from "../../../../../BLL/models/teaching/TeachingAssignmentDto";
@@ -342,10 +344,10 @@ function AssignmentOverviewCard({
       {showRubricModal && !readOnly && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-light border-bottom">
                 <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                  <i className="bi bi-stars text-primary" />
+                  <ModalIcon name="sparkles" />
                   <span>{assignment?.answerKeyFileUrl ? "Update AI Grading Rubric" : "Add AI Grading Rubric"}</span>
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setShowRubricModal(false)} />
@@ -427,7 +429,7 @@ function AssignmentOverviewCard({
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -436,10 +438,10 @@ function AssignmentOverviewCard({
       {showEditModal && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content">
+            <ModalSurface className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-pencil-square me-2 text-primary" /> Modify Assignment
+                  <ModalIcon name="edit" /> Modify Assignment
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setShowEditModal(false)} />
               </div>
@@ -549,7 +551,7 @@ function AssignmentOverviewCard({
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -557,11 +559,11 @@ function AssignmentOverviewCard({
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
+          <div className="modal-dialog modal-dialog-centered modal-sm">
+            <ModalSurface className="modal-content">
               <div className="modal-header border-bottom-0 pb-0">
                 <h5 className="modal-title fw-bold text-danger">
-                  <i className="bi bi-exclamation-triangle-fill me-2" /> Delete Assignment
+                  <ModalIcon name="warning" /> Delete Assignment
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setShowDeleteModal(false)} />
               </div>
@@ -602,7 +604,7 @@ function AssignmentOverviewCard({
                   )}
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

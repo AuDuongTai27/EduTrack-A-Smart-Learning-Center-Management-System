@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import {useEffect, useMemo, useState, type FormEvent, type ReactNode} from 'react';
 import type {ScheduleRole} from '../../../../BLL/models/ScheduleSession';
 import {addScheduleDays, buildSemesterWeeks, displayScheduleDate, mondayOf, vietnamClock} from '../../../../BLL/services/scheduleViewService';
@@ -197,10 +199,10 @@ export function ScheduleWorkspace({
       {addModalOpen && ['center-manager','admin-staff'].includes(role) && lockedClassId && (
         <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-light border-bottom">
                 <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                  <i className="bi bi-calendar-plus text-primary" />
+                  <ModalIcon name="schedule" />
                   Add New Session / Makeup Session
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setAddModalOpen(false)} />
@@ -284,7 +286,7 @@ export function ScheduleWorkspace({
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

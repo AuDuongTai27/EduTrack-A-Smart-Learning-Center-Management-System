@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import { useEffect, useRef, useState } from "react";
 import classDAL from "../../../../DAL/classDAL";
 import managementDAL from "../../../../DAL/managementDAL";
@@ -86,8 +88,8 @@ export default function ClassFormModal({classId, subjects, grades, onRetrySubjec
   return (
     <div className="modal show d-block" role="dialog" aria-modal="true" aria-labelledby="class-form-title" tabIndex={-1} style={{backgroundColor: "rgba(0,0,0,0.5)"}}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <div className="modal-content border-0 shadow-lg">
-          <div className="modal-header bg-primary text-white">
+        <ModalSurface className="modal-content border-0 shadow-lg">
+          <div className="modal-header bg-primary text-white"><ModalIcon name="class" />
             <h5 id="class-form-title" className="modal-title fw-bold">{classId ? "Edit Class" : "Open New Class"}</h5>
             <button type="button" className="btn-close btn-close-white" aria-label="Close" disabled={saving} onClick={onClose} />
           </div>
@@ -159,7 +161,7 @@ export default function ClassFormModal({classId, subjects, grades, onRetrySubjec
               </button>
             </div>
           </form>
-        </div>
+        </ModalSurface>
       </div>
     </div>
   );

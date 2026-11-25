@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import { useState, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
@@ -393,10 +395,10 @@ export default function CenterManagerReportPage() {
       {showExportModal && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-download me-2" />
+                  <ModalIcon name="download" />
                   Export Report Data ({exportFormat}) - Center Manager
                 </h5>
                 <button
@@ -457,7 +459,7 @@ export default function CenterManagerReportPage() {
                   )}
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -466,8 +468,8 @@ export default function CenterManagerReportPage() {
       {selectedTuition && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-light border-bottom">
+            <ModalSurface className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom"><ModalIcon name="tuition" />
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-primary fs-6 font-monospace">
                     {selectedTuition.invoiceCode || `INV-${selectedTuition.tuitionId}`}
@@ -547,7 +549,7 @@ export default function CenterManagerReportPage() {
                   Close
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

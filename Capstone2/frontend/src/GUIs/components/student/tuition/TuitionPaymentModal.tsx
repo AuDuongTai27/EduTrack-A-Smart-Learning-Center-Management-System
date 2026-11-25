@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import React, { useState, useEffect } from 'react';
 import type { TuitionInvoiceItemApiDto } from '../../../../BLL/models/learning';
 
@@ -100,15 +102,12 @@ export function TuitionPaymentModal({
         style={{ zIndex: 1055 }}
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content payment-modal-card">
-            <div className="modal-header payment-modal-header border-0">
+          <ModalSurface className="modal-content payment-modal-card">
+            <div className="modal-header payment-modal-header border-0"><ModalIcon name="tuition" />
               <div>
                 <h5 className="modal-title fw-bold" id="paymentModalLabel">
                   VNPay Online Tuition Payment
                 </h5>
-                <p className="mb-0 text-white-50 small">
-                  {period} &middot; Student {studentName}
-                </p>
               </div>
               <button
                 type="button"
@@ -118,6 +117,9 @@ export function TuitionPaymentModal({
               ></button>
             </div>
             <div className="modal-body p-4">
+              <p className="small text-muted mb-3">
+                {period} &middot; Student {studentName}
+              </p>
               {/* Danh sách chọn kỳ nếu có nhiều hơn 1 kỳ chưa đóng */}
               {hasMultipleInvoices && (
                 <div className="mb-3">
@@ -264,7 +266,7 @@ export function TuitionPaymentModal({
                 </span>
               </button>
             </div>
-          </div>
+          </ModalSurface>
         </div>
       </div>
     </>

@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import React from 'react';
 
 interface NotificationsPreferencesModalProps {
@@ -28,15 +30,12 @@ export function NotificationsPreferencesModal({
         style={{ zIndex: 1055 }}
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content payment-modal-card">
-            <div className="modal-header payment-modal-header border-0">
+          <ModalSurface className="modal-content payment-modal-card">
+            <div className="modal-header payment-modal-header border-0"><ModalIcon name="notification" />
               <div>
                 <h5 className="modal-title fw-bold" id="preferencesModalLabel">
                   Notification Preferences
                 </h5>
-                <p className="mb-0 text-white-50 small">
-                  Customize the types of notifications you want to receive on the system
-                </p>
               </div>
               <button
                 type="button"
@@ -131,7 +130,7 @@ export function NotificationsPreferencesModal({
                 Save Preferences
               </button>
             </div>
-          </div>
+          </ModalSurface>
         </div>
       </div>
     </>

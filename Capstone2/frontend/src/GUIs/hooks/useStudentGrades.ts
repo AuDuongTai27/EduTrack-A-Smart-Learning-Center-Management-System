@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { gradeApi } from "../../api/gradeApi";
 import type { GradeDto } from "../../BLL/models/GradeDto";
 import { sortedStudentGrades } from "../../BLL/services/studentGradeService";
@@ -17,5 +17,6 @@ export function useStudentGrades() {
     window.addEventListener("focus", focus);
     return () => { current = false; window.removeEventListener("focus", focus); };
   }, [revision]);
-  return { ...state, refresh: () => setRevision(value => value + 1) };
+  const refresh = useCallback(() => setRevision(value => value + 1), []);
+  return { ...state, refresh };
 }

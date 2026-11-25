@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import React, { useState, useEffect } from 'react';
 import type { FeedbackApprovalRequest } from './feedbackData';
 
@@ -16,7 +18,6 @@ export function EditFeedbackModal({
   onClose,
   onSubmit,
   isSubmitting = false,
-  userRoleName = 'Student',
 }: EditFeedbackModalProps) {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
@@ -78,16 +79,16 @@ export function EditFeedbackModal({
         style={{ zIndex: 1055 }}
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+          <ModalSurface className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
             <div className="modal-header border-bottom py-3 px-4 bg-white">
               <h5
                 className="modal-title fw-bold text-dark d-flex align-items-center gap-2"
                 id="editFeedbackModalTitle"
                 style={{ fontSize: '17px' }}
               >
-                <i className="bi bi-pencil-square text-primary fs-5" />
+                <ModalIcon name="feedback" />
                 <span>
-                  Edit Feedback: {item.requestCode || `#${item.id}`} ({userRoleName})
+                  Edit Feedback: {item.requestCode || `#${item.id}`}
                 </span>
               </h5>
               <button
@@ -195,7 +196,7 @@ export function EditFeedbackModal({
                 </button>
               </div>
             </form>
-          </div>
+          </ModalSurface>
         </div>
       </div>
     </>

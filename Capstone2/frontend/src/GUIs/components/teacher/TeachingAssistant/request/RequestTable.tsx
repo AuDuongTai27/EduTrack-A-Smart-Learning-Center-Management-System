@@ -1,3 +1,5 @@
+import ModalIcon from '../../../Common/ModalIcon';
+import ModalSurface from '../../../Common/ModalSurface';
 import React, { useState, useMemo } from "react";
 import type { ApprovalRequestDto } from "../../../../../BLL/models/ApprovalRequestDto";
 import EditRequestModal from "../../Teacher/request/EditRequestModal";
@@ -247,10 +249,10 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
             style={{ zIndex: 1055 }}
           >
             <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 shadow rounded-3">
+              <ModalSurface className="modal-content border-0 shadow rounded-3">
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                    <i className="bi bi-file-earmark-text text-primary fs-5" />
+                    <ModalIcon name="file" />
                     <span>Request Details: {selectedRequest.requestCode || `#${selectedRequest.requestId}`}</span>
                   </h5>
                   <button
@@ -327,7 +329,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                     </button>
                   )}
                 </div>
-              </div>
+              </ModalSurface>
             </div>
           </div>
         </>

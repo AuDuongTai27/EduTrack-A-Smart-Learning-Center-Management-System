@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import SubjectBadge from "../../../components/Common/SubjectBadge";
@@ -229,8 +231,8 @@ export default function AdminStaffTeachingMonitoring() {
       {selectedRow && (
         <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content shadow border-0">
-              <div className="modal-header bg-light">
+            <ModalSurface className="modal-content shadow border-0">
+              <div className="modal-header bg-light"><ModalIcon name="class" />
                 <h5 className="modal-title fw-bold text-dark">Assigned Class Details — {selectedRow.teacherName}</h5>
                 <button type="button" className="btn-close" onClick={() => setSelectedRow(null)} aria-label="Close" />
               </div>
@@ -246,7 +248,7 @@ export default function AdminStaffTeachingMonitoring() {
                 </div>
               </div>
               <div className="modal-footer bg-light"><button type="button" className="btn btn-secondary" onClick={() => setSelectedRow(null)}>Close</button></div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

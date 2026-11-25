@@ -1,3 +1,4 @@
+import ModalIcon from '../../Common/ModalIcon';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ScheduleRole, ScheduleSession } from '../../../../BLL/models/ScheduleSession';
 import { displayScheduleDate } from '../../../../BLL/services/scheduleViewService';
@@ -84,10 +85,10 @@ export function ScheduleSessionDetail({
     }
   }
 
-  return <dialog ref={ref} tabIndex={-1} className="et-schedule-detail" aria-labelledby="et-session-detail-title" onCancel={onClose}
+  return <dialog ref={ref} tabIndex={-1} className="edu-modal edu-modal-native et-schedule-detail" aria-labelledby="et-session-detail-title" onCancel={onClose}
     onClick={e => {if (e.target === ref.current) onClose();}}>
     <div className="et-schedule-detail-body">
-      <div className="et-schedule-detail-heading"><h2 id="et-session-detail-title">Session Details</h2>
+      <div className="et-schedule-detail-heading"><h2 id="et-session-detail-title"><ModalIcon name="schedule" />Session Details</h2>
         <button type="button" className="btn-close" onClick={onClose} aria-label="Close session details" /></div>
       <dl>{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
 

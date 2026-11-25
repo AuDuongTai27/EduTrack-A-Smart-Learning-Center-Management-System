@@ -1,11 +1,12 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
+import AddStudentModal from '../../../components/management/AddStudentModal';
 import { useState, useEffect, useMemo } from "react";
-import { useStudentEnrollment } from "../../../hooks/useStudentEnrollment";
 import { useStudentGrades } from "../../../hooks/useStudentGrades";
 import StudentGradeSelect from "../../../components/management/StudentGradeSelect";
 import StudentCenterClassesSection from "../../../components/management/StudentCenterClassesSection";
 import { compareStudentGrades, legacyStudentGradeNote, matchesStudentGrade, studentGradeLabel } from "../../../../BLL/services/studentGradeService";
 import { emptyParentStudentLink, parentStudentLinkError, selectParentStudentPair } from "../../../../BLL/services/parentStudentLinkService";
-import StudentEnrollmentSection from "../../../components/management/StudentEnrollmentSection";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
 import Pagination from "../../../components/Common/Pagination";
@@ -16,7 +17,6 @@ import TableActionButton from "../../../components/Common/TableActionButton";
 import userDAL from "../../../../DAL/userDAL";
 import parentStudentDAL from "../../../../DAL/parentStudentDAL";
 import managementDAL from "../../../../DAL/managementDAL";
-import { StudentCreationConflictError } from "../../../../api/managementApi";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ParentStudentDto } from "../../../../api/parentStudentApi";
 
@@ -55,11 +55,6 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
     gradeId: "",
     gender: "male",
   });
-
-  const selectedGradeId = catalogue.grades.some(g => String(g.gradeId) === addForm.gradeId) ? Number(addForm.gradeId) : null;
-  const enrollment = useStudentEnrollment(selectedGradeId, showAddModal && activeTab === "students");
-
-  const [enrollmentConflict, setEnrollmentConflict] = useState<StudentCreationConflictError | null>(null);
 
   // Edit User Modal state
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -233,37 +228,15 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
     }
   };
 
-  const handleViewSavedStudent = async () => {
-    if (!enrollmentConflict || submitting) return;
-    setSubmitting(true);
-    try {
-      const saved = await userDAL.getUserById(enrollmentConflict.studentId);
-      if (!saved || saved.userId !== enrollmentConflict.studentId || saved.userCode !== enrollmentConflict.studentCode)
-        throw new Error("Could not verify saved profile. Please check again.");
-      enrollment.saved();
-      setUsers(previous => [saved, ...previous.filter(user => user.userId !== saved.userId)]);
-      setSelectedUser(saved);
-      setShowAddModal(false);
-      setAddForm({ fullName: "", phone: "", email: "", gradeId: "", gender: "male" });
-      setEnrollmentConflict(null);
-      setActionErrorMsg(null);
-    } catch (error) {
-      setActionErrorMsg(error instanceof Error ? error.message : "Failed to load saved profile. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Add Submit (Student or Parent)
+  // Parent creation retains its existing workflow.
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting || !addForm.fullName.trim()) return;
 
-    setEnrollmentConflict(null);
     setSubmitting(true);
     setActionErrorMsg(null);
     try {
-      const role = activeTab === "students" ? "student" : "parent";
+      const role = "parent";
       const profile = {
         fullName: addForm.fullName.trim(),
         phone: addForm.phone.trim() || undefined,
@@ -271,12 +244,8 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
         role: role,
         gender: addForm.gender,
       };
-      const res = activeTab === "students"
-        ? await managementDAL.createStudent({ ...profile, role: "student",
-          userCode: enrollment.creationCode(), gradeId: addForm.gradeId ? Number(addForm.gradeId) : null, classIds: enrollment.selected })
-        : await managementDAL.createUser(profile);
+      const res = await managementDAL.createUser(profile);
 
-      if (activeTab === "students") enrollment.saved();
       setUsers(previous => [res.data, ...previous.filter(user => user.userId !== res.data.userId)]);
       setShowAddModal(false);
       setAddForm({
@@ -287,11 +256,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
         gender: "male",
       });
       setActionSuccessMsg(
-        `Successfully created new ${activeTab === "students" ? "student" : "parent"} account: "${res.data.fullName}" (${res.data.userCode})!`
+        `Successfully created new parent account: "${res.data.fullName}" (${res.data.userCode})!`
       );
       setTimeout(() => setActionSuccessMsg(null), 3500);
     } catch (err: any) {
-      if (err instanceof StudentCreationConflictError) setEnrollmentConflict(err);
       setActionErrorMsg(err.message || "Unable to create account.");
     } finally {
       setSubmitting(false);
@@ -829,15 +797,23 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
         </div>
       </div>
 
-      {/* ADD MODAL */}
-      {showAddModal && (
+      <AddStudentModal open={showAddModal && activeTab === "students"} onClose={() => setShowAddModal(false)}
+        onSaved={(student, recovered) => {
+          setUsers(previous => [student, ...previous.filter(user => user.userId !== student.userId)]);
+          if (recovered) setSelectedUser(student);
+          else setActionSuccessMsg(`Successfully created student "${student.fullName}" (${student.userCode})!`);
+          void userDAL.getAllUsers().then(result => setUsers(result.data)).catch(error =>
+            setActionErrorMsg(`Student saved; could not refresh list: ${error instanceof Error ? error.message : String(error)}`));
+        }} />
+      {/* ADD PARENT MODAL */}
+      {showAddModal && activeTab === "parents" && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
-                  <i className={activeTab === "students" ? "bi bi-mortarboard-fill me-2" : "bi bi-people-fill me-2"} />
-                  {activeTab === "students" ? "Add New Student" : "Add New Parent"} ({roleLabel})
+                  <ModalIcon name="parent" />
+                  Add Parent
                 </h5>
                 <button
                   type="button"
@@ -893,19 +869,9 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       </select>
                     </div>
 
-                    {activeTab === "students" && (
-                      <div className="col-md-12">
-                        <label className="form-label fw-bold">Grade</label>
-                        <StudentGradeSelect {...catalogue} value={addForm.gradeId} disabled={submitting}
-                          onChange={gradeId => setAddForm({ ...addForm, gradeId })} />
-                      </div>
-                    )}
-                    {activeTab === "students" && (
-                      <StudentEnrollmentSection enrollment={enrollment} disabled={submitting} />
-                    )}
+
                     {actionErrorMsg && <div className="col-12"><div className="alert alert-danger mb-0" role="alert">
                       <div>{actionErrorMsg}</div>
-                      {enrollmentConflict && <button type="button" className="btn btn-sm btn-outline-danger mt-2" disabled={submitting} onClick={handleViewSavedStudent}>View saved profile</button>}
                     </div></div>}
                   </div>
                 </div>
@@ -925,12 +891,12 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                         Saving...
                       </>
                     ) : (
-                      "Save Profile"
+                      "Save Parent"
                     )}
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -939,10 +905,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
       {showEditModal && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-warning-subtle border-bottom">
                 <h5 className="modal-title fw-bold text-dark">
-                  <i className="bi bi-pencil-square me-2 text-warning" />
+                  <ModalIcon name="edit" />
                   Edit Profile: #{editForm.userCode}
                 </h5>
                 <button
@@ -1021,7 +987,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting || editEnrollmentBusy}>
+                  <button type="submit" className="btn btn-primary px-4 fw-bold" disabled={submitting || editEnrollmentBusy}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
@@ -1033,7 +999,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -1042,10 +1008,10 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
       {showLinkModal && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-info text-white">
+            <ModalSurface className="modal-content border-0 shadow-lg">
+              <div className="modal-header">
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-link-45deg me-2" />
+                  <ModalIcon name="link" />
                   {linkContext.mode === "student" && linkContext.targetUser
                     ? `Link Parent for Student: ${linkContext.targetUser.fullName}`
                     : linkContext.mode === "parent" && linkContext.targetUser
@@ -1054,8 +1020,9 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 </h5>
                 <button
                   type="button"
-                  className="btn-close btn-close-white"
+                  className="btn-close"
                   onClick={() => setShowLinkModal(false)}
+                  disabled={submitting}
                 />
               </div>
               <form onSubmit={handleLinkSubmit}>
@@ -1260,12 +1227,12 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   >
                     Close
                   </button>
-                  <button type="submit" className="btn btn-info text-white px-4 fw-bold" disabled={submitting}>
+                  <button type="submit" className="btn btn-primary px-4 fw-bold" disabled={submitting}>
                     {submitting ? "Saving..." : "Confirm Link"}
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -1273,8 +1240,8 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
       {/* STATUS TOGGLE CONFIRMATION MODAL */}
       {showDeleteModal && userToDelete && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
+          <div className="modal-dialog modal-dialog-centered modal-sm">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div
                 className={`modal-header ${
                   (userToDelete.status || "active").toLowerCase() === "active"
@@ -1283,13 +1250,9 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                 }`}
               >
                 <h5 className="modal-title fw-bold">
-                  <i
-                    className={`bi ${
-                      (userToDelete.status || "active").toLowerCase() === "active"
-                        ? "bi-lock-fill"
-                        : "bi-unlock-fill"
-                    } me-2`}
-                  />
+                  <ModalIcon name={(userToDelete.status || "active").toLowerCase() === "active"
+                        ? "lock"
+                        : "unlock"} />
                   {(userToDelete.status || "active").toLowerCase() === "active"
                     ? "Confirm Deactivate Account"
                     : "Confirm Activate Account"}
@@ -1353,7 +1316,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       : "Activate Account"}
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -1362,8 +1325,8 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
       {selectedUser && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-light border-bottom">
+            <ModalSurface className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom"><ModalIcon name="user" />
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-primary fs-6 font-monospace">
                     #{selectedUser.userCode || `USR${selectedUser.userId}`}
@@ -1440,7 +1403,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                   Close
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
