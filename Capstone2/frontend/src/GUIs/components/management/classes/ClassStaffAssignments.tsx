@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import { useEffect, useRef, useState } from "react";
 import DotStatusBadge from "../../Common/DotStatusBadge";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
@@ -95,8 +97,8 @@ export default function ClassStaffAssignments({item, teachers, assistants, onSav
   return <>
     <div className="row g-4">{section("teachers", teachers)}{section("assistants", assistants)}</div>
     {stopping && <div className="modal show d-block" role="dialog" aria-modal="true" aria-labelledby="class-staff-stop-title" tabIndex={-1} style={{backgroundColor: "rgba(0,0,0,0.5)"}}>
-      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div className="modal-content border-0 shadow-lg">
-        <div className="modal-header">
+      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><ModalSurface className="modal-content border-0 shadow-lg">
+        <div className="modal-header"><ModalIcon name="unlink" />
           <h5 id="class-staff-stop-title" className="modal-title fw-bold">Unassign {stopping.kind === "teachers" ? "Teacher" : "Teaching Assistant"}</h5>
           <button type="button" className="btn-close" aria-label="Close" disabled={saving} onClick={() => setStopping(null)} />
         </div>
@@ -113,11 +115,11 @@ export default function ClassStaffAssignments({item, teachers, assistants, onSav
             <button type="submit" className="btn btn-danger" disabled={saving}>{saving ? "Saving..." : "Confirm Unassign"}</button>
           </div>
         </form>
-      </div></div>
+      </ModalSurface></div>
     </div>}
     {kind && <div className="modal show d-block" role="dialog" aria-modal="true" aria-labelledby="class-staff-title" tabIndex={-1} style={{backgroundColor: "rgba(0,0,0,0.5)"}}>
-      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div className="modal-content border-0 shadow-lg">
-        <div className="modal-header bg-primary text-white">
+      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><ModalSurface className="modal-content border-0 shadow-lg">
+        <div className="modal-header bg-primary text-white"><ModalIcon name="parent" />
           <h5 id="class-staff-title" className="modal-title fw-bold">Assign {kind === "teachers" ? "Teacher" : "Teaching Assistant"}</h5>
           <button type="button" className="btn-close btn-close-white" aria-label="Close" disabled={saving} onClick={() => setKind(null)} />
         </div>
@@ -140,7 +142,7 @@ export default function ClassStaffAssignments({item, teachers, assistants, onSav
             <button type="submit" className="btn btn-primary" disabled={saving || candidates.loading || !!candidates.error || !userId}>{saving ? "Saving..." : "Save Assignment"}</button>
           </div>
         </form>
-      </div></div>
+      </ModalSurface></div>
     </div>}
   </>;
 }

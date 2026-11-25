@@ -1,3 +1,5 @@
+import ModalIcon from '../../../Common/ModalIcon';
+import ModalSurface from '../../../Common/ModalSurface';
 import React, { useState, useEffect } from 'react';
 import { teachingDAL } from '../../../../../DAL/teachingDAL';
 import type { ApprovalRequestDto } from '../../../../../BLL/models/ApprovalRequestDto';
@@ -104,10 +106,10 @@ export default function EditRequestModal({
         style={{ zIndex: 1055 }}
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content shadow border-0 rounded-3">
+          <ModalSurface className="modal-content shadow border-0 rounded-3">
             <div className="modal-header border-bottom py-3 px-4">
               <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="editRequestModalTitle">
-                <i className="bi bi-pencil-square text-primary fs-5" />
+                <ModalIcon name="edit" />
                 <span>Edit Request #{request.requestCode || request.requestId}</span>
               </h5>
               <button
@@ -234,7 +236,7 @@ export default function EditRequestModal({
                 </button>
               </div>
             </form>
-          </div>
+          </ModalSurface>
         </div>
       </div>
     </>

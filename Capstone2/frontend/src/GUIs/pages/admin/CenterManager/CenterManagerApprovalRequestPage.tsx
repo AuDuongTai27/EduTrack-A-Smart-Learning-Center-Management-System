@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
@@ -498,8 +500,8 @@ export default function CenterManagerApprovalRequestPage() {
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-primary text-white">
+            <ModalSurface className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white"><ModalIcon name="confirm" />
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-white text-primary font-monospace fs-6">
                     {selectedRequest.requestCode ||
@@ -704,7 +706,7 @@ export default function CenterManagerApprovalRequestPage() {
                   )}
                 </div>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

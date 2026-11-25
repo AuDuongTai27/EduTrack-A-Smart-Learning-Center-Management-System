@@ -1,3 +1,5 @@
+import ModalIcon from '../../../Common/ModalIcon';
+import ModalSurface from '../../../Common/ModalSurface';
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { AssignmentDto } from "../../../../../BLL/models/AssignmentDto";
@@ -457,18 +459,17 @@ export default function AssignmentsSection({
           style={{ backgroundColor: "rgba(15, 23, 42, 0.45)", zIndex: 1060 }}
         >
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+            <ModalSurface className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
               <div className="modal-header border-bottom px-4 py-3 bg-white">
                 <div className="d-flex align-items-center gap-2.5">
                   <div
                     className="rounded-3 d-flex align-items-center justify-content-center"
                     style={{ width: "36px", height: "36px", backgroundColor: "var(--et-mint)", color: "var(--et-primary)" }}
                   >
-                    <i className="bi bi-file-earmark-plus-fill fs-5" />
+                    <ModalIcon name="file" />
                   </div>
                   <div>
                     <h5 className="modal-title fw-bold text-dark mb-0" style={{ fontSize: "16px" }}>Add Study Material</h5>
-                    <span className="text-muted small" style={{ fontSize: "12.5px" }}>Attach lecture slides or reference materials</span>
                   </div>
                 </div>
                 <button
@@ -541,7 +542,7 @@ export default function AssignmentsSection({
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

@@ -1,3 +1,5 @@
+import ModalIcon from '../Common/ModalIcon';
+import ModalSurface from '../Common/ModalSurface';
 import { useEffect, useRef, useState } from "react";
 import { classApi } from "../../../api/classApi";
 import { gradeApi } from "../../../api/gradeApi";
@@ -78,8 +80,8 @@ export default function GenerateTuitionModal({ close, saved }: { close: () => vo
   const resetAmount = () => setAmount(monthlyFee ? String(monthlyFee) : "");
   const excluded = candidates?.rows.filter(row => !row.enrollmentEligible) ?? [];
   return <div className="modal show d-block tuition-generation-modal" role="dialog" aria-modal="true" aria-label="Generate tuition invoices" aria-labelledby="generation-title">
-    <div className="modal-dialog modal-dialog-centered"><div className="modal-content">
-      <div className="modal-header"><h5 className="modal-title" id="generation-title">Generate Invoices</h5><button type="button" className="btn-close" disabled={busy} aria-label="Close invoice generation" onClick={close} /></div>
+    <div className="modal-dialog modal-dialog-centered"><ModalSurface className="modal-content">
+      <div className="modal-header"><ModalIcon name="tuition" /><h5 className="modal-title" id="generation-title">Generate Invoices</h5><button type="button" className="btn-close" disabled={busy} aria-label="Close invoice generation" onClick={close} /></div>
       <div className="modal-body" aria-busy={busy}>
         {error && <div role="alert" className="alert alert-danger" tabIndex={-1} ref={errorRef}>{error} <button type="button" className="btn btn-link btn-sm" disabled={busy} onClick={() => { setRevision(v => v + 1); setCandidateRevision(v => v + 1); }}>Reload data</button></div>}
         {!catalogue && !error && <p role="status">Loading grades and classes...</p>}
@@ -129,6 +131,6 @@ export default function GenerateTuitionModal({ close, saved }: { close: () => vo
       </div>
       <div className="modal-footer"><button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={close}>Close</button><button type="button" className={`btn ${preview ? "btn-outline-primary" : "btn-primary"}`} data-testid="generation-preview-button" disabled={busy || !catalogue} onClick={() => void submit(false)}>{busy ? "Processing..." : shown ? "Preview Again" : "Preview"}</button>
         {preview && <button type="button" className="btn btn-primary" data-testid="generation-confirm" disabled={busy || preview.eligibleCount === 0} onClick={() => void submit(true)}>Create {preview.eligibleCount} invoices</button>}</div>
-    </div></div>
+    </ModalSurface></div>
   </div>;
 }

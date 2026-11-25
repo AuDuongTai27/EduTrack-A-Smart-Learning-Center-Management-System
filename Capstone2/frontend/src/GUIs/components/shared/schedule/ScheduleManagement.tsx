@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type {
   ScheduleCapabilities,
@@ -759,13 +761,9 @@ function ManagementPanel({
         style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       >
         <div className="modal-dialog modal-dialog-centered modal-xl">
-          <div className="modal-content border-0 shadow-lg">
+          <ModalSurface className="modal-content border-0 shadow-lg">
             <div className="modal-header bg-light border-bottom">
-              <div className="d-flex align-items-center gap-2">
-                <span className="badge bg-primary fs-6">
-                  <i className="bi bi-gear-fill me-1" />
-                  Schedule Configuration
-                </span>
+              <div className="d-flex align-items-center gap-2"><ModalIcon name="schedule" />
                 <h5 className="modal-title fw-bold mb-0 text-dark">
                   Manage Recurring Schedule &amp; Monthly Generation
                 </h5>
@@ -778,7 +776,7 @@ function ManagementPanel({
                 Close
               </button>
             </div>
-          </div>
+          </ModalSurface>
         </div>
       </div>
     );

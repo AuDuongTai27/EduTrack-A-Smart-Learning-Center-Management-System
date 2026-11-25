@@ -13,7 +13,7 @@ import classDAL from "../../../../DAL/classDAL";
 import type { UserDto } from "../../../../BLL/models/UserDto";
 import type { ClassDto } from "../../../../BLL/models/ClassDto";
 import { useCenterSettings } from "../../../../contexts/CenterSettingsContext";
-import managementDAL from "../../../../DAL/managementDAL";
+import AddStudentModal from '../../../components/management/AddStudentModal';
 import { useTuitionData } from "../../../hooks/useTuitionData";
 import { calculateTuitionMetrics } from "../../../../BLL/services/tuitionMetricsService";
 import {useSelectedUser} from '../../../hooks/useSelectedUser';
@@ -53,7 +53,6 @@ export default function CenterManagerDashboardPage() {
   // Quick Action Modal states
   const [showQuickStudentModal, setShowQuickStudentModal] =
     useState<boolean>(false);
-  const [quickStudentName, setQuickStudentName] = useState<string>("");
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,33 +97,6 @@ export default function CenterManagerDashboardPage() {
   }, [users, classes]);
   const tuitionMetrics = useMemo(() => balanceReady ? calculateTuitionMetrics(tuitions, payments.data!, now) : null, [tuitions, payments.data, balanceReady, now]);
   const loadError = [otherError, financeError, monthlyError].filter(Boolean).join(" ") || null;
-
-  const handleQuickAddStudent = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!quickStudentName.trim()) return;
-
-    try {
-      const res = await managementDAL.createUser({
-        fullName: quickStudentName.trim(),
-        role: "student",
-      });
-
-      setUsers((prev) => [res.data, ...prev]);
-
-      setShowQuickStudentModal(false);
-
-      setActionSuccessMsg(
-        `Created student profile "${res.data.fullName}" successfully!`,
-      );
-
-      setQuickStudentName("");
-
-      setTimeout(() => setActionSuccessMsg(null), 3500);
-    } catch (err) {
-      console.error("Quick add student error:", err);
-    }
-  };
 
   return (
     <div className="cm-dashboard">
@@ -258,80 +230,15 @@ export default function CenterManagerDashboardPage() {
         <DashboardNotificationsCard viewAllInHeader />
       </div>
 
-      {/* QUICK ADD STUDENT MODAL */}
-      {showQuickStudentModal && (
-        <div
-          className="modal show d-block"
-          tabIndex={-1}
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-primary text-white">
-                <h5 className="modal-title fw-bold">
-                  <i className="bi bi-person-plus-fill me-2" />
-                  Quick Add Student (Center Manager)
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setShowQuickStudentModal(false)}
-                />
-              </div>
-              <form onSubmit={handleQuickAddStudent}>
-                <div className="modal-body p-4">
-                  <div className="mb-3">
-                    <label className="form-label fw-bold">
-                      Student Full Name <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="e.g. John Doe..."
-                      value={quickStudentName}
-                      onChange={(e) => setQuickStudentName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label fw-bold">
-                      Expected Class Grade
-                    </label>
-                    <select className="form-select">
-                      <option>Grade 7 - Math &amp; English</option>
-                      <option>Grade 8 - Math &amp; Chemistry</option>
-                      <option>Grade 9 - High School Exam Prep</option>
-                      <option>Grade 12 - University Exam Prep</option>
-                    </select>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label fw-bold">
-                      Contact Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      className="form-control"
-                      placeholder="09xx xxx xxx"
-                    />
-                  </div>
-                </div>
-                <div className="modal-footer bg-light">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => setShowQuickStudentModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary px-4">
-                    Save Student
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddStudentModal open={showQuickStudentModal} onClose={() => setShowQuickStudentModal(false)}
+        onSaved={(student, recovered) => {
+          setUsers(previous => [student, ...previous.filter(user => user.userId !== student.userId)]);
+          setUsersReady(true);
+          setActionSuccessMsg(recovered ? `Loaded saved student "${student.fullName}".` : `Created student profile "${student.fullName}" successfully!`);
+          void Promise.all([userDAL.getAllUsers(), classDAL.getAllClasses()]).then(([userRes, classRes]) => {
+            setUsers(userRes.data); setClasses(classRes.data); setClassesReady(true);
+          }).catch(error => setOtherError(`Student saved; could not refresh Dashboard: ${error instanceof Error ? error.message : String(error)}`));
+        }} />
     </div>
   );
 }

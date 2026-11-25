@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import { useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
@@ -161,10 +163,10 @@ export default function ClassManagementPage({role}: {role: ManagementRole}) {
       {editor !== null && <ClassFormModal key={editor} classId={editor === "new" ? undefined : editor} subjects={subjects} grades={grades} onRetrySubjects={refresh}
         onClose={() => setEditor(null)} onSaved={item => {setSuccess(`Saved class “${item.className}” (#CLS${item.classId}).`); setEditor(null); refresh();}} />}
       {deleting && <div className="modal show d-block" role="dialog" aria-modal="true" aria-labelledby="class-delete-title" style={{backgroundColor: "rgba(0,0,0,0.5)"}}>
-        <div className="modal-dialog modal-dialog-centered"><div className="modal-content border-0 shadow-lg">
+        <div className="modal-dialog modal-dialog-centered modal-sm"><ModalSurface className="modal-content border-0 shadow-lg">
           <div className={`modal-header ${(deleting.status || "active").toLowerCase() === "active" ? "bg-warning text-dark" : "bg-success text-white"}`}>
             <h5 id="class-delete-title" className="modal-title fw-bold">
-              <i className={`bi ${(deleting.status || "active").toLowerCase() === "active" ? "bi-lock-fill" : "bi-unlock-fill"} me-2`} />
+              <ModalIcon name={(deleting.status || "active").toLowerCase() === "active" ? "lock" : "unlock"} />
               {(deleting.status || "active").toLowerCase() === "active" ? "Deactivate Class" : "Activate Class"}
             </h5>
             <button type="button" className={`btn-close ${(deleting.status || "active").toLowerCase() === "active" ? "" : "btn-close-white"}`} aria-label="Close" disabled={deletingBusy} onClick={() => setDeleting(null)} />
@@ -184,7 +186,7 @@ export default function ClassManagementPage({role}: {role: ManagementRole}) {
             <button type="button" className={`btn ${(deleting.status || "active").toLowerCase() === "active" ? "btn-warning fw-bold" : "btn-success"}`} disabled={deletingBusy} onClick={remove}>
               {deletingBusy ? "Updating..." : (deleting.status || "active").toLowerCase() === "active" ? "Set Inactive" : "Activate Class"}
             </button></div>
-        </div></div>
+        </ModalSurface></div>
       </div>}
     </>
   );

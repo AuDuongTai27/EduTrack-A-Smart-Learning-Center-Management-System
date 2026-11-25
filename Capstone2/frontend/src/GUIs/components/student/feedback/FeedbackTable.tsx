@@ -1,3 +1,5 @@
+import ModalIcon from '../../Common/ModalIcon';
+import ModalSurface from '../../Common/ModalSurface';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { FeedbackApprovalRequest } from './feedbackData';
 import Pagination from '../../Common/Pagination';
@@ -438,14 +440,14 @@ export function FeedbackTable({
             style={{ zIndex: 1055 }}
           >
             <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+              <ModalSurface className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
                 <div className="modal-header border-bottom py-3 px-4 bg-white">
                   <h5
                     className="modal-title d-flex align-items-center gap-2 fw-bold text-dark"
                     id="feedbackDetailModalTitle"
                     style={{ fontSize: '17px' }}
                   >
-                    <i className="bi bi-journal-text text-primary fs-5" />
+                    <ModalIcon name="feedback" />
                     <span>Feedback Details: {selectedRequest.requestCode || `#${selectedRequest.id}`}</span>
                   </h5>
                   <button
@@ -527,7 +529,7 @@ export function FeedbackTable({
                     </button>
                   )}
                 </div>
-              </div>
+              </ModalSurface>
             </div>
           </div>
         </>

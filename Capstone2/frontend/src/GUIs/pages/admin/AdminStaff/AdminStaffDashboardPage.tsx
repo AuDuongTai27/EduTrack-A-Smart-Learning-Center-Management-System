@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import '../../../../assets/css/management-dashboard-kpis.css';
 import { DashboardNotificationsCard } from '../../../components/shared/notifications/NotificationQuickViews';
 import { useState, useEffect } from "react";
@@ -299,8 +301,8 @@ export default function AdminStaffDashboardPage() {
         return (
           <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
             <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content shadow-lg border-0">
-                <div className="modal-header bg-light border-bottom">
+              <ModalSurface className="modal-content shadow-lg border-0">
+                <div className="modal-header bg-light border-bottom"><ModalIcon name="file" />
                   <div className="d-flex align-items-center gap-2">
                     <span className="badge bg-primary fs-6 font-monospace">
                       {reqCode}
@@ -420,7 +422,7 @@ export default function AdminStaffDashboardPage() {
                     Close
                   </button>
                 </div>
-              </div>
+              </ModalSurface>
             </div>
           </div>
         );

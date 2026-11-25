@@ -1,3 +1,5 @@
+import ModalIcon from '../../../Common/ModalIcon';
+import ModalSurface from '../../../Common/ModalSurface';
 import React, { useState } from 'react';
 import { teachingDAL } from '../../../../../DAL/teachingDAL';
 import type { ApprovalRequestDto } from '../../../../../BLL/models/ApprovalRequestDto';
@@ -15,7 +17,6 @@ export default function NewRequestModal({
   onClose,
   onRequestCreated,
   defaultRequestedBy = 3,
-  userRoleName = "Teacher",
 }: NewRequestModalProps) {
   const [requestType, setRequestType] = useState('leave_request');
   const [priority, setPriority] = useState('medium');
@@ -86,11 +87,11 @@ export default function NewRequestModal({
         style={{ zIndex: 1055 }}
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content shadow border-0 rounded-3">
+          <ModalSurface className="modal-content shadow border-0 rounded-3">
             <div className="modal-header border-bottom py-3 px-4">
               <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="newRequestModalTitle">
-                <i className="bi bi-file-earmark-plus text-primary fs-5" />
-                <span>Create New Request ({userRoleName})</span>
+                <ModalIcon name="file" />
+                <span>Create Request</span>
               </h5>
               <button
                 type="button"
@@ -210,7 +211,7 @@ export default function NewRequestModal({
                 </button>
               </div>
             </form>
-          </div>
+          </ModalSurface>
         </div>
       </div>
     </>

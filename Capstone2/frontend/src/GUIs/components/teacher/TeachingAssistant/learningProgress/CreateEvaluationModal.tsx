@@ -1,3 +1,5 @@
+import ModalIcon from '../../../Common/ModalIcon';
+import ModalSurface from '../../../Common/ModalSurface';
 import React, { useState } from "react";
 import type { CreateTeachingEvaluationPayload } from "../../../../../BLL/models/teaching";
 
@@ -86,11 +88,11 @@ export default function CreateEvaluationModal({
       tabIndex={-1}
     >
       <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <ModalSurface className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
           {/* Modal Header */}
           <div className="modal-header bg-white border-bottom py-3 px-4">
             <h5 className="modal-title d-flex align-items-center gap-2 fs-6 fw-bold text-dark mb-0">
-              <i className="bi bi-pencil-square text-primary" />
+              <ModalIcon name="edit" />
               Create Student Evaluation
             </h5>
             <button
@@ -232,7 +234,7 @@ export default function CreateEvaluationModal({
               </button>
             </div>
           </form>
-        </div>
+        </ModalSurface>
       </div>
     </div>
   );

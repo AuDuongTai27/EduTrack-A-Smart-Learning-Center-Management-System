@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
@@ -719,12 +721,10 @@ export default function AdminStaffApprovalRequestPage() {
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
-                  <i
-                    className={`bi ${editingRequestId != null ? "bi-pencil-square" : "bi-plus-circle"} me-2`}
-                  />
+                  <ModalIcon name={editingRequestId != null ? "edit" : "file"} />
                   {editingRequestId != null
                     ? "Edit Approval Request (Waiting)"
                     : "Create New Approval Request to Center Manager"}
@@ -1025,7 +1025,7 @@ export default function AdminStaffApprovalRequestPage() {
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -1038,8 +1038,8 @@ export default function AdminStaffApprovalRequestPage() {
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-light border-bottom">
+            <ModalSurface className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom"><ModalIcon name="file" />
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-primary fs-6 font-monospace">
                     {selectedRequest.requestCode ||
@@ -1197,7 +1197,7 @@ export default function AdminStaffApprovalRequestPage() {
                   </button>
                 )}
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
@@ -419,11 +421,11 @@ export default function CenterManagerSubjectPage() {
       {showAddModal && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-journal-plus me-2" />
-                  Add New Subject (Center Manager)
+                  <ModalIcon name="subject" />
+                  Add Subject
                 </h5>
                 <button
                   type="button"
@@ -487,7 +489,7 @@ export default function CenterManagerSubjectPage() {
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -496,10 +498,10 @@ export default function CenterManagerSubjectPage() {
       {showEditModal && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-warning-subtle border-bottom">
                 <h5 className="modal-title fw-bold text-dark">
-                  <i className="bi bi-pencil-square me-2 text-warning" />
+                  <ModalIcon name="edit" />
                   Edit Subject: #{editForm.subjectCode}
                 </h5>
                 <button
@@ -548,7 +550,7 @@ export default function CenterManagerSubjectPage() {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-warning px-4 fw-bold" disabled={submitting}>
+                  <button type="submit" className="btn btn-primary px-4 fw-bold" disabled={submitting}>
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status" />
@@ -560,7 +562,7 @@ export default function CenterManagerSubjectPage() {
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -568,8 +570,8 @@ export default function CenterManagerSubjectPage() {
       {/* STATUS TOGGLE CONFIRMATION MODAL */}
       {showDeleteModal && subjectToDelete && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
+          <div className="modal-dialog modal-dialog-centered modal-sm">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div
                 className={`modal-header ${
                   (subjectToDelete.status || "active").toLowerCase() === "active"
@@ -578,13 +580,9 @@ export default function CenterManagerSubjectPage() {
                 }`}
               >
                 <h5 className="modal-title fw-bold">
-                  <i
-                    className={`bi ${
-                      (subjectToDelete.status || "active").toLowerCase() === "active"
-                        ? "bi-lock-fill"
-                        : "bi-unlock-fill"
-                    } me-2`}
-                  />
+                  <ModalIcon name={(subjectToDelete.status || "active").toLowerCase() === "active"
+                        ? "lock"
+                        : "unlock"} />
                   {(subjectToDelete.status || "active").toLowerCase() === "active"
                     ? "Confirm Deactivate Subject"
                     : "Confirm Activate Subject"}
@@ -647,7 +645,7 @@ export default function CenterManagerSubjectPage() {
                   )}
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -656,8 +654,8 @@ export default function CenterManagerSubjectPage() {
       {selectedSubject && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-light border-bottom">
+            <ModalSurface className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom"><ModalIcon name="subject" />
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-primary fs-6 font-monospace">
                     #{selectedSubject.subjectCode}
@@ -717,7 +715,7 @@ export default function CenterManagerSubjectPage() {
                   Close
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

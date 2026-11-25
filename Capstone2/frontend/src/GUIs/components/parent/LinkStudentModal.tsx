@@ -1,3 +1,5 @@
+import ModalIcon from '../Common/ModalIcon';
+import ModalSurface from '../Common/ModalSurface';
 import React, { useState } from 'react';
 import { useParent } from '../../../contexts/ParentContext';
 
@@ -112,23 +114,15 @@ export function LinkStudentModal({
       style={{ backgroundColor: 'rgba(15, 23, 42, 0.65)', zIndex: 1060 }}
     >
       <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
+        <ModalSurface className="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
           {/* Header */}
           <div className="modal-header bg-light border-bottom px-4 py-3">
             <div className="d-flex align-items-center gap-2">
-              <div
-                className="d-flex align-items-center justify-content-center rounded-3 bg-primary text-white"
-                style={{ width: '38px', height: '38px' }}
-              >
-                <i className="bi bi-person-plus-fill fs-5"></i>
-              </div>
+              <ModalIcon name="link" />
               <div>
                 <h5 className="modal-title fw-bold mb-0 text-dark">
                   Link Student Profile
                 </h5>
-                <small className="text-muted">
-                  Choose the most convenient connection method for you
-                </small>
               </div>
             </div>
             <button
@@ -266,7 +260,7 @@ export function LinkStudentModal({
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-end gap-2 pt-2">
+                <div className="modal-footer edu-modal-inline-footer">
                   <button
                     type="button"
                     className="btn btn-outline-secondary px-4"
@@ -363,7 +357,7 @@ export function LinkStudentModal({
                   ></textarea>
                 </div>
 
-                <div className="d-flex justify-content-end gap-2 pt-2">
+                <div className="modal-footer edu-modal-inline-footer">
                   <button
                     type="button"
                     className="btn btn-outline-secondary px-4"
@@ -379,7 +373,7 @@ export function LinkStudentModal({
               </form>
             )}
           </div>
-        </div>
+        </ModalSurface>
       </div>
     </div>
   );

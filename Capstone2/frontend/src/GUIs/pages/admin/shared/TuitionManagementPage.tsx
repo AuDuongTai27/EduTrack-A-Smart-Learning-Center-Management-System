@@ -1,3 +1,5 @@
+import ModalIcon from '../../../components/Common/ModalIcon';
+import ModalSurface from '../../../components/Common/ModalSurface';
 import { useState, useEffect, useMemo, useRef } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import DotStatusBadge from "../../../components/Common/DotStatusBadge";
@@ -593,10 +595,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
           }}
         >
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-warning">
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-pencil-square me-2" />
+                  <ModalIcon name="edit" />
                   Edit Invoice #{editingTuition.invoiceId}
                 </h5>
 
@@ -724,13 +726,13 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                     Cancel
                   </button>
 
-                  <button type="submit" className="btn btn-warning px-4" disabled={editBusy || !editAllowed}>
+                  <button type="submit" className="btn btn-primary px-4" disabled={editBusy || !editAllowed}>
                     <i className="bi bi-save me-2" />
                     Save Changes
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -742,10 +744,10 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
+            <ModalSurface className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-success text-white">
                 <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
-                  <i className="bi bi-cash-stack" />
+                  <ModalIcon name="tuition" />
                   <span>Record In-Person Cash Payment – Invoice #{payingTuition.invoiceId}</span>
                 </h5>
                 <button
@@ -889,7 +891,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}
@@ -902,8 +904,8 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-light border-bottom">
+            <ModalSurface className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-light border-bottom"><ModalIcon name="tuition" />
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-primary fs-6 font-monospace">
                     {selectedTuition.invoiceCode ||
@@ -1009,7 +1011,7 @@ export default function TuitionManagementPage({ role }: { role: "center-manager"
                   Close
                 </button>
               </div>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

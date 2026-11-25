@@ -1,0 +1,174 @@
+/* EduTrack Modern Academy — Clean Mint. Opt-in surfaces only. */
+body:has(.edu-modal-overlay) { overflow: hidden; }
+.edu-modal-backdrop { background: transparent !important; }
+.edu-modal {
+  --edu-modal-primary: #078444;
+  --edu-modal-primary-dark: #05643c;
+  --edu-modal-mint: #eaf8f1;
+  --edu-modal-text: #142238;
+  --edu-modal-muted: #64748b;
+  --edu-modal-border: #dcebe3;
+  --edu-modal-surface: #fff;
+  --edu-modal-icon-size: 20px;
+  --edu-modal-icon-container: 36px;
+  --edu-modal-icon-radius: 10px;
+  --edu-modal-icon-gap: 12px;
+  color: var(--edu-modal-text);
+}
+.edu-modal-overlay.modal {
+  background: rgb(20 34 56 / 45%) !important;
+  padding: 16px !important;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.edu-modal-overlay > .modal-dialog {
+  width: min(100%, 580px);
+  max-width: 580px !important;
+  min-height: calc(100% - 2px);
+  margin: 0 auto !important;
+}
+.edu-modal-overlay > .modal-dialog.modal-sm { width: min(100%, 430px); }
+.edu-modal-overlay > .modal-dialog.modal-lg { width: min(100%, 740px); max-width: 740px !important; }
+.edu-modal-overlay > .modal-dialog.modal-xl { width: min(100%, 900px); max-width: 900px !important; }
+.edu-modal-overlay .edu-modal.modal-content,
+dialog.edu-modal.edu-modal-native {
+  border: 1px solid var(--edu-modal-border) !important;
+  border-radius: 16px !important;
+  background: var(--edu-modal-surface) !important;
+  box-shadow: 0 24px 70px rgb(20 34 56 / 20%) !important;
+  max-height: calc(100dvh - 32px);
+  overflow: auto !important;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.edu-modal > form { display: flex; flex-direction: column; min-height: 0; }
+.edu-modal .modal-header,
+.edu-modal .ntf-compose-header,
+.edu-modal .et-schedule-detail-heading {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  flex-shrink: 0;
+  gap: 16px;
+  align-items: center;
+  padding: 20px 24px !important;
+  background: var(--edu-modal-surface) !important;
+  color: var(--edu-modal-text) !important;
+  border-bottom: 1px solid var(--edu-modal-border) !important;
+}
+.edu-modal .modal-title,
+.edu-modal .modal-header h5,
+.edu-modal .ntf-compose-header h2,
+.edu-modal .et-schedule-detail-heading h2 {
+  color: var(--edu-modal-text) !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  line-height: 1.45;
+  margin: 0;
+  min-width: 0;
+}
+.edu-modal .modal-header > div { min-width: 0; }
+.edu-modal .modal-header :is(p, small, .text-white-50) { color: var(--edu-modal-muted) !important; }
+/* Shared outline icon slot; never depends on Bootstrap glyph weight. */
+.edu-modal .edu-modal-icon {
+  display: inline-flex;
+  flex: 0 0 var(--edu-modal-icon-container);
+  width: var(--edu-modal-icon-container);
+  height: var(--edu-modal-icon-container);
+  min-width: var(--edu-modal-icon-container);
+  border-radius: var(--edu-modal-icon-radius);
+  align-items: center;
+  justify-content: center;
+  background: var(--edu-modal-mint);
+  color: var(--edu-modal-primary);
+  line-height: 0;
+  margin: 0;
+}
+.edu-modal .edu-modal-icon svg {
+  display: block;
+  flex: none;
+  width: var(--edu-modal-icon-size);
+  height: var(--edu-modal-icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+.edu-modal :is(.modal-title, .ntf-compose-header h2, .et-schedule-detail-heading h2):has(> .edu-modal-icon) { display: flex; align-items: center; gap: var(--edu-modal-icon-gap) !important; }
+.edu-modal .modal-header div:has(> .modal-title > .edu-modal-icon) > :is(p, small),
+.edu-modal .ntf-compose-header p { margin-left: calc(var(--edu-modal-icon-container) + var(--edu-modal-icon-gap)); }
+.edu-modal .modal-header .d-flex:has(> .edu-modal-icon) { gap: var(--edu-modal-icon-gap) !important; }
+.edu-modal :is(.modal-header, .ntf-compose-header, .et-schedule-detail-heading):has(> .edu-modal-icon) { gap: var(--edu-modal-icon-gap); align-items: center; }
+.edu-modal :is(.modal-header, .ntf-compose-header, .et-schedule-detail-heading) > .edu-modal-icon + :not(.btn-close) { flex: 1; min-width: 0; }
+.edu-modal .edu-modal-inline-footer { margin: 24px -24px -24px; }
+/* Same 20px, 2px-stroke X and 36px hit area, including legacy white close buttons. */
+.edu-modal :is(.modal-header, .ntf-compose-header, .et-schedule-detail-heading) .btn-close {
+  flex: 0 0 36px;
+  width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background-color: transparent !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M6 18 18 6' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") !important;
+  background-position: center !important;
+  background-size: 20px 20px !important;
+  background-repeat: no-repeat !important;
+  filter: none !important;
+  opacity: 1;
+  box-shadow: none !important;
+  margin: 0 0 0 auto !important;
+  outline: none;
+}
+.edu-modal :is(.modal-header, .ntf-compose-header, .et-schedule-detail-heading) .btn-close:hover:not(:disabled) { background-color: var(--edu-modal-mint) !important; }
+.edu-modal :is(.modal-header, .ntf-compose-header, .et-schedule-detail-heading) .btn-close:disabled { opacity: .45; }
+.edu-modal :is(.modal-header, .ntf-compose-header, .et-schedule-detail-heading) .btn-close:focus-visible { outline: 3px solid rgb(7 132 68 / 50%) !important; outline-offset: 2px; }
+.edu-modal .modal-body,
+.edu-modal .ntf-compose-body { padding: 24px !important; min-width: 0; }
+.edu-modal .modal-footer,
+.edu-modal .ntf-compose-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end !important;
+  gap: 10px;
+  padding: 16px 24px !important;
+  border-top: 1px solid var(--edu-modal-border) !important;
+  background: #f8fcfa !important;
+}
+.edu-modal .modal-footer > .btn { margin: 0; }
+.edu-modal .ntf-compose-footer button { flex: 0 1 auto; }
+.edu-modal .modal-footer .btn-secondary { background: #fff !important; color: var(--edu-modal-muted) !important; border-color: var(--edu-modal-muted) !important; }
+.edu-modal .btn { border-radius: 8px !important; min-height: 40px; white-space: normal; }
+.edu-modal .btn-primary,
+.edu-modal .btn-success { background: var(--edu-modal-primary) !important; border-color: var(--edu-modal-primary) !important; color: #fff !important; }
+.edu-modal .btn-primary:hover,
+.edu-modal .btn-success:hover { background: var(--edu-modal-primary-dark) !important; border-color: var(--edu-modal-primary-dark) !important; }
+.edu-modal .btn-outline-primary { color: var(--edu-modal-primary); border-color: var(--edu-modal-primary); }
+.edu-modal .btn-outline-primary:hover { color: #fff; background: var(--edu-modal-primary); }
+.edu-modal .form-label { color: var(--edu-modal-text) !important; font-size: .875rem; font-weight: 600 !important; }
+.edu-modal :is(.form-control, .form-select) { min-height: 42px; border-radius: 8px; border-color: var(--edu-modal-border); max-width: 100%; }
+.edu-modal :is(.form-control, .form-select):focus { border-color: var(--edu-modal-primary); box-shadow: 0 0 0 3px rgb(7 132 68 / 15%); }
+.edu-modal :is(button, a, input, select, textarea):focus-visible { outline: 3px solid rgb(7 132 68 / 50%); outline-offset: 2px; }
+.edu-modal .form-check-input:checked { background-color: var(--edu-modal-primary); border-color: var(--edu-modal-primary); }
+.edu-modal .btn:disabled { opacity: .6; cursor: wait; }
+.edu-modal-subtitle { margin: 6px 0 0 calc(var(--edu-modal-icon-container) + var(--edu-modal-icon-gap)); font-size: .875rem; color: var(--edu-modal-muted); }
+dialog.edu-modal.edu-modal-native { width: min(740px, calc(100% - 32px)); padding: 0; }
+dialog.edu-modal.edu-modal-native::backdrop { background: rgb(20 34 56 / 45%); }
+.edu-modal.et-schedule-detail .et-schedule-detail-body { padding: 0 24px 24px; }
+.edu-modal.et-schedule-detail .et-schedule-detail-heading { margin: 0 -24px 24px; }
+@media (max-width: 575px) {
+  .edu-modal-overlay.modal { padding: 12px !important; }
+  .edu-modal-overlay .edu-modal.modal-content,
+  dialog.edu-modal.edu-modal-native { max-height: calc(100dvh - 24px); border-radius: 14px !important; }
+  .edu-modal :is(.modal-header, .modal-body, .ntf-compose-header, .ntf-compose-body) { padding: 16px !important; }
+  .edu-modal :is(.modal-footer, .ntf-compose-footer) { padding: 12px 16px !important; gap: 8px; }
+  .edu-modal .row > [class*='col-'] { width: 100%; }
+  .edu-modal .modal-title { font-size: 1rem !important; }
+  .edu-modal-subtitle { margin-left: 0; }
+  .edu-modal .modal-header div:has(> .modal-title > .edu-modal-icon) > :is(p, small),
+  .edu-modal .ntf-compose-header p { margin-left: 0; }
+  .edu-modal .edu-modal-inline-footer { margin: 16px -16px -16px; }
+}

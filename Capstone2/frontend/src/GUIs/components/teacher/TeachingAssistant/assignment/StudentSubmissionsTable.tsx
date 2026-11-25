@@ -1,3 +1,5 @@
+import ModalIcon from '../../../Common/ModalIcon';
+import ModalSurface from '../../../Common/ModalSurface';
 import { useState } from "react";
 import type { SubmissionDto } from "../../../../../BLL/models/SubmissionDto";
 import type { TeachingSubmissionItemDto } from "../../../../../BLL/models/teaching/TeachingAssignmentDto";
@@ -264,10 +266,10 @@ function StudentSubmissionsTable({
       {selectedSub && (
         <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
+            <ModalSurface className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title fw-bold">
-                  <i className="bi bi-award-fill me-2 text-warning" />
+                  <ModalIcon name="award" />
                   Grade Submission: {selectedSub.studentName}
                 </h5>
                 <button type="button" className="btn-close" onClick={() => setSelectedSub(null)} />
@@ -358,7 +360,7 @@ function StudentSubmissionsTable({
                   </button>
                 </div>
               </form>
-            </div>
+            </ModalSurface>
           </div>
         </div>
       )}

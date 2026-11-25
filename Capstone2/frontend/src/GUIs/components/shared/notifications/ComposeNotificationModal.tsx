@@ -1,3 +1,4 @@
+import ModalIcon from '../../Common/ModalIcon';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { classApi } from '../../../../api/classApi';
 import { notificationRequest, type NotificationRecipientOption } from '../../../../api/notificationInboxApi';
@@ -50,7 +51,7 @@ export default function ComposeNotificationModal({ open, onSent, onClose }: { op
     finally { inFlight.current = false; setBusy(false); }
   }
   const required = <span className="ntf-required" aria-hidden="true">*</span>;
-  return <dialog ref={dialog} tabIndex={-1} className="ntf-scope ntf-compose" aria-modal="true" aria-label="Send notification" aria-labelledby="ntf-compose-title" aria-describedby="ntf-compose-hint"
+  return <dialog ref={dialog} tabIndex={-1} className="edu-modal edu-modal-native ntf-scope ntf-compose" aria-modal="true" aria-label="Send notification" aria-labelledby="ntf-compose-title" aria-describedby="ntf-compose-hint"
     onCancel={e => { e.preventDefault(); close(); }} onKeyDown={e => {
       if (e.key !== 'Tab') return;
       const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex="0"]'))
@@ -61,10 +62,11 @@ export default function ComposeNotificationModal({ open, onSent, onClose }: { op
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }}>
     <form onSubmit={submit} noValidate aria-busy={busy}>
-      <header className="ntf-compose-header"><div><h2 id="ntf-compose-title">Send Notification</h2>
-        <p id="ntf-compose-hint">Draft is saved when closed, until sent or account is switched.</p></div>
-        <button type="button" className="btn btn-outline-secondary" aria-label="Close compose notification form" disabled={busy} onClick={close}>×</button></header>
+      <header className="ntf-compose-header"><div><h2 id="ntf-compose-title"><ModalIcon name="notification" />Send Notification</h2>
+        </div>
+        <button type="button" className="btn-close" aria-label="Close compose notification form" disabled={busy} onClick={close} /></header>
       <div className="ntf-compose-body">
+        <p id="ntf-compose-hint" className="small text-muted mb-3">Draft is saved when closed, until sent or account is switched.</p>
         <fieldset disabled={busy}><legend>Notification Content</legend>
           <div className="ntf-field"><label htmlFor="ntf-title">Title {required}</label>
             <input ref={titleInput} id="ntf-title" name="title" className="form-control" required maxLength={200} value={title}
