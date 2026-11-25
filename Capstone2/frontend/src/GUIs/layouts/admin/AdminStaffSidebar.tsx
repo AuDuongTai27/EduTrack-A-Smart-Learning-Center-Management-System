@@ -2,9 +2,11 @@ import CenterSchoolIcon from "../../components/admin/CenterManager/CenterSchoolI
 import { BrandIcon } from "../../components/Common/BrandIcon";
 import { Link, NavLink } from "react-router-dom";
 import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
+import { useSidebarToggle } from "../../hooks/useSidebarToggle";
 
 export default function AdminStaffSidebar() {
   const { centerName, loading: settingsLoading, error: settingsError } = useCenterSettings();
+  const { collapsed, toggleSidebar } = useSidebarToggle();
   return (
     <aside className="sidebar" id="sidebar">
       <div className="sidebar-header">
@@ -18,9 +20,12 @@ export default function AdminStaffSidebar() {
           className="sidebar-collapse-btn"
           id="sidebarCollapseBtn"
           type="button"
-          aria-label="Toggle sidebar"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <i className="bi bi-list" />
+          <i className={`bi ${collapsed ? "bi-layout-sidebar-inset" : "bi-list"}`} />
         </button>
       </div>
       <div className="center-box">

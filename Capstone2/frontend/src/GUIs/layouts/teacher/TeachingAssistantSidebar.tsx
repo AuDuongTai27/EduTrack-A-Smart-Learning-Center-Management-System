@@ -2,9 +2,11 @@ import CenterSchoolIcon from "../../components/admin/CenterManager/CenterSchoolI
 import { useCenterSettings } from "../../../contexts/CenterSettingsContext";
 import { BrandIcon } from "../../components/Common/BrandIcon";
 import { Link, NavLink } from "react-router-dom";
+import { useSidebarToggle } from "../../hooks/useSidebarToggle";
 
 export default function TeachingAssistantSidebar() {
   const { centerName, loading, error } = useCenterSettings();
+  const { collapsed, toggleSidebar } = useSidebarToggle();
   const displayCenterName = centerName || (loading ? "Loading..." : error ? "Failed to load center name" : "Center name not configured");
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     `nav-link ${isActive ? "active" : ""}`;
@@ -22,9 +24,12 @@ export default function TeachingAssistantSidebar() {
           className="sidebar-collapse-btn"
           id="sidebarCollapseBtn"
           type="button"
-          aria-label="Toggle sidebar"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <i className="bi bi-list" />
+          <i className={`bi ${collapsed ? "bi-layout-sidebar-inset" : "bi-list"}`} />
         </button>
       </div>
       <div className="center-box">

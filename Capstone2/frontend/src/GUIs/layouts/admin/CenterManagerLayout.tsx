@@ -5,6 +5,7 @@ import "../../../assets/css/center-manager-academy.css";
 import CenterManagerSidebar from "./CenterManagerSidebar";
 import AdminTopBar from "./AdminTopBar";
 import { CenterSettingsProvider } from "../../../contexts/CenterSettingsContext";
+import { closeMobileSidebar } from "../../hooks/useSidebarToggle";
 
 export default function CenterManagerLayout() {
   return (
@@ -25,7 +26,7 @@ export default function CenterManagerLayout() {
           </main>
         </div>
       </div>
-      <div className="sidebar-overlay" id="sidebarOverlay" />
+      <div className="sidebar-overlay" id="sidebarOverlay" onClick={closeMobileSidebar} />
       </div>
     </CenterSettingsProvider>
   );

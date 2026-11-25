@@ -6,6 +6,7 @@ import "../../../assets/css/admin-staff-academy.css";
 import AdminTopBar from "./AdminTopBar";
 import { CenterSettingsProvider } from "../../../contexts/CenterSettingsContext";
 import AdminStaffSidebar from "./AdminStaffSidebar";
+import { closeMobileSidebar } from "../../hooks/useSidebarToggle";
 
 export default function StaffLayout() {
   return (
@@ -26,7 +27,7 @@ export default function StaffLayout() {
           </main>
         </div>
       </div>
-      <div className="sidebar-overlay" id="sidebarOverlay" />
+      <div className="sidebar-overlay" id="sidebarOverlay" onClick={closeMobileSidebar} />
       </div>
     </CenterSettingsProvider>
   );
