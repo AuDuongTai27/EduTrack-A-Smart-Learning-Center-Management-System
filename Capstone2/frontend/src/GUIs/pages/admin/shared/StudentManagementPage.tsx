@@ -652,7 +652,7 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
               <tr>
                 <th className="fw-bold">No.</th>
                 <th className="fw-bold">{activeTab === "students" ? "Student" : "Parent"}</th>
-                {activeTab === "students" && <th className="fw-bold">Class / Grade</th>}
+                {activeTab === "students" && <th className="fw-bold">Grade</th>}
                 <th className="fw-bold">Phone Number</th>
                 <th className="fw-bold">
                   {activeTab === "students" ? "Linked Parent" : "Assigned Student"}
@@ -696,7 +696,6 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                       {activeTab === "students" && (
                         <td>
                           <span className="specialty-badge">{gradeLabel(item)}</span>
-                          {legacyStudentGradeNote(item) && <small className="d-block text-muted">{legacyStudentGradeNote(item)}</small>}
                         </td>
                       )}
                       <td>{item.phone || "—"}</td>
@@ -1378,7 +1377,6 @@ export default function StudentManagementPage({ role }: { role: "center-manager"
                         <div className="p-3 bg-light rounded-3">
                           <small className="text-muted d-block mb-1">{selectedUser.roles?.includes("student") ? "Grade" : "Specialty"}</small>
                           <strong className="text-dark">{selectedUser.roles?.includes("student") ? gradeLabel(selectedUser) : selectedUser.specialty || "Not updated"}</strong>
-                          {selectedUser.roles?.includes("student") && legacyStudentGradeNote(selectedUser) && <small className="d-block text-muted">{legacyStudentGradeNote(selectedUser)}</small>}
                         </div>
                       </div>
                       <div className="col-md-6">
