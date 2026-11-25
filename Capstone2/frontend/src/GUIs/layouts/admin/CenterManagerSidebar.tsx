@@ -51,9 +51,6 @@ export default function CenterManagerSidebar() {
         </div>
         <div className="nav-section">
           <div className="nav-heading">MANAGEMENT</div>
-          <NavLink className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} to="/center-manager/schedule">
-            <i className="bi bi-calendar-week" /><span>Schedule</span>
-          </NavLink>
           <NavLink
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             to="/center-manager/user-accounts"
@@ -85,6 +82,9 @@ export default function CenterManagerSidebar() {
           >
             <i className="bi bi-collection-fill" />
             <span>Classes</span>
+          </NavLink>
+          <NavLink className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} to="/center-manager/schedule">
+            <i className="bi bi-calendar-week" /><span>Schedule</span>
           </NavLink>
         </div>
         <div className="nav-section">
