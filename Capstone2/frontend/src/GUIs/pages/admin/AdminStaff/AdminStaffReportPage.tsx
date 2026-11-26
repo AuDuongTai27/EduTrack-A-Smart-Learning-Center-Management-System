@@ -33,7 +33,6 @@ export default function AdminStaffReportPage() {
 
   // Export Modal state
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
-  const [exportFormat, setExportFormat] = useState<"Excel" | "PDF">("Excel");
   const [exportSuccessMsg, setExportSuccessMsg] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
@@ -82,34 +81,23 @@ export default function AdminStaffReportPage() {
     }
   };
 
-  // Handle export action
-  const handleTriggerExport = (format: "Excel" | "PDF") => {
-    setExportFormat(format);
-    setShowExportModal(true);
-  };
-
   const handleConfirmExport = async () => {
-    if (exportFormat === "Excel") {
-      try {
-        setIsExporting(true);
-        await tuitionDAL.downloadTuitionExcelReport({
-          classId: selectedClass,
-          status: selectedStatus,
-          searchTerm,
-          role: "Admin Staff",
-        });
-        setShowExportModal(false);
-        setExportSuccessMsg("Báo cáo Excel đã được xuất và tải xuống thành công!");
-        setTimeout(() => setExportSuccessMsg(null), 4500);
-      } catch (err: any) {
-        alert(err?.message || "Lỗi khi xuất tệp báo cáo Excel.");
-      } finally {
-        setIsExporting(false);
-      }
-    } else {
+    setExportSuccessMsg(null);
+    try {
+      setIsExporting(true);
+      await tuitionDAL.downloadTuitionExcelReport({
+        classId: selectedClass,
+        status: selectedStatus,
+        searchTerm,
+        role: "Admin Staff",
+      });
       setShowExportModal(false);
-      setExportSuccessMsg(`Report in ${exportFormat} format generated and downloaded successfully!`);
-      setTimeout(() => setExportSuccessMsg(null), 4000);
+      setExportSuccessMsg("Excel report download started successfully.");
+      setTimeout(() => setExportSuccessMsg(null), 4500);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Unable to export the Excel report.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -127,19 +115,10 @@ export default function AdminStaffReportPage() {
             <button
               type="button"
               className="btn btn-outline-primary d-flex align-items-center shadow-sm"
-              onClick={() => handleTriggerExport("Excel")}
+              onClick={() => setShowExportModal(true)}
             >
               <i className="bi bi-file-earmark-excel me-2 text-success" />
               Export Excel
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-outline-danger d-flex align-items-center shadow-sm"
-              onClick={() => handleTriggerExport("PDF")}
-            >
-              <i className="bi bi-file-earmark-pdf me-2 text-danger" />
-              Export PDF
             </button>
           </div>
         }
@@ -161,7 +140,7 @@ export default function AdminStaffReportPage() {
         <div className="card-header user-list-header bg-white py-3">
           <div className="row g-3 align-items-center">
             {/* Search */}
-            <div className="col-xl-3 col-lg-4 col-md-6">
+            <div className="col-12 col-md-6 col-xl-3">
               <label className="form-label fw-semibold small text-muted">Search</label>
               <div className="position-relative">
                 <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
@@ -179,7 +158,7 @@ export default function AdminStaffReportPage() {
             </div>
 
             {/* Report Type */}
-            <div className="col-xl-3 col-lg-4 col-md-6">
+            <div className="col-12 col-md-6 col-xl-3">
               <label className="form-label fw-semibold small text-muted">Report Type</label>
               <select
                 className="form-select"
@@ -195,7 +174,7 @@ export default function AdminStaffReportPage() {
             </div>
 
             {/* Class */}
-            <div className="col-xl-2 col-lg-4 col-md-6">
+            <div className="col-12 col-md-6 col-xl-3">
               <label className="form-label fw-semibold small text-muted">Class</label>
               <select
                 className="form-select"
@@ -211,7 +190,7 @@ export default function AdminStaffReportPage() {
             </div>
 
             {/* Status */}
-            <div className="col-xl-2 col-lg-4 col-md-6">
+            <div className="col-12 col-md-6 col-xl-3">
               <label className="form-label fw-semibold small text-muted">Status</label>
               <select
                 className="form-select"
@@ -227,24 +206,6 @@ export default function AdminStaffReportPage() {
                 <option value="Unpaid">Unpaid</option>
                 <option value="Overdue">Overdue</option>
               </select>
-            </div>
-
-            {/* Reset */}
-            <div className="col-xl-2 col-lg-4 col-md-6">
-              <label className="form-label d-block small text-muted">&nbsp;</label>
-              <button
-                type="button"
-                className="btn btn-outline-secondary w-100"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedClass("All");
-                  setSelectedStatus("All");
-                  setCurrentPage(1);
-                }}
-              >
-                <i className="bi bi-arrow-counterclockwise me-1" />
-                Reset
-              </button>
             </div>
           </div>
         </div>
@@ -398,7 +359,7 @@ export default function AdminStaffReportPage() {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title fw-bold">
                   <ModalIcon name="download" />
-                  Export Report Data ({exportFormat})
+                  Export Report Data (Excel)
                 </h5>
                 <button
                   type="button"
@@ -413,7 +374,7 @@ export default function AdminStaffReportPage() {
                 <div className="p-3 bg-light rounded-3 border mb-3">
                   <div className="d-flex justify-content-between mb-2">
                     <span className="text-muted">File format:</span>
-                    <strong className="text-primary">{exportFormat.toUpperCase()}</strong>
+                    <strong className="text-primary">EXCEL</strong>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
                     <span className="text-muted">Total records:</span>
@@ -423,12 +384,6 @@ export default function AdminStaffReportPage() {
                     <span className="text-muted">Generated date:</span>
                     <span>{new Date().toLocaleDateString("en-US")}</span>
                   </div>
-                </div>
-                <div className="form-check">
-                  <input className="form-check-input" type="checkbox" id="includeCharts" defaultChecked />
-                  <label className="form-check-label" htmlFor="includeCharts">
-                    Include KPI summary metrics
-                  </label>
                 </div>
               </div>
               <div className="modal-footer bg-light">
