@@ -158,7 +158,7 @@ export function FeedbackTable({
               type="search"
               className="form-control form-control-sm border-start-0 ps-1 rounded-end-2"
               id="feedbackSearchInput"
-              placeholder="Search by code, title, details..."
+              placeholder="Search by title, details..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -293,22 +293,19 @@ export function FeedbackTable({
         <table className="table align-middle mb-0 table-hover" id="feedbackTable">
           <thead className="table-light border-bottom">
             <tr>
-              <th className="py-3 px-4 text-secondary fw-semibold text-nowrap" style={{ width: 155, fontSize: '12px', letterSpacing: '0.03em' }}>
-                REQUEST CODE
-              </th>
               <th className="py-3 ps-4 pe-3 text-secondary fw-semibold" style={{ fontSize: '12px', letterSpacing: '0.03em' }}>
                 TITLE & DETAILS
               </th>
-              <th className="py-3 px-3 text-center text-secondary fw-semibold" style={{ width: 105, fontSize: '12px', letterSpacing: '0.03em' }}>
+              <th className="py-3 px-3 text-center text-secondary fw-semibold text-nowrap" style={{ width: 120, fontSize: '12px', letterSpacing: '0.03em' }}>
                 PRIORITY
               </th>
-              <th className="py-3 px-3 text-secondary fw-semibold" style={{ width: 145, fontSize: '12px', letterSpacing: '0.03em' }}>
+              <th className="py-3 px-3 text-secondary fw-semibold text-nowrap" style={{ width: 165, fontSize: '12px', letterSpacing: '0.03em' }}>
                 SUBMITTED DATE
               </th>
-              <th className="py-3 px-3 text-secondary fw-semibold" style={{ width: 155, fontSize: '12px', letterSpacing: '0.03em' }}>
+              <th className="py-3 px-3 text-secondary fw-semibold text-nowrap" style={{ width: 170, fontSize: '12px', letterSpacing: '0.03em' }}>
                 STATUS
               </th>
-              <th className="py-3 px-4 text-end text-secondary fw-semibold" style={{ width: 165, fontSize: '12px', letterSpacing: '0.03em' }}>
+              <th className="py-3 ps-3 pe-4 text-end text-secondary fw-semibold text-nowrap" style={{ width: 175, fontSize: '12px', letterSpacing: '0.03em' }}>
                 ACTIONS
               </th>
             </tr>
@@ -322,17 +319,6 @@ export function FeedbackTable({
 
                 return (
                   <tr key={req.id}>
-                    <td className="py-3 px-4 text-nowrap">
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 fw-bold text-primary text-decoration-none font-monospace"
-                        onClick={() => setSelectedRequest(req)}
-                        title="View details"
-                        style={{ fontSize: '13px' }}
-                      >
-                        {req.requestCode || `#${req.id}`}
-                      </button>
-                    </td>
                     <td className="py-3 ps-4 pe-3">
                       <div className="d-flex align-items-center gap-2 flex-wrap">
                         <span className="text-dark fw-semibold" style={{ fontSize: '14px' }}>
@@ -346,17 +332,17 @@ export function FeedbackTable({
                       </div>
                       <small
                         className="text-muted text-truncate d-block mt-1"
-                        style={{ maxWidth: 440, fontSize: '12.5px' }}
+                        style={{ maxWidth: 520, fontSize: '12.5px' }}
                       >
                         {req.description}
                       </small>
                     </td>
                     <td className="py-3 px-3 text-center">{getPriorityBadge(req.priority)}</td>
-                    <td className="py-3 px-3 text-muted small" style={{ fontSize: '12.5px' }}>
+                    <td className="py-3 px-3 text-muted small text-nowrap" style={{ fontSize: '12.5px' }}>
                       {req.createdAt || 'Just now'}
                     </td>
-                    <td className="py-3 px-3">{getStatusBadge(req)}</td>
-                    <td className="py-3 px-4 text-end">
+                    <td className="py-3 px-3 text-nowrap">{getStatusBadge(req)}</td>
+                    <td className="py-3 ps-3 pe-4 text-end text-nowrap">
                       <div className="d-inline-flex align-items-center gap-2 justify-content-end">
                         {isEditable ? (
                           <button
@@ -392,7 +378,7 @@ export function FeedbackTable({
               })
             ) : (
               <tr>
-                <td colSpan={6} className="text-center py-5 text-muted">
+                <td colSpan={5} className="text-center py-5 text-muted">
                   <div className="py-3">
                     <i className="bi bi-chat-square-dots fs-1 d-block mb-2 text-secondary opacity-50" />
                     <h6 className="fw-semibold text-dark mb-1">No feedback requests found</h6>
