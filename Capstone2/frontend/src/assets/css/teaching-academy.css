@@ -7,6 +7,16 @@
 .teacher-scope.teaching-academy .sidebar-nav { display: flex; flex-direction: column; height: calc(100vh - 136px); }
 .teacher-scope.teaching-academy .topbar { background: linear-gradient(105deg, #fff 10%, #f3f9f5 70%, #edf6f0); border-color: #dcebe3; }
 .teacher-scope.teaching-academy .page-wrapper { background: #f7faf8; }
+.teacher-scope.teaching-academy .page-content:has(> .teaching-dashboard)::before {
+  background: url('../illustrations/academy-banner-waves.svg') right bottom / 100vw 300px no-repeat fixed;
+}
+@media (min-width: 992px) {
+  .teacher-scope.teaching-academy .page-content > * {
+    width: 100%;
+    max-width: calc(100vw - var(--sidebar-width, 248px) - 52px);
+    margin-inline: auto;
+  }
+}
 .teacher-scope.teaching-academy .topbar-actions { gap: 12px; }
 .teacher-scope.teaching-academy .teaching-account-trigger { display: inline-flex; align-items: center; text-align: left; width: 230px; }
 .teacher-scope.teaching-academy .teaching-account-trigger .ntf-account-label { display: flex; flex-direction: column; min-width: 0; gap: 2px; }

@@ -18,6 +18,11 @@
     min-width: 0;
     transition: margin-left 0.25s ease;
   }
+  .student-scope .app-container > .main-wrapper .content-container {
+    width: 100%;
+    max-width: calc(100vw - 240px);
+    margin-inline: auto;
+  }
   body.sidebar-collapsed .student-scope .sidebar.student-sidebar-academy,
   body.sidebar-collapsed .student-scope .sidebar.parent-sidebar-academy {
     width: 74px;
