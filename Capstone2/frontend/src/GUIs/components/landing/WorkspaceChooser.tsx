@@ -8,6 +8,10 @@ import { clearNotificationInbox } from '../../hooks/useNotificationInbox';
 
 export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const identifierInput = useRef<HTMLInputElement>(null);
+  const authenticating = useRef(false);
+  const navigating = useRef(false);
+  const backdropPointer = useRef<{ id: number; x: number; y: number } | null>(null);
   const navigate = useNavigate();
 
   const [identifier, setIdentifier] = useState('');
@@ -19,19 +23,34 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
   useEffect(() => {
     if (!isOpen) return;
     setError(null);
+    navigating.current = false;
+    backdropPointer.current = null;
     const previous = document.activeElement as HTMLElement | null;
     const element = dialog.current;
     element?.showModal();
+    identifierInput.current?.focus({ preventScroll: true });
     return () => {
       element?.close();
-      previous?.focus();
+      backdropPointer.current = null;
+      if (!navigating.current && previous?.isConnected) previous.focus({ preventScroll: true });
     };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const dismiss = () => {
+    if (!authenticating.current) onClose();
+  };
+
+  const isBackdrop = (event: React.PointerEvent<HTMLDialogElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return event.target === event.currentTarget &&
+      (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (authenticating.current) return;
     if (!identifier.trim()) {
       setError('Please enter your email or phone number.');
       return;
@@ -41,6 +60,7 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
       return;
     }
 
+    authenticating.current = true;
     setLoading(true);
     setError(null);
 
@@ -64,12 +84,14 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
         roles: loggedInUser.roles,
       });
 
+      navigating.current = true;
       onClose();
       navigate(loggedInUser.redirectPath || '/student/dashboard');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Invalid credentials. Please try again.';
       setError(message);
     } finally {
+      authenticating.current = false;
       setLoading(false);
     }
   };
@@ -79,30 +101,45 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
       ref={dialog}
       className="et-workspace-dialog"
       aria-labelledby="workspace-title"
-      onCancel={onClose}
-      onClick={(e) => {
-        if (e.target === dialog.current) {
-          const r = dialog.current.getBoundingClientRect();
-          if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
-            onClose();
-          }
+      onCancel={(event) => {
+        event.preventDefault();
+        dismiss();
+      }}
+      onPointerDown={(event) => {
+        backdropPointer.current = event.isPrimary && event.button === 0 && isBackdrop(event)
+          ? { id: event.pointerId, x: event.clientX, y: event.clientY }
+          : null;
+      }}
+      onPointerMove={(event) => {
+        const start = backdropPointer.current;
+        // Reject a drag even if the pointer subsequently returns to its origin.
+        if (start && start.id === event.pointerId && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) {
+          backdropPointer.current = null;
         }
       }}
+      onPointerUp={(event) => {
+        const start = backdropPointer.current;
+        backdropPointer.current = null;
+        if (start?.id === event.pointerId && isBackdrop(event) && Math.hypot(event.clientX - start.x, event.clientY - start.y) <= 8) dismiss();
+      }}
+      onPointerCancel={() => { backdropPointer.current = null; }}
     >
-      <div className="et-workspace-brand"><BrandIcon size={40} /><span>EduTrack</span></div>
+      <div className="et-workspace-header">
+        <div className="et-workspace-brand"><BrandIcon size={40} /><span>EduTrack</span></div>
+        <button
+          className="et-workspace-close"
+          aria-label="Close dialog"
+          onClick={dismiss}
+          type="button"
+          disabled={loading}
+        >
+          <Icon name="close" />
+        </button>
+      </div>
       <div className="et-dialog-heading">
         <div>
           <h2 id="workspace-title">Sign In to EduTrack</h2>
         </div>
-        <button
-          className="et-menu-toggle"
-          aria-label="Close dialog"
-          onClick={onClose}
-          type="button"
-          autoFocus
-        >
-          <Icon name="close" />
-        </button>
       </div>
 
       <p style={{ marginTop: '8px', marginBottom: '18px', color: '#557062', fontSize: '13.5px' }}>
@@ -136,6 +173,7 @@ export function WorkspaceChooser({ isOpen, onClose }: { isOpen: boolean; onClose
             Email or Phone Number
           </label>
           <input
+            ref={identifierInput}
             id="login-identifier"
             type="text"
             required

@@ -97,6 +97,9 @@ export function LandingHeader({ onOpenWorkspace }: { onOpenWorkspace: () => void
                 type="button"
                 className="et-button et-outline"
                 onClick={() => {
+                  // The mobile Sign In button becomes hidden when navigation closes.
+                  // Give the dialog a visible keyboard focus destination to restore.
+                  if (open) toggle.current?.focus({ preventScroll: true });
                   setOpen(false);
                   onOpenWorkspace();
                 }}

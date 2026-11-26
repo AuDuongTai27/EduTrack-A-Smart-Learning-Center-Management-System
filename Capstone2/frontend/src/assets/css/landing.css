@@ -1006,6 +1006,53 @@
   background:#08271db3;
   backdrop-filter:blur(5px);
 }
+.et-workspace-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+.et-workspace-header .et-workspace-brand {
+  min-width:0;
+  margin-bottom:0;
+}
+.et-workspace-dialog .et-workspace-close {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 40px;
+  width:40px;
+  height:40px;
+  padding:0;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:#fff;
+  color:#475569;
+  cursor:pointer;
+  transition:background-color .18s ease,color .18s ease,border-color .18s ease;
+}
+.et-workspace-dialog .et-workspace-close .et-icon {
+  width:20px;
+  height:20px;
+  stroke-width:2px;
+}
+.et-workspace-dialog .et-workspace-close:hover:not(:disabled) {
+  background:#eaf8f1;
+  color:#078444;
+}
+.et-workspace-dialog .et-workspace-close:active:not(:disabled) {
+  background:#dff2e7;
+  color:#05643c;
+}
+.et-workspace-dialog .et-workspace-close:focus-visible {
+  outline:3px solid #078444;
+  outline-offset:3px;
+}
+.et-workspace-dialog .et-workspace-close:disabled {
+  opacity:.55;
+  cursor:not-allowed;
+}
 .et-dialog-heading {
   display:flex;
   justify-content:space-between;

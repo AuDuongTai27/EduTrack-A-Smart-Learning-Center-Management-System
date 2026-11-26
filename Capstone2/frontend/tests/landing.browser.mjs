@@ -10,16 +10,20 @@ import { spawn } from 'node:child_process';
 // --optimize converts generated source PNGs into responsive WebP assets via Chrome.
 const root = process.cwd();
 const optimize = process.argv.includes('--optimize');
-const staticQa = !optimize && !process.argv.includes('--statistics-hover') && !process.argv.includes('--legacy-api-fixtures');
-const output = path.resolve(root, process.env.LANDING_QA_OUTPUT || (staticQa ? '../../docs/kan50-static/screenshots' : '../../docs/kan50-refinement/screenshots'));
+const loginQa = process.argv.includes('--login-interactions');
+const staticQa = !loginQa && !optimize && !process.argv.includes('--statistics-hover') && !process.argv.includes('--legacy-api-fixtures');
+const output = path.resolve(root, process.env.LANDING_QA_OUTPUT || (loginQa ? '../../tmp/kan104/browser' : staticQa ? '../../docs/kan50-static/screenshots' : '../../docs/kan50-refinement/screenshots'));
 fs.mkdirSync(output, { recursive: true });
-const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edutrack-landing-chrome-'));
+const profile = fs.mkdtempSync(path.join(loginQa ? output : os.tmpdir(), 'edutrack-landing-chrome-'));
 const dist = path.join(root, optimize ? 'public' : 'dist');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp' };
 let mode = 'ready';
 let calls = 0;
 const apiRequests = [];
 const browserErrors = [];
+const loginRequests = [];
+let loginMode = 'invalid', pendingLogin;
+const loginUser = { userId: 104, userCode: 'QA104', fullName: 'KAN-104 Fixture', status: 'active', roles: ['student'], primaryRole: 'student', redirectPath: '/student/dashboard' };
 let harness;
 if (staticQa) {
   const { build } = await import('vite');
@@ -71,6 +75,24 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'image/jpeg' }).end(fs.readFileSync(path.join(root, 'public/assets/img/trainer-1.jpg'))); return;
   }
   if (pathname.startsWith('/api/')) {
+    if (loginQa) {
+      if (pathname === '/api/auth/login' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          loginRequests.push(JSON.parse(body));
+          const respond = () => res.writeHead(loginMode === 'invalid' ? 401 : 200, { 'Content-Type': 'application/json' }).end(JSON.stringify(loginMode === 'invalid'
+            ? { success: false, message: 'Invalid credentials. Please try again.' }
+            : { success: true, token: 'isolated-kan104-fixture', user: loginUser }));
+          if (loginMode === 'hold') pendingLogin = respond;
+          else respond();
+        });
+        return;
+      }
+      assert.equal(req.method, 'GET', 'Login QA must not mutate business data');
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(pathname === '/api/auth/me' ? loginUser : []));
+      return;
+    }
     if (staticQa) { calls++; res.writeHead(503).end('Backend disabled for static QA'); return; }
     assert.equal(req.method, 'GET', 'Browser QA never writes business data');
     if (mode === 'live') {
@@ -163,6 +185,7 @@ try {
     const message = JSON.parse(event.data);
     if (message.id) { const task = pending.get(message.id); if (task) { clearTimeout(task.timer); pending.delete(message.id); if (message.error) task.reject(new Error(JSON.stringify(message.error))); else task.resolve(message.result); } }
     else if (message.method === 'Runtime.exceptionThrown') { browserErrors.push(message.params.exceptionDetails.text); console.error('Browser exception:', message.params.exceptionDetails.exception?.description ?? message.params.exceptionDetails.text); }
+    else if (loginQa && message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') browserErrors.push(message.params.args.map(arg => arg.value ?? arg.description).join(' '));
     else if (message.method === 'Network.requestWillBeSent' && new URL(message.params.request.url).pathname.startsWith('/api/')) apiRequests.push(message.params.request.url);
     else if (message.method === 'Network.loadingFailed' && message.params.errorText !== 'net::ERR_ABORTED') console.error('Browser request failed:', message.params.errorText, message.params.blockedReason ?? '');
     else if (message.method === 'Fetch.requestPaused') {
@@ -190,6 +213,189 @@ try {
         const file = path.join(root, 'public/assets/landing', name + (size === 700 ? '-mobile' : '') + '.webp');
         fs.writeFileSync(file, Buffer.from(data, 'base64')); console.log(path.basename(file), fs.statSync(file).size);
       }
+    }
+  } else if (loginQa) {
+    // KAN-104: real input events against the production app; all auth is synthetic.
+    const baseline = process.argv.includes('--login-baseline');
+    const measurements = [], pointerResults = [];
+    const dialogOpen = "Boolean(document.querySelector('.et-workspace-dialog')?.open)";
+    async function key(key, code, windowsVirtualKeyCode, modifiers = 0) {
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code, windowsVirtualKeyCode, modifiers });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode, modifiers });
+    }
+    async function point(selector) {
+      return evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+    }
+    async function mouse(from, to = from, via = []) {
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...from });
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...from, button: 'left', buttons: 1, clickCount: 1 });
+      for (const p of [...via, to]) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...p, button: 'left', buttons: 1 });
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...to, button: 'left', buttons: 0, clickCount: 1 });
+      await delay(30);
+    }
+    async function tap(from, to = from, cancel = false) {
+      await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...from, id: 1 }] });
+      if (to !== from) { await send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ ...to, id: 1 }] }); await delay(50); }
+      await send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] });
+      await delay(80);
+    }
+    async function open(width) {
+      if (width < 1200) await mouse(await point('.et-header > .et-container > .et-menu-toggle'));
+      await mouse(await point('.et-header-actions .et-outline'));
+      await until(dialogOpen, 'Sign In opens');
+    }
+    async function dismiss(method) {
+      if (method === 'X') await mouse(await point('.et-workspace-dialog [aria-label="Close dialog"]'));
+      else if (method === 'Escape') await key('Escape', 'Escape', 27);
+      else await mouse({ x: 2, y: 2 });
+      await until('!(' + dialogOpen + ')', method + ' closes dialog');
+    }
+    async function position(where) {
+      await evaluate(`window.scrollTo({left:0,top:${where === 'top' ? '12' : where === 'bottom' ? 'document.documentElement.scrollHeight-innerHeight-12' : "document.querySelector('#classes').getBoundingClientRect().top+scrollY-110"},behavior:'instant'})`);
+      await delay(150);
+    }
+    async function beginMeasurement() {
+      await evaluate(`(()=>{
+        window.kan104Read=()=>{const c=document.querySelector('#classes').getBoundingClientRect(),h=document.querySelector('.et-header').getBoundingClientRect();return{x:scrollX,y:scrollY,classLeft:c.left,classTop:c.top,headerLeft:h.left,headerWidth:h.width,clientWidth:document.documentElement.clientWidth};};
+        window.kan104Samples=[window.kan104Read()];window.kan104Sampling=true;
+        const sample=()=>{if(window.kan104Sampling){window.kan104Samples.push(window.kan104Read());requestAnimationFrame(sample);}};requestAnimationFrame(sample);
+      })()`);
+    }
+    async function endMeasurement(label) {
+      // Let any unintended smooth focus scroll finish, and also inspect every frame.
+      await delay(450);
+      const result = await evaluate(`(()=>{window.kan104Sampling=false;const before=window.kan104Samples[0],after=window.kan104Read();return{before,after,maxDelta:Object.fromEntries(Object.keys(before).map(k=>[k,Math.max(...window.kan104Samples.map(s=>Math.abs(s[k]-before[k])))])),focus:{tag:document.activeElement.tagName,visible:document.activeElement.getClientRects().length>0,label:document.activeElement.getAttribute('aria-label')||document.activeElement.textContent.trim()}};})()`);
+      measurements.push({ ...label, ...result });
+      if (!baseline) {
+        for (const [dimension, delta] of Object.entries(result.maxDelta)) assert.ok(delta <= 1, `${JSON.stringify(label)}: ${dimension} moved ${delta}px`);
+        assert.equal(result.focus.tag, 'BUTTON', 'restore focus to an accessible opener');
+        assert.equal(result.focus.visible, true);
+        assert.equal(result.focus.label, label.width < 1200 ? 'Open navigation' : 'Sign In');
+      }
+    }
+    async function listeners() {
+      const counts = {};
+      for (const expression of ['window', 'document']) {
+        const object = await send('Runtime.evaluate', { expression });
+        const result = await send('DOMDebugger.getEventListeners', { objectId: object.result.objectId });
+        counts[expression] = result.listeners.map(listener => listener.type + ':' + listener.useCapture).sort();
+        await send('Runtime.releaseObject', { objectId: object.result.objectId });
+      }
+      return counts;
+    }
+    try {
+      for (const width of [1440, 768, 390, 360]) {
+        await send('Emulation.setDeviceMetricsOverride', { width, height: width === 1440 ? 900 : 844, deviceScaleFactor: 1, mobile: false });
+        await send('Page.navigate', { url: origin + '/' });
+        await until("document.querySelector('#classes') && document.querySelector('.et-header-actions .et-outline')", 'landing ready');
+        await evaluate("Promise.all([...document.images].map(i=>{i.loading='eager';return i.decode().catch(()=>{});})).then(()=>true)");
+        await position('middle');
+        const initialListeners = await listeners();
+        for (const where of ['top', 'middle', 'bottom']) for (const method of ['X', 'backdrop', 'Escape']) for (let cycle = 0; cycle < (baseline ? 1 : 2); cycle++) {
+          await position(where);await beginMeasurement();await open(width);
+          if (!baseline) assert.equal(await evaluate('document.activeElement.id'), 'login-identifier', 'initial input focus');
+          await dismiss(method);await endMeasurement({ width, where, method, cycle });
+        }
+        await position('middle');await open(width);
+        if (!baseline) {
+          await key('Tab', 'Tab', 9, 8);
+          assert.equal(await evaluate("document.activeElement.getAttribute('aria-label')"), 'Close dialog', 'Shift+Tab reaches close');
+          await key('Tab', 'Tab', 9);
+          assert.equal(await evaluate('document.activeElement.id'), 'login-identifier', 'Tab returns to identifier');
+          const shot = await send('Page.captureScreenshot', { format: 'png' });
+          fs.writeFileSync(path.join(output, `login-${width}-dialog.png`), Buffer.from(shot.data, 'base64'));
+        }
+        await mouse(await point('#login-identifier'));await send('Input.insertText', { text: 'kan104@example.test' });
+        await mouse(await point('#login-password'));await send('Input.insertText', { text: 'fixture-password' });
+        // Start on an actual glyph; the paragraph's center can fall in whitespace on narrow screens.
+        const text = await evaluate("(()=>{const r=document.createRange(),n=document.querySelector('.et-workspace-dialog > p').firstChild;r.setStart(n,8);r.setEnd(n,16);const b=r.getClientRects()[0];return{x:b.x+b.width/2,y:b.y+b.height/2};})()");
+        const outside = { x: 2, y: text.y };
+        const startRequests = loginRequests.length;
+        await mouse(text, outside, [{ x: text.x - 30, y: text.y }]);
+        pointerResults.push({ width, case: 'select text inside to outside', staysOpen: await evaluate(dialogOpen), selection: await evaluate('getSelection().toString()') });
+        if (baseline) {
+          if (await evaluate(dialogOpen)) await dismiss('X');
+          continue;
+        }
+        assert.equal(await evaluate(dialogOpen), true, 'text selection must not close dialog');
+        assert.ok(pointerResults.at(-1).selection.length > 0, 'real mouse drag selected text');
+        await evaluate('getSelection().removeAllRanges()');
+        for (const selector of ['#login-identifier', '#login-password']) {
+          const start = await point(selector);
+          await mouse(start, { x: 2, y: start.y }, [{ x: start.x - 35, y: start.y }]);
+          assert.equal(await evaluate(dialogOpen), true, 'input text selection must not dismiss');
+          assert.equal(await evaluate(`(()=>{const input=document.querySelector(${JSON.stringify(selector)});return input.selectionEnd>input.selectionStart;})()`), true, 'real drag selects input text');
+          pointerResults.push({ width, case: selector + ' selection dragged outside', staysOpen: true });
+        }
+        const input = await point('#login-identifier');
+        const cases = [
+          ['inside to outside', input, outside],
+          ['outside to inside', outside, text],
+          ['backdrop significant movement', { x: 2, y: 2 }, { x: 2, y: 90 }],
+          ['backdrop out and back', { x: 2, y: 2 }, { x: 2, y: 2 }, [{ x: 2, y: 90 }]],
+        ];
+        for (const [name, from, to, via] of cases) {
+          await mouse(from, to, via);assert.equal(await evaluate(dialogOpen), true, name);
+          pointerResults.push({ width, case: name, staysOpen: true });
+        }
+        for (const selector of ['label[for="login-identifier"]', '#login-identifier', 'label[for="login-password"]', '#login-password', '.et-workspace-dialog [title="Show password"]', '.et-workspace-dialog [title="Hide password"]']) {
+          await mouse(await point(selector));assert.equal(await evaluate(dialogOpen), true, selector);
+        }
+        assert.deepEqual(await evaluate("[document.querySelector('#login-identifier').value,document.querySelector('#login-password').value,location.pathname]"), ['kan104@example.test', 'fixture-password', '/']);
+        assert.equal(loginRequests.length, startRequests, 'drags and controls cannot authenticate');
+        await send('Emulation.setTouchEmulationEnabled', { enabled: true });
+        const touchOutside = { x: text.x, y: 12 };
+        await tap(text, touchOutside);assert.equal(await evaluate(dialogOpen), true, 'touch inside to outside');
+        await tap(touchOutside, text);assert.equal(await evaluate(dialogOpen), true, 'touch outside to inside');
+        await tap({ x: 2, y: 2 }, { x: 2, y: 90 });assert.equal(await evaluate(dialogOpen), true, 'touch movement');
+        await tap({ x: 2, y: 2 }, undefined, true);assert.equal(await evaluate(dialogOpen), true, 'touch cancellation');
+        await tap({ x: 2, y: 2 });await until('!(' + dialogOpen + ')', 'genuine touch backdrop tap');
+        await send('Emulation.setTouchEmulationEnabled', { enabled: false });
+        await open(width);
+        assert.equal(await evaluate("document.querySelector('#login-password').value"), 'fixture-password', 'draft survives normal close');
+        await mouse(await point('.et-workspace-dialog [type="submit"]'));
+        await until("document.querySelector('.et-workspace-dialog [role=alert]')", 'invalid credentials');
+        assert.equal(await evaluate(dialogOpen), true);
+        assert.equal(await evaluate("document.querySelector('.et-workspace-dialog [role=alert]').textContent.trim()"), 'Invalid credentials. Please try again.');
+        assert.deepEqual(loginRequests.at(-1), { identifier: 'kan104@example.test', password: 'fixture-password' });
+        loginMode = 'hold';pendingLogin = null;
+        await mouse(await point('.et-workspace-dialog [type="submit"]'));
+        const deadline = Date.now() + 5000;while (!pendingLogin && Date.now() < deadline) await delay(20);
+        assert.ok(pendingLogin, 'authentication is in flight');
+        await mouse(await point('.et-workspace-dialog [aria-label="Close dialog"]'));await key('Escape', 'Escape', 27);await mouse({ x: 2, y: 2 });
+        assert.equal(await evaluate(dialogOpen), true, 'cannot dismiss during authentication');
+        assert.equal(await evaluate("document.querySelector('#login-password').value"), 'fixture-password');
+        assert.equal(loginRequests.length, startRequests + 2, 'exactly one request for each explicit submit');
+        loginMode = 'invalid';pendingLogin();await until("!document.querySelector('.et-workspace-dialog [type=submit]').disabled", 'auth failure releases guard');
+        await dismiss('Escape');
+        await position('middle');await delay(80);
+        assert.deepEqual(await listeners(), initialListeners, 'repeated open/close does not leak window/document listeners');
+        const shot = await send('Page.captureScreenshot', { format: 'png' });fs.writeFileSync(path.join(output, `login-${width}-landing.png`), Buffer.from(shot.data, 'base64'));
+        checks.push({ width, scrollCycles: 18, pointer: 'mouse and touch passed', authentication: 'invalid/pending passed', listenerLeak: false });
+        console.log(`PASS KAN-104 ${width}: scroll/layout, real mouse/touch, auth failure/pending, focus and listeners`);
+      }
+      if (!baseline) {
+        // The successful path must navigate; returning focus to the landing trigger is inappropriate here.
+        for (const width of [1440, 768, 390, 360]) {
+          await send('Emulation.setDeviceMetricsOverride', { width, height: 844, deviceScaleFactor: 1, mobile: false });
+          await send('Page.navigate', { url: origin + '/' });await until("document.querySelector('.et-header-actions .et-outline')", 'landing');
+          await open(width);
+          await mouse(await point('#login-identifier'));await send('Input.insertText', { text: 'kan104@example.test' });
+          await mouse(await point('#login-password'));await send('Input.insertText', { text: 'fixture-password' });
+          await evaluate(`window.kan104FocusCalls=[];{const focus=HTMLElement.prototype.focus;HTMLElement.prototype.focus=function(...args){window.kan104FocusCalls.push({tag:this.tagName,inLanding:!!this.closest('.et-header')});return focus.apply(this,args);};}`);
+          loginMode = 'success';await mouse(await point('.et-workspace-dialog [type="submit"]'));
+          await until("location.pathname==='/student/dashboard'", 'successful login redirect');
+          assert.equal(await evaluate("Boolean(document.querySelector('.et-workspace-dialog'))"), false);
+          assert.equal(await evaluate("JSON.parse(localStorage.getItem('edutrack_auth_user')).userId"), 104);
+          assert.equal(await evaluate("window.kan104FocusCalls.some(call=>call.inLanding)"), false, 'no landing focus restoration after navigation');
+          await evaluate('localStorage.clear()');
+          checks.push({ width, authentication: 'successful login navigation/session passed' });
+        }
+        assert.deepEqual(browserErrors, []);
+        console.log('PASS KAN-104: successful authentication and redirect at all four widths; no browser exceptions');
+      }
+    } finally {
+      fs.writeFileSync(path.join(output, baseline ? 'baseline-results.json' : 'login-results.json'), JSON.stringify({ measurements, pointerResults, checks, loginRequests, browserErrors }, null, 2));
     }
   } else if (staticQa) {
     async function key(key, code, windowsVirtualKeyCode) {
