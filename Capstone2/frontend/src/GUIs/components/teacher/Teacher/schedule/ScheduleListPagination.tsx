@@ -2,7 +2,7 @@ import {PaginationNavGroup} from '../../../Common/CommonPaginationUtils';
 export interface ScheduleListPaginationProps {
   totalItems?: number; currentPage?: number; rowsPerPage?: number; onPageChange?: (page: number) => void; itemLabel?: string; showSummary?: boolean;
 }
-export default function ScheduleListPagination({totalItems = 0, currentPage = 1, rowsPerPage = 10, onPageChange, itemLabel = 'sessions', showSummary = true}: ScheduleListPaginationProps) {
+export default function ScheduleListPagination({totalItems = 0, currentPage = 1, rowsPerPage = 10, onPageChange, itemLabel = 'sessions', showSummary = false}: ScheduleListPaginationProps) {
   const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
   const page = Math.max(1, Math.min(currentPage, totalPages));
   return <div className={`table-pagination-footer d-flex align-items-center ${showSummary ? 'justify-content-between' : 'justify-content-end'} p-3 border-top flex-wrap gap-2 et-schedule-pagination`}>

@@ -136,10 +136,7 @@ function StudentSubmissionsTable({
         </div>
 
         {/* Table toolbar */}
-        <div className="table-toolbar p-3 bg-light border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div className="text-muted small">
-            Showing <strong>{filteredSubmissions.length}</strong> of {submissions.length} student submissions
-          </div>
+        <div className="table-toolbar p-3 bg-light border-bottom d-flex align-items-center justify-content-end flex-wrap gap-2">
           <div>
             <input
               type="search"

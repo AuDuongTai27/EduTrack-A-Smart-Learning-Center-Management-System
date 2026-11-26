@@ -18,7 +18,7 @@ export function ScheduleList({sessions, now, role, page, pageSize, onPage, onOpe
         currentPage={page}
         rowsPerPage={pageSize}
         onPageChange={onPage}
-        showSummary={role !== 'student'}
+        showSummary={role !== 'student' && role !== 'teacher'}
       />
     )}
   </>;
