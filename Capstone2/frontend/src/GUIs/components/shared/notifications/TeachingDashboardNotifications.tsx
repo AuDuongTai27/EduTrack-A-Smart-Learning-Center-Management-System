@@ -22,7 +22,9 @@ export default function TeachingDashboardNotifications() {
   return <section className="ntf-scope ntf-dashboard ntf-teaching-dashboard card dashboard-card d-flex flex-column" aria-label="Recent Notifications">
     <div className="card-header dashboard-card-header d-flex align-items-center justify-content-between gap-2">
       <div><h5 className="mb-0 d-flex align-items-center gap-2 flex-wrap"><i className="bi bi-bell academy-panel-icon" aria-hidden="true" /><span>New Notifications</span>
-        <span className="badge bg-danger rounded-pill px-2 py-1 small fw-semibold" aria-label="Unread notifications count">{data ? data.unreadCount : '—'} new</span>
+        {data && data.unreadCount > 0 && (
+          <span className="badge bg-danger rounded-pill px-2 py-1 small fw-semibold" aria-label="Unread notifications count">{data.unreadCount} new</span>
+        )}
       </h5></div>
       <Link to={basePath} className="dashboard-view-all academy-dashboard-link">View All <i className="bi bi-arrow-right" aria-hidden="true" /></Link>
     </div>

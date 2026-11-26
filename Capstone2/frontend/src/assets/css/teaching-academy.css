@@ -47,10 +47,11 @@
 .teacher-scope.teaching-academy .teaching-dashboard .dashboard-card-header small { display: block; margin: 4px 0 0 42px; font-size: 12px; line-height: 1.5; color: #64748b; }
 .teaching-academy .academy-panel-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9px; color: #078444; background: #eaf8f1; flex-shrink: 0; font-size: 16px; }
 .teacher-scope.teaching-academy .teaching-dashboard .academy-dashboard-link { flex-shrink: 0; white-space: nowrap; }
-.teaching-academy .teaching-calendar-empty { min-height: 232px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.teaching-academy .teaching-calendar-empty { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .teaching-academy .teaching-calendar-empty > i { display: flex; align-items: center; justify-content: center; width: 90px; height: 80px; border-radius: 24px; background: #eaf8f1; color: #409b70; font-size: 42px; }
 .teaching-academy .teaching-calendar-empty p { font-size: 14px; line-height: 1.6; }
 .teaching-academy .teaching-today-card .dashboard-card-body > .d-flex > .border { border-color: #e4eee8 !important; }
+.teaching-academy .teaching-today-card .dashboard-card-body > .d-flex > .today-class-card--ongoing.border { border-color: var(--et-primary, #078444) !important; }
 .teaching-academy .ntf-teaching-dashboard .notice-content { min-width: 0; }
 .teaching-academy .ntf-teaching-dashboard .ntf-quick-list { gap: 0 !important; }
 .teaching-academy .ntf-teaching-dashboard .ntf-quick-list > li + li { border-top: 1px solid #e4eee8; }
@@ -58,7 +59,7 @@
 .teaching-academy .ntf-teaching-dashboard .ntf-teaching-title h6 { color: #142238 !important; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .teaching-academy .ntf-teaching-dashboard .ntf-new-badge { font-size: 10px; }
 .teaching-academy .ntf-teaching-dashboard .ntf-teaching-meta { font-size: 11px; line-height: 1.6; }
-.teaching-academy .ntf-teaching-dashboard .ntf-empty { min-height: 232px; }
+.teaching-academy .ntf-teaching-dashboard .ntf-empty { min-height: 260px; }
 @media (max-width: 1199px) {
   .teacher-scope.teaching-academy .teaching-dashboard .teacher-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .teaching-academy .teaching-dashboard-panels { grid-template-columns: minmax(0, 1fr); }
