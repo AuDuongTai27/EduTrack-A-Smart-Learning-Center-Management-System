@@ -50,12 +50,12 @@ export function ChildSwitcher({
   if (loading) {
     return (
       <div className={`sidebar-child-switcher px-3 py-2 border-bottom ${className}`}>
-        <div className="sidebar-nav-title px-0 pb-1" style={{ fontSize: '10px' }}>
+        <div className="sidebar-nav-title child-switcher-header px-0 pb-1" style={{ fontSize: '10px' }}>
           SELECTED STUDENT
         </div>
-        <div className="d-flex align-items-center gap-2 p-2 rounded-3 border bg-light text-muted small">
+        <div className="child-switcher-trigger d-flex align-items-center gap-2 p-2 rounded-3 border bg-light text-muted small">
           <span className="spinner-border spinner-border-sm text-primary flex-shrink-0" role="status" />
-          <span className="text-truncate" style={{ fontSize: '12px' }}>Loading child profile...</span>
+          <span className="child-switcher-info text-truncate" style={{ fontSize: '12px' }}>Loading child profile...</span>
         </div>
       </div>
     );
@@ -64,16 +64,17 @@ export function ChildSwitcher({
   if (childrenList.length === 0) {
     return (
       <div className={`sidebar-child-switcher px-3 py-2 border-bottom ${className}`}>
-        <div className="sidebar-nav-title px-0 pb-1" style={{ fontSize: '10px' }}>
+        <div className="sidebar-nav-title child-switcher-header px-0 pb-1" style={{ fontSize: '10px' }}>
           Student Profile
         </div>
         <button
           type="button"
-          className="btn btn-sm btn-primary w-100 py-1.5 rounded-3 fw-semibold small d-flex align-items-center justify-content-center gap-1 shadow-xs"
+          className="child-switcher-trigger btn btn-sm btn-primary w-100 py-1.5 rounded-3 fw-semibold small d-flex align-items-center justify-content-center gap-1 shadow-xs"
           onClick={handleRequestLinkClick}
+          title="Submit Link Request"
         >
           <i className="bi bi-chat-dots-fill"></i>
-          <span>Submit Link Request</span>
+          <span className="child-switcher-info">Submit Link Request</span>
         </button>
       </div>
     );
@@ -84,7 +85,7 @@ export function ChildSwitcher({
       className={`sidebar-child-switcher position-relative px-3 py-2 border-bottom ${className}`}
       ref={dropdownRef}
     >
-      <div className="d-flex align-items-center justify-content-between mb-1.5">
+      <div className="child-switcher-header d-flex align-items-center justify-content-between mb-1.5">
         <span
           className="sidebar-nav-title px-0 pb-0"
           style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--et-subtle)' }}
@@ -102,13 +103,15 @@ export function ChildSwitcher({
       {/* Button Selector Card trong Sidebar */}
       <button
         type="button"
-        className="w-100 d-flex align-items-center gap-2 p-2 rounded-3 border text-start bg-light hover-shadow transition-all"
+        className="child-switcher-trigger w-100 d-flex align-items-center gap-2 p-2 rounded-3 border text-start bg-light hover-shadow transition-all"
         style={{
           borderColor: isOpen ? '#3b82f6' : '#E2E8F0',
           cursor: 'pointer',
         }}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
+        aria-label={selectedChild ? `Switch student (${selectedChild.name})` : 'Select student'}
+        title={selectedChild ? `${selectedChild.name} (${selectedChild.grade})` : 'Select student'}
       >
         <div
           className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-xs flex-shrink-0"
@@ -122,7 +125,7 @@ export function ChildSwitcher({
           {selectedChild?.avatar || 'ST'}
         </div>
 
-        <div className="flex-grow-1 overflow-hidden">
+        <div className="child-switcher-info flex-grow-1 overflow-hidden">
           <div
             className="fw-bold text-dark text-truncate"
             style={{ fontSize: '12.5px', lineHeight: '1.2' }}
@@ -138,7 +141,7 @@ export function ChildSwitcher({
         </div>
 
         <i
-          className={`bi bi-chevron-down text-muted flex-shrink-0 fs-xs transition-transform ${
+          className={`child-switcher-chevron bi bi-chevron-down text-muted flex-shrink-0 fs-xs transition-transform ${
             isOpen ? 'rotate-180 text-primary' : ''
           }`}
           style={{ fontSize: '11px' }}
@@ -148,7 +151,7 @@ export function ChildSwitcher({
       {/* Dropdown Menu nổi trong Sidebar */}
       {isOpen && (
         <div
-          className="position-absolute bg-white rounded-3 shadow-lg border p-2 mt-1"
+          className="child-switcher-menu position-absolute bg-white rounded-3 shadow-lg border p-2 mt-1"
           style={{
             top: '100%',
             left: '12px',
