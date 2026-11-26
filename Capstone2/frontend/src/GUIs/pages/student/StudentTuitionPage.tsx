@@ -73,16 +73,10 @@ export function StudentTuitionPage() {
             {/* 2. Bill Card (2-Column Grid) */}
             <TuitionBillCard bill={bill} />
 
-            {/* 3. Student Notice (Học sinh chỉ xem thông tin, Phụ huynh thực hiện thanh toán) */}
-            <div className="alert alert-info border-0 rounded-4 p-3 d-flex align-items-center gap-3 my-4 bg-primary bg-opacity-10 text-primary">
-              <i className="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
-              <div className="small">
-                <strong>Tuition Notice:</strong> Students can only view their invoice details and transaction history. Online payment is carried out by <strong>Parents</strong> on the Parent Portal or paid directly at the EduTrack Center Admin Staff desk.
-              </div>
+            {/* 3. Payment History Section */}
+            <div className="mt-4">
+              <TuitionHistorySection history={history} />
             </div>
-
-            {/* 4. Payment History Section */}
-            <TuitionHistorySection history={history} />
           </>
         )}
       </div>
