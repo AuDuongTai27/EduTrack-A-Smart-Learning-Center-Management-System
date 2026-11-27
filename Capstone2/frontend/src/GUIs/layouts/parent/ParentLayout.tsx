@@ -1,3 +1,5 @@
+import { DataState } from '../../components/Common/DataState';
+import { getAuthUser, subscribeAuth } from '../../../api/authApi';
 import { LearnerTopbar } from '../../components/shared/LearnerTopbar';
 import { BrandIcon } from "../../components/Common/BrandIcon";
 import React, { useState } from 'react';
@@ -11,7 +13,7 @@ import '../../../assets/css/student.css';
 
 function ParentLayoutContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { childrenList, loading, selectedChild } = useParent();
+  const { childrenList, loading, selectedChild, error, retryChildren } = useParent();
   const location = useLocation();
 
   const isFeedbackOrProfile =
@@ -79,7 +81,7 @@ function ParentLayoutContent() {
           <LearnerTopbar selectedChildId={selectedChild?.id} parentLoading={loading} role="parent" onOpenMenu={() => setMobileMenuOpen(true)} accountDetail={selectedChild ? `Parent of ${selectedChild.name}` : undefined} />
 
           {/* Main Content Area */}
-          {loading && !isFeedbackOrProfile ? (
+          {error && !isFeedbackOrProfile ? <DataState error message={error} onRetry={retryChildren} /> : loading && !isFeedbackOrProfile ? (
             <LearnerPageLoader
               title="Loading student profile..."
               message="The system is syncing the children list and latest learning data."
@@ -87,7 +89,7 @@ function ParentLayoutContent() {
           ) : showEmptyState ? (
             <ParentEmptyState />
           ) : (
-            <Outlet />
+            <Outlet key={selectedChild?.id ?? 'parent-only'} />
           )}
         </div>
       </div>
@@ -96,8 +98,9 @@ function ParentLayoutContent() {
 }
 
 export function ParentLayout() {
+  const auth = React.useSyncExternalStore(subscribeAuth, getAuthUser);
   return (
-    <ParentProvider>
+    <ParentProvider key={auth?.userId}>
       <ParentLayoutContent />
     </ParentProvider>
   );

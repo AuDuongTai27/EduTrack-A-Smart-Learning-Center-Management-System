@@ -21,7 +21,7 @@ export function DashboardStatsGrid({
         badge: pendingAssignmentsCount > 0 ? 'Due Soon' : 'Completed',
       };
     }
-    return stat;
+    return { ...stat, value: "—", badge: undefined };
   });
 
   return (

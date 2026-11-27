@@ -19,6 +19,7 @@ export function EditFeedbackModal({
   onSubmit,
   isSubmitting = false,
 }: EditFeedbackModalProps) {
+  const mutationLock = React.useRef(false);
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
   const [description, setDescription] = useState('');
@@ -45,8 +46,10 @@ export function EditFeedbackModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mutationLock.current) return;
     if (!isFormValid || isSubmitting || !item) return;
 
+    mutationLock.current = true;
     try {
       setErrorMsg(null);
       await onSubmit(item.id, {
@@ -57,7 +60,7 @@ export function EditFeedbackModal({
       handleClose();
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to update feedback. Please try again.');
-    }
+    } finally { mutationLock.current = false; }
   };
 
   return (

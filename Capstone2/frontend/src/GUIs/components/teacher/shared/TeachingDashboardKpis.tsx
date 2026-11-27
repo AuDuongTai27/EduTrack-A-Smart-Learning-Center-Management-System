@@ -2,8 +2,8 @@
 
 /** Display-only KPIs; supporting figures remain available in the dashboard data. */
 export default function TeachingDashboardKpis({
-  activeAssignments = 0, activeClasses = 0,
-  totalStudents = 0, pendingAttendance = 0, classTitle,
+  activeAssignments, activeClasses,
+  totalStudents, pendingAttendance, classTitle,
 }: TeacherKpiCardsProps & { classTitle: 'Assigned Classes' | 'Active Classes' }) {
   const cards = [
     { title: 'Active Assignments', value: activeAssignments, icon: 'bi-mortarboard-fill', color: 'primary' },
@@ -16,7 +16,7 @@ export default function TeachingDashboardKpis({
       <div className="card-body">
         <i className={`bi ${card.icon} cm-kpi-watermark`} aria-hidden="true" />
         <div className="d-flex align-items-center justify-content-between">
-          <div><p className="text-muted mb-1">{card.title}</p><h3 className={`mb-0${card.color === 'warning' ? ' text-warning' : ''}`}>{card.value}</h3></div>
+          <div><p className="text-muted mb-1">{card.title}</p><h3 className={`mb-0${card.color === 'warning' ? ' text-warning' : ''}`}>{card.value ?? "—"}</h3></div>
           <div className={`kpi-icon bg-${card.color}-subtle text-${card.color}`}><i className={`bi ${card.icon}`} aria-hidden="true" /></div>
         </div>
       </div>

@@ -11,7 +11,7 @@ export function TeachingProfileDetails({ ta, profile }: TeachingProfileDetailsPr
   const data = profile || ta;
 
   const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "15/08/1998";
+    if (!dateStr) return "Not provided";
     try {
       if (dateStr.includes('-')) {
         const parts = dateStr.split('-');
@@ -29,19 +29,19 @@ export function TeachingProfileDetails({ ta, profile }: TeachingProfileDetailsPr
     return dateStr;
   };
 
-  const fullName = data?.fullName || "Âu Dương Tài";
-  const email = data?.email || "tai.auduong@edutrack.edu.vn";
-  const phone = data?.phone || "0912 345 678";
+  const fullName = data?.fullName || "Not provided";
+  const email = data?.email || "Not provided";
+  const phone = data?.phone || "Not provided";
   const gender =
     data?.gender === "female" || data?.gender === "Nữ"
       ? "Female"
       : data?.gender === "other" || data?.gender === "Khác"
       ? "Other"
-      : "Male";
-  const specialty = data?.specialty || "Math & Science Teaching Assistant";
+      : data?.gender ? "Male" : "Not provided";
+  const specialty = data?.specialty || "Not provided";
   const dob = formatDate((data as any)?.dateOfBirth);
   const enrolledSince = formatDate((data as any)?.enrolledSince || (data as any)?.createdAt);
-  const address = (data as any)?.address || "123 Nguyen Van Cu, District 5, Ho Chi Minh City";
+  const address = (data as any)?.address || "Not provided";
   const roleLabel = (data as any)?.roleTitle || "Academic Teaching Assistant";
 
   return (

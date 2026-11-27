@@ -76,7 +76,7 @@ export function RoleRouteGuard({ allowedRole, children }: RoleRouteGuardProps) {
     return <Navigate to={targetPath} replace />;
   }
 
-  return children;
+  return React.cloneElement(children, { key: `${normalizedAllowed}:${authUser.userId}` });
 }
 
 export default RoleRouteGuard;

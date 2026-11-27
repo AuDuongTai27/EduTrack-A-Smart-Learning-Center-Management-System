@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { DataState, dataError } from '../../components/Common/DataState';
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Pagination from "../../components/Common/Pagination";
@@ -77,6 +79,9 @@ function getCategoryStyle(category: string): CategoryStyle {
 }
 
 export function StudentNotificationsPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [readIds, setReadIds] = useState<Set<number>>(() =>
@@ -95,12 +100,16 @@ export function StudentNotificationsPage() {
   const [selectedNotification, setSelectedNotification] =
     useState<NotificationItem | null>(null);
 
+  const requestVersion = useRef(0);
   const loadNotifications = async () => {
+    const version = ++requestVersion.current;
     setLoading(true);
+      setLoadError(null);
     try {
       const items = await learningDAL.getStudentNotifications(
         DEFAULT_STUDENT_ID
       );
+      if (version !== requestVersion.current) return;
       const localReads = learningDAL.getLocalReadIds(DEFAULT_STUDENT_ID);
       setReadIds(localReads);
       setNotifications(items);
@@ -113,15 +122,16 @@ export function StudentNotificationsPage() {
         if (!prev) return items[0] || null;
         return items.find((item) => item.id === prev.id) || null;
       });
-    } finally {
-      setLoading(false);
+    } catch (error) { if (version === requestVersion.current) setLoadError(dataError(error)); } finally {
+      if (version === requestVersion.current) setLoading(false);
     }
   };
 
   useEffect(() => {
     document.title = "Notifications – EduTrack";
     void loadNotifications();
-  }, []);
+    return () => { requestVersion.current++; };
+  }, [retryVersion]);
 
   const isItemUnread = (item: NotificationItem): boolean =>
     item.unread && !readIds.has(item.id);
@@ -132,6 +142,8 @@ export function StudentNotificationsPage() {
   );
 
   const handleMarkRead = async (id: number, silent = false) => {
+    try { await learningDAL.markNotificationRead(id, DEFAULT_STUDENT_ID); }
+    catch { setLoadError('Read status was not saved. Please retry.'); return; }
     setReadIds((prev) => {
       const next = new Set(prev);
       next.add(id);
@@ -143,7 +155,6 @@ export function StudentNotificationsPage() {
     setSelectedNotification((prev) =>
       prev && prev.id === id ? { ...prev, unread: false } : prev
     );
-    await learningDAL.markNotificationRead(id, DEFAULT_STUDENT_ID);
     if (!silent) {
       setSuccessMsg("Notification marked as read.");
     }
@@ -160,17 +171,20 @@ export function StudentNotificationsPage() {
   };
 
   const handleMarkAllRead = async () => {
+    try {
+    await learningDAL.markAllNotificationsRead(
+      DEFAULT_STUDENT_ID,
+      DEFAULT_STUDENT_ID,
+      notifications.map(n => n.id)
+    );
+    } catch { setLoadError('Read status was not saved. Please retry.'); return; }
     const allIds = notifications.map((n) => n.id);
     setReadIds(new Set(allIds));
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
     setSelectedNotification((prev) =>
       prev ? { ...prev, unread: false } : null
     );
-    await learningDAL.markAllNotificationsRead(
-      DEFAULT_STUDENT_ID,
-      DEFAULT_STUDENT_ID,
-      allIds
-    );
+
     setSuccessMsg("Great! You have marked all notifications as read.");
   };
 
@@ -208,6 +222,8 @@ export function StudentNotificationsPage() {
   const selectedStyle = selectedNotification
     ? getCategoryStyle(selectedNotification.category)
     : null;
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (loading && notifications.length === 0) {
     return (

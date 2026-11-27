@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
@@ -19,11 +20,14 @@ const getDefaultDeadline = () => {
 };
 
 export default function TeacherNewAssignmentPage() {
+  const mutationLock = useRef(false);
   const navigate = useNavigate();
   const { id, classId } = useParams<{ id?: string; classId?: string }>();
-  const numClassId = Number(classId || id || "1");
+  const numClassId = Number(classId || id || "0");
   const targetClassId = String(numClassId);
 
+  const [attachmentUploading, setAttachmentUploading] = useState(false);
+  const [classLoading, setClassLoading] = useState(true);
   const [classInfo, setClassInfo] = useState<TeachingClassItemDto | null>(null);
 
   // Form states
@@ -31,7 +35,7 @@ export default function TeacherNewAssignmentPage() {
   const [dueDate, setDueDate] = useState<string>(getDefaultDeadline());
   const [assignmentType, setAssignmentType] = useState<string>("Written Assignment");
   const [description, setDescription] = useState<string>("");
-  const [fileUrl, setFileUrl] = useState<string>("/assets/docs/assignment_default.pdf");
+  const [fileUrl, setFileUrl] = useState<string>("");
   const [maxScore] = useState<number>(10.0);
 
   // Status & error states
@@ -46,9 +50,13 @@ export default function TeacherNewAssignmentPage() {
     async function fetchClass() {
       try {
         const cls = await teachingDAL.getClassById(numClassId, DEFAULT_TEACHER_ID);
+        if (!cls) throw new Error("Class not found");
+        if (cls.myRoleInClass === "teaching_assistant") throw new Error("Forbidden");
         if (isMounted) setClassInfo(cls);
       } catch (err) {
-        console.error("Failed to load class for new assignment:", err);
+        if (isMounted) setErrorMessage("Unable to load this class. Return to My Classes and retry.");
+      } finally {
+        if (isMounted) setClassLoading(false);
       }
     }
     fetchClass();
@@ -61,6 +69,7 @@ export default function TeacherNewAssignmentPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mutationLock.current || submitting || attachmentUploading || classLoading || !classInfo) return;
     setTitleError("");
     setDeadlineError("");
     setErrorMessage(null);
@@ -75,6 +84,7 @@ export default function TeacherNewAssignmentPage() {
       return;
     }
 
+    mutationLock.current = true;
     try {
       setSubmitting(true);
       await teachingDAL.createAssignment({
@@ -96,6 +106,7 @@ export default function TeacherNewAssignmentPage() {
     } catch (err: any) {
       setErrorMessage(err?.message || "An error occurred while creating the assignment.");
     } finally {
+      mutationLock.current = false;
       setSubmitting(false);
     }
   };
@@ -183,7 +194,7 @@ export default function TeacherNewAssignmentPage() {
               />
 
               {/* Attachment */}
-              <NewAssignmentAttachment
+              <NewAssignmentAttachment onUploadingChange={setAttachmentUploading}
                 value={fileUrl}
                 onChange={setFileUrl}
                 disabled={submitting}
@@ -193,7 +204,7 @@ export default function TeacherNewAssignmentPage() {
             {/* Form Actions (Cancel & Save) */}
             <NewAssignmentFormAction
               classId={targetClassId}
-              submitting={submitting}
+              submitting={submitting || attachmentUploading || classLoading || !classInfo}
             />
           </form>
         </div>

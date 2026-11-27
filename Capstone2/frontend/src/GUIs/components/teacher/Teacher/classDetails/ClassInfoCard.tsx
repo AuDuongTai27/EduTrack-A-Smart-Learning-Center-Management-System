@@ -9,8 +9,8 @@ export interface ClassInfoCardProps {
 
 export default function ClassInfoCard({
   classInfo,
-  teacherName = "ThS. Hoàng Quốc Việt",
-  taName = "Âu Dương Tài",
+  teacherName = "Not provided",
+  taName = "Not provided",
 }: ClassInfoCardProps) {
   return (
     <div className="card class-list-card border-0 mb-4">
@@ -27,7 +27,7 @@ export default function ClassInfoCard({
               <div>
                 <span className="text-muted small d-block">Class Name</span>
                 <h6 className="fw-bold mb-0 text-dark">
-                  {classInfo?.className || "Class I-A"}
+                  {classInfo?.className || "Not provided"}
                 </h6>
               </div>
             </div>
@@ -43,7 +43,7 @@ export default function ClassInfoCard({
               <div>
                 <span className="text-muted small d-block">Subject</span>
                 <h6 className="fw-bold mb-0 text-dark">
-                  {classInfo?.subjectName || "Physics"}
+                  {classInfo?.subjectName || "Not provided"}
                 </h6>
               </div>
             </div>

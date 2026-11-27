@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import React, { useState, useEffect } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
@@ -15,6 +16,9 @@ import {
 } from "../../../../DAL/teachingDAL";
 
 export default function TeachingAssistantProfilePage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [profile, setProfile] = useState<TeacherProfileDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -27,12 +31,14 @@ export default function TeachingAssistantProfilePage() {
     async function loadTaProfile() {
       try {
         setLoading(true);
+      setLoadError(null);
         // TA TA001 có DEFAULT_TA_ID = 5 (Âu Dương Tài)
         const res = await teachingDAL.getProfile(DEFAULT_TA_ID);
         if (isMounted && res) {
           setProfile(res);
         }
       } catch (err: any) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn("Lỗi tải thông tin hồ sơ TA:", err);
       } finally {
         if (isMounted) setLoading(false);
@@ -42,7 +48,7 @@ export default function TeachingAssistantProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [retryVersion]);
 
   const showToast = (message: string, type: "success" | "danger" = "success") => {
     setToast({ message, type });
@@ -65,6 +71,8 @@ export default function TeachingAssistantProfilePage() {
       setIsSaving(false);
     }
   };
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <>

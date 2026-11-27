@@ -2,6 +2,7 @@ import React from 'react';
 import type { StudentSubmissionDetailApiDto } from '../../../../../api/learningApi';
 
 export interface SubmittedFileCardProps {
+  maxScore?: number;
   fileName: string;
   meta: string;
   submission?: StudentSubmissionDetailApiDto | null;
@@ -10,6 +11,7 @@ export interface SubmittedFileCardProps {
 }
 
 export function SubmittedFileCard({
+  maxScore,
   fileName,
   meta,
   submission,
@@ -67,7 +69,7 @@ export function SubmittedFileCard({
                   Official Evaluation from Teacher
                 </span>
                 <span className="badge bg-success text-white px-3 py-1 rounded-pill fs-6">
-                  {submission.score} / 10 pts
+                  {submission.score} / {maxScore ?? "—"} pts
                 </span>
               </div>
               {submission.feedback && (
@@ -90,7 +92,7 @@ export function SubmittedFileCard({
                   AI Assistant Preliminary Assessment & Score
                 </span>
                 <span className="badge bg-primary text-white px-3 py-1 rounded-pill">
-                  Suggested AI Score: {submission.aiScore} / 10
+                  Suggested AI Score: {submission.aiScore} / {maxScore ?? "—"}
                 </span>
               </div>
               {submission.aiSummary && (

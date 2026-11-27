@@ -4,15 +4,14 @@ import { LearnerPageLoader } from '../../components/student/common/LearnerPageLo
 import { useParent } from '../../../contexts/ParentContext';
 import { getSelectedUserId } from '../../../BLL/services/userSelection';
 import { getAuthUser } from '../../../api/authApi';
-import { DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function ParentFeedbackPage() {
   const { selectedChild, loading } = useParent();
-  const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
+  const targetStudentId = selectedChild?.id;
   const authUser = getAuthUser();
   const parentId = getSelectedUserId('parent');
-  const parentName = authUser?.primaryRole === 'parent' ? authUser.fullName : 'Lê Văn Nam';
-  const parentPhone = authUser?.primaryRole === 'parent' ? (authUser.phone || '0981 112 233') : '0981 112 233';
+  const parentName = authUser?.fullName || '';
+  const parentPhone = authUser?.phone || '';
 
   useEffect(() => {
     document.title = 'Feedback & Support (Parent) – EduTrack';

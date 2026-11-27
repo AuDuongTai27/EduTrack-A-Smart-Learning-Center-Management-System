@@ -18,6 +18,7 @@ export function NewFeedbackModal({
   isSubmitting = false,
   initialTitle = '',
 }: NewFeedbackModalProps) {
+  const mutationLock = React.useRef(false);
   const [title, setTitle] = useState(initialTitle);
   const [priority, setPriority] = useState('medium');
   const [description, setDescription] = useState('');
@@ -44,8 +45,10 @@ export function NewFeedbackModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mutationLock.current) return;
     if (!isFormValid || isSubmitting) return;
 
+    mutationLock.current = true;
     try {
       setErrorMsg(null);
       await onSubmit({
@@ -56,7 +59,7 @@ export function NewFeedbackModal({
       handleClose();
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to submit feedback. Please try again.');
-    }
+    } finally { mutationLock.current = false; }
   };
 
   return (

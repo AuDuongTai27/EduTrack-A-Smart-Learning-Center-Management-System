@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../Common/DataState';
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import teachingDAL, { type TeachingSessionItemDto, isSessionStarted, isAttendanceExpired } from "../../../../../DAL/teachingDAL";
@@ -8,6 +9,9 @@ export interface SessionsSectionProps {
 }
 
 export default function SessionsSection({ classId = "1", baseRolePath = "/teacher" }: SessionsSectionProps) {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [sessions, setSessions] = useState<TeachingSessionItemDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -16,11 +20,13 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
     async function loadSessions() {
       try {
         setLoading(true);
+      setLoadError(null);
         const data = await teachingDAL.getClassSessions(Number(classId));
         if (isMounted && data) {
           setSessions(data);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn("Lỗi tải buổi học của lớp:", err);
       } finally {
         if (isMounted) setLoading(false);
@@ -30,7 +36,9 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
     return () => {
       isMounted = false;
     };
-  }, [classId]);
+  }, [retryVersion, classId]);
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <details className="card class-list-card border-0 mb-4">
@@ -63,6 +71,7 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
               </tr>
             </thead>
             <tbody>
+              {sessions.length === 0 && <tr><td colSpan={6} className="text-center text-muted p-4">No sessions available.</td></tr>}
               {sessions.map((s, idx) => {
                 const isCompleted = s.status === "completed" || s.isRecorded;
                 const hasStarted = s.hasStarted !== undefined ? s.hasStarted : (isCompleted || isSessionStarted(s));
@@ -75,11 +84,11 @@ export default function SessionsSection({ classId = "1", baseRolePath = "/teache
                       Session {idx + 1}: Lecture &amp; Practice
                     </td>
                     <td>{s.sessionDate}</td>
-                    <td>{s.timePeriod || "18:00 - 20:00"}</td>
+                    <td>{s.timePeriod || "Not provided"}</td>
                     <td>
                       <span className="badge bg-light text-dark border">
                         <i className="bi bi-geo-alt me-1 text-secondary" />
-                        {s.room || "Room 201"}
+                        {s.room || "Not provided"}
                       </span>
                     </td>
                     <td>

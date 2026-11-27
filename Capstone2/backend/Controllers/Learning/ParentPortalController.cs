@@ -206,8 +206,12 @@ namespace EduTrack.API.Controllers.Learning
         public async Task<IActionResult> GetParentNotifications(int parentId, [FromQuery] int? studentId = null)
         {
             var effectiveParentId = JwtAuthHelper.ResolveEffectiveUserId(User, parentId, JwtAuthHelper.RoleParent);
-            var data = await _dashboardService.GetParentNotificationsAsync(effectiveParentId, studentId);
-            return Ok(new { success = true, data });
+            try
+            {
+                var data = await _dashboardService.GetParentNotificationsAsync(effectiveParentId, studentId);
+                return Ok(new { success = true, data });
+            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
         }
 
         /// <summary>

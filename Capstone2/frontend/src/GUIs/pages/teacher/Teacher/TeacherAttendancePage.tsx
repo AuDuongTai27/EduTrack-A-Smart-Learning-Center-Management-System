@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import React, { useEffect, useState, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
@@ -18,9 +19,12 @@ import {
 } from "../../../../DAL/teachingDAL";
 
 export default function TeacherAttendancePage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const { id, classId } = useParams<{ id?: string; classId?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const numClassId = Number(classId || id || "1");
+  const numClassId = Number(classId || id || "0");
   const targetClassId = String(numClassId);
   const paramSessionId = searchParams.get("sessionId") ? Number(searchParams.get("sessionId")) : undefined;
 
@@ -38,6 +42,7 @@ export default function TeacherAttendancePage() {
     async function fetchSheet() {
       try {
         setLoading(true);
+      setLoadError(null);
         const data = await teachingDAL.getAttendanceSheet(numClassId, selectedSessionId, DEFAULT_TEACHER_ID);
         if (isMounted && data) {
           setSheet(data);
@@ -47,6 +52,7 @@ export default function TeacherAttendancePage() {
           }
         }
       } catch (err: any) {
+        if (isMounted) setLoadError(dataError(err));
         console.error("Lỗi khi tải bảng điểm danh:", err);
         if (isMounted) {
           setToast({
@@ -64,7 +70,7 @@ export default function TeacherAttendancePage() {
     return () => {
       isMounted = false;
     };
-  }, [numClassId, selectedSessionId]);
+  }, [retryVersion, numClassId, selectedSessionId]);
 
   // Thống kê động dựa trên trạng thái học sinh hiện tại trên UI
   const computedStats: TeachingAttendanceStatsDto = useMemo(() => {
@@ -184,6 +190,8 @@ export default function TeacherAttendancePage() {
   };
 
   const className = sheet?.className || `Class #${targetClassId}`;
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <>

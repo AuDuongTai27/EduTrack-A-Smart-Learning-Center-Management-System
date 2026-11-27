@@ -7,12 +7,12 @@ export interface AssignmentOverviewCardProps {
 }
 
 function AssignmentOverviewCard({ assignment, className }: AssignmentOverviewCardProps) {
-  const displayClass = className || assignment?.className || "Class 9 - Advanced Mathematics";
-  const title = assignment?.title || "Assignment 1: Kinematics Problem Set";
+  const displayClass = className || assignment?.className || "Not provided";
+  const title = assignment?.title || "Not provided";
   const description = assignment?.description || "Review and evaluate student submitted files for this assignment.";
   const deadline = assignment?.dueDateFormatted || (assignment?.dueDate
     ? new Date(assignment.dueDate).toLocaleString()
-    : "Aug 11, 2026, 11:59 PM");
+    : "Not provided");
 
   return (
     <div className="card class-list-card border-0 mb-4 shadow-sm">

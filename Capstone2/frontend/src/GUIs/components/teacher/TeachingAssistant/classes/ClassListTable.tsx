@@ -32,7 +32,7 @@ export function ClassListTable({
                 cls.status === "Đang học" ||
                 cls.status === "open";
               const teacherName =
-                item.teacherName || item.partnerName || "MSc. Hoàng Quốc Việt";
+                item.teacherName || item.partnerName || "Not provided";
 
               return (
                 <tr key={cls.classId}>
@@ -47,7 +47,7 @@ export function ClassListTable({
                   <td>
                     <span className="text-secondary small">
                       <i className="bi bi-geo-alt me-1 text-muted" />
-                      {cls.room || "Room 201"}
+                      {cls.room || "Not provided"}
                     </span>
                   </td>
                   <td>

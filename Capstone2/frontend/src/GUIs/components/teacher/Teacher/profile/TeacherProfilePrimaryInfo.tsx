@@ -9,14 +9,14 @@ export interface TeacherProfilePrimaryInfoProps {
 
 export function TeacherProfilePrimaryInfo({ teacher, profile }: TeacherProfilePrimaryInfoProps) {
   const data = profile || teacher;
-  const fullName = data?.fullName || "Hoang Quoc Viet, M.Sc.";
-  const userCode = data?.userCode || "TC001";
+  const fullName = data?.fullName || "Not provided";
+  const userCode = data?.userCode || "Not provided";
   const roleRaw =
     (data as any)?.roleTitle ||
     ((data as any)?.roles && (data as any).roles.length > 0 ? (data as any).roles[0] : "Teacher");
   const roleName = roleRaw === "Giáo viên" ? "Teacher" : roleRaw === "Trợ giảng" ? "Teaching Assistant" : roleRaw;
   const avatarUrl = data?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const specialty = data?.specialty || "Mathematics & Teaching Methodology";
+  const specialty = data?.specialty || "Not provided";
   const activeClasses = (data as any)?.activeClassesCount;
   const totalStudents = (data as any)?.totalStudentsCount;
 

@@ -40,7 +40,7 @@ namespace EduTrack.API.Models.DTOs.Learning
         public string Description { get; set; } = string.Empty;
         public string UploadDate { get; set; } = string.Empty;
         public string UploadedBy { get; set; } = string.Empty;
-        public decimal SizeMb { get; set; } = 2.0m;
+        public decimal? SizeMb { get; set; }
         public string? FileUrl { get; set; }
     }
 

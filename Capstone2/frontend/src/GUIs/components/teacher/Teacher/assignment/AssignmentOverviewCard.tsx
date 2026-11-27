@@ -20,12 +20,12 @@ function AssignmentOverviewCard({
   onAssignmentUpdated,
   onAssignmentDeleted,
 }: AssignmentOverviewCardProps) {
-  const displayClass = className || assignment?.className || "Class 9 - Advanced Mathematics";
-  const title = assignment?.title || "Assignment 1: Kinematics Problem Set";
+  const displayClass = className || assignment?.className || "Not provided";
+  const title = assignment?.title || "Not provided";
   const description = assignment?.description || "Review and evaluate student submitted files for this assignment.";
   const deadline = assignment?.dueDateFormatted || (assignment?.dueDate
     ? new Date(assignment.dueDate).toLocaleString()
-    : "Aug 11, 2026, 11:59 PM");
+    : "Not provided");
 
   // Modal states
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -79,7 +79,7 @@ function AssignmentOverviewCard({
           setEditDueDate("");
         }
       }
-      setEditFileUrl(assignment.fileUrl || "/assets/docs/assignment_default.pdf");
+      setEditFileUrl(assignment.fileUrl || "");
       setEditMaxScore(assignment.maxScore ?? 10);
       setRubricFileUrl(assignment.answerKeyFileUrl || "");
       setRubricNotes(assignment.answerKeyText || "");

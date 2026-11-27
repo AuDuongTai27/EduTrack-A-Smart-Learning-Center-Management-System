@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import React, { useState, useEffect } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
@@ -12,6 +13,9 @@ import { teachingDAL, type TeachingDashboardViewModel } from "../../../../DAL/te
 const DEFAULT_TEACHER_ID = 3; // ThS. Hoàng Quốc Việt
 
 export default function TeacherDashboardPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [dashboardData, setDashboardData] = useState<TeachingDashboardViewModel | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -21,9 +25,11 @@ export default function TeacherDashboardPage() {
     async function loadDashboard() {
       try {
         setLoading(true);
+      setLoadError(null);
         const dashData = await teachingDAL.getDashboard(DEFAULT_TEACHER_ID);
         if (isMounted) setDashboardData(dashData);
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn("Lỗi tải TeacherDashboard:", err);
       } finally {
         if (isMounted) {
@@ -37,15 +43,11 @@ export default function TeacherDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [retryVersion]);
 
   const profile = dashboardData?.profile;
   const kpis = dashboardData?.kpis;
   const teacherName = profile?.fullName || "Teacher";
-  const userCode = profile?.userCode ? `#${profile.userCode}` : "#TC001";
-  const specialty = profile?.specialty || "Mathematics & Exam Preparation";
-  const avatar = profile?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const roleTitle = profile?.roleTitle || "Subject Teacher";
 
   const mappedTodayClasses: TodayClassItem[] = (dashboardData?.todayClasses || [])
     .map((cls) => {
@@ -80,7 +82,7 @@ export default function TeacherDashboardPage() {
         sessionId: cls.sessionId,
         className: cls.className,
         timePeriod: cls.timePeriod,
-        room: cls.room || "Room 201",
+        room: cls.room || "Not provided",
         studentsCount: cls.studentsCount ?? 0,
         status: computedStatus,
         attendanceTaken: cls.attendanceTaken ?? false,
@@ -88,6 +90,8 @@ export default function TeacherDashboardPage() {
         endTime: cls.endTime,
       };
     });
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <div className="teaching-dashboard">
@@ -110,12 +114,12 @@ export default function TeacherDashboardPage() {
         <>
           {/* Dashboard KPI Cards - Chiếm toàn bộ chiều ngang */}
           <TeacherKpiCards
-            activeAssignments={kpis?.activeAssignments ?? 0}
-            assignmentsDueToday={kpis?.assignmentsDueToday ?? 0}
-            activeClasses={kpis?.activeClasses ?? 0}
-            classesToday={kpis?.classesToday ?? 0}
-            totalStudents={kpis?.totalStudents ?? 0}
-            pendingAttendance={kpis?.pendingAttendance ?? 0}
+            activeAssignments={kpis?.activeAssignments}
+            assignmentsDueToday={kpis?.assignmentsDueToday}
+            activeClasses={kpis?.activeClasses}
+            classesToday={kpis?.classesToday}
+            totalStudents={kpis?.totalStudents}
+            pendingAttendance={kpis?.pendingAttendance}
           />
 
           <div className="teaching-dashboard-panels">

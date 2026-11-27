@@ -1,9 +1,11 @@
+import { useRef } from 'react';
+import { DataState, dataError } from '../../components/Common/DataState';
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Pagination from "../../components/Common/Pagination";
 import { LearnerPageLoader } from "../../components/student/common/LearnerPageLoader";
 import { useParent } from "../../../contexts/ParentContext";
-import { learningDAL, DEFAULT_STUDENT_ID } from "../../../DAL/learningDAL";
+import { learningDAL } from "../../../DAL/learningDAL";
 import { DEFAULT_PARENT_ID } from "../../../DAL/parentDAL";
 import type { LearnerNotificationItemApiDto } from "../../../api/learningApi";
 
@@ -129,10 +131,13 @@ function mapLearnerDtoToParentItem(
 }
 
 export function ParentNotificationsPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedChild, loading: parentLoading } = useParent();
-  const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
-  const childName = selectedChild?.name || "Lê Văn An";
+  const targetStudentId = selectedChild?.id;
+
 
   const [notifications, setNotifications] =
     useState<ParentNotificationItem[]>([]);
@@ -152,13 +157,17 @@ export function ParentNotificationsPage() {
     useState<ParentNotificationItem | null>(null);
   const [markingRead, setMarkingRead] = useState<boolean>(false);
 
+  const requestVersion = useRef(0);
   const loadNotifications = async () => {
+    const version = ++requestVersion.current;
     setLoading(true);
+      setLoadError(null);
     try {
       const list = await learningDAL.getParentNotifications(
         DEFAULT_PARENT_ID,
         targetStudentId
       );
+      if (version !== requestVersion.current) return;
       const localReads = learningDAL.getLocalReadIds(DEFAULT_PARENT_ID);
       setReadIds(localReads);
       const mapped = (list || []).map(mapLearnerDtoToParentItem);
@@ -173,9 +182,10 @@ export function ParentNotificationsPage() {
         return mapped.find((n) => n.id === prev.id) || null;
       });
     } catch (err) {
+        if (version === requestVersion.current) setLoadError(dataError(err));
       console.warn("Lỗi khi tải thông báo phụ huynh:", err);
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
   };
 
@@ -183,7 +193,8 @@ export function ParentNotificationsPage() {
     document.title = "Parent Notifications – EduTrack";
     setSelectedNotification(null);
     void loadNotifications();
-  }, [targetStudentId]);
+    return () => { requestVersion.current++; };
+  }, [retryVersion, targetStudentId]);
 
   const isItemUnread = (item: ParentNotificationItem): boolean =>
     item.unread && !readIds.has(item.id);
@@ -194,6 +205,8 @@ export function ParentNotificationsPage() {
   );
 
   const handleMarkRead = async (id: number, silent = false) => {
+    try { await learningDAL.markNotificationRead(id, DEFAULT_PARENT_ID); }
+    catch { setLoadError('Read status was not saved. Please retry.'); return; }
     setReadIds((prev) => {
       const next = new Set(prev);
       next.add(id);
@@ -205,7 +218,6 @@ export function ParentNotificationsPage() {
     setSelectedNotification((prev) =>
       prev && prev.id === id ? { ...prev, unread: false } : prev
     );
-    await learningDAL.markNotificationRead(id, DEFAULT_PARENT_ID);
     if (!silent) {
       setSuccessMsg("Marked notification as read.");
     }
@@ -222,17 +234,20 @@ export function ParentNotificationsPage() {
   };
 
   const handleMarkAllRead = async () => {
+    try {
+    await learningDAL.markAllNotificationsRead(
+      DEFAULT_PARENT_ID,
+      targetStudentId,
+      notifications.map(n => n.id)
+    );
+    } catch { setLoadError('Read status was not saved. Please retry.'); return; }
     const allIds = notifications.map((n) => n.id);
     setReadIds(new Set(allIds));
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
     setSelectedNotification((prev) =>
       prev ? { ...prev, unread: false } : null
     );
-    await learningDAL.markAllNotificationsRead(
-      DEFAULT_PARENT_ID,
-      targetStudentId,
-      allIds
-    );
+
     setSuccessMsg("Marked all parent notifications as read.");
   };
 
@@ -268,6 +283,8 @@ export function ParentNotificationsPage() {
   const selectedIsUnread = selectedNotification
     ? isItemUnread(selectedNotification)
     : false;
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (parentLoading || (loading && notifications.length === 0)) {
     return (

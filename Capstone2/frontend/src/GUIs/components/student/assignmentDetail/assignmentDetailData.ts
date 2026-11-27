@@ -8,6 +8,7 @@ export interface AssignmentDetailItem {
   defaultStatus: SubmissionStatus;
   classId: number;
   score?: string;
+  maxScore?: number;
   description?: string | null;
   fileUrl?: string | null;
 }

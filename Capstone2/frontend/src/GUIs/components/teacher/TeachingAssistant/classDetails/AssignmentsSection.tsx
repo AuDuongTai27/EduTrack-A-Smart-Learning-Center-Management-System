@@ -1,3 +1,4 @@
+import { DataState } from '../../../Common/DataState';
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { AssignmentDto } from "../../../../../BLL/models/AssignmentDto";
@@ -51,7 +52,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
       kind: "assignment" as const,
       title: asg.title,
       description: asg.description || asg.assignmentType,
-      dateStr: asg.dueDate || asg.createdAt || "08/09/2026",
+      dateStr: asg.dueDate || asg.createdAt || "",
       timestamp: parseDateStrToTime(asg.createdAt || asg.dueDate),
       rawAssignment: asg,
     }));
@@ -85,7 +86,6 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
     });
   }, [unifiedStream, filterType, searchTerm]);
 
-  const totalMaterials = materials.length;
   const totalAssignments = assignments.length;
 
   return (
@@ -95,7 +95,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
         <div className="d-flex align-items-center gap-2">
           <i className="bi bi-collection-play-fill text-primary fs-5" />
           <h4 className="class-list-title mb-0">
-            Coursework &amp; Learning Materials ({unifiedStream.length})
+            Class Assignments ({totalAssignments})
           </h4>
         </div>
 
@@ -146,7 +146,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
             onClick={() => setFilterType("materials")}
           >
             <i className="bi bi-file-earmark-text-fill" style={{ fontSize: "12px" }} />
-            <span>Materials ({totalMaterials})</span>
+            <span>Materials unavailable</span>
           </button>
         </div>
 
@@ -170,7 +170,7 @@ export default function AssignmentsSection({ classId = "1", assignments = [] }: 
 
       {/* 3. Stream List (Gom chung mới nhất lên đầu) */}
       <div className="p-4 bg-white d-flex flex-column gap-3">
-        {filteredStream.length > 0 ? (
+        {filterType === "materials" ? <DataState message="Study materials are currently unavailable." /> : filteredStream.length > 0 ? (
           filteredStream.map((item) => {
             if (item.kind === "assignment" && item.rawAssignment) {
               const asg = item.rawAssignment;

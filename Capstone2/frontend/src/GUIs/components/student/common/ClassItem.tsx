@@ -11,7 +11,7 @@ export interface ClassItemProps {
  * Giữ lại: Tên lớp, Tên môn, Thanh điểm danh % đi học, và View Detail
  */
 export function ClassItem({ classItem: cls }: ClassItemProps) {
-  const attendanceRate = cls.attendanceRate ?? 95;
+  const attendanceRate = cls.attendanceRate;
 
   return (
     <Link
@@ -52,13 +52,13 @@ export function ClassItem({ classItem: cls }: ClassItemProps) {
               className="small fw-bold text-primary"
               style={{ fontSize: '12px', color: '#2563EB' }}
             >
-              {attendanceRate}% {cls.totalSessions ? `(${cls.attendedSessions ?? 0}/${cls.totalSessions})` : ''}
+              {attendanceRate == null ? '—' : `${attendanceRate}%`} {cls.totalSessions && cls.attendedSessions != null ? `(${cls.attendedSessions}/${cls.totalSessions})` : ''}
             </span>
           </div>
           <div className="progress" style={{ height: 6, backgroundColor: '#eef2f6', borderRadius: 4 }}>
             <div
               className="progress-bar bg-primary"
-              style={{ width: `${attendanceRate}%`, borderRadius: 4, backgroundColor: '#2563EB' }}
+              style={{ width: `${attendanceRate ?? 0}%`, borderRadius: 4, backgroundColor: '#2563EB' }}
               role="progressbar"
             />
           </div>

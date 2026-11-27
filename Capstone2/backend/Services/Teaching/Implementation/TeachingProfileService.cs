@@ -174,20 +174,21 @@ namespace EduTrack.API.Services.Teaching.Implementation
 
             string dobFormatted = user.DateOfBirth.HasValue
                 ? user.DateOfBirth.Value.ToString("yyyy-MM-dd")
-                : (isTa ? "1998-05-15" : "1990-11-10");
+                : string.Empty;
 
             string enrolledFormatted = user.EnrolledSince.HasValue
                 ? user.EnrolledSince.Value.ToString("dd/MM/yyyy")
                 : user.CreatedAt.ToString("dd/MM/yyyy");
 
-            string genderLabel = (user.Gender ?? "male").ToLower() switch
+            string genderLabel = (user.Gender ?? string.Empty).ToLower() switch
             {
                 "female" => "Nữ",
                 "other" => "Khác",
-                _ => "Nam"
+                "male" => "Nam",
+                _ => string.Empty
             };
 
-            string defaultSpecialty = isTa ? "Trợ giảng Toán & Khoa học" : "Toán học & Luyện thi";
+
 
             return new TeacherProfileDto
             {
@@ -199,13 +200,13 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 DateOfBirth = dobFormatted,
                 Gender = genderLabel,
                 EnrolledSince = enrolledFormatted,
-                Specialty = !string.IsNullOrWhiteSpace(user.Specialty) ? user.Specialty : defaultSpecialty,
+                Specialty = user.Specialty ?? string.Empty,
                 AvatarUrl = !string.IsNullOrWhiteSpace(user.AvatarUrl) ? user.AvatarUrl : "/assets/img/profiles/avatar-27.jpg",
-                Address = "123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh",
+                Address = string.Empty,
                 RoleTitle = isTa ? "Trợ giảng chuyên môn" : "Giáo viên chuyên môn",
                 Role = isTa ? "teaching_assistant" : "teacher",
-                ActiveClassesCount = activeClassesCount > 0 ? activeClassesCount : (isTa ? 3 : 2),
-                TotalStudentsCount = totalStudents > 0 ? totalStudents : (isTa ? 50 : 35)
+                ActiveClassesCount = activeClassesCount,
+                TotalStudentsCount = totalStudents
             };
         }
     }

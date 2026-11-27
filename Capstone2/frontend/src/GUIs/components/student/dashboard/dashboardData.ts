@@ -12,7 +12,7 @@ export const DASHBOARD_STATS: DashboardStatItem[] = [
   {
     id: 'classes',
     label: 'Total Active Classes',
-    value: 6,
+    value: '—',
     icon: 'bi-journal-bookmark-fill',
     bgColor: '#EFF6FF',
     color: '#2563EB',
@@ -20,8 +20,7 @@ export const DASHBOARD_STATS: DashboardStatItem[] = [
   {
     id: 'assignments',
     label: 'Assignments Due Soon',
-    value: 2,
-    badge: 'Due Soon',
+    value: '—',
     icon: 'bi-clock-fill',
     bgColor: '#FFFBEB',
     color: '#D97706',

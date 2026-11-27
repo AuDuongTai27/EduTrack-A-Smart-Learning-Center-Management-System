@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import React, { useState, useEffect, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
@@ -9,6 +10,9 @@ import teachingDAL, { DEFAULT_TEACHER_ID } from "../../../../DAL/teachingDAL";
 import type { TeachingClassItemDto } from "../../../../BLL/models/teaching/TeachingClassItemDto";
 
 export default function TeacherClassesPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [classes, setClasses] = useState<TeachingClassItemDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -23,11 +27,13 @@ export default function TeacherClassesPage() {
     async function loadClasses() {
       try {
         setLoading(true);
+      setLoadError(null);
         const res = await teachingDAL.getMyClasses(DEFAULT_TEACHER_ID);
         if (isMounted && res.data) {
           setClasses(res.data);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn("Lỗi tải danh sách lớp học của giáo viên:", err);
       } finally {
         if (isMounted) setLoading(false);
@@ -38,7 +44,7 @@ export default function TeacherClassesPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [retryVersion]);
 
   const filteredAndSortedClasses = useMemo(() => {
     let result = [...classes];
@@ -81,6 +87,8 @@ export default function TeacherClassesPage() {
     const start = (currentPage - 1) * rowsPerPage;
     return filteredAndSortedClasses.slice(start, start + rowsPerPage);
   }, [filteredAndSortedClasses, currentPage, rowsPerPage]);
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <>

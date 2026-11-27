@@ -21,6 +21,8 @@ export function ChildSwitcher({
     selectedChildId,
     selectedChild,
     loading,
+    error,
+    retryChildren,
     setSelectedChildId,
   } = useParent();
 
@@ -60,6 +62,8 @@ export function ChildSwitcher({
       </div>
     );
   }
+
+  if (error) return <div className="p-3 small text-secondary" role="alert">{error}<button className="btn btn-sm btn-outline-success mt-2" onClick={retryChildren}>Retry</button></div>;
 
   if (childrenList.length === 0) {
     return (

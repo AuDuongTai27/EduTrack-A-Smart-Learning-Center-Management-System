@@ -8,14 +8,17 @@ interface StudentNavMenuProps {
 }
 
 export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [unreadCount, setUnreadCount] = useState<number | null>(null);
   const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
 
   useEffect(() => {
     let mounted = true;
+    setUnreadCount(null);
     const refreshCount = async () => {
-      const count = await learningDAL.getStudentUnreadCount(DEFAULT_STUDENT_ID);
-      if (mounted) setUnreadCount(count);
+      try {
+        const count = await learningDAL.getStudentUnreadCount(DEFAULT_STUDENT_ID);
+        if (mounted) setUnreadCount(count);
+      } catch { if (mounted) setUnreadCount(null); }
     };
     void refreshCount();
     const onUpdate = () => void refreshCount();
@@ -47,7 +50,7 @@ export function StudentNavMenu({ onLinkClick }: StudentNavMenuProps) {
     {
       title: "COMMUNICATION",
       items: [
-        { to: "/student/notifications", icon: "bi-bell", label: "Notifications", badge: unreadCount > 0 ? unreadCount : null },
+        { to: "/student/notifications", icon: "bi-bell", label: "Notifications", badge: unreadCount !== null && unreadCount > 0 ? unreadCount : null },
         { to: "/student/feedback", icon: "bi-chat-dots", label: "Feedback & Support" },
       ],
     },

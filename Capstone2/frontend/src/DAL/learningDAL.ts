@@ -15,41 +15,30 @@ import type {
   CreateVnPayPaymentResponseApiDto,
 } from '../BLL/models/learning';
 import {
-  INITIAL_PROFILE,
   type StudentProfileData,
 } from '../GUIs/components/student/profile/profileData';
 import {
-  INITIAL_FEEDBACK_REQUESTS,
   type FeedbackApprovalRequest,
 } from '../GUIs/components/student/feedback/feedbackData';
 import {
-  INITIAL_NOTIFICATIONS,
   type NotificationItem,
 } from '../GUIs/components/student/notifications/notificationsData';
 import {
-  MOCK_ENROLLED_CLASSES,
   type EnrolledClassItem,
 } from '../GUIs/components/student/classes/classesData';
 import {
-  CLASSES_DATA,
-  MATERIALS_DATA,
-  ASSIGNMENTS_DATA,
   type ClassDetailItem,
   type MaterialItem,
   type AssignmentItem,
 } from '../GUIs/components/student/classDetail/classDetailData';
 import {
-  ASSIGNMENTS_DB,
-  DEFAULT_ASG,
   type AssignmentDetailItem,
   type SubmissionStatus,
 } from '../GUIs/components/student/assignmentDetail/assignmentDetailData';
 import {
-  SESSIONS,
   type SessionItem,
 } from '../GUIs/components/student/schedule/scheduleData';
 import {
-  CURRENT_PROGRESS_CLASSES,
   type ProgressClassItem,
   type ProgressFeedback,
 } from '../GUIs/components/student/progress/progressData';
@@ -58,34 +47,27 @@ import type {
   TuitionHistoryItem,
 } from '../GUIs/components/student/tuition/tuitionData';
 import {
-  parentDAL,
   DEFAULT_PARENT_ID,
   type ChildStudent,
 } from './parentDAL';
-import { getSelectedUserId } from '../BLL/services/userSelection';
+import { confirmedUpload } from '../api/realData';
 import { getAuthUser } from '../api/authApi';
 
-// Mặc định học sinh đang đăng nhập trong bản demo là Lê Văn An (STU001, UserId = 6)
+// Legacy call-site sentinel; authenticated identity is resolved before requests.
 export const DEFAULT_STUDENT_ID = 6;
 
 function resolveStudentId(studentId?: number): number {
-  const authUser = getAuthUser();
-  if (authUser && authUser.primaryRole === 'student') {
-    if (!studentId || studentId === DEFAULT_STUDENT_ID) {
-      return authUser.userId;
-    }
-  }
-  return studentId || getSelectedUserId('student');
+  const auth = getAuthUser();
+  if (!auth?.userId) throw new Error('Please sign in to view learning data.');
+  if (auth.primaryRole === 'student' || auth.roles?.includes('student')) return auth.userId;
+  if (!studentId || studentId <= 0) throw new Error('Select a linked student.');
+  return studentId;
 }
 
-function resolveParentId(parentId?: number): number {
-  const authUser = getAuthUser();
-  if (authUser && authUser.primaryRole === 'parent') {
-    if (!parentId || parentId === DEFAULT_PARENT_ID) {
-      return authUser.userId;
-    }
-  }
-  return parentId || getSelectedUserId('parent');
+function resolveParentId(_parentId?: number): number {
+  const auth = getAuthUser();
+  if (!auth?.userId) throw new Error('Please sign in to view parent data.');
+  return auth.userId;
 }
 
 export interface StudentDashboardViewModel {
@@ -96,7 +78,7 @@ export interface StudentDashboardViewModel {
   enrolledClassesCount: number;
   pendingAssignmentsCount: number;
   classes: EnrolledClassItem[];
-  source: 'api' | 'mock';
+  source: 'api';
 }
 
 export interface StudentClassDetailViewModel {
@@ -108,7 +90,8 @@ export interface StudentClassDetailViewModel {
   totalLessons: number;
   latestTeacherNote: string;
   feedbacks?: ProgressFeedback[];
-  source: 'api' | 'mock';
+  feedbacksError?: string;
+  source: 'api';
 }
 
 export interface StudentAssignmentDetailViewModel {
@@ -117,7 +100,7 @@ export interface StudentAssignmentDetailViewModel {
   submittedFileName: string;
   submittedMeta: string;
   submission?: StudentSubmissionDetailApiDto | null;
-  source: 'api' | 'mock';
+  source: 'api';
 }
 
 export interface StudentProgressViewModel {
@@ -132,7 +115,7 @@ export interface StudentProgressViewModel {
   enrolledClassesCount: number;
   currentClasses: ProgressClassItem[];
   pastClasses: ProgressClassItem[];
-  source: 'api' | 'mock';
+  source: 'api';
 }
 
 export interface StudentTuitionViewModel {
@@ -141,7 +124,7 @@ export interface StudentTuitionViewModel {
   totalUnpaidAmount: number;
   bill: TuitionBill;
   history: TuitionHistoryItem[];
-  source: 'api' | 'mock';
+  source: 'api';
   unpaidInvoices?: TuitionInvoiceItemApiDto[];
 }
 
@@ -157,21 +140,13 @@ function mapApiTuitionToViewModel(apiData: StudentTuitionOverviewApiDto): Studen
   }));
 
   const bill: TuitionBill = {
-    period: apiData.period || 'Term October / 2026',
+    period: unpaidItems.length || apiData.paymentHistory?.length ? (apiData.period || 'Tuition overview') : 'Tuition overview',
     totalAmount: fmtVnd(totalUnpaid),
-    dueDate: apiData.dueDate || '10/11/2026',
+    dueDate: unpaidItems.length ? (apiData.dueDate || '') : '',
     remainingDaysText:
       apiData.remainingDaysText ||
       (totalUnpaid > 0 ? 'Tuition payment due' : 'Completed all tuition for this term'),
-    items:
-      unpaidItems.length > 0
-        ? unpaidItems
-        : [
-          {
-            name: 'Completed tuition for all subjects this term',
-            amount: '0 đ',
-          },
-        ],
+    items: unpaidItems,
     subTotal: fmtVnd(totalUnpaid),
   };
 
@@ -214,7 +189,7 @@ function mapSubjectTheme(subjectCode?: string, subjectName?: string): {
   if (combined.includes('BIO') || combined.includes('SINH')) {
     return { subjectThemeClass: 'theme-biology', badge: subjectName || 'Biology' };
   }
-  return { subjectThemeClass: 'theme-math', badge: subjectName || 'Mathematics' };
+  return { subjectThemeClass: 'theme-math', badge: subjectName || 'Subject not provided' };
 }
 
 function mapSubjectBannerTheme(subjectCode?: string, subjectName?: string): {
@@ -288,19 +263,20 @@ function mapProgressTheme(subjectCode?: string, subjectName?: string, index = 0)
 
 function mapApiClassToEnrolledItem(dto: StudentEnrolledClassApiDto): EnrolledClassItem {
   const { subjectThemeClass, badge } = mapSubjectTheme(dto.subjectCode, dto.subjectName);
-  const total = dto.totalLessons || 0;
-  const attended = dto.attendedLessons || 0;
-  const attendanceRate = total > 0 ? Math.round((attended * 100) / total) : 100;
+  const total = dto.totalLessons;
+  const attended = dto.attendedLessons;
+  const attendanceRate = typeof total === 'number' && total > 0 && typeof attended === 'number'
+    ? Math.round((attended * 100) / total) : undefined;
 
   return {
     classId: dto.classId,
     className: dto.className,
     badge,
     subjectThemeClass,
-    teacherName: dto.teacherName || 'Teacher in charge',
+    teacherName: dto.teacherName || 'Not assigned',
     teacherInitials: dto.teacherInitials || 'TC',
     scheduleText: dto.scheduleText || 'Updating schedule',
-    room: dto.room || 'Main Classroom',
+    room: dto.room || 'Not assigned',
     attendanceRate,
     attendedSessions: attended,
     totalSessions: total,
@@ -329,7 +305,7 @@ function formatDateTimeVi(dateStr?: string | null): string {
 export function mapApiFeedbackToViewModel(
   dto: LearnerFeedbackItemApiDto,
   fallbackRole: 'parent' | 'student' = 'student',
-  fallbackName = 'Lê Văn An'
+  fallbackName = ''
 ): FeedbackApprovalRequest {
   const statusLower = (dto.status || 'pending').toLowerCase();
   const canEdit =
@@ -436,14 +412,14 @@ function mapApiChildrenListToChildStudents(apiChildren: ParentChildOverviewApiDt
 
 function mapApiProfileToStudentProfile(dto: LearnerProfileApiDto): StudentProfileData {
   return {
-    fullName: dto.fullName || INITIAL_PROFILE.fullName,
-    dob: dto.dateOfBirth ? dto.dateOfBirth.split('T')[0] : '2010-02-14',
-    gender: dto.gender || 'Nam',
-    enrollDate: dto.enrolledSince ? dto.enrolledSince.split('T')[0] : '2025-01-05',
-    address: dto.address || '45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh',
-    phone: dto.phone || '0956 789 012',
-    email: dto.email || 'an.le@student.edutrack.vn',
-    avatarUrl: dto.avatarUrl || INITIAL_PROFILE.avatarUrl,
+    fullName: dto.fullName || '',
+    dob: dto.dateOfBirth ? dto.dateOfBirth.split('T')[0] : '',
+    gender: dto.gender || '',
+    enrollDate: dto.enrolledSince ? dto.enrolledSince.split('T')[0] : '',
+    address: dto.address || '',
+    phone: dto.phone || '',
+    email: dto.email || '',
+    avatarUrl: dto.avatarUrl || '',
   };
 }
 
@@ -451,11 +427,11 @@ function mapApiProfileToStudentProfile(dto: LearnerProfileApiDto): StudentProfil
  * [Bounded Context: Learning]
  * Tầng Data Access Layer (DAL) dành riêng cho Thành viên 3 (Student & Parent)
  */
-const LOCAL_READ_NOTIFS_KEY = 'edutrack_read_notification_ids';
+const LOCAL_READ_NOTIFS_KEY = 'edutrack_confirmed_read_notification_ids';
 
 export function getLocalReadNotificationIds(userId?: number): Set<number> {
   try {
-    const key = userId ? `${LOCAL_READ_NOTIFS_KEY}_${userId}` : LOCAL_READ_NOTIFS_KEY;
+    const key = `${LOCAL_READ_NOTIFS_KEY}_${getAuthUser()?.userId || userId}`;
     const raw = localStorage.getItem(key);
     if (raw) {
       const arr = JSON.parse(raw);
@@ -469,7 +445,7 @@ export function getLocalReadNotificationIds(userId?: number): Set<number> {
 
 export function saveLocalReadNotificationId(id: number, userId?: number) {
   try {
-    const key = userId ? `${LOCAL_READ_NOTIFS_KEY}_${userId}` : LOCAL_READ_NOTIFS_KEY;
+    const key = `${LOCAL_READ_NOTIFS_KEY}_${getAuthUser()?.userId || userId}`;
     const set = getLocalReadNotificationIds(userId);
     set.add(id);
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
@@ -480,7 +456,7 @@ export function saveLocalReadNotificationId(id: number, userId?: number) {
 
 export function saveAllLocalReadNotificationIds(ids: number[], userId?: number) {
   try {
-    const key = userId ? `${LOCAL_READ_NOTIFS_KEY}_${userId}` : LOCAL_READ_NOTIFS_KEY;
+    const key = `${LOCAL_READ_NOTIFS_KEY}_${getAuthUser()?.userId || userId}`;
     const set = getLocalReadNotificationIds(userId);
     ids.forEach((id) => set.add(id));
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
@@ -499,13 +475,8 @@ export const learningDAL = {
    */
   async getStudentUnreadCount(studentId = DEFAULT_STUDENT_ID): Promise<number> {
     const targetStudentId = resolveStudentId(studentId);
-    try {
-      const notifs = await this.getStudentNotifications(targetStudentId);
-      const readSet = getLocalReadNotificationIds(targetStudentId);
-      return notifs.filter((n) => n.unread && !readSet.has(n.id)).length;
-    } catch {
-      return 0;
-    }
+    const notifs = await this.getStudentNotifications(targetStudentId);
+    return notifs.filter((n) => n.unread).length;
   },
 
   /**
@@ -516,52 +487,30 @@ export const learningDAL = {
     studentId?: number
   ): Promise<number> {
     const targetParentId = resolveParentId(parentId);
-    try {
-      const notifs = await this.getParentNotifications(targetParentId, studentId);
-      const readSet = getLocalReadNotificationIds(targetParentId);
-      return notifs.filter((n) => !n.isRead && !readSet.has(n.notificationId)).length;
-    } catch {
-      return 0;
-    }
+    const notifs = await this.getParentNotifications(targetParentId, studentId);
+    return notifs.filter((n) => !n.isRead).length;
   },
   /**
-   * Lấy toàn bộ dữ liệu Dashboard của Học sinh từ Backend (kèm fallback an toàn khi offline)
+   * Lấy toàn bộ dữ liệu Dashboard của Học sinh từ Backend
    */
   async getStudentDashboard(studentId = DEFAULT_STUDENT_ID): Promise<StudentDashboardViewModel> {
     const targetStudentId = resolveStudentId(studentId);
-    try {
-      const apiData = await learningApi.getStudentDashboard(targetStudentId);
-      if (apiData) {
-        const mappedClasses = (apiData.classes || []).map(mapApiClassToEnrolledItem);
-        return {
-          studentId: apiData.studentId,
-          studentCode: apiData.studentCode,
-          fullName: apiData.fullName,
-          avatarInitials: apiData.avatarInitials || 'VA',
-          enrolledClassesCount: apiData.enrolledClassesCount ?? mappedClasses.length,
-          pendingAssignmentsCount: apiData.pendingAssignmentsCount ?? 0,
-          classes: mappedClasses,
-          source: 'api',
-        };
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Student Dashboard, dùng mock fallback:', error);
+    const apiData = await learningApi.getStudentDashboard(targetStudentId);
+    if (apiData) {
+      if (apiData.studentId !== targetStudentId) throw new Error("Account data did not match the signed-in user.");
+      const mappedClasses = (apiData.classes || []).map(mapApiClassToEnrolledItem);
+      return {
+        studentId: apiData.studentId,
+        studentCode: apiData.studentCode,
+        fullName: apiData.fullName,
+        avatarInitials: apiData.avatarInitials || 'ST',
+        enrolledClassesCount: apiData.enrolledClassesCount ?? mappedClasses.length,
+        pendingAssignmentsCount: apiData.pendingAssignmentsCount ?? 0,
+        classes: mappedClasses,
+        source: 'api',
+      };
     }
-
-    return {
-      studentId: targetStudentId,
-      studentCode: 'STU001',
-      fullName: '[MOCK] Lê Văn An',
-      avatarInitials: 'VA',
-      enrolledClassesCount: MOCK_ENROLLED_CLASSES.length,
-      pendingAssignmentsCount: 2,
-      classes: MOCK_ENROLLED_CLASSES.map((c) => ({
-        ...c,
-        className: `[MOCK] ${c.className}`,
-        teacherName: `[MOCK] ${c.teacherName}`,
-      })),
-      source: 'mock',
-    };
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -569,43 +518,38 @@ export const learningDAL = {
    */
   async getParentChildrenOverview(parentId = DEFAULT_PARENT_ID): Promise<ChildStudent[]> {
     const targetParentId = resolveParentId(parentId);
-    try {
-      const apiChildren = await learningApi.getParentChildrenOverview(targetParentId);
-      if (Array.isArray(apiChildren)) {
-        return apiChildren.map((child) => ({
-          id: child.id,
-          code: child.code,
-          name: child.name,
-          avatar: child.avatar,
-          grade: child.grade,
-          school: child.school,
-          dob: child.dob,
-          phone: child.phone,
-          classesCount: child.classesCount,
-          attendanceRate: child.attendanceRate,
-          averageScore: child.averageScore,
-          unpaidAmount: child.unpaidAmount,
-          classes: (child.classes || []).map((cls) => ({
-            id: cls.id,
-            name: cls.name,
-            subject: cls.subject,
-            subjectClass: cls.subjectClass,
-            badge: cls.badge,
-            teacher: cls.teacher,
-            teacherInitials: cls.teacherInitials,
-            schedule: cls.schedule,
-            room: cls.room,
-            attendedLessons: cls.attendedLessons,
-            totalLessons: cls.totalLessons,
-            notes: cls.notes,
-          })),
-        }));
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Parent Children Overview, dùng mock fallback:', error);
+    const apiChildren = await learningApi.getParentChildrenOverview(targetParentId);
+    if (Array.isArray(apiChildren)) {
+      return apiChildren.map((child) => ({
+        id: child.id,
+        code: child.code,
+        name: child.name,
+        avatar: child.avatar,
+        grade: child.grade,
+        school: child.school,
+        dob: child.dob,
+        phone: child.phone,
+        classesCount: child.classesCount,
+        attendanceRate: child.attendanceRate,
+        averageScore: child.averageScore,
+        unpaidAmount: child.unpaidAmount,
+        classes: (child.classes || []).map((cls) => ({
+          id: cls.id,
+          name: cls.name,
+          subject: cls.subject,
+          subjectClass: cls.subjectClass,
+          badge: cls.badge,
+          teacher: cls.teacher,
+          teacherInitials: cls.teacherInitials,
+          schedule: cls.schedule,
+          room: cls.room,
+          attendedLessons: cls.attendedLessons,
+          totalLessons: cls.totalLessons,
+          notes: cls.notes,
+        })),
+      }));
     }
-
-    return parentDAL.getLinkedChildrenSync(targetParentId);
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -616,126 +560,101 @@ export const learningDAL = {
     studentId = DEFAULT_STUDENT_ID
   ): Promise<StudentClassDetailViewModel> {
     const targetStudentId = resolveStudentId(studentId);
-    const fallbackCls = CLASSES_DATA.find((c) => c.id === classId) || CLASSES_DATA[0];
-    const fallbackMaterials = MATERIALS_DATA.filter((m) => m.classId === classId);
-    const fallbackAssignments = ASSIGNMENTS_DATA.filter((a) => a.classId === classId);
+    const apiData = await learningApi.getStudentClassDetail(targetStudentId, classId);
+    if (apiData) {
+      const theme = mapSubjectBannerTheme(apiData.subjectCode, apiData.subjectName);
+      const cls: ClassDetailItem = {
+        id: apiData.classId,
+        name: apiData.className,
+        subject: apiData.subjectName,
+        subjectClass: theme.subjectClass,
+        grad: theme.grad,
+        accent: theme.accent,
+        teacher: apiData.teacherName || 'Not assigned',
+        teacherInitials: apiData.teacherInitials || 'GV',
+        taName: apiData.taName || '',
+        taInitials: apiData.taInitials || '',
+        taEmail: apiData.taEmail || '',
+        taPhone: apiData.taPhone || '',
+        schedule: apiData.schedule || 'Not scheduled',
+        room: apiData.room || 'Not assigned',
+        email: apiData.teacherEmail || '',
+        phone: apiData.teacherPhone || '',
+        description: apiData.description || '',
+        studentCount: apiData.studentCount ?? 0,
+      };
 
-    try {
-      const apiData = await learningApi.getStudentClassDetail(targetStudentId, classId);
-      if (apiData) {
-        const theme = mapSubjectBannerTheme(apiData.subjectCode, apiData.subjectName);
-        const cls: ClassDetailItem = {
-          id: apiData.classId,
-          name: apiData.className,
-          subject: apiData.subjectName,
-          subjectClass: theme.subjectClass,
-          grad: theme.grad,
-          accent: theme.accent,
-          teacher: apiData.teacherName || 'Chưa phân công',
-          teacherInitials: apiData.teacherInitials || 'GV',
-          taName: apiData.taName || '',
-          taInitials: apiData.taInitials || '',
-          taEmail: apiData.taEmail || '',
-          taPhone: apiData.taPhone || '',
-          schedule: apiData.schedule || 'Chưa xếp lịch',
-          room: apiData.room || 'Chưa xếp phòng',
-          email: apiData.teacherEmail || '',
-          phone: apiData.teacherPhone || '',
-          description: apiData.description || '',
-          studentCount: apiData.studentCount ?? 0,
-        };
+      const materials: MaterialItem[] = Array.isArray(apiData.materials)
+        ? apiData.materials.map((m) => ({
+          id: m.id,
+          classId: m.classId,
+          type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
+          fileName: m.fileName,
+          description: m.description,
+          uploadDate: m.uploadDate,
+          uploadedBy: m.uploadedBy,
+          sizeMb: m.sizeMb,
+          fileUrl: m.fileUrl,
+        }))
+        : [];
 
-        const materials: MaterialItem[] = Array.isArray(apiData.materials)
-          ? apiData.materials.map((m) => ({
-            id: m.id,
-            classId: m.classId,
-            type: (m.type as 'PDF' | 'DOC' | 'PPT' | 'IMG') || 'PDF',
-            fileName: m.fileName,
-            description: m.description,
-            uploadDate: m.uploadDate,
-            uploadedBy: m.uploadedBy,
-            sizeMb: m.sizeMb,
-            fileUrl: m.fileUrl,
-          }))
-          : [];
+      const assignments: AssignmentItem[] = Array.isArray(apiData.assignments)
+        ? apiData.assignments.map((a) => ({
+          id: a.id,
+          classId: a.classId,
+          title: a.title,
+          dueDate: a.dueDate,
+          status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
+        }))
+        : [];
 
-        const assignments: AssignmentItem[] = Array.isArray(apiData.assignments)
-          ? apiData.assignments.map((a) => ({
-            id: a.id,
-            classId: a.classId,
-            title: a.title,
-            dueDate: a.dueDate,
-            status: (a.status as 'Chưa nộp' | 'Đã nộp' | 'Quá hạn') || 'Chưa nộp',
-          }))
-          : [];
-
-        const feedbacks: ProgressFeedback[] = [];
-        try {
-          const progVm = await learningDAL.getStudentProgress(targetStudentId);
-          const matchedClass = [...progVm.currentClasses, ...progVm.pastClasses].find(
-            (c) => c.classId === classId || c.id === String(classId)
-          );
-          if (matchedClass && Array.isArray(matchedClass.feedbacks)) {
-            feedbacks.push(...matchedClass.feedbacks);
-          }
-        } catch (fbErr) {
-          console.warn('[learningDAL] Không tải được feedbacks từ tiến độ:', fbErr);
+      const feedbacks: ProgressFeedback[] = [];
+      let feedbacksError: string | undefined;
+      try {
+        const progVm = await learningDAL.getStudentProgress(targetStudentId);
+        const matchedClass = [...progVm.currentClasses, ...progVm.pastClasses].find(
+          (c) => c.classId === classId || c.id === String(classId)
+        );
+        if (matchedClass && Array.isArray(matchedClass.feedbacks)) {
+          feedbacks.push(...matchedClass.feedbacks);
         }
-
-        const rawNote = apiData.latestTeacherNote?.trim();
-        const isEmptyNote =
-          !rawNote ||
-          rawNote.toLowerCase().includes('chưa có nhận xét') ||
-          rawNote.toLowerCase().includes('no teacher evaluation');
-
-        if (!isEmptyNote && !feedbacks.some((f) => f.quote === rawNote)) {
-          feedbacks.unshift({
-            assignmentTitle: `[Periodic Evaluation] ${apiData.className}`,
-            quote: rawNote,
-            teacherName: apiData.teacherName || 'Lead Teacher',
-            statusType: 'dat',
-            statusIcon: 'bi-check2-all',
-            statusLabel: 'Teacher Note',
-            category: 'evaluation',
-          });
-        }
-
-        return {
-          cls,
-          materials,
-          assignments,
-          sessions: apiData.sessions || [],
-          attendedLessons: apiData.attendedLessons ?? 0,
-          totalLessons: apiData.totalLessons ?? 0,
-          latestTeacherNote: isEmptyNote ? '' : rawNote,
-          feedbacks,
-          source: 'api',
-        };
+      } catch (fbErr) {
+        feedbacksError = 'Unable to load evaluations. Please retry.';
+        console.warn('[learningDAL] Không tải được feedbacks từ tiến độ:', fbErr);
       }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Class Detail, dùng mock fallback:', error);
-    }
 
-    return {
-      cls: {
-        ...fallbackCls,
-        name: `[MOCK] ${fallbackCls.name}`,
-        teacher: `[MOCK] ${fallbackCls.teacher}`,
-      },
-      materials: fallbackMaterials.map((m) => ({
-        ...m,
-        fileName: `[MOCK] ${m.fileName}`,
-      })),
-      assignments: fallbackAssignments.map((a) => ({
-        ...a,
-        title: `[MOCK] ${a.title}`,
-      })),
-      sessions: [],
-      attendedLessons: 5,
-      totalLessons: 6,
-      latestTeacherNote: '[MOCK] Full attendance, actively participates in class.',
-      source: 'mock',
-    };
+      const rawNote = apiData.latestTeacherNote?.trim();
+      const isEmptyNote =
+        !rawNote ||
+        rawNote.toLowerCase().includes('chưa có nhận xét') ||
+        rawNote.toLowerCase().includes('no teacher evaluation');
+
+      if (!isEmptyNote && !feedbacks.some((f) => f.quote === rawNote)) {
+        feedbacks.unshift({
+          assignmentTitle: `[Periodic Evaluation] ${apiData.className}`,
+          quote: rawNote,
+          teacherName: apiData.teacherName || 'Lead Teacher',
+          statusType: 'dat',
+          statusIcon: 'bi-check2-all',
+          statusLabel: 'Teacher Note',
+          category: 'evaluation',
+        });
+      }
+
+      return {
+        cls,
+        materials,
+        assignments,
+        sessions: apiData.sessions || [],
+        attendedLessons: apiData.attendedLessons ?? 0,
+        totalLessons: apiData.totalLessons ?? 0,
+        latestTeacherNote: isEmptyNote ? '' : rawNote,
+        feedbacks,
+        feedbacksError,
+        source: 'api',
+      };
+    }
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -743,37 +662,28 @@ export const learningDAL = {
    */
   async getStudentSchedule(studentId = DEFAULT_STUDENT_ID): Promise<SessionItem[]> {
     const targetStudentId = resolveStudentId(studentId);
-    try {
-      const apiSlots = await learningApi.getStudentSchedule(targetStudentId);
-      if (Array.isArray(apiSlots)) {
-        return apiSlots.map((slot) => {
-          const theme = mapSubjectBannerTheme(slot.subjectCode, slot.subject);
-          return {
-            id: slot.id,
-            className: slot.className,
-            subject: slot.subject,
-            startH: slot.startH,
-            startM: slot.startM,
-            endH: slot.endH,
-            endM: slot.endM,
-            teacher: slot.teacher,
-            initials: slot.initials,
-            avatarBg: theme.accent,
-            room: slot.room,
-            day: slot.day,
-            status: slot.status || 'upcoming',
-          };
-        });
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Student Schedule, dùng mock fallback:', error);
+    const apiSlots = await learningApi.getStudentSchedule(targetStudentId);
+    if (Array.isArray(apiSlots)) {
+      return apiSlots.map((slot) => {
+        const theme = mapSubjectBannerTheme(slot.subjectCode, slot.subject);
+        return {
+          id: slot.id,
+          className: slot.className,
+          subject: slot.subject,
+          startH: slot.startH,
+          startM: slot.startM,
+          endH: slot.endH,
+          endM: slot.endM,
+          teacher: slot.teacher,
+          initials: slot.initials,
+          avatarBg: theme.accent,
+          room: slot.room,
+          day: slot.day,
+          status: slot.status || 'upcoming',
+        };
+      });
     }
-
-    return SESSIONS.map((s) => ({
-      ...s,
-      className: `[MOCK] ${s.className}`,
-      teacher: `[MOCK] ${s.teacher}`,
-    }));
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -781,85 +691,64 @@ export const learningDAL = {
    */
   async getStudentProgress(studentId = DEFAULT_STUDENT_ID): Promise<StudentProgressViewModel> {
     const targetStudentId = resolveStudentId(studentId);
-    try {
-      const apiData = await learningApi.getStudentProgress(targetStudentId);
-      if (apiData) {
-        const mappedClasses: ProgressClassItem[] = (apiData.currentClasses || []).map(
-          (cls, idx) => {
-            const progTheme = mapProgressTheme(cls.subjectCode, cls.subjectName, idx);
-            return {
-              id: cls.id,
-              classId: cls.classId,
-              className: cls.className,
-              subjectName: cls.subjectName,
-              colorTheme: progTheme.colorTheme,
-              icon: progTheme.icon,
-              attended: cls.attended,
-              total: cls.total,
-              percentage: cls.percentage,
-              isCompleted: cls.isCompleted,
-              feedbacks: (cls.feedbacks || []).map((fb) => ({
-                assignmentTitle: fb.assignmentTitle,
-                quote: fb.quote,
-                teacherName: fb.teacherName,
-                statusType: fb.statusType,
-                statusIcon: fb.statusIcon,
-                statusLabel: fb.statusLabel,
-                category: fb.category || (fb.assignmentTitle.includes('[Đánh giá') || fb.assignmentTitle.includes('[Evaluation') ? 'evaluation' : 'assignment'),
-              })),
-            };
-          }
-        );
+    const apiData = await learningApi.getStudentProgress(targetStudentId);
+    if (apiData) {
+      const mappedClasses: ProgressClassItem[] = (apiData.currentClasses || []).map(
+        (cls, idx) => {
+          const progTheme = mapProgressTheme(cls.subjectCode, cls.subjectName, idx);
+          return {
+            id: cls.id,
+            classId: cls.classId,
+            className: cls.className,
+            subjectName: cls.subjectName,
+            colorTheme: progTheme.colorTheme,
+            icon: progTheme.icon,
+            attended: cls.attended,
+            total: cls.total,
+            percentage: cls.percentage,
+            isCompleted: cls.isCompleted,
+            feedbacks: (cls.feedbacks || []).map((fb) => ({
+              assignmentTitle: fb.assignmentTitle,
+              quote: fb.quote,
+              teacherName: fb.teacherName,
+              statusType: fb.statusType,
+              statusIcon: fb.statusIcon,
+              statusLabel: fb.statusLabel,
+              category: fb.category || (fb.assignmentTitle.includes('[Đánh giá') || fb.assignmentTitle.includes('[Evaluation') ? 'evaluation' : 'assignment'),
+            })),
+          };
+        }
+      );
 
-        const currentClasses = mappedClasses.filter((c) => !c.isCompleted);
-        const pastClasses = mappedClasses.filter((c) => c.isCompleted);
+      const currentClasses = mappedClasses.filter((c) => !c.isCompleted);
+      const pastClasses = mappedClasses.filter((c) => c.isCompleted);
 
-        const presentCount = apiData.presentCount ?? 0;
-        const absentCount = apiData.absentCount ?? 0;
-        const lateCount = apiData.lateCount ?? 0;
-        const totalSessionsCount = presentCount + absentCount + lateCount;
-        const attendedSessionsCount = presentCount;
-        const overallAttendanceRate =
-          totalSessionsCount > 0
-            ? Math.round((presentCount * 100) / totalSessionsCount)
-            : 0;
+      const presentCount = apiData.presentCount ?? 0;
+      const absentCount = apiData.absentCount ?? 0;
+      const lateCount = apiData.lateCount ?? 0;
+      const totalSessionsCount = presentCount + absentCount + lateCount;
+      const attendedSessionsCount = presentCount;
+      const overallAttendanceRate =
+        totalSessionsCount > 0
+          ? Math.round((presentCount * 100) / totalSessionsCount)
+          : 0;
 
-        return {
-          studentId: apiData.studentId,
-          studentName: apiData.studentName,
-          overallAttendanceRate,
-          attendedSessionsCount,
-          presentCount,
-          absentCount,
-          lateCount,
-          totalSessionsCount,
-          enrolledClassesCount: apiData.enrolledClassesCount,
-          currentClasses,
-          pastClasses,
-          source: 'api',
-        };
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Student Progress, dùng mock fallback:', error);
+      return {
+        studentId: apiData.studentId,
+        studentName: apiData.studentName,
+        overallAttendanceRate,
+        attendedSessionsCount,
+        presentCount,
+        absentCount,
+        lateCount,
+        totalSessionsCount,
+        enrolledClassesCount: apiData.enrolledClassesCount,
+        currentClasses,
+        pastClasses,
+        source: 'api',
+      };
     }
-
-    return {
-      studentId: targetStudentId,
-      studentName: '[MOCK] Lê Văn An',
-      overallAttendanceRate: 80,
-      attendedSessionsCount: 35,
-      presentCount: 35,
-      absentCount: 4,
-      lateCount: 5,
-      totalSessionsCount: 44,
-      enrolledClassesCount: CURRENT_PROGRESS_CLASSES.length,
-      currentClasses: CURRENT_PROGRESS_CLASSES.map((c) => ({
-        ...c,
-        className: `[MOCK] ${c.className}`,
-      })),
-      pastClasses: [],
-      source: 'mock',
-    };
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -989,61 +878,44 @@ export const learningDAL = {
     studentId = DEFAULT_STUDENT_ID
   ): Promise<StudentAssignmentDetailViewModel> {
     const targetStudentId = resolveStudentId(studentId);
-    const fallbackAsg = ASSIGNMENTS_DB[assignmentId] || DEFAULT_ASG;
+    const apiData = await learningApi.getStudentAssignmentDetail(targetStudentId, assignmentId);
+    if (apiData) {
+      const sub = apiData.submission;
+      const hasSubmitted = Boolean(sub);
+      const status: SubmissionStatus = hasSubmitted ? 'submitted' : 'not-submitted';
 
-    try {
-      const apiData = await learningApi.getStudentAssignmentDetail(targetStudentId, assignmentId);
-      if (apiData) {
-        const sub = apiData.submission;
-        const hasSubmitted = Boolean(sub);
-        const status: SubmissionStatus = hasSubmitted ? 'submitted' : 'not-submitted';
-
-        let scoreText: string | undefined;
-        if (sub?.score !== null && sub?.score !== undefined) {
-          scoreText = `${sub.score} / ${apiData.maxScore} (Graded by Teacher)`;
-        } else if (sub?.aiScore !== null && sub?.aiScore !== undefined) {
-          scoreText = `${sub.aiScore} / ${apiData.maxScore} (Preliminary AI score)`;
-        } else {
-          scoreText = `Pending grading (Max ${apiData.maxScore} pts)`;
-        }
-
-        const asg: AssignmentDetailItem = {
-          id: apiData.assignmentId,
-          title: apiData.title,
-          class: apiData.className || fallbackAsg.class,
-          dueDate: apiData.dueDate,
-          defaultStatus: status,
-          classId: apiData.classId,
-          score: scoreText,
-          description: apiData.description ?? '',
-          fileUrl: apiData.fileUrl,
-        };
-
-        return {
-          asg,
-          status,
-          submittedFileName: sub?.fileName || 'Student_submission.pdf',
-          submittedMeta: sub ? `Submitted at ${sub.submittedAt} • Saved on system` : '',
-          submission: sub,
-          source: 'api',
-        };
+      let scoreText: string | undefined;
+      if (sub?.score !== null && sub?.score !== undefined) {
+        scoreText = `${sub.score} / ${apiData.maxScore} (Graded by Teacher)`;
+      } else if (sub?.aiScore !== null && sub?.aiScore !== undefined) {
+        scoreText = `${sub.aiScore} / ${apiData.maxScore} (Preliminary AI score)`;
+      } else {
+        scoreText = `Pending grading (Max ${apiData.maxScore} pts)`;
       }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Assignment Detail, dùng mock fallback:', error);
-    }
 
-    return {
-      asg: {
-        ...fallbackAsg,
-        title: `[MOCK] ${fallbackAsg.title}`,
-        class: `[MOCK] ${fallbackAsg.class}`,
-      },
-      status: fallbackAsg.defaultStatus || 'not-submitted',
-      submittedFileName: '[MOCK] HW_Quadratic_Equation_LeVanAn.pdf',
-      submittedMeta: '[MOCK] Submitted at 18:42, 13/09/2026 • 2.4 MB',
-      submission: null,
-      source: 'mock',
-    };
+      const asg: AssignmentDetailItem = {
+        id: apiData.assignmentId,
+        title: apiData.title,
+        class: apiData.className || 'Class not provided',
+        dueDate: apiData.dueDate,
+        defaultStatus: status,
+        classId: apiData.classId,
+        score: scoreText,
+        maxScore: apiData.maxScore,
+        description: apiData.description ?? '',
+        fileUrl: apiData.fileUrl,
+      };
+
+      return {
+        asg,
+        status,
+        submittedFileName: sub?.fileName || '',
+        submittedMeta: sub ? `Submitted at ${sub.submittedAt} • Saved on system` : '',
+        submission: sub,
+        source: 'api',
+      };
+    }
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -1057,22 +929,7 @@ export const learningDAL = {
     fileSize: number;
     uploadedAt: string;
   }> {
-    try {
-      const res = await learningApi.uploadSubmissionFile(file);
-      console.log('🟢 [learningDAL] Tải bài làm học sinh lên máy chủ thành công:', res);
-      return res;
-    } catch (err: any) {
-      console.warn('🟡 [learningDAL] Tải bài làm thất bại, fallback sang mock URL:', err?.message);
-      const safeName = file.name.replace(/\s+/g, '_');
-      return {
-        success: true,
-        message: '[MOCK] Mock submission URL',
-        fileUrl: `/uploads/submissions/${safeName}`,
-        fileName: file.name,
-        fileSize: file.size,
-        uploadedAt: new Date().toISOString(),
-      };
-    }
+    return confirmedUpload(await learningApi.uploadSubmissionFile(file));
   },
 
   /**
@@ -1086,7 +943,8 @@ export const learningDAL = {
     fileUrl?: string
   ): Promise<StudentSubmissionDetailApiDto> {
     const targetStudentId = resolveStudentId(studentId);
-    const resolvedUrl = fileUrl || `/uploads/submissions/${encodeURIComponent(fileName.replace(/\s+/g, '_'))}`;
+    if (!fileUrl?.trim()) throw new Error('Upload a file before submitting.');
+    const resolvedUrl = fileUrl;
     return await learningApi.submitHomework({
       assignmentId,
       studentId: targetStudentId,
@@ -1118,21 +976,11 @@ export const learningDAL = {
   ): Promise<FeedbackApprovalRequest[]> {
     const resolvedUser = userRole === 'parent' ? resolveParentId(userId) : resolveStudentId(userId);
     const resolvedStudent = userRole === 'parent' ? studentId : resolveStudentId(studentId);
-    try {
-      const apiList = await learningApi.getLearnerFeedbacks(resolvedUser, resolvedStudent);
-      if (Array.isArray(apiList)) {
-        return apiList.map((item) => mapApiFeedbackToViewModel(item, userRole, userName));
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Learner Feedbacks, dùng mock fallback:', error);
+    const apiList = await learningApi.getLearnerFeedbacks(resolvedUser, resolvedStudent);
+    if (Array.isArray(apiList)) {
+      return apiList.map((item) => mapApiFeedbackToViewModel(item, userRole, userName));
     }
-
-    return INITIAL_FEEDBACK_REQUESTS.map((r) => ({
-      ...r,
-      title: `[MOCK] ${r.title}`,
-      senderName: `[MOCK] ${userName}`,
-      senderRole: userRole,
-    }));
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -1173,19 +1021,11 @@ export const learningDAL = {
    */
   async getStudentNotifications(studentId = DEFAULT_STUDENT_ID): Promise<NotificationItem[]> {
     const targetStudentId = resolveStudentId(studentId);
-    try {
-      const apiList = await learningApi.getStudentNotifications(targetStudentId);
-      if (Array.isArray(apiList)) {
-        return apiList.map(mapApiLearnerNotifToStudentItem);
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Student Notifications, dùng mock fallback:', error);
+    const apiList = await learningApi.getStudentNotifications(targetStudentId);
+    if (Array.isArray(apiList)) {
+      return apiList.map(mapApiLearnerNotifToStudentItem);
     }
-
-    return INITIAL_NOTIFICATIONS.map((n) => ({
-      ...n,
-      title: `[MOCK] ${n.title}`,
-    }));
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -1196,54 +1036,19 @@ export const learningDAL = {
     studentId?: number
   ): Promise<LearnerNotificationItemApiDto[]> {
     const targetParentId = resolveParentId(parentId);
-    try {
-      const list = await learningApi.getParentNotifications(targetParentId, studentId);
-      if (Array.isArray(list)) {
-        return list;
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Parent Notifications, dùng mock fallback:', error);
+    const list = await learningApi.getParentNotifications(targetParentId, studentId);
+    if (Array.isArray(list)) {
+      return list;
     }
-
-    return [
-      {
-        notificationId: 1,
-        title: '[MOCK] New tuition notice for October 2026',
-        content: '[MOCK] Tuition invoice for October 2026 for student Le Van An has been issued. Parents can check and pay online in the Tuition section.',
-        type: 'tuition',
-        className: '[MOCK] Advanced Math 9',
-        createdAt: '2026-10-15T08:00:00Z',
-        isRead: false,
-      },
-      {
-        notificationId: 2,
-        title: '[MOCK] Periodic feedback update from Teacher',
-        content: '[MOCK] The teacher in charge of Advanced Math 9 has updated the October progress and attendance evaluation for student Le Van An.',
-        type: 'class_review',
-        className: '[MOCK] Advanced Math 9',
-        createdAt: '2026-10-12T09:30:00Z',
-        isRead: false,
-      },
-      {
-        notificationId: 3,
-        title: '[MOCK] Notice of holiday schedule and make-up classes',
-        content: '[MOCK] EduTrack would like to send parents the holiday schedule and make-up class plan for next week.',
-        type: 'system',
-        className: undefined,
-        createdAt: '2026-10-10T08:00:00Z',
-        isRead: true,
-      },
-    ];
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   async markNotificationRead(notificationId: number, userId?: number): Promise<boolean> {
-    saveLocalReadNotificationId(notificationId, userId);
-    let ok = false;
-    try {
-      ok = await learningApi.markNotificationRead(notificationId, userId);
-    } catch (error) {
-      console.warn('[learningDAL] Không thể lưu trạng thái đã đọc lên Backend:', error);
-    }
+    const currentId = getAuthUser()?.userId;
+    if (!currentId) throw new Error('Please sign in again.');
+    const ok = await learningApi.markNotificationRead(notificationId, currentId);
+    if (!ok) throw new Error('Read status was not confirmed.');
+    saveLocalReadNotificationId(notificationId, currentId);
     if (typeof window !== 'undefined') {
       try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* ignore */ }
       window.dispatchEvent(new StorageEvent('storage', { key: 'edutrack-notifications-invalidated' }));
@@ -1257,15 +1062,10 @@ export const learningDAL = {
     studentId?: number,
     notificationIds?: number[]
   ): Promise<number> {
-    if (notificationIds && notificationIds.length > 0) {
-      saveAllLocalReadNotificationIds(notificationIds, userId);
-    }
-    let count = 0;
-    try {
-      count = await learningApi.markAllNotificationsRead(userId, studentId);
-    } catch (error) {
-      console.warn('[learningDAL] Không thể lưu trạng thái đã đọc tất cả lên Backend:', error);
-    }
+    const currentId = getAuthUser()?.userId;
+    if (!currentId) throw new Error('Please sign in again.');
+    const count = await learningApi.markAllNotificationsRead(currentId, studentId);
+    if (notificationIds) saveAllLocalReadNotificationIds(notificationIds, currentId);
     if (typeof window !== 'undefined') {
       try { localStorage.setItem('edutrack-notifications-invalidated', String(Date.now())); } catch { /* ignore */ }
       window.dispatchEvent(new StorageEvent('storage', { key: 'edutrack-notifications-invalidated' }));
@@ -1279,18 +1079,11 @@ export const learningDAL = {
    */
   async getStudentProfile(studentId = DEFAULT_STUDENT_ID): Promise<StudentProfileData> {
     const targetStudentId = resolveStudentId(studentId);
-    try {
-      const dto = await learningApi.getStudentProfile(targetStudentId);
-      if (dto) {
-        return mapApiProfileToStudentProfile(dto);
-      }
-    } catch (error) {
-      console.warn('[learningDAL] Không kết nối được Backend Student Profile, dùng mock fallback:', error);
+    const dto = await learningApi.getStudentProfile(targetStudentId);
+    if (dto && dto.userId === targetStudentId) {
+      return mapApiProfileToStudentProfile(dto);
     }
-    return {
-      ...INITIAL_PROFILE,
-      fullName: `[MOCK] ${INITIAL_PROFILE.fullName}`,
-    };
+    throw new Error('The server did not return valid data. Please retry.');
   },
 
   /**
@@ -1311,6 +1104,7 @@ export const learningDAL = {
       address: data.address,
     };
     const dto = await learningApi.updateStudentProfile(targetStudentId, payload);
+    if (dto?.userId !== targetStudentId) throw new Error("Profile update was not confirmed for this account.");
     return mapApiProfileToStudentProfile(dto);
   },
 
@@ -1320,7 +1114,7 @@ export const learningDAL = {
   async getParentProfile(parentId = DEFAULT_PARENT_ID): Promise<LearnerProfileApiDto> {
     const targetParentId = resolveParentId(parentId);
     const dto = await learningApi.getParentProfile(targetParentId);
-    if (!dto) {
+    if (!dto || dto.userId !== targetParentId) {
       throw new Error('Parent profile not found');
     }
     return dto;
@@ -1334,7 +1128,9 @@ export const learningDAL = {
     parentId = DEFAULT_PARENT_ID
   ): Promise<LearnerProfileApiDto> {
     const targetParentId = resolveParentId(parentId);
-    return await learningApi.updateParentProfile(targetParentId, payload);
+    const updated = await learningApi.updateParentProfile(targetParentId, payload);
+    if (updated?.userId !== targetParentId) throw new Error("Profile update was not confirmed for this account.");
+    return updated;
   },
 };
 

@@ -31,11 +31,11 @@ export function TeachingAssistantProfileEditCard({
     }
     return profile.dateOfBirth;
   });
-  const [gender, setGender] = useState(profile.gender || 'Nam');
+  const [gender, setGender] = useState(profile.gender || '');
   const [specialty, setSpecialty] = useState(profile.specialty || '');
   const [phone, setPhone] = useState(profile.phone || '');
   const [email, setEmail] = useState(profile.email || '');
-  const [address, setAddress] = useState(profile.address || '123 Nguyen Van Cu, District 5, Ho Chi Minh City');
+  const [address] = useState(profile.address || '');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || '/assets/img/profiles/avatar-27.jpg');
   const [customAvatarInput, setCustomAvatarInput] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -63,7 +63,6 @@ export function TeachingAssistantProfileEditCard({
       dateOfBirth,
       gender,
       specialty: specialty.trim(),
-      address: address.trim(),
       avatarUrl: avatarUrl.trim(),
     });
   };
@@ -300,7 +299,8 @@ export function TeachingAssistantProfileEditCard({
               className="form-control border-start-0 ps-0"
               placeholder="123 Nguyen Van Cu, District 5, Ho Chi Minh City"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              disabled
+              title="Address editing is currently unavailable"
             />
           </div>
         </div>

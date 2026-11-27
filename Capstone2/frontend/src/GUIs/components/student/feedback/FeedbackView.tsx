@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../Common/DataState';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { StudentPageHeader } from '../common/StudentPageHeader';
@@ -25,11 +26,14 @@ export function FeedbackView({
   userId,
   studentId,
 }: FeedbackViewProps) {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [searchParams] = useSearchParams();
   const isLinkStudentRequest = searchParams.get('type') === 'link_student';
 
   const resolvedUserId = userId ?? (userRole === 'parent' ? DEFAULT_PARENT_ID : DEFAULT_STUDENT_ID);
-  const resolvedStudentId = studentId ?? DEFAULT_STUDENT_ID;
+  const resolvedStudentId = userRole === 'parent' ? studentId : (studentId ?? DEFAULT_STUDENT_ID);
 
   const [requests, setRequests] = useState<FeedbackApprovalRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -40,6 +44,7 @@ export function FeedbackView({
   const [initialCreateTitle, setInitialCreateTitle] = useState<string>('');
   const [editingItem, setEditingItem] = useState<FeedbackApprovalRequest | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [writeError, setWriteError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,6 +59,7 @@ export function FeedbackView({
 
     async function loadRequests() {
       setLoading(true);
+      setLoadError(null);
       try {
         const list = await learningDAL.getLearnerFeedbacks(
           resolvedUserId,
@@ -64,6 +70,7 @@ export function FeedbackView({
         if (!isMounted) return;
         setRequests(list);
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn('Lỗi khi tải lịch sử phản hồi:', err);
       } finally {
         if (isMounted) {
@@ -77,7 +84,7 @@ export function FeedbackView({
     return () => {
       isMounted = false;
     };
-  }, [resolvedUserId, resolvedStudentId, userName, userRole]);
+  }, [retryVersion, resolvedUserId, resolvedStudentId, userName, userRole]);
 
   // Create feedback handler
   const handleCreateSubmit = async (data: {
@@ -85,6 +92,8 @@ export function FeedbackView({
     description: string;
     priority: string;
   }) => {
+    if (isSubmitting) return;
+    setWriteError(null);
     setIsSubmitting(true);
     try {
       const created = await learningDAL.createLearnerFeedback(
@@ -104,30 +113,8 @@ export function FeedbackView({
         `Feedback #${created.requestCode || created.id} submitted successfully to Admin Staff (Pending Review).`
       );
     } catch (err) {
-      console.warn('Backend connection error when saving feedback, creating fallback item:', err);
-      const fallbackReq: FeedbackApprovalRequest = {
-        id: Date.now(),
-        requestCode: `FB${String(requests.length + 1).padStart(4, '0')}`,
-        requestType: 'feedback',
-        title: data.title.trim(),
-        description: data.description.trim(),
-        priority: data.priority,
-        senderName: userName,
-        senderRole: userRole,
-        createdAt: new Date().toLocaleString('en-US', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        status: 'pending',
-        statusLabel: 'Pending Review',
-        canEdit: true,
-      };
-
-      setRequests((prev) => [fallbackReq, ...prev]);
-      setToastMessage('Feedback submitted successfully to Admin Staff!');
+      setWriteError('Feedback was not sent. Please retry.');
+      throw new Error('Feedback was not sent. Please retry.');
     } finally {
       setIsSubmitting(false);
       setTimeout(() => setToastMessage(null), 4500);
@@ -139,6 +126,8 @@ export function FeedbackView({
     id: number,
     data: { title: string; description: string; priority: string }
   ) => {
+    if (isSubmitting) return;
+    setWriteError(null);
     setIsSubmitting(true);
     try {
       const updated = await learningDAL.updateLearnerFeedback(
@@ -157,20 +146,8 @@ export function FeedbackView({
       );
       setToastMessage(`Feedback #${updated.requestCode || id} updated successfully!`);
     } catch (err) {
-      console.warn('Backend connection error when updating feedback, applying local update:', err);
-      setRequests((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                title: data.title.trim(),
-                description: data.description.trim(),
-                priority: data.priority,
-              }
-            : item
-        )
-      );
-      setToastMessage('Feedback updated successfully!');
+      setWriteError('Feedback changes were not saved. Please retry.');
+      throw new Error('Feedback changes were not saved. Please retry.');
     } finally {
       setIsSubmitting(false);
       setTimeout(() => setToastMessage(null), 4500);
@@ -195,6 +172,8 @@ export function FeedbackView({
     });
   }, [filteredRequests, sortOrder]);
 
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
+
   if (loading) {
     return (
       <LearnerPageLoader
@@ -209,6 +188,7 @@ export function FeedbackView({
   return (
     <main className="main-content">
       <div className="content-container">
+        {writeError && <div className="alert alert-danger" role="alert">{writeError}</div>}
         {/* Toast Alert */}
         {toastMessage && (
           <div className="alert alert-success border-0 rounded-3 shadow-sm d-flex align-items-center gap-3 mb-3 p-3">

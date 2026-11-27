@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import { useEffect, useState } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import { Link, useParams } from "react-router-dom";
@@ -9,9 +10,12 @@ import teachingDAL, { type TeachingClassItemDto } from "../../../../DAL/teaching
 import type { TeachingAssignmentItemDto, TeachingSubmissionItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeachingAssistantAssignmentPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const { id, classId, assignmentId } = useParams<{ id?: string; classId?: string; assignmentId?: string }>();
-  const numAssignmentId = Number(assignmentId || (classId ? id : undefined) || "1");
-  const numClassId = Number(classId || (assignmentId ? id : undefined) || "1");
+  const numAssignmentId = Number(assignmentId || (classId ? id : undefined) || "0");
+  const numClassId = Number(classId || (assignmentId ? id : undefined) || "0");
   const targetClassId = String(numClassId);
   const targetAssignmentId = String(numAssignmentId);
 
@@ -26,11 +30,13 @@ export default function TeachingAssistantAssignmentPage() {
     async function fetchAssignmentData() {
       try {
         setLoading(true);
+      setLoadError(null);
         // 1. Fetch real assignment detail by ID
         const asg = await teachingDAL.getAssignmentById(numAssignmentId);
 
         // 2. Fetch class detail scoped to TA
         const cls = await teachingDAL.getClassById(numClassId);
+        if (!cls || asg?.classId !== numClassId) throw new Error("Assignment context not found");
 
         // 3. Fetch real submissions for this assignment
         const subs = await teachingDAL.getAssignmentSubmissions(numAssignmentId);
@@ -41,6 +47,7 @@ export default function TeachingAssistantAssignmentPage() {
           setSubmissions(subs);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.error("Failed to load TA assignment page data:", err);
       } finally {
         if (isMounted) setLoading(false);
@@ -52,7 +59,7 @@ export default function TeachingAssistantAssignmentPage() {
     return () => {
       isMounted = false;
     };
-  }, [numAssignmentId, numClassId]);
+  }, [retryVersion, numAssignmentId, numClassId]);
 
   const className = classInfo?.className || `Class #${targetClassId}`;
   const assignmentTitle = assignment?.title || `Assignment #${targetAssignmentId}`;
@@ -62,6 +69,8 @@ export default function TeachingAssistantAssignmentPage() {
       prev.map((s) => (s.submissionId === updated.submissionId ? updated : s))
     );
   };
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <>

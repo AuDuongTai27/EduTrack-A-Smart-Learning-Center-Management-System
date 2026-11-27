@@ -6,7 +6,7 @@ export interface ClassMaterialItemApiDto {
   description: string;
   uploadDate: string;
   uploadedBy: string;
-  sizeMb: number;
+  sizeMb: number | null;
   fileUrl?: string;
 }
 

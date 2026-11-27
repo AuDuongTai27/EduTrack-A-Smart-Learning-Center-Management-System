@@ -95,7 +95,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                     TeacherName = teacherName,
                     TeacherInitials = teacherInitials,
                     ScheduleText = FormatScheduleText(cls.ClassSchedules, cls.StartDate),
-                    Room = cls.Room ?? "P.101",
+                    Room = cls.Room ?? string.Empty,
                     AttendedLessons = attendedLessons,
                     TotalLessons = totalLessons,
                     Status = cls.Status
@@ -232,8 +232,8 @@ namespace EduTrack.API.Services.Learning.Implementation
                     Code = student.UserCode,
                     Name = student.FullName,
                     Avatar = GetInitials(student.FullName),
-                    Grade = student.Grade?.GradeName ?? student.Specialty ?? "Chưa phân khối",
-                    School = "Trung tâm EduTrack",
+                    Grade = student.Grade?.GradeName ?? string.Empty,
+                    School = string.Empty,
                     Dob = student.DateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty,
                     Phone = student.Phone,
                     Relationship = link.Relationship,
@@ -279,8 +279,8 @@ namespace EduTrack.API.Services.Learning.Implementation
 
             string teacherName = mainTeacher?.FullName ?? "Giáo viên phụ trách";
             string teacherInitials = GetInitials(teacherName);
-            string teacherEmail = mainTeacher?.Email ?? "contact@edutrack.edu.vn";
-            string teacherPhone = mainTeacher?.Phone ?? "0901234567";
+            string teacherEmail = mainTeacher?.Email ?? string.Empty;
+            string teacherPhone = mainTeacher?.Phone ?? string.Empty;
 
             var mainTa = cls.TaClasses
                 .Where(tac => tac.Status == "active")
@@ -323,10 +323,10 @@ namespace EduTrack.API.Services.Learning.Implementation
                         ClassId = cls.ClassId,
                         Type = fileType,
                         FileName = fileName,
-                        Description = u.Description ?? "Tài liệu bài giảng và chuyên đề trọng tâm",
-                        UploadDate = cls.StartDate.AddDays(idx * 4).ToString("dd/MM/yyyy"),
-                        UploadedBy = teacherName,
-                        SizeMb = Math.Round(1.2m + (idx * 0.7m), 1),
+                        Description = u.Description ?? string.Empty,
+                        UploadDate = string.Empty,
+                        UploadedBy = string.Empty,
+                        SizeMb = null,
                         FileUrl = $"/api/learning/student/classes/{cls.ClassId}/materials/{u.ContentUnitId}/download"
                     };
                 })
@@ -1421,19 +1421,10 @@ namespace EduTrack.API.Services.Learning.Implementation
 
             if (studentId is > 0)
             {
+                var isLinked = await _context.ParentStudents.AsNoTracking()
+                    .AnyAsync(ps => ps.StudentId == studentId.Value && ps.ParentId == parentId);
+                if (!isLinked) throw new UnauthorizedAccessException("The student is not linked to this parent.");
                 targetUserIds.Add(studentId.Value);
-                var linkedParents = await _context.ParentStudents.AsNoTracking()
-                    .Where(ps => ps.StudentId == studentId.Value)
-                    .Select(ps => ps.ParentId)
-                    .ToListAsync();
-                foreach (var pid in linkedParents)
-                {
-                    targetUserIds.Add(pid);
-                }
-                if (linkedParents.Count > 0 && !linkedParents.Contains(parentId))
-                {
-                    effectiveParentId = linkedParents[0];
-                }
 
                 var classIds = await _context.StudentClasses.AsNoTracking()
                     .Where(sc => sc.StudentId == studentId.Value && sc.Status == "active")
@@ -1505,9 +1496,6 @@ namespace EduTrack.API.Services.Learning.Implementation
                     .Select(ps => ps.StudentId)
                     .ToListAsync();
                 foreach (var sid in linkedStudents) targetUserIds.Add(sid);
-                // Also include sibling parent demo account if marking a child notification in Parent view
-                targetUserIds.Add(9);
-                targetUserIds.Add(10);
             }
 
             var now = DateTime.UtcNow;
@@ -1528,12 +1516,11 @@ namespace EduTrack.API.Services.Learning.Implementation
             var targetUserIds = new HashSet<int> { userId };
             if (studentId is > 0)
             {
+                var isLinked = await _context.ParentStudents.AsNoTracking()
+                    .AnyAsync(ps => ps.StudentId == studentId.Value && ps.ParentId == userId);
+                if (studentId.Value != userId && !isLinked)
+                    throw new UnauthorizedAccessException("The student is not linked to this parent.");
                 targetUserIds.Add(studentId.Value);
-                var linkedParents = await _context.ParentStudents.AsNoTracking()
-                    .Where(ps => ps.StudentId == studentId.Value)
-                    .Select(ps => ps.ParentId)
-                    .ToListAsync();
-                foreach (var pid in linkedParents) targetUserIds.Add(pid);
             }
 
             return await _context.NotificationRecipients
@@ -1614,43 +1601,30 @@ namespace EduTrack.API.Services.Learning.Implementation
 
         private static LearnerProfileDto MapUserToLearnerProfileDto(User user)
         {
-            bool isParent = (user.UserCode ?? string.Empty).StartsWith("PAR", StringComparison.OrdinalIgnoreCase) || user.UserId == 9;
-            string genderVi = (user.Gender ?? "male").Trim().ToLowerInvariant() switch
+            string genderVi = (user.Gender ?? string.Empty).Trim().ToLowerInvariant() switch
             {
                 "female" or "nữ" => "Nữ",
                 "other" or "khác" => "Khác",
-                _ => "Nam"
+                "male" or "nam" => "Nam",
+                _ => string.Empty
             };
-
-            string defaultAddress = isParent
-                ? "Số 45, Đường Lê Văn Lương, Cầu Giấy, Hà Nội"
-                : "45 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh";
-
-            string address = !string.IsNullOrWhiteSpace(user.Specialty)
-                ? user.Specialty!
-                : defaultAddress;
-
-            string dobStr = user.DateOfBirth.HasValue
-                ? user.DateOfBirth.Value.ToString("yyyy-MM-dd")
-                : "2010-02-14";
-
-            string enrollStr = user.EnrolledSince.HasValue
-                ? user.EnrolledSince.Value.ToString("yyyy-MM-dd")
-                : "2025-01-05";
+            string address = user.Specialty ?? string.Empty;
+            string dobStr = user.DateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty;
+            string enrollStr = user.EnrolledSince?.ToString("yyyy-MM-dd") ?? string.Empty;
 
             return new LearnerProfileDto
             {
                 UserId = user.UserId,
                 UserCode = user.UserCode,
                 FullName = user.FullName,
-                Email = user.Email ?? (isParent ? "nam.le@example.com" : "an.le@student.edutrack.vn"),
-                Phone = user.Phone ?? (isParent ? "0981 112 233" : "0956 789 012"),
+                Email = user.Email ?? string.Empty,
+                Phone = user.Phone ?? string.Empty,
                 DateOfBirth = dobStr,
                 Gender = genderVi,
                 EnrolledSince = enrollStr,
                 AvatarUrl = user.AvatarUrl ?? string.Empty,
                 Address = address,
-                IdentityCard = "001085012345",
+                IdentityCard = string.Empty,
                 Relationship = "Phụ huynh"
             };
         }
@@ -1831,7 +1805,7 @@ namespace EduTrack.API.Services.Learning.Implementation
                 ClassId = r.ClassId,
                 ClassName = r.Class?.ClassName,
                 RequestedBy = r.RequestedBy,
-                RequesterName = r.Requester?.FullName ?? (r.RequestedBy == 9 ? "Lê Văn Nam" : "Lê Văn An"),
+                RequesterName = r.Requester?.FullName ?? string.Empty,
                 RequesterRole = requesterRole,
                 ReviewedBy = r.ReviewedBy,
                 ReviewerName = r.Reviewer?.FullName,

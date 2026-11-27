@@ -1,3 +1,4 @@
+import { downloadFile } from '../../../../api/downloadFile';
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { MaterialItem, AssignmentItem } from './classDetailData';
@@ -47,6 +48,7 @@ export function ClassCourseworkSection({
   onDownload,
   classId,
 }: ClassCourseworkSectionProps) {
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<CourseworkFilterType>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
@@ -94,10 +96,12 @@ export function ClassCourseworkSection({
     });
   }, [unifiedList, filterType, searchTerm]);
 
-  const handleDownloadAllZip = () => {
+  const handleDownloadAllZip = async () => {
     const targetClassId = classId || (materials.length > 0 ? materials[0].classId : undefined);
     if (!targetClassId) return;
-    window.open(`/api/learning/student/classes/${targetClassId}/materials/download-all`, '_blank');
+    setDownloadError(null);
+    try { await downloadFile(`/api/learning/student/classes/${targetClassId}/materials/download-all`, 'Class_Materials.zip'); }
+    catch { setDownloadError('Unable to download materials. Some files may be unavailable.'); }
   };
 
   return (
@@ -111,6 +115,7 @@ export function ClassCourseworkSection({
           </h4>
         </div>
 
+        {downloadError && <span role="alert" className="text-danger small">{downloadError}</span>}
         {/* Quick Actions (e.g. Download All ZIP) + Toggle Chevron */}
         <div className="d-flex align-items-center gap-3 flex-wrap">
           {materials.length > 0 && (

@@ -1,5 +1,4 @@
 import React from 'react';
-import type { AttachedFileItem } from './assignmentDetailData';
 
 interface AssignmentAttachedFilesProps {
   onDownload: (fileName: string, fileUrl?: string) => void;
@@ -12,13 +11,13 @@ export function AssignmentAttachedFiles({
   fileUrl,
   fileName,
 }: AssignmentAttachedFilesProps) {
-  const realFile: AttachedFileItem | null = fileUrl
+  const realFile = fileUrl
     ? {
         id: -1,
-        name: fileName ? `${fileName}.pdf` : 'Assignment_Instructions.pdf',
-        size: 'PDF Document',
+        name: decodeURIComponent(fileUrl.split('?')[0].split('/').pop() || fileName || 'Attachment'),
+        size: 'Attachment',
         type: 'pdf',
-        icon: 'bi-file-earmark-pdf-fill',
+        icon: 'bi-file-earmark-text-fill',
         iconBg: '#fee2e2',
         iconColor: '#dc2626',
       }

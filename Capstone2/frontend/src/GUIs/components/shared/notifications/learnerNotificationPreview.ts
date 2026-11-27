@@ -13,8 +13,7 @@ export function learnerNotificationScope(role: 'student' | 'parent', user: AuthU
 /** Keep the full API inbox; the Bell applies the shared unread-only preview rule. */
 export async function loadLearnerNotificationPreview(scope: LearnerNotificationScope, readIds: Set<number>, api = learningApi) {
   if (scope.role === 'parent' && scope.studentId !== undefined) {
-    // ParentContext can fall back to demo children on network failure. Verify the
-    // selection against the live parent endpoint before querying that child's inbox.
+    // Revalidate the selected child against current backend links before querying the inbox.
     const children = await api.getParentChildrenOverview(scope.userId);
     if (!Array.isArray(children) || !children.some(child => child.id === scope.studentId)) {
       throw new Error('Selected child scope is unavailable.');

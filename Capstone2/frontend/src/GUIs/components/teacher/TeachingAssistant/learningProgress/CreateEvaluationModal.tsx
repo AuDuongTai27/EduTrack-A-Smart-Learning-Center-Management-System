@@ -21,12 +21,13 @@ export default function CreateEvaluationModal({
   onClose,
   studentId,
   studentName,
-  classId = 1,
-  className = "Math 10 - Advanced",
-  evaluatorName = "Âu Dương Tài",
+  classId,
+  className = "Not provided",
+  evaluatorName = "Not provided",
   evaluatorRole = "Teaching Assistant",
   onSubmit,
 }: CreateEvaluationModalProps) {
+  const mutationLock = React.useRef(false);
   const [evaluationType, setEvaluationType] = useState<string>("attitude");
   const [rating, setRating] = useState<"excellent" | "good" | "needs_improvement" | "concern">("good");
   const [content, setContent] = useState<string>("");
@@ -52,11 +53,15 @@ export default function CreateEvaluationModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mutationLock.current) return;
+    if (submitting) return;
+    if (!classId || !studentId) { setContentError("Select a valid class and student."); return; }
     if (!content.trim()) {
       setContentError("Please enter evaluation content.");
       return;
     }
 
+    mutationLock.current = true;
     try {
       setSubmitting(true);
       await onSubmit({
@@ -76,7 +81,10 @@ export default function CreateEvaluationModal({
       setSuggestions("");
       setContentError("");
       onClose();
+    } catch {
+      setContentError("Evaluation was not saved. Please retry.");
     } finally {
+      mutationLock.current = false;
       setSubmitting(false);
     }
   };

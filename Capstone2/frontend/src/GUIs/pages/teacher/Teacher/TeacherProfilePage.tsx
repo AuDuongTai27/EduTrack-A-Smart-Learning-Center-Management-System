@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import React, { useState, useEffect } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
@@ -15,6 +16,9 @@ import {
 } from "../../../../DAL/teachingDAL";
 
 export default function TeacherProfilePage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [profile, setProfile] = useState<TeacherProfileDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -27,12 +31,14 @@ export default function TeacherProfilePage() {
     async function loadTeacherProfile() {
       try {
         setLoading(true);
+      setLoadError(null);
         // Teacher TC001 có DEFAULT_TEACHER_ID = 3
         const data = await teachingDAL.getProfile(DEFAULT_TEACHER_ID);
         if (isMounted && data) {
           setProfile(data);
         }
       } catch (err: any) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn("Lỗi tải thông tin hồ sơ giáo viên:", err);
       } finally {
         if (isMounted) setLoading(false);
@@ -43,7 +49,7 @@ export default function TeacherProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [retryVersion]);
 
   const showToast = (message: string, type: "success" | "danger" = "success") => {
     setToast({ message, type });
@@ -66,6 +72,8 @@ export default function TeacherProfilePage() {
       setIsSaving(false);
     }
   };
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <>

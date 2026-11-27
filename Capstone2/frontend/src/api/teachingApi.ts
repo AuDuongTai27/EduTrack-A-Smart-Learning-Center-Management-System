@@ -1,3 +1,4 @@
+import { realList, realRecord } from './realData';
 import { getAuthHeaders, getAuthUser } from './authApi';
 import type {
   TeachingStudentProgressDetailDto,
@@ -97,7 +98,7 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["profile","kpis","todayClasses"]);
   },
 
   /**
@@ -119,7 +120,7 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.data ?? json ?? [];
+    return realList(json);
   },
 
   /**
@@ -141,7 +142,7 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.data ?? json ?? [];
+    return realList(json);
   },
 
   /**
@@ -162,7 +163,7 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.data ?? json ?? [];
+    return realList(json);
   },
 
   /**
@@ -187,7 +188,7 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["classId","students"]);
   },
 
   /**
@@ -292,7 +293,7 @@ export const teachingApi = {
     }
 
     const json = await response.json();
-    return json?.data ?? json ?? [];
+    return realList(json);
   },
 
   /**
@@ -325,7 +326,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["requestId"]);
   },
 
   /**
@@ -356,7 +357,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["requestId"]);
   },
 
   /**
@@ -378,7 +379,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["userId"]);
   },
 
   /**
@@ -421,7 +422,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["userId"]);
   },
 
   /**
@@ -448,7 +449,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["classId","students","availableSessions","stats"]);
   },
 
   /**
@@ -469,7 +470,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json ?? [];
+    return realList(json);
   },
 
   /**
@@ -550,7 +551,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["assignmentId"]);
   },
 
   /**
@@ -571,7 +572,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json ?? [];
+    return realList(json);
   },
 
   /**
@@ -592,7 +593,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["assignmentId"]);
   },
 
   /**
@@ -615,7 +616,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["assignmentId"]);
   },
 
   /**
@@ -636,6 +637,8 @@ export const teachingApi = {
       throw new Error(err.message || `HTTP ${res.status} while deleting assignment #${id}`);
     }
 
+    const confirmation = await res.json();
+    if (confirmation?.success !== true) throw new Error("Deletion was not confirmed.");
     return true;
   },
 
@@ -657,7 +660,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json ?? [];
+    return realList(json);
   },
 
   /**
@@ -688,7 +691,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["submissionId"]);
   },
 
   /**
@@ -718,7 +721,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["assignmentId"]);
   },
 
   /**
@@ -800,7 +803,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["studentId","assignments","evaluations"]);
   },
 
   /**
@@ -827,7 +830,7 @@ export const teachingApi = {
     }
 
     const json = await res.json();
-    return json?.data ?? json;
+    return realRecord(json, ["id"]);
   },
 };
 

@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import React, { useEffect, useState, useMemo } from "react";
 import PageHeader from "../../../components/Common/PageHeader";
 import {
@@ -10,6 +11,9 @@ import type { ApprovalRequestDto } from "../../../../BLL/models/ApprovalRequestD
 const DEFAULT_TEACHER_ID = 3; // ThS. Hoàng Quốc Việt
 
 export default function TeacherRequestPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [requests, setRequests] = useState<ApprovalRequestDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "approved" | "rejected">("all");
@@ -20,11 +24,13 @@ export default function TeacherRequestPage() {
     async function fetchRequests() {
       try {
         setLoading(true);
+      setLoadError(null);
         const res = await teachingDAL.getRequests(DEFAULT_TEACHER_ID, filterStatus);
         if (isMounted && res.data) {
           setRequests(res.data);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.error("Lỗi khi tải danh sách yêu cầu giáo viên:", err);
       } finally {
         if (isMounted) setLoading(false);
@@ -34,7 +40,7 @@ export default function TeacherRequestPage() {
     return () => {
       isMounted = false;
     };
-  }, [filterStatus]);
+  }, [retryVersion, filterStatus]);
 
   const handleRequestCreated = (newRequest: ApprovalRequestDto) => {
     setRequests((prev) => [newRequest, ...prev]);
@@ -53,6 +59,8 @@ export default function TeacherRequestPage() {
       return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
   }, [requests, sortOrder]);
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   return (
     <>

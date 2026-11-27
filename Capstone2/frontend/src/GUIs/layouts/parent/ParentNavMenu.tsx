@@ -2,7 +2,7 @@ import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { ChildSwitcher } from '../../components/parent/ChildSwitcher';
-import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
+import { learningDAL } from '../../../DAL/learningDAL';
 import { DEFAULT_PARENT_ID } from '../../../DAL/parentDAL';
 import { getAuthUser, subscribeAuth } from '../../../api/authApi';
 
@@ -12,15 +12,18 @@ interface ParentNavMenuProps {
 
 export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
   const { selectedChild } = useParent();
-  const targetStudentId = selectedChild?.id || DEFAULT_STUDENT_ID;
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const targetStudentId = selectedChild?.id;
+  const [unreadCount, setUnreadCount] = useState<number | null>(null);
   const authUser = useSyncExternalStore(subscribeAuth, getAuthUser);
 
   useEffect(() => {
     let mounted = true;
+    setUnreadCount(null);
     const refreshCount = async () => {
-      const count = await learningDAL.getParentUnreadCount(DEFAULT_PARENT_ID, targetStudentId);
-      if (mounted) setUnreadCount(count);
+      try {
+        const count = await learningDAL.getParentUnreadCount(DEFAULT_PARENT_ID, targetStudentId);
+        if (mounted) setUnreadCount(count);
+      } catch { if (mounted) setUnreadCount(null); }
     };
     void refreshCount();
     const onUpdate = () => void refreshCount();
@@ -64,7 +67,7 @@ export function ParentNavMenu({ onLinkClick }: ParentNavMenuProps) {
           to: '/parent/notifications',
           icon: 'bi-bell',
           label: 'Notifications',
-          badge: unreadCount > 0 ? unreadCount : null,
+          badge: unreadCount !== null && unreadCount > 0 ? unreadCount : null,
         },
         { to: '/parent/feedback', icon: 'bi-chat-dots', label: 'Feedback & Support' },
       ],

@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import teachingDAL from "../../../../../DAL/teachingDAL";
 
 interface NewAssignmentAttachmentProps {
+  onUploadingChange?: (value: boolean) => void;
   value: string;
   onChange: (val: string) => void;
   disabled?: boolean;
 }
 
 export default function NewAssignmentAttachment({
+  onUploadingChange,
   value,
   onChange,
   disabled = false,
@@ -28,6 +30,7 @@ export default function NewAssignmentAttachment({
       const file = e.target.files[0];
       setUploadError(null);
       setUploading(true);
+      onUploadingChange?.(true);
 
       try {
         const result = await teachingDAL.uploadFile(file);
@@ -38,6 +41,7 @@ export default function NewAssignmentAttachment({
         setUploadError(err?.message || "Error uploading file to server.");
       } finally {
         setUploading(false);
+        onUploadingChange?.(false);
       }
     }
   };

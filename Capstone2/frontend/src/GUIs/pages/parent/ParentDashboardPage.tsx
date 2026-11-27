@@ -86,7 +86,7 @@ export function ParentDashboardPage() {
                 </div>
               </div>
               <div className="h3 fw-bold text-dark mb-0">{selectedChild.classesCount}</div>
-              <small className="text-muted">Semester 2026</small>
+              <small className="text-muted">Learning overview</small>
             </div>
           </div>
 

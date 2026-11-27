@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { ChildStudent, PendingLinkRequest } from '../DAL/parentDAL';
-import { parentDAL } from '../DAL/parentDAL';
-import { learningDAL, DEFAULT_STUDENT_ID } from '../DAL/learningDAL';
+import { dataError } from '../GUIs/components/Common/DataState';
+import { learningDAL } from '../DAL/learningDAL';
 import { getSelectedUserId } from '../BLL/services/userSelection';
 import { getAuthUser } from '../api/authApi';
 
@@ -15,6 +15,7 @@ export type ParentState = {
   selectedChildId: number | null;
   pendingRequests: PendingLinkRequest[];
   loading: boolean;
+  error: string | null;
 };
 
 const iniState: ParentState = {
@@ -22,6 +23,7 @@ const iniState: ParentState = {
   selectedChildId: null,
   pendingRequests: [],
   loading: true,
+  error: null,
 };
 
 /**
@@ -33,10 +35,13 @@ export type ParentAction =
   | { type: 'ADD_PENDING_REQUEST'; payload: PendingLinkRequest }
   | { type: 'RESET_CHILDREN'; payload: ChildStudent[] }
   | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string }
   | { type: 'UPDATE_CHILD_UNPAID'; payload: { studentId: number; unpaidAmount: number } };
 
 function reducer(state: ParentState, action: ParentAction): ParentState {
   switch (action.type) {
+    case 'SET_ERROR':
+      return { ...state, childrenList: [], selectedChildId: null, loading: false, error: action.payload };
     case 'SET_SELECTED_CHILD':
       return {
         ...state,
@@ -64,6 +69,7 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
               ? action.payload[0].id
               : null,
         loading: false,
+        error: null,
       };
     case 'SET_LOADING':
       return {
@@ -86,6 +92,7 @@ function reducer(state: ParentState, action: ParentAction): ParentState {
 
 export type ParentContextType = ParentState & {
   selectedChild: ChildStudent | null;
+  retryChildren: () => void;
   dispatch: React.Dispatch<ParentAction>;
   setSelectedChildId: (id: number | null) => void;
   updateChildUnpaidAmount: (studentId: number, unpaidAmount: number) => void;
@@ -106,6 +113,7 @@ export type ParentContextType = ParentState & {
 export const ParentContext = createContext<ParentContextType>({
   ...iniState,
   selectedChild: null,
+  retryChildren: () => {},
   dispatch: () => {},
   setSelectedChildId: () => {},
   updateChildUnpaidAmount: () => {},
@@ -118,6 +126,8 @@ export type ParentProviderProps = {
 };
 
 export function ParentProvider({ children }: ParentProviderProps) {
+  const [retryVersion, setRetryVersion] = React.useState(0);
+  const retryChildren = () => setRetryVersion(v => v + 1);
   const [state, dispatch] = useReducer(reducer, iniState);
   const currentParentId = getSelectedUserId('parent');
 
@@ -132,13 +142,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
           dispatch({ type: 'RESET_CHILDREN', payload: liveChildren || [] });
         }
       } catch (err) {
-        console.warn('[ParentContext] Failed to load children data from Backend, using fallback:', err);
-        if (isMounted) {
-          dispatch({
-            type: 'RESET_CHILDREN',
-            payload: parentDAL.getLinkedChildrenSync(currentParentId),
-          });
-        }
+        if (isMounted) dispatch({ type: 'SET_ERROR', payload: dataError(err) });
       }
     }
 
@@ -147,7 +151,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
     return () => {
       isMounted = false;
     };
-  }, [currentParentId]);
+  }, [currentParentId, retryVersion]);
 
   const selectedChild =
     state.childrenList.find((c) => c.id === state.selectedChildId) || null;
@@ -187,7 +191,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
       const createdFeedback = await learningDAL.createLearnerFeedback(
         {
           userId: currentParentId,
-          studentId: selectedChild?.id || DEFAULT_STUDENT_ID,
+          studentId: selectedChild?.id,
           title: `Request to link student profile: ${studentName.trim()}`,
           description: `Parent requested Admin Staff to verify and link student profile: Full Name: ${studentName.trim()} | Date of Birth: ${dob.trim()} | School: ${school.trim() || 'Unknown'} | Parent Phone: ${parentPhone.trim()}.${note ? ` Note: ${note.trim()}` : ''}`,
           priority: 'medium',
@@ -216,28 +220,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
         message: `Submitted profile linking request for student ${studentName} to Admin Staff. Ticket ID: #${ticketId}.`,
       };
     } catch (err) {
-      console.warn('[ParentContext] Failed to connect to Backend when submitting child linking request:', err);
-      const randomTicketNumber = Math.floor(1000 + Math.random() * 9000);
-      const ticketId = `FB${randomTicketNumber}`;
-
-      const newRequest: PendingLinkRequest = {
-        id: ticketId,
-        studentName: studentName.trim(),
-        dob: dob.trim(),
-        school: school.trim(),
-        parentPhone: parentPhone.trim(),
-        note: note?.trim(),
-        createdAt: new Date().toLocaleDateString('vi-VN'),
-        status: 'pending',
-      };
-
-      dispatch({ type: 'ADD_PENDING_REQUEST', payload: newRequest });
-
-      return {
-        success: true,
-        ticketId,
-        message: `Submitted profile linking request for student ${studentName}. Ticket ID: #${ticketId}.`,
-      };
+      return { success: false, ticketId: '', message: 'The linking request was not sent. Please retry.' };
     }
   };
 
@@ -247,6 +230,7 @@ export function ParentProvider({ children }: ParentProviderProps) {
       value={{
         ...state,
         selectedChild,
+        retryChildren,
         dispatch,
         setSelectedChildId,
         updateChildUnpaidAmount,

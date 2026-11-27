@@ -1,3 +1,4 @@
+import { realList, realRecord } from './realData';
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export * from '../BLL/models/learning';
@@ -77,7 +78,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading Student Dashboard`);
     }
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["studentId","classes","enrolledClassesCount","pendingAssignmentsCount"]);
   },
 
   /**
@@ -93,9 +94,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading Parent Children Overview`);
     }
     const json = await response.json();
-    if (Array.isArray(json)) return json;
-    if (json && Array.isArray(json.data)) return json.data;
-    return [];
+    return realList(json);
   },
 
   /**
@@ -111,7 +110,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading Student Class Detail`);
     }
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["classId","materials","assignments","sessions","attendedLessons","totalLessons"]);
   },
 
   /**
@@ -127,9 +126,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading Student Schedule`);
     }
     const json = await response.json();
-    if (Array.isArray(json)) return json;
-    if (json && Array.isArray(json.data)) return json.data;
-    return [];
+    return realList(json);
   },
 
   /**
@@ -145,7 +142,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading Student Progress`);
     }
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["studentId","currentClasses"]);
   },
 
   /**
@@ -266,7 +263,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading Student Assignment Detail`);
     }
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["assignmentId","title"]);
   },
 
   /**
@@ -286,7 +283,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while submitting assignment`);
     }
     const json = await response.json();
-    return json?.data ?? json;
+    return realRecord(json, ["submissionId","submittedAt","fileUrl"]);
   },
 
   /**
@@ -331,6 +328,8 @@ export const learningApi = {
     if (!response.ok) {
       throw new Error(`HTTP ${response.status} while deleting submission`);
     }
+    const confirmation = await response.json();
+    if (confirmation?.success !== true) throw new Error('Deletion was not confirmed.');
     return true;
   },
 
@@ -349,9 +348,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading feedback list`);
     }
     const json = await response.json();
-    if (Array.isArray(json)) return json;
-    if (json && Array.isArray(json.data)) return json.data;
-    return [];
+    return realList(json);
   },
 
   /**
@@ -372,7 +369,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while sending new feedback`);
     }
     const json = await response.json();
-    return json?.data ?? json;
+    return realRecord(json, ["requestId"]);
   },
 
   /**
@@ -391,7 +388,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while updating feedback`);
     }
     const json = await response.json();
-    return json?.data ?? json;
+    return realRecord(json, ["requestId"]);
   },
 
   /**
@@ -407,9 +404,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading student notifications`);
     }
     const json = await response.json();
-    if (Array.isArray(json)) return json;
-    if (json && Array.isArray(json.data)) return json.data;
-    return [];
+    return realList(json);
   },
 
   /**
@@ -427,9 +422,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading parent notifications`);
     }
     const json = await response.json();
-    if (Array.isArray(json)) return json;
-    if (json && Array.isArray(json.data)) return json.data;
-    return [];
+    return realList(json);
   },
 
   /**
@@ -445,6 +438,8 @@ export const learningApi = {
     if (!response.ok) {
       throw new Error(`HTTP ${response.status} while marking notification as read`);
     }
+    const confirmation = await response.json();
+    if (confirmation?.success !== true) throw new Error("Read status was not confirmed.");
     return true;
   },
 
@@ -463,7 +458,8 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while marking all notifications as read`);
     }
     const json = await response.json();
-    return json?.updatedCount ?? 0;
+    if (json?.success !== true || !Number.isSafeInteger(json.updatedCount) || json.updatedCount < 0) throw new Error("Read status was not confirmed.");
+    return json.updatedCount;
   },
 
   /**
@@ -479,7 +475,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading student profile`);
     }
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["userId"]);
   },
 
   /**
@@ -499,7 +495,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while updating student profile`);
     }
     const json = await response.json();
-    return json?.data ?? json;
+    return realRecord(json, ["userId"]);
   },
 
   /**
@@ -515,7 +511,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while loading parent profile`);
     }
     const json = await response.json();
-    return json?.data ?? json ?? null;
+    return realRecord(json, ["userId"]);
   },
 
   /**
@@ -535,7 +531,7 @@ export const learningApi = {
       throw new Error(`HTTP ${response.status} while updating parent profile`);
     }
     const json = await response.json();
-    return json?.data ?? json;
+    return realRecord(json, ["userId"]);
   },
 };
 

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 
 export interface AssignmentDropzoneProps {
-  onSubmit: (file: File | null) => void;
+  onSubmit: (file: File | null) => void | Promise<void>;
 }
 
 export function AssignmentDropzone({ onSubmit }: AssignmentDropzoneProps) {
@@ -44,9 +44,9 @@ export function AssignmentDropzone({ onSubmit }: AssignmentDropzoneProps) {
     }
   };
 
-  const handleSubmit = () => {
-    onSubmit(selectedFile);
-    setSelectedFile(null);
+  const handleSubmit = async () => {
+    if (!selectedFile) return;
+    await onSubmit(selectedFile);
   };
 
   return (
@@ -68,7 +68,7 @@ export function AssignmentDropzone({ onSubmit }: AssignmentDropzoneProps) {
             Drag and drop file here or <span className="upload-link">click to browse</span>
           </div>
           <div className="upload-text-sub">
-            PDF, DOCX, JPG, PNG &mdash; Maximum 50 MB
+            PDF, DOCX, JPG, PNG &mdash; Maximum 25 MB
           </div>
         </div>
         <input
@@ -105,6 +105,7 @@ export function AssignmentDropzone({ onSubmit }: AssignmentDropzoneProps) {
         type="button"
         className="btn-submit-asg"
         id="btnSubmitAssignment"
+        disabled={!selectedFile}
         onClick={handleSubmit}
       >
         Submit Assignment

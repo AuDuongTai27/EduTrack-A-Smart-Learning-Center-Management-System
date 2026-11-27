@@ -1,5 +1,4 @@
-import ModalIcon from '../../../Common/ModalIcon';
-import ModalSurface from '../../../Common/ModalSurface';
+import { DataState } from '../../../Common/DataState';
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import type { AssignmentDto } from "../../../../../BLL/models/AssignmentDto";
@@ -53,13 +52,7 @@ export default function AssignmentsSection({
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // Material upload modal states
-  const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
-  const [newMaterialTitle, setNewMaterialTitle] = useState<string>("");
-  const [newMaterialDesc, setNewMaterialDesc] = useState<string>("");
-  const [newMaterialType, setNewMaterialType] = useState<string>("PDF");
-
-  const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const materials: MaterialItem[] = [];
 
   // Gom chung tất cả Assignments và Materials thành danh sách hợp nhất (Mới nhất hiện lên đầu)
   const unifiedStream = useMemo(() => {
@@ -68,7 +61,7 @@ export default function AssignmentsSection({
       kind: "assignment" as const,
       title: asg.title,
       description: asg.description || asg.assignmentType,
-      dateStr: asg.dueDate || asg.createdAt || "08/09/2026",
+      dateStr: asg.dueDate || asg.createdAt || "",
       timestamp: parseDateStrToTime(asg.createdAt || asg.dueDate),
       rawAssignment: asg,
     }));
@@ -121,28 +114,7 @@ export default function AssignmentsSection({
     }
   };
 
-  const handleAddMaterialSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMaterialTitle.trim()) {
-      alert("Please enter the material title.");
-      return;
-    }
-    const newMat: MaterialItem = {
-      id: Date.now(),
-      fileName: newMaterialTitle.trim(),
-      description: newMaterialDesc.trim() || "Lecture material & study notes",
-      type: newMaterialType,
-      uploadDate: new Date().toLocaleDateString("en-US"),
-      sizeMb: 1.5,
-      fileUrl: "/assets/docs/assignment_default.pdf",
-    };
-    setMaterials((prev) => [newMat, ...prev]);
-    setNewMaterialTitle("");
-    setNewMaterialDesc("");
-    setShowUploadModal(false);
-  };
 
-  const totalMaterials = materials.length;
   const totalAssignments = assignments.length;
 
   return (
@@ -153,7 +125,7 @@ export default function AssignmentsSection({
           <div className="d-flex align-items-center gap-2">
             <i className="bi bi-collection-play-fill text-primary fs-5" />
             <h4 className="class-list-title mb-0">
-              Coursework &amp; Learning Materials ({unifiedStream.length})
+              Class Assignments ({totalAssignments})
             </h4>
           </div>
 
@@ -168,9 +140,9 @@ export default function AssignmentsSection({
                   type="button"
                   className="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center gap-2 shadow-xs rounded-2"
                   style={{ height: "36px", fontSize: "13px", fontWeight: 500, padding: "0 14px" }}
-                  onClick={() => setShowUploadModal(true)}
+                  disabled title="Material publishing is currently unavailable"
                 >
-                  <i className="bi bi-cloud-upload" /> Add Material
+                  <i className="bi bi-cloud-upload" /> Materials unavailable
                 </button>
                 <Link
                   to={`/teacher/classes/${classId}/assignment/new-assignment`}
@@ -229,7 +201,7 @@ export default function AssignmentsSection({
               onClick={() => setFilterType("materials")}
             >
               <i className="bi bi-file-earmark-text-fill" style={{ fontSize: "12px" }} />
-              <span>Materials ({totalMaterials})</span>
+              <span>Materials unavailable</span>
             </button>
           </div>
 
@@ -253,7 +225,7 @@ export default function AssignmentsSection({
 
         {/* 3. Stream List (Gom chung mới nhất lên đầu) */}
         <div className="p-4 bg-white d-flex flex-column gap-3">
-          {filteredStream.length > 0 ? (
+          {filterType === "materials" ? <DataState message="Study materials are currently unavailable." /> : filteredStream.length > 0 ? (
             filteredStream.map((item) => {
               if (item.kind === "assignment" && item.rawAssignment) {
                 const asg = item.rawAssignment;
@@ -451,101 +423,7 @@ export default function AssignmentsSection({
         </div>
       </details>
 
-      {/* 4. Modal: Upload Material */}
-      {showUploadModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex={-1}
-          style={{ backgroundColor: "rgba(15, 23, 42, 0.45)", zIndex: 1060 }}
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <ModalSurface className="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
-              <div className="modal-header border-bottom px-4 py-3 bg-white">
-                <div className="d-flex align-items-center gap-2.5">
-                  <div
-                    className="rounded-3 d-flex align-items-center justify-content-center"
-                    style={{ width: "36px", height: "36px", backgroundColor: "var(--et-mint)", color: "var(--et-primary)" }}
-                  >
-                    <ModalIcon name="file" />
-                  </div>
-                  <div>
-                    <h5 className="modal-title fw-bold text-dark mb-0" style={{ fontSize: "16px" }}>Add Study Material</h5>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowUploadModal(false)}
-                />
-              </div>
 
-              <form onSubmit={handleAddMaterialSubmit}>
-                <div className="modal-body px-4 py-3">
-                  <div className="mb-3">
-                    <label className="form-label small fw-semibold text-dark mb-1">
-                      Material Title / File Name <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control rounded-2"
-                      placeholder="e.g. Chapter 1: Quadratic Equations Lecture Slides.pdf"
-                      value={newMaterialTitle}
-                      onChange={(e) => setNewMaterialTitle(e.target.value)}
-                      required
-                      style={{ fontSize: "13.5px" }}
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label small fw-semibold text-dark mb-1">File Format</label>
-                    <select
-                      className="form-select rounded-2"
-                      value={newMaterialType}
-                      onChange={(e) => setNewMaterialType(e.target.value)}
-                      style={{ fontSize: "13.5px" }}
-                    >
-                      <option value="PDF">PDF Document (.pdf)</option>
-                      <option value="DOC">Word Document (.docx)</option>
-                      <option value="PPT">PowerPoint Presentation (.pptx)</option>
-                      <option value="IMG">Images / Diagrams (.png, .jpg)</option>
-                    </select>
-                  </div>
-
-                  <div className="mb-2">
-                    <label className="form-label small fw-semibold text-dark mb-1">Brief Description</label>
-                    <textarea
-                      className="form-control rounded-2"
-                      rows={2}
-                      placeholder="Notes on key topics covered in this material..."
-                      value={newMaterialDesc}
-                      onChange={(e) => setNewMaterialDesc(e.target.value)}
-                      style={{ fontSize: "13.5px" }}
-                    />
-                  </div>
-                </div>
-
-                <div className="modal-footer border-top px-4 py-2.5 bg-light">
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm rounded-2 px-3 py-1.5"
-                    style={{ fontSize: "13px" }}
-                    onClick={() => setShowUploadModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center gap-1.5 rounded-2 px-3 py-1.5 fw-medium shadow-sm"
-                    style={{ fontSize: "13px" }}
-                  >
-                    <i className="bi bi-check-lg" /> Save Material
-                  </button>
-                </div>
-              </form>
-            </ModalSurface>
-          </div>
-        </div>
-      )}
     </>
   );
 }

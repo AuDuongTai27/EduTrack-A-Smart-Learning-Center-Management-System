@@ -1,6 +1,5 @@
 import React from 'react';
 import type { EnrolledClassItem } from '../classes/classesData';
-import { MOCK_ENROLLED_CLASSES } from '../classes/classesData';
 import { ClassItem } from '../common/ClassItem';
 
 export interface DashboardClassesSectionProps {
@@ -9,7 +8,7 @@ export interface DashboardClassesSectionProps {
 }
 
 export function DashboardClassesSection({
-  classes = MOCK_ENROLLED_CLASSES,
+  classes = [],
   loading = false,
 }: DashboardClassesSectionProps) {
   return (

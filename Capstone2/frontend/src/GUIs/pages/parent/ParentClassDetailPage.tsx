@@ -1,9 +1,10 @@
+import { DataState, dataError } from '../../components/Common/DataState';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useParent } from '../../../contexts/ParentContext';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
-import { parentDAL, type ChildClassItem } from '../../../DAL/parentDAL';
-import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
+import { type ChildClassItem } from '../../../DAL/parentDAL';
+import { learningDAL } from '../../../DAL/learningDAL';
 import type { ClassSessionAttendanceItemApiDto } from '../../../api/learningApi';
 import { ClassHeroDecoration } from '../../components/Common/ClassHeroDecoration';
 import { ClassInfoCard } from '../../components/student/classDetail/ClassInfoCard';
@@ -12,14 +13,18 @@ import type { ClassDetailItem } from '../../components/student/classDetail/class
 import type { ProgressFeedback } from '../../components/student/progress/progressData';
 
 export function ParentClassDetailPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const { id: paramId } = useParams<{ id: string }>();
   const { selectedChild, loading: parentLoading } = useParent();
 
-  const classId = parseInt(paramId || '1', 10);
+  const classId = Number(paramId || new URLSearchParams(window.location.search).get('id'));
 
   const [cls, setCls] = useState<ChildClassItem | undefined>(undefined);
   const [detailCls, setDetailCls] = useState<ClassDetailItem | null>(null);
   const [sessions, setSessions] = useState<ClassSessionAttendanceItemApiDto[]>([]);
+  const [feedbacksError, setFeedbacksError] = useState<string | undefined>();
   const [feedbacks, setFeedbacks] = useState<ProgressFeedback[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -28,8 +33,10 @@ export function ParentClassDetailPage() {
 
     async function loadDetail() {
       setLoading(true);
-      const studentId = selectedChild?.id || DEFAULT_STUDENT_ID;
+      setLoadError(null);
+      const studentId = selectedChild?.id;
       try {
+        if (!studentId || !selectedChild?.classes.some(c => c.id === classId)) throw new Error('Forbidden');
         const detailVm = await learningDAL.getStudentClassDetail(classId, studentId);
         if (isMounted && detailVm) {
           setDetailCls(detailVm.cls);
@@ -49,14 +56,12 @@ export function ParentClassDetailPage() {
           });
           setSessions(detailVm.sessions || []);
           setFeedbacks(detailVm.feedbacks || []);
+          setFeedbacksError(detailVm.feedbacksError);
           return;
         }
 
-        const item = await parentDAL.getChildClassById(classId);
-        if (isMounted && item) {
-          setCls(item);
-        }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn('Lỗi khi tải chi tiết lớp học của con:', err);
       } finally {
         if (isMounted) {
@@ -70,7 +75,7 @@ export function ParentClassDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [classId, selectedChild?.id]);
+  }, [retryVersion, classId, selectedChild?.id]);
 
   useEffect(() => {
     if (cls) {
@@ -97,6 +102,8 @@ export function ParentClassDetailPage() {
     }
     return [];
   }, [feedbacks, cls?.notes, cls?.name, cls?.teacher]);
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (parentLoading || loading) {
     return (
@@ -338,9 +345,9 @@ export function ParentClassDetailPage() {
             {exceptionSessions.length === 0 ? (
               <div className="p-4 rounded-4 bg-success bg-opacity-10 border border-success-subtle text-center">
                 <i className="bi bi-patch-check-fill text-success fs-1 mb-2 d-block"></i>
-                <h5 className="fw-bold text-success mb-1">Full Attendance Achieved</h5>
+                <h5 className="fw-bold text-success mb-1">{!hasConducted ? 'No attendance records yet.' : unmarkedCount > 0 ? 'Attendance is incomplete.' : 'No absence or lateness recorded.'}</h5>
                 <p className="text-secondary small mb-0">
-                  {selectedChild.name} attended all {conductedSessions.length} conducted sessions on time. No absent or late sessions recorded.
+                  Only recorded attendance is shown.
                 </p>
               </div>
             ) : (
@@ -383,7 +390,7 @@ export function ParentClassDetailPage() {
         </details>
 
         {/* SECTION 2: TEACHER EVALUATIONS & FEEDBACK (Y chang của Student, mặc định đóng) */}
-        <ClassEvaluationsSection feedbacks={displayFeedbacks} classNameTitle={cls.name} />
+        {feedbacksError ? <DataState error message={feedbacksError} onRetry={() => setRetryVersion(v => v + 1)} /> : <ClassEvaluationsSection feedbacks={displayFeedbacks} classNameTitle={cls.name} />}
       </div>
     </main>
   );

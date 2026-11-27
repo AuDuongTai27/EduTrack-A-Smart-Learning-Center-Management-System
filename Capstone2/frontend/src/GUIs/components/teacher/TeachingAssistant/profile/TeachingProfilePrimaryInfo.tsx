@@ -9,13 +9,13 @@ export interface TeachingProfilePrimaryInfoProps {
 
 export function TeachingProfilePrimaryInfo({ ta, profile }: TeachingProfilePrimaryInfoProps) {
   const data = profile || ta;
-  const fullName = data?.fullName || "Âu Dương Tài";
-  const userCode = data?.userCode || "TA001";
+  const fullName = data?.fullName || "Not provided";
+  const userCode = data?.userCode || "Not provided";
   const roleName =
     (data as any)?.roleTitle ||
     ((data as any)?.roles && (data as any).roles.length > 0 ? (data as any).roles[0] : "Teaching Assistant");
   const avatarUrl = data?.avatarUrl || "/assets/img/profiles/avatar-27.jpg";
-  const specialty = data?.specialty || "Math & Science Teaching Assistant";
+  const specialty = data?.specialty || "Not provided";
   const activeClasses = (data as any)?.activeClassesCount;
   const totalStudents = (data as any)?.totalStudentsCount;
 

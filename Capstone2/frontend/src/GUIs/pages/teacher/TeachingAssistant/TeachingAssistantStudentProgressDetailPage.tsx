@@ -1,3 +1,5 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
+import { getAuthUser } from '../../../../api/authApi';
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
@@ -7,20 +9,24 @@ import {
   StudentEvaluationSection,
   CreateEvaluationModal,
 } from "../../../components/teacher/TeachingAssistant/learningProgress";
-import teachingDAL, { DEFAULT_TA_ID } from "../../../../DAL/teachingDAL";
+import teachingDAL from "../../../../DAL/teachingDAL";
 import type {
   TeachingStudentProgressDetailDto,
   CreateTeachingEvaluationPayload,
 } from "../../../../BLL/models/teaching";
 
 export default function TeachingAssistantStudentProgressDetailPage() {
-  const { classId: paramClassId, studentId: paramStudentId } = useParams<{
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
+  const { id: legacyClassId, classId: paramClassId, studentId: paramStudentId } = useParams<{
+    id?: string;
     classId?: string;
     studentId?: string;
   }>();
 
-  const classId = Number(paramClassId || "1");
-  const studentId = Number(paramStudentId || "6");
+  const classId = Number(paramClassId || legacyClassId || "0");
+  const studentId = Number(paramStudentId || "0");
 
   const [detail, setDetail] = useState<TeachingStudentProgressDetailDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,11 +38,13 @@ export default function TeachingAssistantStudentProgressDetailPage() {
     async function loadData() {
       try {
         setLoading(true);
+      setLoadError(null);
         const res = await teachingDAL.getStudentProgressDetail(classId, studentId);
         if (isMounted && res.data) {
           setDetail(res.data);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn("Lỗi tải chi tiết tiến độ học sinh:", err);
       } finally {
         if (isMounted) setLoading(false);
@@ -46,13 +54,13 @@ export default function TeachingAssistantStudentProgressDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [classId, studentId]);
+  }, [retryVersion, classId, studentId]);
 
   const handleCreateEvaluation = async (payload: CreateTeachingEvaluationPayload) => {
     try {
       const res = await teachingDAL.createStudentEvaluation(classId, studentId, {
         ...payload,
-        evaluatorName: "Âu Dương Tài",
+        evaluatorName: getAuthUser()?.fullName,
         evaluatorRole: "Teaching Assistant",
       });
 
@@ -66,10 +74,12 @@ export default function TeachingAssistantStudentProgressDetailPage() {
       setToastMessage("Individual evaluation saved successfully to the system!");
     } catch (err) {
       console.warn("Lỗi khi lưu đánh giá:", err);
-      setToastMessage("Individual evaluation recorded.");
+      throw err;
     }
     setTimeout(() => setToastMessage(null), 3500);
   };
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (loading) {
     return (
@@ -100,10 +110,10 @@ export default function TeachingAssistantStudentProgressDetailPage() {
           className="position-fixed top-0 start-50 translate-middle-x p-3"
           style={{ zIndex: 1090, marginTop: "16px" }}
         >
-          <div className="toast show align-items-center text-bg-success border-0 shadow" role="alert">
+          <div className="toast show align-items-center text-bg-primary border-0 shadow" role="alert">
             <div className="d-flex">
               <div className="toast-body d-flex align-items-center gap-2">
-                <i className="bi bi-check-circle-fill fs-6" />
+                <i className="bi bi-info-circle fs-6" />
                 <span>{toastMessage}</span>
               </div>
               <button
@@ -158,7 +168,7 @@ export default function TeachingAssistantStudentProgressDetailPage() {
         studentCode={detail.studentCode}
         classId={classId}
         className={detail.className}
-        evaluatorName="Âu Dương Tài"
+        evaluatorName={getAuthUser()?.fullName || "Current user"}
         evaluatorRole="Teaching Assistant"
         onSubmit={handleCreateEvaluation}
       />

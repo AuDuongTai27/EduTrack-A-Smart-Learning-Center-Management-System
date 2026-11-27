@@ -6,17 +6,19 @@ import { SubmittedFileCard } from './components/SubmittedFileCard';
 import { OverdueAlertBox } from './components/OverdueAlertBox';
 
 interface AssignmentSubmissionSectionProps {
+  maxScore?: number;
   status: SubmissionStatus;
   submittedFileName: string;
   submittedMeta: string;
   dueDate: string;
   submission?: StudentSubmissionDetailApiDto | null;
-  onSubmit: (file: File | null) => void;
+  onSubmit: (file: File | null) => void | Promise<void>;
   onEdit: () => void;
   onDelete: () => void;
 }
 
 export function AssignmentSubmissionSection({
+  maxScore,
   status,
   submittedFileName,
   submittedMeta,
@@ -34,6 +36,7 @@ export function AssignmentSubmissionSection({
 
       {status === 'submitted' && (
         <SubmittedFileCard
+          maxScore={maxScore}
           fileName={submittedFileName}
           meta={submittedMeta}
           submission={submission}

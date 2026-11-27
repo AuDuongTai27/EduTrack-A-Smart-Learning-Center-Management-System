@@ -117,25 +117,7 @@ namespace EduTrack.API.Controllers.Learning
                 return File(bytes, "application/octet-stream", fileName);
             }
 
-            // Tạo tệp tài liệu chuẩn có cấu trúc bài giảng để người dùng tải về
-            var contentBuilder = new StringBuilder();
-            contentBuilder.AppendLine("==========================================================================");
-            contentBuilder.AppendLine("   EDUTRACK LEARNING CENTER - TÀI LIỆU HỌC TẬP & BÀI GIẢNG");
-            contentBuilder.AppendLine("==========================================================================");
-            contentBuilder.AppendLine($"Lớp học: {unit.Class?.ClassName ?? $"Class #{classId}"}");
-            contentBuilder.AppendLine($"Chủ đề tài liệu: {unit.Title}");
-            contentBuilder.AppendLine($"Phân loại tài liệu: {unit.UnitType.ToUpperInvariant()}");
-            contentBuilder.AppendLine($"Mô tả chuyên đề: {unit.Description ?? "Tài liệu lý thuyết và bài tập trọng tâm."}");
-            contentBuilder.AppendLine($"Ngày khởi tạo: {DateTime.Now:dd/MM/yyyy HH:mm}");
-            contentBuilder.AppendLine("==========================================================================");
-            contentBuilder.AppendLine();
-            contentBuilder.AppendLine("NỘI DUNG TÓM TẮT & HƯỚNG DẪN HỌC TẬP:");
-            contentBuilder.AppendLine("1. Xem kỹ nội dung lý thuyết trọng tâm trước buổi học trên lớp.");
-            contentBuilder.AppendLine("2. Làm bài tập ứng dụng đính kèm trong mục Bài tập về nhà.");
-            contentBuilder.AppendLine("3. Trao đổi thắc mắc với Giáo viên hoặc Trợ giảng qua kênh Phản hồi & Yêu cầu.");
-
-            var textBytes = Encoding.UTF8.GetBytes(contentBuilder.ToString());
-            return File(textBytes, "text/plain; charset=utf-8", $"{cleanTitle}.txt");
+            return NotFound(new { success = false, message = "This material file is currently unavailable." });
         }
 
         /// <summary>
@@ -204,17 +186,7 @@ namespace EduTrack.API.Controllers.Learning
                         }
                         else
                         {
-                            var unitEntry = archive.CreateEntry($"{i + 1:D2}_{cleanTitle}.txt");
-                            using (var writer = new StreamWriter(unitEntry.Open(), Encoding.UTF8))
-                            {
-                                writer.WriteLine($"BÀI GIẢNG / TÀI LIỆU CHUYÊN ĐỀ #{i + 1:D2}");
-                                writer.WriteLine($"Lớp học: {cls.ClassName}");
-                                writer.WriteLine($"Chủ đề: {u.Title}");
-                                writer.WriteLine($"Phân loại: {u.UnitType}");
-                                writer.WriteLine($"Tóm tắt nội dung: {u.Description ?? "Tài liệu học tập chuẩn EduTrack"}");
-                                writer.WriteLine(new string('=', 40));
-                                writer.WriteLine("Nội dung tài liệu được cập nhật bởi Giáo viên chuyên môn trên hệ thống.");
-                            }
+                            return NotFound(new { success = false, message = "One or more material files are currently unavailable." });
                         }
                     }
                 }
@@ -289,13 +261,12 @@ namespace EduTrack.API.Controllers.Learning
         public async Task<IActionResult> MarkAllNotificationsAsRead(int userId, [FromQuery] int? studentId = null)
         {
             var effectiveUserId = JwtAuthHelper.ResolveEffectiveUserId(User, userId, JwtAuthHelper.RoleStudent, JwtAuthHelper.RoleParent);
-            var updatedCount = await _dashboardService.MarkAllNotificationsAsReadAsync(effectiveUserId, studentId);
-            return Ok(new
+            try
             {
-                success = true,
-                message = $"Đã đánh dấu đã đọc {updatedCount} thông báo.",
-                updatedCount
-            });
+                var updatedCount = await _dashboardService.MarkAllNotificationsAsReadAsync(effectiveUserId, studentId);
+                return Ok(new { success = true, updatedCount });
+            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
         }
 
         /// <summary>

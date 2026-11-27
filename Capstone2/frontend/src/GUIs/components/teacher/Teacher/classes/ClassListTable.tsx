@@ -35,7 +35,7 @@ export function ClassListTable({
                 cls.status?.toLowerCase() === "active" ||
                 cls.status === "Đang học" ||
                 cls.status === "open";
-              const taName = item.taName || item.partnerName || "Au Duong Tai";
+              const taName = item.taName || item.partnerName || "Not provided";
               const isTaRoleInClass = item.myRoleInClass === "teaching_assistant";
 
               return (
@@ -65,7 +65,7 @@ export function ClassListTable({
                   <td>
                     <span className="text-secondary small">
                       <i className="bi bi-geo-alt me-1 text-muted" />
-                      {cls.room || "Room 201"}
+                      {cls.room || "Not provided"}
                     </span>
                   </td>
                   <td>

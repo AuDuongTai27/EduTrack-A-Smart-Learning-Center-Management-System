@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../components/Common/DataState';
 import React, { useState, useEffect } from 'react';
 import '../../../assets/css/student-academy.css';
 import { StudentPageHeader } from '../../components/student/common/StudentPageHeader';
@@ -9,6 +10,9 @@ import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 import type { EnrolledClassItem } from '../../components/student/classes/classesData';
 
 export function StudentDashboardPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [studentName, setStudentName] = useState<string>('');
   const [avatarInitials, setAvatarInitials] = useState<string>('HS');
   const [enrolledClassesCount, setEnrolledClassesCount] = useState<number>(0);
@@ -22,6 +26,7 @@ export function StudentDashboardPage() {
     async function loadDashboard() {
       try {
         setLoading(true);
+      setLoadError(null);
         const dashboardData = await learningDAL.getStudentDashboard(DEFAULT_STUDENT_ID);
 
         if (isMounted && dashboardData) {
@@ -32,6 +37,7 @@ export function StudentDashboardPage() {
           setClasses(dashboardData.classes);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn('Lỗi khi tải dữ liệu Dashboard học sinh:', err);
       } finally {
         if (isMounted) {
@@ -45,7 +51,9 @@ export function StudentDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [retryVersion]);
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (loading) {
     return (

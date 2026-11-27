@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../../components/Common/DataState';
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageHeader from "../../../components/Common/PageHeader";
@@ -11,11 +12,16 @@ import teachingDAL, { type TeachingClassItemDto } from "../../../../DAL/teaching
 import type { TeachingAssignmentItemDto } from "../../../../BLL/models/teaching/TeachingAssignmentDto";
 
 export default function TeacherClassDetailsPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
     const { id, classId } = useParams<{ id?: string; classId?: string }>();
-    const numClassId = Number(classId || id || "1");
+    const numClassId = Number(classId || id || "0");
     const targetClassId = String(numClassId);
 
     const [classInfo, setClassInfo] = useState<TeachingClassItemDto | null>(null);
+    const [studentsError, setStudentsError] = useState<string | null>(null);
+    const [assignmentsError, setAssignmentsError] = useState<string | null>(null);
     const [students, setStudents] = useState<any[]>([]);
     const [assignments, setAssignments] = useState<TeachingAssignmentItemDto[] | any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -26,15 +32,18 @@ export default function TeacherClassDetailsPage() {
         async function fetchClassDetails() {
             try {
                 setLoading(true);
+      setLoadError(null);
+                setStudentsError(null); setAssignmentsError(null);
                 // 1. Fetch class details scoped to teacher
                 const cls = await teachingDAL.getClassById(numClassId);
+                if (!cls) throw new Error("Class not found");
 
                 // 2. Fetch real students for this class via teachingDAL
                 try {
                     const classStudents = await teachingDAL.getClassStudents(numClassId);
                     if (isMounted) setStudents(classStudents);
-                } catch {
-                    if (isMounted) setStudents([]);
+                } catch (error) {
+                    if (isMounted) { setStudents([]); setStudentsError(dataError(error)); }
                 }
 
                 // 3. Fetch real assignments for this class via teachingDAL
@@ -43,14 +52,15 @@ export default function TeacherClassDetailsPage() {
                     if (isMounted) {
                         setAssignments(teachingAsgs);
                     }
-                } catch {
-                    if (isMounted) setAssignments([]);
+                } catch (error) {
+                    if (isMounted) { setAssignments([]); setAssignmentsError(dataError(error)); }
                 }
 
                 if (isMounted) {
                     setClassInfo(cls);
                 }
             } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
                 console.error("Failed to load class details:", err);
             } finally {
                 if (isMounted) setLoading(false);
@@ -62,9 +72,11 @@ export default function TeacherClassDetailsPage() {
         return () => {
             isMounted = false;
         };
-    }, [numClassId]);
+    }, [retryVersion, numClassId]);
 
-    return (
+    if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
+
+  return (
         <>
             {/* Breadcrumb & Page Title */}
             <PageHeader
@@ -96,23 +108,23 @@ export default function TeacherClassDetailsPage() {
                     {/* Class Header */}
                     <ClassInfoCard
                         classInfo={classInfo}
-                        teacherName={classInfo?.teacherName || "MSc. Hoang Quoc Viet"}
-                        taName={classInfo?.taName || classInfo?.partnerName || "Au Duong Tai"}
+                        teacherName={classInfo?.teacherName || "Not provided"}
+                        taName={classInfo?.taName || classInfo?.partnerName || "Not provided"}
                     />
                     {/* Participant List */}
-                    <ParticipantsSection
+                    {studentsError ? <DataState error message={studentsError} onRetry={() => setRetryVersion(v => v + 1)} /> : <ParticipantsSection
                         classId={targetClassId}
                         participants={students}
-                    />
+                    />}
                     {/* Sessions List */}
                     <SessionsSection classId={targetClassId} />
                     {/* Assignment list*/}
-                    <AssignmentsSection
+                    {assignmentsError ? <DataState error message={assignmentsError} onRetry={() => setRetryVersion(v => v + 1)} /> : <AssignmentsSection
                         classId={targetClassId}
                         assignments={assignments}
                         readOnly={classInfo?.myRoleInClass === "teaching_assistant"}
                         onAssignmentDeleted={(delId) => setAssignments((prev) => prev.filter((a: any) => a.assignmentId !== delId))}
-                    />
+                    />}
                 </>
             )}
         </>

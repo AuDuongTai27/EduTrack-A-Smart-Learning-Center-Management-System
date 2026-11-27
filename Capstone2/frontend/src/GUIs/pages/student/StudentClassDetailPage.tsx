@@ -1,3 +1,5 @@
+import { downloadFile } from '../../../api/downloadFile';
+import { DataState, dataError } from '../../components/Common/DataState';
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type {
@@ -14,16 +16,20 @@ import { ClassCourseworkSection } from '../../components/student/classDetail/Cla
 import type { ProgressFeedback } from '../../components/student/progress/progressData';
 
 export function StudentClassDetailPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const { id: paramId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const rawId = paramId || searchParams.get('id') || '1';
-  const classId = parseInt(rawId, 10) || 1;
+  const rawId = paramId || searchParams.get('id') || '';
+  const classId = Number(rawId);
 
   const [cls, setCls] = useState<ClassDetailItem | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
+  const [feedbacksError, setFeedbacksError] = useState<string | undefined>();
   const [feedbacks, setFeedbacks] = useState<ProgressFeedback[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -32,6 +38,7 @@ export function StudentClassDetailPage() {
 
     async function loadClassDetail() {
       setLoading(true);
+      setLoadError(null);
       try {
         const detailData = await learningDAL.getStudentClassDetail(
           classId,
@@ -42,8 +49,10 @@ export function StudentClassDetailPage() {
           setMaterials(detailData.materials);
           setAssignments(detailData.assignments);
           setFeedbacks(detailData.feedbacks || []);
+          setFeedbacksError(detailData.feedbacksError);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn('Lỗi khi tải chi tiết lớp học:', err);
       } finally {
         if (isMounted) {
@@ -57,7 +66,7 @@ export function StudentClassDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [classId]);
+  }, [retryVersion, classId]);
 
   useEffect(() => {
     if (cls?.name) {
@@ -65,15 +74,13 @@ export function StudentClassDetailPage() {
     }
   }, [cls?.name]);
 
-  const handleDownload = (fileName: string, fileUrl?: string) => {
-    if (fileUrl) {
-      window.open(fileUrl, '_blank');
-    }
-    setToastMessage(`Downloading material: ${fileName}`);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
+  const handleDownload = async (fileName: string, fileUrl?: string) => {
+    try { await downloadFile(fileUrl, fileName); setToastMessage('File downloaded.'); }
+    catch { setToastMessage('Unable to download this file. It may be unavailable.'); }
+    setTimeout(() => setToastMessage(null), 3500);
   };
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (loading || !cls) {
     return (
@@ -120,7 +127,7 @@ export function StudentClassDetailPage() {
         <ClassInfoCard cls={cls} />
 
         {/* 3. Teacher Evaluations & Feedback Section */}
-        <ClassEvaluationsSection feedbacks={feedbacks} classNameTitle={cls.name} />
+        {feedbacksError ? <DataState error message={feedbacksError} onRetry={() => setRetryVersion(v => v + 1)} /> : <ClassEvaluationsSection feedbacks={feedbacks} classNameTitle={cls.name} />}
 
         {/* 4. Unified Coursework & Materials Section (Sorted newest first with filter) */}
         <ClassCourseworkSection

@@ -1,3 +1,5 @@
+import { downloadFile } from '../../../api/downloadFile';
+import { DataState, dataError } from '../../components/Common/DataState';
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type {
@@ -14,17 +16,23 @@ import { AssignmentAttachedFiles } from '../../components/student/assignmentDeta
 import { AssignmentSubmissionSection } from '../../components/student/assignmentDetail/AssignmentSubmissionSection';
 
 export function StudentAssignmentDetailPage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const { id: paramId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
 
-  const rawId = paramId || searchParams.get('id') || '1';
-  const asgId = parseInt(rawId, 10) || 1;
+  const rawId = paramId || searchParams.get('id') || '';
+  const asgId = Number(rawId);
 
   const [asg, setAsg] = useState<AssignmentDetailItem | null>(null);
   const [status, setStatus] = useState<SubmissionStatus>('not-submitted');
   const [submittedFileName, setSubmittedFileName] = useState('');
   const [submittedMeta, setSubmittedMeta] = useState('');
   const [submission, setSubmission] = useState<StudentSubmissionDetailApiDto | null>(null);
+  const actionLock = React.useRef(false);
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -33,6 +41,7 @@ export function StudentAssignmentDetailPage() {
 
     async function loadAssignmentDetail() {
       setLoading(true);
+      setLoadError(null);
       try {
         const vm = await learningDAL.getStudentAssignmentDetail(asgId, DEFAULT_STUDENT_ID);
         if (isMounted && vm) {
@@ -43,6 +52,7 @@ export function StudentAssignmentDetailPage() {
           setSubmission(vm.submission || null);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn('Lỗi khi tải chi tiết bài tập:', err);
       } finally {
         if (isMounted) {
@@ -56,7 +66,7 @@ export function StudentAssignmentDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [asgId]);
+  }, [retryVersion, asgId]);
 
   useEffect(() => {
     if (asg?.title) {
@@ -71,63 +81,28 @@ export function StudentAssignmentDetailPage() {
     }, 3500);
   };
 
-  const handleDownload = (fileName: string, url?: string) => {
-    const downloadUrl = url || asg?.fileUrl;
-    if (downloadUrl) {
-      window.open(downloadUrl, '_blank');
-      showToast(`Downloading material: ${fileName}`);
-    } else {
-      showToast(`Downloading material: ${fileName}`);
-    }
+  const handleDownload = async (fileName: string, url?: string) => {
+    try { await downloadFile(url || asg?.fileUrl, fileName); showToast('File downloaded.'); }
+    catch { setActionError('Unable to download this file. It may be unavailable.'); }
   };
 
   const handleSubmit = async (file: File | null) => {
-    const name = file ? file.name : 'Bai_lam_LeVanAn.pdf';
-    const sizeMb = file ? (file.size / (1024 * 1024)).toFixed(1) : '2.4';
-    let uploadedFileUrl: string | undefined = undefined;
-
-    try {
-      if (file) {
-        showToast('Uploading file to server...');
-        try {
-          const uploadRes = await learningDAL.uploadSubmissionFile(file);
-          if (uploadRes?.fileUrl) {
-            uploadedFileUrl = uploadRes.fileUrl;
-          }
-        } catch (uploadErr) {
-          console.warn('Upload file thất bại, tiếp tục với file mock URL:', uploadErr);
-        }
-      }
-
-      const savedSub = await learningDAL.submitHomework(
-        asgId,
-        name,
-        sizeMb,
-        DEFAULT_STUDENT_ID,
-        uploadedFileUrl
-      );
-
-      setSubmittedFileName(savedSub.fileName || name);
-      setSubmittedMeta(`Submitted at ${savedSub.submittedAt} • ${sizeMb} MB`);
-      setSubmission(savedSub);
-      setStatus('submitted');
-
-      if (savedSub.score !== null && savedSub.score !== undefined) {
-        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.score} / 10 (Graded by Teacher)` } : prev));
-        showToast('Assignment submitted successfully!');
-      } else if (savedSub.aiScore !== null && savedSub.aiScore !== undefined) {
-        setAsg((prev) => (prev ? { ...prev, score: `${savedSub.aiScore} / 10 (AI Preliminary Grading)` } : prev));
-        showToast('Assignment submitted successfully! AI has provided preliminary grading.');
-      } else {
-        showToast('Assignment submitted successfully!');
-      }
-    } catch (err) {
-      console.warn('Không kết nối được Backend khi nộp bài, cập nhật local state:', err);
-      setSubmittedFileName(name);
-      setSubmittedMeta(`Submitted just now • ${sizeMb} MB`);
-      setStatus('submitted');
-      showToast('Assignment submitted successfully!');
+    if (actionLock.current) return;
+    if (!file || file.size === 0 || file.size > 25 * 1024 * 1024) {
+      setActionError('Please select a valid file up to 25 MB.'); return;
     }
+    actionLock.current = true; setBusy(true); setActionError(null);
+    try {
+      const uploaded = await learningDAL.uploadSubmissionFile(file);
+      const saved = await learningDAL.submitHomework(asgId, file.name,
+        (file.size / (1024 * 1024)).toFixed(2), DEFAULT_STUDENT_ID, uploaded.fileUrl);
+      setSubmittedFileName(saved.fileName || file.name);
+      setSubmittedMeta(saved.submittedAt ? 'Submitted at ' + saved.submittedAt : '');
+      setSubmission(saved); setStatus('submitted');
+      showToast('Assignment submitted successfully!');
+    } catch {
+      setActionError('Submission was not confirmed. Please retry or refresh to check its status.');
+    } finally { actionLock.current = false; setBusy(false); }
   };
 
   const handleEdit = () => {
@@ -136,17 +111,18 @@ export function StudentAssignmentDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this submission?')) {
-      try {
-        await learningDAL.deleteSubmission(asgId, DEFAULT_STUDENT_ID);
-      } catch (err) {
-        console.warn('Lỗi khi xóa bài nộp trên Backend:', err);
-      }
-      setSubmission(null);
-      setStatus('not-submitted');
-      showToast('Submission deleted successfully');
-    }
+    if (actionLock.current || !window.confirm('Are you sure you want to delete this submission?')) return;
+    actionLock.current = true; setBusy(true); setActionError(null);
+    try {
+      const deleted = await learningDAL.deleteSubmission(asgId, DEFAULT_STUDENT_ID);
+      if (!deleted) throw new Error('Deletion was not confirmed.');
+      setSubmission(null); setSubmittedFileName(''); setSubmittedMeta('');
+      setStatus('not-submitted'); showToast('Submission deleted successfully');
+    } catch { setActionError('Deletion was not confirmed. Your submission has been kept. Please retry.'); }
+    finally { actionLock.current = false; setBusy(false); }
   };
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (loading || !asg) {
     return (
@@ -202,16 +178,20 @@ export function StudentAssignmentDetailPage() {
         />
 
         {/* 7. Submission Section */}
+        {actionError && <div className="alert alert-danger" role="alert">{actionError}</div>}
+        <fieldset disabled={busy} className="border-0 p-0 m-0">
         <AssignmentSubmissionSection
           status={status}
           submittedFileName={submittedFileName}
           submittedMeta={submittedMeta}
           dueDate={asg.dueDate}
+          maxScore={asg.maxScore}
           submission={submission}
           onSubmit={handleSubmit}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+        </fieldset>
       </div>
     </main>
   );

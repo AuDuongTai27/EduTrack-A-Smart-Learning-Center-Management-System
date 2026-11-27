@@ -1,3 +1,4 @@
+import { DataState, dataError } from '../../components/Common/DataState';
 import React, { useState, useEffect } from 'react';
 import type { StudentProfileData } from '../../components/student/profile/profileData';
 import { LearnerPageLoader } from '../../components/student/common/LearnerPageLoader';
@@ -8,6 +9,9 @@ import { ProfileToast } from '../../components/student/profile/ProfileToast';
 import { learningDAL, DEFAULT_STUDENT_ID } from '../../../DAL/learningDAL';
 
 export function StudentProfilePage() {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+
   const [profile, setProfile] = useState<StudentProfileData | null>(null);
   const [formData, setFormData] = useState<StudentProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -22,6 +26,7 @@ export function StudentProfilePage() {
 
     async function loadProfile() {
       setLoading(true);
+      setLoadError(null);
       try {
         const loaded = await learningDAL.getStudentProfile(DEFAULT_STUDENT_ID);
         if (isMounted && loaded) {
@@ -29,6 +34,7 @@ export function StudentProfilePage() {
           setFormData(loaded);
         }
       } catch (err) {
+        if (isMounted) setLoadError(dataError(err));
         console.warn('Lỗi khi tải hồ sơ học sinh:', err);
       } finally {
         if (isMounted) {
@@ -41,7 +47,7 @@ export function StudentProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [retryVersion]);
 
   const handleStartEdit = () => {
     if (!profile) return;
@@ -75,6 +81,8 @@ export function StudentProfilePage() {
     setSaveError(null);
     setIsEditing(false);
   };
+
+  if (loadError) return <DataState error message={loadError} onRetry={() => { setLoadError(null); setRetryVersion(v => v + 1); }} />;
 
   if (loading || !profile || !formData) {
     return (

@@ -6,8 +6,8 @@ import { getAuthUser } from '../../../api/authApi';
 export function StudentFeedbackPage() {
   const authUser = getAuthUser();
   const studentId = getSelectedUserId('student');
-  const studentName = authUser?.primaryRole === 'student' ? authUser.fullName : 'Lê Văn An';
-  const studentPhone = authUser?.primaryRole === 'student' ? (authUser.phone || '0956 789 012') : '0956 789 012';
+  const studentName = authUser?.fullName || '';
+  const studentPhone = authUser?.phone || '';
 
   useEffect(() => {
     document.title = 'Feedback & Support – EduTrack';

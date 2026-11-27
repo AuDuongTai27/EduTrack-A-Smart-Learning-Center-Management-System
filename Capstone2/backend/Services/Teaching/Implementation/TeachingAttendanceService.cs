@@ -321,7 +321,7 @@ namespace EduTrack.API.Services.Teaching.Implementation
                 .FirstOrDefaultAsync(c => c.ClassId == classId);
 
             DateTime startDate = cls?.StartDate ?? DateTime.UtcNow.Date.AddDays(-7);
-            string room = cls?.Room ?? "Room 201";
+            string room = cls?.Room ?? string.Empty;
 
             var schedule = cls?.ClassSchedules.FirstOrDefault();
             var scheduleVersion = schedule?.Versions.FirstOrDefault();

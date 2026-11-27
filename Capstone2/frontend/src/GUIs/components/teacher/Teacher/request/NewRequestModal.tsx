@@ -18,6 +18,7 @@ export default function NewRequestModal({
   onRequestCreated,
   defaultRequestedBy = 3,
 }: NewRequestModalProps) {
+  const mutationLock = React.useRef(false);
   const [requestType, setRequestType] = useState('leave_request');
   const [priority, setPriority] = useState('medium');
   const [title, setTitle] = useState('');
@@ -41,8 +42,10 @@ export default function NewRequestModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mutationLock.current) return;
     if (!isFormValid || isSubmitting) return;
 
+    mutationLock.current = true;
     try {
       setIsSubmitting(true);
       setErrorMsg(null);
@@ -59,11 +62,12 @@ export default function NewRequestModal({
         onRequestCreated?.(res.data);
       }
 
-      handleClose();
+      setTitle(''); setDescription(''); setErrorMsg(null); onClose();
     } catch (err: any) {
       console.error('Failed to create teaching request:', err);
       setErrorMsg(err?.message || 'An error occurred while submitting the request. Please try again.');
     } finally {
+      mutationLock.current = false;
       setIsSubmitting(false);
     }
   };
