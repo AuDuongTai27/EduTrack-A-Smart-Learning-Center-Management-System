@@ -11,7 +11,7 @@
   background: url('../illustrations/academy-banner-waves.svg') right bottom / 100vw 300px no-repeat fixed;
 }
 @media (min-width: 992px) {
-  .teacher-scope.teaching-academy .page-content > * {
+  .teacher-scope.teaching-academy .page-content > *:not(.modal):not(.modal-backdrop):not(.et-modal-backdrop):not([role="dialog"]) {
     width: 100%;
     max-width: calc(100vw - var(--sidebar-width, 248px) - 52px);
     margin-inline: auto;
