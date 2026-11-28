@@ -11,7 +11,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: url('../illustrations/academy-page-waves.svg') right bottom / 100% auto no-repeat;
+  background: url('../illustrations/academy-page-waves.svg') right bottom / 100vw auto no-repeat fixed;
   pointer-events: none;
 }
 .student-scope .et-student-academy > .content-container { position: relative; z-index: 1; }

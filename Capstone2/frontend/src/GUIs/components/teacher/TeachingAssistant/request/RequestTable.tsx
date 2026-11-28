@@ -120,7 +120,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
               type="search"
               className="form-control form-control-sm border-start-0 ps-0"
               id="tableSearchInput"
-              placeholder="Search by code or title..."
+              placeholder="Search by title or type..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -136,13 +136,12 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
         <table className="table custom-table align-middle mb-0" id="requestsTable">
           <thead className="table-light">
             <tr>
-              <th>Request Code</th>
-              <th>Request Type</th>
-              <th>Request Title</th>
-              <th>Priority</th>
-              <th>Submitted Date</th>
-              <th>Status</th>
-              <th className="text-end">Actions</th>
+              <th className="ps-4 pe-3" style={{ width: "32%", minWidth: 200 }}>Request Title</th>
+              <th className="px-3 text-nowrap" style={{ width: "16%" }}>Request Type</th>
+              <th className="px-3 text-center text-nowrap" style={{ width: "12%" }}>Priority</th>
+              <th className="px-3 text-nowrap" style={{ width: "16%" }}>Submitted Date</th>
+              <th className="px-3 text-nowrap" style={{ width: "14%" }}>Status</th>
+              <th className="ps-3 pe-4 text-end text-nowrap" style={{ width: "10%" }}>Actions</th>
             </tr>
           </thead>
           <tbody id="requestTableBody">
@@ -160,21 +159,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
 
                 return (
                   <tr key={req.requestId || idx}>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 fw-bold text-primary text-decoration-none"
-                        onClick={() => setSelectedRequest(req)}
-                      >
-                        {req.requestCode || `#${req.requestId}`}
-                      </button>
-                    </td>
-                    <td>
-                      <span className="badge bg-light text-dark border">
-                        {getRequestTypeLabel(req.requestType)}
-                      </span>
-                    </td>
-                    <td>
+                    <td className="ps-4 pe-3">
                       <span className="text-dark fw-semibold d-block">
                         {req.title || req.description || "Teaching Assistant Request"}
                       </span>
@@ -182,10 +167,15 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
                         <small className="text-muted d-block">{req.className}</small>
                       )}
                     </td>
-                    <td>{getPriorityBadge(req.priority)}</td>
-                    <td className="text-muted small">{dateStr}</td>
-                    <td>{getStatusBadge(req)}</td>
-                    <td className="text-end">
+                    <td className="px-3 text-nowrap">
+                      <span className="badge bg-light text-dark border">
+                        {getRequestTypeLabel(req.requestType)}
+                      </span>
+                    </td>
+                    <td className="px-3 text-center">{getPriorityBadge(req.priority)}</td>
+                    <td className="px-3 text-muted small text-nowrap">{dateStr}</td>
+                    <td className="px-3 text-nowrap">{getStatusBadge(req)}</td>
+                    <td className="ps-3 pe-4 text-end text-nowrap">
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
@@ -199,7 +189,7 @@ export default function RequestTable({ requests = [], onRequestUpdated }: Reques
               })
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-muted">
+                <td colSpan={6} className="text-center py-4 text-muted">
                   <i className="bi bi-inbox fs-3 d-block mb-1" />
                   No matching requests found.
                 </td>

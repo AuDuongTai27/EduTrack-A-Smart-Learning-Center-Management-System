@@ -13,12 +13,24 @@ import './notifications.css';
 const EMPTY: NotificationDto[] = [];
 const message = (error: unknown) => error instanceof Error ? error.message : 'Operation failed.';
 
-export default function NotificationInboxPage() {
+export default function NotificationInboxPage({ showPaginationSummary = true }: { showPaginationSummary?: boolean } = {}) {
   const inbox = useNotificationInbox();
   // Reset selection, compose and sent history immediately at every identity/role boundary.
-  return <NotificationPage key={`${inbox.role}:${inbox.data?.identity.userId ?? 'unverified'}`} inbox={inbox} />;
+  return (
+    <NotificationPage
+      key={`${inbox.role}:${inbox.data?.identity.userId ?? 'unverified'}`}
+      inbox={inbox}
+      showPaginationSummary={showPaginationSummary}
+    />
+  );
 }
-function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationInbox> }) {
+function NotificationPage({
+  inbox,
+  showPaginationSummary,
+}: {
+  inbox: ReturnType<typeof useNotificationInbox>;
+  showPaginationSummary: boolean;
+}) {
   const { data, loading, error, store, busy, manager } = inbox;
   const [params, setParams] = useSearchParams(); const rawId = params.get('notificationId');
   const selectedId = rawId && /^\d+$/.test(rawId) && Number.isSafeInteger(Number(rawId)) ? Number(rawId) : null;
@@ -82,7 +94,7 @@ function NotificationPage({ inbox }: { inbox: ReturnType<typeof useNotificationI
             aria-pressed={selectedId === n.notificationId} onClick={() => { attempted.current = ''; setParams({ notificationId: String(n.notificationId) }); }}>
             <span className="ntf-type-label">{notificationTypeLabel(n.type)}</span><strong>{n.title}</strong><p className="ntf-clamp my-1">{n.content}</p><small>{notificationTime(n.createdAt)} · {tab === 'sent' ? `${n.recipientCount ?? 0} recipients` : n.senderName || 'EduTrack System'}</small>
           </button>)}
-        {!!filtered.length && <div className="p-3"><Pagination currentPage={safePage} totalItems={filtered.length} entriesPerPage={5} itemLabel="notifications" onPageChange={setPage} /></div>}
+        {!!filtered.length && <div className="p-3"><Pagination currentPage={safePage} totalItems={filtered.length} entriesPerPage={5} itemLabel="notifications" onPageChange={setPage} showSummary={showPaginationSummary} /></div>}
       </section>
       <section className="card ntf-detail" aria-label="Notification details">
         {selected ? <><h4>{selected.title}</h4><p className="text-muted">{selected.senderName || 'EduTrack System'} · {notificationTime(selected.createdAt)}</p>

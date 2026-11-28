@@ -1,7 +1,55 @@
 /* Student / Parent desktop sidebars. Reuse existing free space; never reserve image height. */
+@media (min-width: 992px) {
+  .student-scope .sidebar.student-sidebar-academy,
+  .student-scope .sidebar.parent-sidebar-academy {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 240px;
+    min-width: 0;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 1030;
+    overflow: visible;
+    will-change: width;
+    transition: width 0.25s ease, transform 0.25s ease !important;
+  }
+  .student-scope .app-container > .main-wrapper {
+    margin-left: 240px;
+    min-width: 0;
+    transition: margin-left 0.25s ease;
+  }
+  .student-scope .app-container > .main-wrapper .content-container {
+    width: 100%;
+    max-width: calc(100vw - 240px);
+    margin-inline: auto;
+  }
+  body.sidebar-collapsed .student-scope .sidebar.student-sidebar-academy,
+  body.sidebar-collapsed .student-scope .sidebar.parent-sidebar-academy {
+    width: 74px;
+    min-width: 0;
+  }
+  body.sidebar-collapsed .student-scope .app-container > .main-wrapper {
+    margin-left: 74px;
+  }
+}
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-header {
+  height: 58px;
+  min-height: 58px;
+  padding: 0 18px;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) :is(.brand-text-group, .nav-label, .sidebar-nav-title) {
+  white-space: nowrap;
+}
+.student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav-link i {
+  flex-shrink: 0;
+}
 .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav {
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav > :is(.sidebar-nav-title, .sidebar-nav-list) {
   flex: 0 0 auto;
@@ -57,13 +105,11 @@
   background: #eaf8f1;
 }
 
-body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) {
-  width: 74px;
-  min-width: 74px;
-}
 body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-header {
   justify-content: center !important;
-  padding: 14px 8px;
+  height: 58px;
+  min-height: 58px;
+  padding: 0 8px;
 }
 body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .brand-link,
 body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav-title,
@@ -72,6 +118,31 @@ body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-side
 body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .child-switcher-section,
 body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-nav::after {
   display: none !important;
+}
+body.sidebar-collapsed .student-scope .parent-sidebar-academy .sidebar-child-switcher {
+  padding: 10px 8px !important;
+  display: flex;
+  justify-content: center;
+}
+body.sidebar-collapsed .student-scope .parent-sidebar-academy .sidebar-child-switcher .child-switcher-header,
+body.sidebar-collapsed .student-scope .parent-sidebar-academy .sidebar-child-switcher .child-switcher-info,
+body.sidebar-collapsed .student-scope .parent-sidebar-academy .sidebar-child-switcher .child-switcher-chevron {
+  display: none !important;
+}
+body.sidebar-collapsed .student-scope .parent-sidebar-academy .sidebar-child-switcher .child-switcher-trigger {
+  width: 44px !important;
+  height: 44px;
+  padding: 0 !important;
+  justify-content: center;
+  border-radius: 12px !important;
+}
+body.sidebar-collapsed .student-scope .parent-sidebar-academy .sidebar-child-switcher .child-switcher-menu {
+  top: 8px !important;
+  left: calc(100% + 10px) !important;
+  right: auto !important;
+  width: 248px;
+  margin-top: 0 !important;
+  z-index: 1060 !important;
 }
 body.sidebar-collapsed .student-scope :is(.student-sidebar-academy, .parent-sidebar-academy) .sidebar-collapse-btn {
   width: 38px;
